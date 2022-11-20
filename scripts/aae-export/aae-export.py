@@ -50,7 +50,7 @@ bl_info = {
     "name": "Adobe After Effects 6.0 Keyframe Data Export",
     "description": "Export motion tracking data as Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE file",
     "author": "Martin Herkt, arch1t3cht, Akatsumekusa",
-    "version": (0, 2, 1),
+    "version": (0, 2, 2),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (2, 93, 0),
@@ -256,14 +256,17 @@ class AAEExportExportAll(bpy.types.Operator):
 
             frames = []
             corners = []
-            for marker in track.markers[1:-1]:
+            for marker in (track.markers[1:] if not track.markers[0].is_keyed else track.markers) if track.markers[0].__class__.__name__ == "MovieTrackingMarker" else track.markers[1:-1]:
                 if not 0 < marker.frame <= clip.frame_duration:
                     continue
                 if marker.mute:
                     continue
 
                 frames.append(marker.frame)
-                corners.append([list(c) for c in marker.corners])
+                if marker.__class__.__name__ == "MovieTrackingMarker":
+                    corners.append([list([c[0] + marker.co[0], c[1] + marker.co[1]]) for c in marker.pattern_corners])
+                else: # "MovieTrackingPlaneMarker"
+                    corners.append([list(c) for c in marker.corners])
             
             for pini, corneri in [(2, 3), (3, 2), (4, 0), (5, 1)]:
                 power_pin += f"\n\nEffects\tCC Power Pin #1\tCC Power Pin-000{pini}"
@@ -277,7 +280,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
             return power_pin
     
-        if do_includes_power_pin and track.markers[0].__class__.__name__ == "MovieTrackingPlaneMarker":
+        if do_includes_power_pin:
             aae += generate_power_pin(clip, track)
 
         aae += "\n\nEnd of Keyframe Data\n"
