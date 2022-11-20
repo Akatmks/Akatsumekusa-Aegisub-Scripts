@@ -48,16 +48,16 @@
 
 bl_info = {
     "name": "Adobe After Effects 6.0 Keyframe Data Export",
-    "description": "Export motion tracking data as Aegisub-Motion compatible AAE file",
+    "description": "Export motion tracking data as Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE file",
     "author": "Martin Herkt, arch1t3cht, Akatsumekusa",
-    "version": (0, 1, 6),
+    "version": (0, 2, 0),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (2, 80, 0),
     "location": "Clip Editor > Tools > Solve > AAE Export",
     "warning": "",
-    "doc_url": "https://github.com/arch1t3cht/Aegisub-Scripts#other-scripts",
-    "tracker_url": "https://github.com/arch1t3cht/Aegisub-Scripts/issues"
+    "doc_url": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    "tracker_url": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/issues"
 }
 
 import bpy
@@ -74,7 +74,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                            description="Automatically export the selected track to file while copying",
                                            default=True)
     do_includes_power_pin: bpy.props.BoolProperty(name="Includes Power Pin",
-                                           description="Includes Power Pin data in plane track export.\nAs of Nov 2022, Aegisub-Perspective-Motion doesn't accept Power Pin data mixed with regular tracking data likely due to a bug. Please use the separate powerpin-export.py until this Aegisub-Perspective-Motion bug is fixed",
+                                           description="Includes Power Pin data in plane track export.\nIf Aegisub-Perspective-Motion is having trouble with the Power Pin data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
                                            default=True)
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
                                                 description="Generate unique files every time",
