@@ -315,7 +315,7 @@ class AAEExportExportAll(bpy.types.Operator):
                     break
 
         if coords != None:
-            p = Path(clip.filepath if not prefix else prefix)
+            p = Path(bpy.path.abspath(clip.filepath if not prefix else prefix))
             # with_stem() requires Python 3.9 (Blender 2.93)
             p = p.with_stem(p.stem + \
                             "[" + ("Track" if track.markers[0].__class__.__name__ == "MovieTrackingMarker" else "Plane Track") + "]" + \
