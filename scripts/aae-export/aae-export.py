@@ -74,7 +74,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                            description="Automatically export the selected track to file while copying",
                                            default=True)
     do_includes_power_pin: bpy.props.BoolProperty(name="Includes Power Pin",
-                                           description="Includes Power Pin data in plane track export.\nIf Aegisub-Perspective-Motion is having trouble with the Power Pin data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
+                                           description="Includes Power Pin data in the export.\nIf Aegisub-Perspective-Motion is having trouble with the Power Pin data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
                                            default=True)
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
                                                 description="Generate unique files every time",
@@ -445,11 +445,8 @@ class AAEExportAllTracks(bpy.types.Panel):
         settings = context.screen.AAEExportSettings
         
         column = layout.column()
-        column.label(text="Plane tracks")
-        column.prop(settings, "do_includes_power_pin")
-        
-        column = layout.column()
         column.label(text="All tracks")
+        column.prop(settings, "do_includes_power_pin")
         column.prop(settings, "do_also_export")
         column.prop(settings, "do_do_not_overwrite")
         
