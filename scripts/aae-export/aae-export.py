@@ -50,10 +50,10 @@ bl_info = {
     "name": "Adobe After Effects 6.0 Keyframe Data Export",
     "description": "Export motion tracking data as Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE file",
     "author": "Martin Herkt, arch1t3cht, Akatsumekusa",
-    "version": (0, 2, 0),
+    "version": (0, 2, 1),
     "support": "COMMUNITY",
     "category": "Video Tools",
-    "blender": (2, 80, 0),
+    "blender": (2, 93, 0),
     "location": "Clip Editor > Tools > Solve > AAE Export",
     "warning": "",
     "doc_url": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
@@ -313,6 +313,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
         if coords != None:
             p = Path(clip.filepath if not prefix else prefix)
+            # with_stem() requires Python 3.9 (Blender 2.93)
             p = p.with_stem(p.stem + \
                             "[" + ("Track" if track.markers[0].__class__.__name__ == "MovieTrackingMarker" else "Plane Track") + "]" + \
                             f"[({coords[0]:.0f}, {coords[1]:.0f})]" + \
