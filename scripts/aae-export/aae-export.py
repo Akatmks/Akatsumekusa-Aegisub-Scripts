@@ -574,13 +574,13 @@ class AAEExportRegisterPreferencePanel(bpy.types.AddonPreferences):
         layout = self.layout
         settings = context.window_manager.AAEExportRegisterSettings
 
-        box = layout.box()
-        box.prop(settings, "is_advanced",
+        column = layout.column()
+        column.prop(settings, "is_advanced",
                     icon="TRIA_DOWN" if settings.is_advanced else "TRIA_RIGHT",
                     emboss=False)
 
         if settings.is_advanced:
-            box.operator("preference.aae_export_register_install_pyperclip", icon="CONSOLE")
+            column.operator("preference.aae_export_register_install_pyperclip", icon="CONSOLE")
 
 register_classes = (AAEExportRegisterSettings,
                     AAEExportRegisterInstallpyperclip,
