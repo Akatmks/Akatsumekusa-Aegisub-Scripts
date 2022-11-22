@@ -50,7 +50,7 @@ bl_info = {
     "name": "Adobe After Effects 6.0 Keyframe Data Export",
     "description": "Export motion tracking data as Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE file",
     "author": "Martin Herkt, arch1t3cht, Akatsumekusa",
-    "version": (0, 2, 2),
+    "version": (0, 2, 3),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (2, 93, 0),
@@ -335,7 +335,11 @@ class AAEExportExportAll(bpy.types.Operator):
             Likely coming from _generated().
             
         """
-        context.window_manager.clipboard = aae
+        if is_pyperclip_available:
+            import pyperclip
+            pyperclip.copy(aae)
+        else:
+            context.window_manager.clipboard = aae
 
 class AAEExportCopySingleTrack(bpy.types.Operator):
     bl_label = "Copy"
@@ -493,10 +497,133 @@ classes = (AAEExportSettings,
            AAEExportAllTracks,
            AAEExportLegacy)
            
+# ("import name", "PyPI name", "minimum version")
+pyperclip_modules = (("pyperclip", "pyperclip", ""),)
+
+is_pyperclip_available = False
+
+class AAEExportRegisterSettings(bpy.types.PropertyGroup):
+    bl_label = "AAEExportRegisterSettings"
+    bl_idname = "AAEExportRegisterSettings"
+    
+    is_advanced: bpy.props.BoolProperty(name="Advanced", default=False)
+
+class AAEExportRegisterInstallpyperclip(bpy.types.Operator):
+    bl_label = "Install Pyperclip"
+    bl_description = "In case Blender's builtin clipboard feature isn't functional, AAE Export provides a workaround using external module Pyperclip.\nBy clicking this button, AAE Export will download and install " + \
+                     (" and ".join([", ".join(["pip"] + [module[1] for module in pyperclip_modules[:-1]]), pyperclip_modules[-1][1]]) if len(pyperclip_modules) != 0 else "pip") + \
+                     " into your Blender distribution.\nThis process might take up to 3 minutes. Your Blender will freeze during the process"
+    bl_idname = "preference.aae_export_register_install_pyperclip"
+    bl_options = {"REGISTER", "INTERNAL"}
+
+    def execute(self, context):
+        import importlib.util
+        import os
+        import subprocess
+        import sys
+
+        if os.name == "nt":
+            self._execute_nt(context)
+        else:
+            subprocess.run([sys.executable, "-m", "ensurepip"], check=True) # sys.executable requires Blender 2.93
+            subprocess.run([sys.executable, "-m", "pip", "install"] + [module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in pyperclip_modules], check=True)
+            
+        for module in pyperclip_modules:
+            if importlib.util.find_spec(module[0]) == None:
+                return {'FINISHED'}
+
+        global is_pyperclip_available
+        is_pyperclip_available = True
+
+        unregister_register_class()
+        
+        self.report({"INFO"}, "Pyperclip installed successfully.")
+
+        return {'FINISHED'}
+
+    def _execute_nt(self, context):
+        # Python, in a Python, in a PowerShell, in a Python
+        import importlib.util
+        import os
+        from pathlib import PurePath
+        import subprocess
+        import sys
+        from tempfile import NamedTemporaryFile
+
+        with NamedTemporaryFile(mode="w+", encoding="utf-8", suffix=".py", delete=False) as f:
+            f.write("import os, subprocess, sys, traceback\n")
+            f.write("if __name__ == \"__main__\":\n")
+            f.write("\ttry:\n")
+
+            f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"ensurepip\"], check=True)\n")
+            f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"pip\", \"install\", \"" + \
+                                        "\", \"".join([module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in pyperclip_modules]) + \
+                                        "\"], check=True)\n")
+
+            f.write("\texcept:\n")
+            f.write("\t\ttraceback.print_exc()\n")
+            f.write("\t\tos.system(\"pause\")\n")
+
+        print("aae-export: " + "PowerShell -Command \"& {Start-Process \\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\" -Verb runAs -Wait}\"")
+        os.system("PowerShell -Command \"& {Start-Process \\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\" -Verb runAs -Wait}\"")
+
+class AAEExportRegisterPreferencePanel(bpy.types.AddonPreferences):
+    bl_idname = __name__
+    
+    def draw(self, context):
+        layout = self.layout
+        settings = context.window_manager.AAEExportRegisterSettings
+
+        column = layout.column()
+        column.prop(settings, "is_advanced",
+                    icon="TRIA_DOWN" if settings.is_advanced else "TRIA_RIGHT",
+                    emboss=False)
+
+        if settings.is_advanced:
+            column.operator("preference.aae_export_register_install_pyperclip", icon="CONSOLE")
+
+register_classes = (AAEExportRegisterSettings,
+                    AAEExportRegisterInstallpyperclip,
+                    AAEExportRegisterPreferencePanel)
+def register():
+    import importlib.util
+    if importlib.util.find_spec("packaging") != None:
+        import packaging.version
+    elif importlib.util.find_spec("distutils") != None: # distutils deprecated in Python 3.12
+        import distutils.version
+    
+    global is_pyperclip_available
+    for module in pyperclip_modules:
+        if importlib.util.find_spec(module[0]) == None:
+            register_register_classes()
+
+            is_pyperclip_available = False
+            break
+
+        if module[2]:
+            exec("import " + module[0])
+            module_version = eval(module[0] + ".__version__")
+            if "packaging" in locals():
+                if packaging.version.parse(module_version) < packaging.version.parse(module[2]):
+                    register_register_classes()
+
+                    is_pyperclip_available = False
+                    break
+            elif "distutils" in locals(): # distutils deprecated in Python 3.12
+                if distutils.version.LooseVersion(module_version) < distutils.version.LooseVersion(module[2]):
+                    register_register_classes()
+
+                    is_pyperclip_available = False
+                    break
+    else:
+        is_pyperclip_available = True
+
+    register_main_classes()
+
 def register_export_legacy(self, context):
     self.layout.operator(AAEExportLegacy.bl_idname, text="Adobe After Effects 6.0 Keyframe Data")
 
-def register():
+def register_main_classes():
     for class_ in classes:
         bpy.utils.register_class(class_)
         
@@ -504,12 +631,30 @@ def register():
         
     bpy.types.TOPBAR_MT_file_export.append(register_export_legacy)
 
+def register_register_classes():
+    for class_ in register_classes:
+        bpy.utils.register_class(class_)
+
+    bpy.types.WindowManager.AAEExportRegisterSettings = bpy.props.PointerProperty(type=AAEExportRegisterSettings)
+    
 def unregister():
+    if not is_pyperclip_available:
+        unregister_register_class()
+    
+    unregister_main_class()
+
+def unregister_main_class():
     bpy.types.TOPBAR_MT_file_export.remove(register_export_legacy)
     
     del bpy.types.Screen.AAEExportSettings
     
     for class_ in classes:
+        bpy.utils.unregister_class(class_)
+
+def unregister_register_class():
+    del bpy.types.WindowManager.AAEExportRegisterSettings
+
+    for class_ in register_classes:
         bpy.utils.unregister_class(class_)
 
 if __name__ == "__main__":
