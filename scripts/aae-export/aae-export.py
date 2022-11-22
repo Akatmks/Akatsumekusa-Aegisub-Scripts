@@ -509,7 +509,7 @@ class AAEExportRegisterSettings(bpy.types.PropertyGroup):
     is_advanced: bpy.props.BoolProperty(name="Advanced", default=False)
 
 class AAEExportRegisterInstallpyperclip(bpy.types.Operator):
-    bl_label = "Install pyperclip"
+    bl_label = "Install Pyperclip"
     bl_description = "In case Blender's builtin clipboard feature isn't functional, AAE Export provides a workaround using external module Pyperclip.\nBy clicking this button, AAE Export will download and install " + \
                      (" and ".join([", ".join(["pip"] + [module[1] for module in pyperclip_modules[:-1]]), pyperclip_modules[-1][1]]) if len(pyperclip_modules) != 0 else "pip") + \
                      " into your Blender distribution.\nThis process might take up to 3 minutes. Your Blender will freeze during the process"
@@ -537,7 +537,7 @@ class AAEExportRegisterInstallpyperclip(bpy.types.Operator):
 
         unregister_register_class()
         
-        self.report({"INFO"}, "pyperclip installed successfully.")
+        self.report({"INFO"}, "Pyperclip installed successfully.")
 
         return {'FINISHED'}
 
@@ -640,8 +640,8 @@ def register_register_classes():
 def unregister():
     if not is_pyperclip_available:
         unregister_register_class()
-    else:
-        unregister_main_class()
+    
+    unregister_main_class()
 
 def unregister_main_class():
     bpy.types.TOPBAR_MT_file_export.remove(register_export_legacy)
