@@ -20,7 +20,7 @@ https://user-images.githubusercontent.com/112813970/204139371-d8649aa1-7c17-497f
 
 ### Summary: Using tracking marker to track clips in Blender
 
-* Motion tracking in Blender is based on tracking markers. You can place markers on the screen by clicking the „Add“ button in „Track > Marker“. You can configure the marker in „Track > Tracking Settings“ on the left panel before placing them on screen, or configure them in „Track > Tracking Settings“ on the right panel after tracking.  
+* Motion tracking in Blender is based on tracking markers. You can place markers on the screen by clicking the „Add“ button in „Track > Marker“ on the left panel. You can configure the marker in „Track > Tracking Settings“ on the left panel before placing them on screen, or configure them in „Track > Tracking Settings“ on the right panel after placing.  
 * You can move the marker around using the main preview, or use the small window in „Track > Track“ on the right panel to make tiny adjustments.  
 * Although it looks like every marker is centred around a single point, that centre point doesn't really matter. What matters instead is the whole pattern area. If you are tracking a pan without scaling or perspective, you can use a small tracking area at around 21 ~ 41. If you are tracking a pan with scale like in this tutorial, you should try to use a larger tracking area at about 81 ~ 121.  
 * The search area should be set depending on how fast the tracking target is moving. If the tracking target is moving slowly like in this tutorial, you can set search area to around pattern area plus 50. However, if the tracking target is moving very fast through the scene, you might need to set the search area to as high as pattern area plus 400.  
