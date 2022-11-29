@@ -2,7 +2,7 @@
 
 [Tutorial 1: Install AAE Export](#tutorial-1-install-aae-export)  
 [Tutorial 2: Track a simple pan using tracking marker](#tutorial-2-track-a-simple-pan-using-tracking-marker)  
-Tutorial 3: Track perspective using plane track (WIP)  
+[Tutorial 3: Track perspective using plane track](#tutorial-3-track-perspective-using-plane-track)
 
 ## Tutorial 1: Install AAE Export
 
@@ -27,3 +27,12 @@ https://user-images.githubusercontent.com/112813970/204139371-d8649aa1-7c17-497f
 * Note that the first frame of a video clip in Blender is frame 1. Frame 0 and negative frames show the same picture as frame 1. AAE Export will only export AAE data from frame 1 till the end of the video.  
 * Select the marker you want to track, and use the tools in „Track > Track“ on the left panel to track the marker. After tracking, use the „Copy“ button in „Solve > AAE Export > Selected track“ on the left panel to copy AAE data to clipboard. Paste the AAE data in a-mo and apply it to subtitle.  
 * AAE Export by default will automatically save a copy of the AAE data next to the video file. If you don't want this behaviour, you can turn it off by deselecting the „Auto export“ option in „Solve > AAE Export > All tracks“.  
+
+## Tutorial 3: Track perspective using plane track
+
+https://raw.githubusercontent.com/Akatmks/Akatmks/main/aae-export/tutorial02.mp4
+
+### Summary: Using plane track to track perspective in Blender
+
+* Plane track is created using 4 or more markers. It takes the position data from markers and use them to calculate perspective. It requires all the markers to be accurate to work.  
+* The 4 corners of plane track is used by Aegisub-Perspective-Motion to generate perspective. Align the plane track to the surface you want to put text on, and use the „Copy“ button in „Solve > AAE Export > Selected track“ to copy AAE data to clipboard.  
