@@ -9,6 +9,6 @@ AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisu
 –　[Tutorial 2: Track a simple pan using tracking marker](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/master/docs/aae-export-tutorial.md#tutorial-2-track-a-simple-pan-using-tracking-marker)  
 –　[Tutorial 3: Track perspective using plane track](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/master/docs/aae-export-tutorial.md#tutorial-3-track-perspective-using-plane-track)  
 
-The last tutorial will hopefully come in early Decemeber. For anyone who is interested, there is also a [more complex script](https://github.com/Akatmks/Non-Carbonated-Motion) in development. There is no guarantee when that script will be finished but hope it will come sooner rather than later.  
+For anyone who is interested, there is also a [more complex script](https://github.com/Akatmks/Non-Carbonated-Motion) in development. There is no guarantee when that script will be finished but hope it will come sooner rather than later.  
 
 <br clear="left" />
