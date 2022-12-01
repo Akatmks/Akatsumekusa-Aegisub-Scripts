@@ -50,7 +50,7 @@ bl_info = {
     "name": "Adobe After Effects 6.0 Keyframe Data Export",
     "description": "Export motion tracking data as Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE file",
     "author": "Martin Herkt, arch1t3cht, Akatsumekusa",
-    "version": (0, 2, 3),
+    "version": (0, 2, 4),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (2, 93, 0),
@@ -171,7 +171,7 @@ class AAEExportExportAll(bpy.types.Operator):
         aae += "\tSource Pixel Aspect Ratio\t1\n"
         aae += "\tComp Pixel Aspect Ratio\t1\n\n"
 
-        for marker in (track.markers[1:] if not track.markers[0].is_keyed else track.markers) if track.markers[0].__class__.__name__ == "MovieTrackingMarker" else track.markers[1:-1]:
+        for marker in track.markers if track.markers[0].__class__.__name__ == "MovieTrackingMarker" else track.markers[1:-1]:
             if not 0 < marker.frame <= clip.frame_duration:
                 continue
             if marker.mute:
@@ -256,7 +256,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
             frames = []
             corners = []
-            for marker in (track.markers[1:] if not track.markers[0].is_keyed else track.markers) if track.markers[0].__class__.__name__ == "MovieTrackingMarker" else track.markers[1:-1]:
+            for marker in track.markers if track.markers[0].__class__.__name__ == "MovieTrackingMarker" else track.markers[1:-1]:
                 if not 0 < marker.frame <= clip.frame_duration:
                     continue
                 if marker.mute:
