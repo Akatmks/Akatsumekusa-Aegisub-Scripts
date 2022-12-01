@@ -30,7 +30,7 @@ https://user-images.githubusercontent.com/112813970/204139371-d8649aa1-7c17-497f
 
 ## Tutorial 3: Track perspective using plane track
 
-https://user-images.githubusercontent.com/112813970/204733020-97bb90a6-0735-4643-a7d0-e3da7aa9dc65.mp4
+https://user-images.githubusercontent.com/112813970/204945118-47033214-177d-4c83-bd6c-5ffbed2c0c40.mp4
 
 ### Summary: Using plane track to track perspective in Blender
 
