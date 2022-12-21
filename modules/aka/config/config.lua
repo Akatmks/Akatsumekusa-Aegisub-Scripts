@@ -21,67 +21,107 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-local json = require("aka/config/dkjson")
+------------------------------------------------------------------------------
+-- If you want to have a try at aka.config, here is a small tutorial.
+-- 
+-- While this module is called aka.config, you can serialise anything you want
+-- using this module, not only configs. Comparing to other serialisation
+-- modules like DepCtrl's ConfigHandler, this module creates a prettified JSON
+-- which the user can edit inside Aegisub.
+-- Another feature provided by aka.config is that you can have multiple
+-- presets or templates for the user to choose from when they first run the
+-- script.
+-- 
+-- In order to 
 
-local config_dir = nil
-local set_config_dir = function()
-    local dep_ctrl_file
-    local dep_ctrl_config
-
-    global config_dir
-
-    dep_ctrl_file = io.open(aegisub.decode_path("?user/config/l0.DependencyControl.json"))
-    if dep_ctrl_file then
-        dep_ctrl_config = json:decode(dep_ctrl_file:read("*all"))
-        if dep_ctrl_config and dep_ctrl_config.config and dep_ctrl_config.config.configDir then
-            config_dir = string.sub(dep_ctrl_config.config.configDir, -1) ~= "/" and dep_ctrl_config.config.configDir or string.sub(dep_ctrl_config.config.configDir, 1, -2)
-            return
-    end end
-    config_dir = "?user/config" end
-set_config_dir()
-
+local json = require("aka.config.json")
+local re = require("aegisub.re")
+local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 local functions = {}
+
+local json_error
+local json_error_table
+local reset_json_error
+local config_dir
+local set_config_dir
+local validate
+local selected_template_keys
+local get_template_key
+local select_template_key
+local config_gui
+local config_no_gui
+
+json_error = false
+json_error_table = {}
+json.onDecodeError = function(message, text, location, etc)
+    local matches
+    local i
+
+    if not text or not location or not etc then return end
+    if json_error == false then json_error = 1
+    else json_error = json_error + 1 end
+
+    location = "\n" .. location .. "\n"
+    etc = etc + 1
+    matches = re.find(location, "(\\r|\\n|\\r\\n)")
+    i = 1
+    while matches[i + 1] do
+        if etc == 2 then
+            table.insert(json_error_table, text)
+            return
+        elseif etc > matches[i]["last"] and etc <= matches[i + 1]["first"] then
+            table.insert(json_error_table, text .. " in line " .. tostring(i))
+            json_error = json_error + 1
+            table.insert(json_error_table, "`" .. re.sub(string.sub(location, matches[i]["last"] + 1, matches[i + 1]["first"] - 1), "^\\s*(.*?)\\s*$", "\\1") .. "`")
+            return
+        end
+        i = i + 1
+    end
+    assert(false) end
+reset_json_error = function() json_error = false json_error_table = {} end
+json.decode2 = function(text, etc, options) reset_json_error() return json:decode(text, etc, options) end
+
+config_dir = aegisub.decode_path(hasDepCtrl and DepCtrl.config.c.configDir or "?user/config")
+
 ------------------------------------------------
 -- Read the specified config and return a table.
 -- This is the only function to run when loading config.
 -- If the config wasn't successfully read, please always run edit_config_gui() instead.
 -- 
 -- @param str config: The name for the config file without the file extension
--- @param str subfolder ["aka"]: The subfolder where the config is in; Set this to "" if the config are in the root config dir
+-- @param str subfolder [""]: The subfolder where the config is in; Set this to "" if the config are in the root config dir
 -- @param func validation_func [function() return true end]: The function to validate the config before sending back;
---                                                           It should take the table as param and return true if the validation is sucessful,
---                                                           Otherwise it should return an error message
+--                                                           It should take the config data as param and return true if the validation is sucessful,
+--                                                           Otherwise it should return an int as error message count and a table of string as error messages
 -- 
 -- @returns bool is_success: True if the config was successfully read
 -- @returns table config_data: The table read from the config
 functions.read_config = function(config, subfolder, validation_func)
-    subfolder = subfolder or "aka"
+    subfolder = subfolder or ""
     validation_func = validation_func or function() return true end
 
     local config_file
     local config_data
-    local err
 
-    config_file = io.open(aegisub.decode_path(config_dir .. "/" .. subfolder .. (subfolder ~= "" and "/" or "") .. config .. ".json"), "r")
+    config_file = io.open(config_dir .. "/" .. subfolder .. (subfolder ~= "" and "/" or "") .. config .. ".json", "r")
     if config_file then
-        config_data, _, err = json:decode(config_file:read("*all"))
+        config_data = json.decode2(config_file:read("*all"))
         assert(config_file:close())
-        if not err and validation_func == true then
+        if not json_error and validation_func(config_data) == true then
             return true, config_data
     end end
-    return false, nil end
-
+    return false, config_data end
 -------------------------------------------------
 -- Overwrite the specified config with the table.
 -- 
 -- @param str config: The name for the config file without the file extension
--- @param str subfolder ["aka"]: The subfolder where the config is in;
+-- @param str subfolder [""]: The subfolder where the config is in;
 --                               Set this to "" if the config are in the root config directory
 -- @param table config_data: The table to save to the config
 -- 
 -- @returns bool is_success: True if the config was successfully saved
 functions.write_config = function(config, subfolder, config_data)
-    subfolder = subfolder or "aka"
+    subfolder = subfolder or ""
 
     local config_directory
     local config_file
@@ -89,42 +129,52 @@ functions.write_config = function(config, subfolder, config_data)
     
     config_directory = config_dir .. (subfolder ~= "" and "/" or "") .. subfolder
     is_success, err, code = os.rename(config_directory, config_directory)
-    if not is_success then
-        assert(code == 2)
+    if not is_success and code == 2 then
         if package.config:sub(1, 1) == "\\" then
-            is_success = os.execute("MKDIR " .. aegisub.decode_path(config_directory))
+            is_success = os.execute("MKDIR " .. config_directory)
         else -- package.config:sub(1, 1) == "/"
-            is_success = os.execute("mkdir -p " .. aegisub.decode_path(config_directory))
+            is_success = os.execute("mkdir -p " .. config_directory)
         assert(is_success)
     end end
 
-    config_file = assert(io.open(aegisub.decode_path(config_directory .. "/" .. config .. ".json"), "w"))
-    config_file:write(json:encode(config_data, { indent = true }))
+    config_file = assert(io.open(config_directory .. "/" .. config .. ".json", "w"))
+    config_file:write(json:encode_pretty(config_data))
     assert(config_file:close())
     return true end
 ------------------------------------------------
 -- Open the GUI and edit the config, either when the user asks for an edit, or when the config failed to parse or is not found
 -- 
 -- @param str config: The name for the config file without the file extension
--- @param str subfolder ["aka"]: The subfolder where the config is in;
+-- @param str subfolder [""]: The subfolder where the config is in;
 --                               Set this to "" if the config are in the root config directory
 -- @param func validation_func [function() return true end]: The function to validate the config before sending back;
---                                                           It should take the table as param and return true if the validation is sucessful,
---                                                           Otherwise it should return an error message
--- @param str config_name: The name of the config for display in the title of GUI
+--                                                           It should take the config data as param and return true if the validation is sucessful,
+--                                                           Otherwise it should return an int as error message count and a table of string as error messages
+-- @param func ui_func [nil]: The function to display a custom ui instead of the default JSON editor;
+--                            It will be fed with three params, current config string, error message count and error messages;
+--                            error message count will be 0 either when the string is "" or when the string passed validation_func;
+--                            It should return the new config string which will then be put into validation_func;
+--                            In case the user cancel the ui or escape the ui, the function should return false
+-- @param str config_name [config]: The name of the config for display in the title of GUI
+-- @param str config_config ["Config"]: The English word for config
 -- @param table config_templates: Templates for the config
--- @param bool is_no_gui [false]: Do not show GUI but instead use the first config template to create config
+-- @param bool is_no_gui_init [false]: Do not show GUI but instead use the first config template to create config
 --
 -- @returns bool is_success: True if the config was sucessfully created or validated
-functions.edit_config_gui = function(config, subfolder, validation_func, config_name, config_templates, is_no_gui)
-    subfolder = subfolder or "aka"
+-- @returns table config_data: The table read from the config
+functions.edit_config_gui = function(config, subfolder, validation_func, ui_func, config_name, config_config, config_templates, is_no_gui_init)
+    subfolder = subfolder or ""
     validation_func = validation_func or function() return true end
+    config_name = config_name or config
+    config_config = config_config or "Config"
 
     local config_file
     local config_string
+    local config_data
+    local msg_count
     local msg
     
-    config_file = io.open(aegisub.decode_path(config_dir .. "/" .. subfolder .. (subfolder ~= "" and "/" or "") .. config .. ".json"), "r")
+    config_file = io.open(config_dir .. "/" .. subfolder .. (subfolder ~= "" and "/" or "") .. config .. ".json", "r")
     if not config_file then
         config_string = ""
     else
@@ -132,67 +182,76 @@ functions.edit_config_gui = function(config, subfolder, validation_func, config_
         assert(config_file:close())
     end
 
-    if is_no_gui and config_string == "" then config_string = config_no_gui(config_templates)
+    if is_no_gui_init and config_string == "" then
+        config_data = json.decode2(config_no_gui(config_templates))
+        assert(json_error == false)
     else
-        msg = validate(config_string)
-        if msg == true then msg = "Edit config for " .. config_name
+        if config_string == "" then msg_count = 0 msg = {}
+        else
+            msg_count, msg, config_data = validate(config_string, validation_func)
+            if msg_count == true then msg_count = 0 msg = {} end
+        end
         repeat
-            config_string = config_gui(config_string, msg, config_templates)
+            if ui_func then config_string = ui_func(config_string, msg_count, msg)
+            else config_string = config_gui(config_string, msg_count, msg, config_name, config_config, config_templates) end
             if config_string == false then return false
             else
-                msg = validate(config_string)
+                msg_count, msg, config_data = validate(config_string, validation_func)
             end
-        until msg == true
-    return functions.write_config(config, subfolder, json:decode(config_string)) end
+        until msg_count == true
+    end
+    
+    return functions.write_config(config, subfolder, config_data), config_data end
 ------------------------------------------------
--- @param str config: The config to be validated
+-- @param str config_string: The config to be validated
 -- @param func validation_func [function() return true end]: The function to validate the config before sending back;
---                                                           It should take the table as param and return true if the validation is sucessful,
---                                                           Otherwise it should return an error message
--- @param str config_name: The name of the config for display in the title of GUI
+--                                                           It should take the config data as param and return true if the validation is sucessful,
+--                                                           Otherwise it should return an int as error message count and a table of string as error messages
 -- 
--- @returns bool is_valid or str msg: Either return true if the config is valid, or return the error message for the error in the config
-local validate = function(config, validation_func, config_name)
+-- @returns bool is_valid or int msg_count: Either return true if the config is valid, or return the count of error messages
+-- @returns table msg: Return the error messages for the error in the config
+-- @returns table config_data: Return the config table if valid
+validate = function(config_string, validation_func)
     local config_data
+    local msg_count
     local msg
 
-    if config == "" then local msg = "Create config for " .. config_name
+    if config_string == "" then msg_count = 1 msg = { "Root object not found" }
     else
-        config_data, _, msg = json:decode(config)
-        if not msg then
-            msg = validation_func(config_data)
+        config_data = json.decode2(config_string)
+        if json_error then
+            msg_count = json_error msg = json_error_table
+        else -- not json_error
+            msg_count, msg = validation_func(config_data)
     end end
-    return msg end
+    return msg_count, msg, config_data end
 
-local selected_template_keys = nil
-local get_template_key = function(config_templates)
-    global selected_template_keys
-
+selected_template_keys = nil
+get_template_key = function(config_templates)
     local it
     local swap
 
-    if selected_template_keys == nil then
-        for k in pairs(config_templates) do
-            selected_template_keys = { key = k, next = nil }
-            return k
+    if selected_template_keys then
+        if config_templates[selected_template_keys.key] then
+            return selected_template_keys.key
         end
-    else
-        it = { next = selected_template_keys }
-        while it.next != nil do
+        it = selected_template_keys
+        while it.next ~= nil do
             if config_templates[it.next.key] then
                 swap = it.next.next
                 it.next.next = selected_template_keys
                 selected_template_keys = it.next
                 it.next = swap
                 return selected_template_keys.key
-            else
-                it = it.ext
-        end end
-        for k in pairs(config_templates) do
-            selected_template_keys = { key = k, next = selected_template_keys }
-            return k
-    end end end
-local select_template_key = function(template_key)
+            end
+            it = it.next
+    end end
+
+    for k in pairs(config_templates) do
+        selected_template_keys = { key = k, next = selected_template_keys }
+        return k
+    end end
+select_template_key = function(template_key)
     local fake_templates
 
     fake_templates = {}
@@ -201,11 +260,14 @@ local select_template_key = function(template_key)
 
 ------------------------------------------------
 -- @param str config_string: The current config to be filled into the left panel
--- @param str msg: The message to display and the top of the right panel
+-- @param int msg_count: The number of messages
+-- @param table msg: The messages to display on the top of the right panel
+-- @param str config_name: The name of the config for display in the title of GUI
+-- @param str config_config: The English word for config
 -- @param table config_templates: Templates for the config
 -- 
 -- @returns str config_string or bool is_success: Either the user input to the left panel, or false if the user escape the gui
-local config_gui = function(config, msg, config_templates)
+config_gui = function(config_string, msg_count, msg, config_name, config_config, config_templates)
     local dialog
     local buttons
     local button_ids
@@ -213,35 +275,54 @@ local config_gui = function(config, msg, config_templates)
     local result_table
     local templates
     local template
+    local height
+    local height_template_textbox
 
     templates = {}
-    for k in pairs(config_templates) do
-        table.insert(templates, k)
-    end
-    template = nil
+    for k in pairs(config_templates) do table.insert(templates, k) end
+    template = get_template_key(config_templates)
+    if msg_count == 0 then height = 19 height_template_textbox = height - 2
+    elseif msg_count <= 13 then height = 19 height_template_textbox = height - msg_count - 3
+    else height = msg_count + 6 height_template_textbox = 3 end
 
     while true do
-        template = template or get_template_key(config_templates)
-        dialog = { { class = "textbox", name = "config_text",    x = 0, y = 0, width = 10, height = 15,  text = config },
-                   { class = "label",                            x = 10, y = 0, width = 10,              label = msg },
-                   { class = "textbox", name = "template_text",  x = 10, y = 1, width = 10, height = 13, text = config_templates[template] },
-                   { class = "label",                            x = 10, y = 14,                         label = "Templates: " },
-                   { class = "dropdown", name = "template",      x = 12, y = 14, width = 8,              items = templates, value = template } }
-        buttons = { "&Apply", "Load &Template", "Diminish" }
+        dialog = { { class = "label",                           x = 0, y = 0, width = 32,
+                                                                label = (config_string == "" and "𝗖𝗿𝗲𝗮𝘁𝗲 " or "𝗘𝗱𝗶𝘁 ") .. config_config .. " 𝗳𝗼𝗿 " .. config_name .. ":" },
+                   { class = "textbox", name = "config_text",   x = 0, y = 1, width = 32, height = height - 1,
+                                                                text = config_string },
+                   { class = "label",                           x = 32, y = height - height_template_textbox - 2, width = 32,
+                                                                label = "𝗧𝗲𝗺𝗽𝗹𝗮𝘁𝗲𝘀:" },
+                   { class = "textbox", name = "template_text", x = 32, y = height - height_template_textbox - 1, width = 32, height = height_template_textbox,
+                                                                text = config_templates[template] },
+                   { class = "label",                           x = 32, y = height - 1, width = 8,
+                                                                label = "Select Template:" },
+                   { class = "dropdown", name = "template",     x = 40, y = height - 1, width = 24,
+                                                                items = templates, value = template } }
+        if msg_count ~= 0 then
+            table.insert(dialog, { class = "label",             x = 32, y = 0, width = 32,
+                                                                label = "𝗘𝗿𝗿𝗼𝗿 𝗗𝗲𝘁𝗲𝗰𝘁𝗲𝗱:" })
+            for k, v in ipairs(msg) do
+                table.insert(dialog, { class = "label",         x = 32, y = k, width = 32,
+                                                                label = v })
+        end end
+        buttons = { "&Apply", "Apply Template", "Load &Template", "Diminish" }
         button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Diminish", no = "Diminish", cancel = "Diminish" }
 
         button, result_table = aegisub.dialog.display(dialog, buttons, button_ids)
 
         if button == false or button == "Diminish" then return false
-        elseif button == "&Apply" then return result_table["template_text"]
+        elseif button == "&Apply" then return result_table["config_text"]
+        elseif button == "Apply Template" then return config_templates[result_table["template"]]
         else -- button == "Load &Template"
-            template = result_table[template]
+            config_string = result_table["config_text"]
+            template = result_table["template"]
+            select_template_key(template)
     end end end
 ------------------------------------------------
 -- @param table config_templates: Templates for the config
 -- 
 -- @returns str config_string: The first template in the templates table
-local config_no_gui = function(config_templates)
+config_no_gui = function(config_templates)
     for k, v in pairs(config_templates) do select_template_key(k) return v end end
 
 return functions
