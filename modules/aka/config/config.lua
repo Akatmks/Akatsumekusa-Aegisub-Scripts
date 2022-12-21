@@ -36,6 +36,7 @@
 
 local json = require("aka.config.json")
 local re = require("aegisub.re")
+local unicode = require("aegisub.unicode")
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 local functions = {}
 
@@ -70,9 +71,9 @@ json.onDecodeError = function(message, text, location, etc)
             table.insert(json_error_table, text)
             return
         elseif etc > matches[i]["last"] and etc <= matches[i + 1]["first"] then
-            table.insert(json_error_table, text .. " in line " .. tostring(i))
+            table.insert(json_error_table, text .. " in line " .. tostring(i) .. " column " .. tostring(unicode.len(string.sub(location, matches[i]["last"] + 1, etc - 1)) + 1))
             json_error = json_error + 1
-            table.insert(json_error_table, "`" .. re.sub(string.sub(location, matches[i]["last"] + 1, matches[i + 1]["first"] - 1), "^\\s*(.*?)\\s*$", "\\1") .. "`")
+            table.insert(json_error_table, "`" .. string.sub(location, matches[i]["last"] + 1, matches[i + 1]["first"] - 1) .. "`")
             return
         end
         i = i + 1
@@ -155,18 +156,20 @@ functions.write_config = function(config, subfolder, config_data)
 --                            error message count will be 0 either when the string is "" or when the string passed validation_func;
 --                            It should return the new config string which will then be put into validation_func;
 --                            In case the user cancel the ui or escape the ui, the function should return false
--- @param str config_name [config]: The name of the config for display in the title of GUI
--- @param str config_config ["Config"]: The English word for config
+-- @param str word_name_b: The name of the config for display in the title of GUI
+-- @param str word_config_b ["𝗖𝗼𝗻𝗳𝗶𝗴"]: The English word for config
+-- @param str word_template ["Template"]: The English word for template
+-- @param str word_templates_b ["𝗧𝗲𝗺𝗽𝗹𝗮𝘁𝗲𝘀"]: The English word for templates
 -- @param table config_templates: Templates for the config
 -- @param bool is_no_gui_init [false]: Do not show GUI but instead use the first config template to create config
 --
 -- @returns bool is_success: True if the config was sucessfully created or validated
 -- @returns table config_data: The table read from the config
-functions.edit_config_gui = function(config, subfolder, validation_func, ui_func, config_name, config_config, config_templates, is_no_gui_init)
+functions.edit_config_gui = function(config, subfolder, validation_func, ui_func, word_name_b, word_config_b, word_template, word_templates_b, config_templates, is_no_gui_init)
     subfolder = subfolder or ""
     validation_func = validation_func or function() return true end
-    config_name = config_name or config
-    config_config = config_config or "Config"
+    word_config_b = word_config_b or "𝗖𝗼𝗻𝗳𝗶𝗴"
+    word_templates_b = word_templates_b or "𝗧𝗲𝗺𝗽𝗹𝗮𝘁𝗲𝘀"
 
     local config_file
     local config_string
@@ -193,7 +196,7 @@ functions.edit_config_gui = function(config, subfolder, validation_func, ui_func
         end
         repeat
             if ui_func then config_string = ui_func(config_string, msg_count, msg)
-            else config_string = config_gui(config_string, msg_count, msg, config_name, config_config, config_templates) end
+            else config_string = config_gui(config_string, msg_count, msg, word_name_b, word_config_b, word_template, word_templates_b, config_templates) end
             if config_string == false then return false
             else
                 msg_count, msg, config_data = validate(config_string, validation_func)
@@ -262,12 +265,14 @@ select_template_key = function(template_key)
 -- @param str config_string: The current config to be filled into the left panel
 -- @param int msg_count: The number of messages
 -- @param table msg: The messages to display on the top of the right panel
--- @param str config_name: The name of the config for display in the title of GUI
--- @param str config_config: The English word for config
+-- @param str word_name_b: The name of the config for display in the title of GUI
+-- @param str word_config_b: The English word for config
+-- @param str word_template: The English word for template
+-- @param str word_templates_b: The English word for templates
 -- @param table config_templates: Templates for the config
 -- 
 -- @returns str config_string or bool is_success: Either the user input to the left panel, or false if the user escape the gui
-config_gui = function(config_string, msg_count, msg, config_name, config_config, config_templates)
+config_gui = function(config_string, msg_count, msg, word_name_b, word_config_b, word_template, word_templates_b, config_templates)
     local dialog
     local buttons
     local button_ids
@@ -287,15 +292,15 @@ config_gui = function(config_string, msg_count, msg, config_name, config_config,
 
     while true do
         dialog = { { class = "label",                           x = 0, y = 0, width = 32,
-                                                                label = (config_string == "" and "𝗖𝗿𝗲𝗮𝘁𝗲 " or "𝗘𝗱𝗶𝘁 ") .. config_config .. " 𝗳𝗼𝗿 " .. config_name .. ":" },
+                                                                label = (config_string == "" and "𝗖𝗿𝗲𝗮𝘁𝗲 " or "𝗘𝗱𝗶𝘁 ") .. word_config_b .. " 𝗳𝗼𝗿 " .. word_name_b .. ":" },
                    { class = "textbox", name = "config_text",   x = 0, y = 1, width = 32, height = height - 1,
                                                                 text = config_string },
                    { class = "label",                           x = 32, y = height - height_template_textbox - 2, width = 32,
-                                                                label = "𝗧𝗲𝗺𝗽𝗹𝗮𝘁𝗲𝘀:" },
+                                                                label = word_templates_b .. ":" },
                    { class = "textbox", name = "template_text", x = 32, y = height - height_template_textbox - 1, width = 32, height = height_template_textbox,
                                                                 text = config_templates[template] },
                    { class = "label",                           x = 32, y = height - 1, width = 8,
-                                                                label = "Select Template:" },
+                                                                label = "Select " .. word_template .. ":" },
                    { class = "dropdown", name = "template",     x = 40, y = height - 1, width = 24,
                                                                 items = templates, value = template } }
         if msg_count ~= 0 then
@@ -305,15 +310,15 @@ config_gui = function(config_string, msg_count, msg, config_name, config_config,
                 table.insert(dialog, { class = "label",         x = 32, y = k, width = 32,
                                                                 label = v })
         end end
-        buttons = { "&Apply", "Apply Template", "Load &Template", "Diminish" }
+        buttons = { "&Apply", "Apply " .. word_template, "View &" .. word_template, "Diminish" }
         button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Diminish", no = "Diminish", cancel = "Diminish" }
 
         button, result_table = aegisub.dialog.display(dialog, buttons, button_ids)
 
         if button == false or button == "Diminish" then return false
         elseif button == "&Apply" then return result_table["config_text"]
-        elseif button == "Apply Template" then return config_templates[result_table["template"]]
-        else -- button == "Load &Template"
+        elseif button == "Apply " .. word_template then return config_templates[result_table["template"]]
+        else -- button == "View &" .. word_template
             config_string = result_table["config_text"]
             template = result_table["template"]
             select_template_key(template)
