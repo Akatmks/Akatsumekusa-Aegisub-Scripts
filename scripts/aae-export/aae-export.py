@@ -50,7 +50,7 @@ bl_info = {
     "name": "Adobe After Effects 6.0 Keyframe Data Export",
     "description": "Export motion tracking data as Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE file",
     "author": "Martin Herkt, arch1t3cht, Akatsumekusa",
-    "version": (0, 2, 4),
+    "version": (0, 2, 5),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (2, 93, 0),
@@ -73,8 +73,8 @@ class AAEExportSettings(bpy.types.PropertyGroup):
     do_also_export: bpy.props.BoolProperty(name="Auto export",
                                            description="Automatically export the selected track to file while copying",
                                            default=True)
-    do_includes_power_pin: bpy.props.BoolProperty(name="Includes Power Pin",
-                                           description="Includes Power Pin data in the export.\nIf Aegisub-Perspective-Motion is having trouble with the Power Pin data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
+    do_includes_power_pin: bpy.props.BoolProperty(name="Power Pin",
+                                           description="Export Power Pin data for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is having trouble with the Power Pin data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
                                            default=True)
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
                                                 description="Generate unique files every time",
@@ -387,7 +387,17 @@ class AAEExport(bpy.types.Panel):
     bl_category = "Solve"
 
     def draw(self, context):
-        pass
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        
+        settings = context.screen.AAEExportSettings
+        
+        column = layout.column(heading="Export")
+        column.prop(settings, "do_includes_power_pin")
+        column = layout.column(heading="Preference")
+        column.prop(settings, "do_also_export")
+        column.prop(settings, "do_do_not_overwrite")
 
     @classmethod
     def poll(cls, context):
@@ -450,9 +460,6 @@ class AAEExportAllTracks(bpy.types.Panel):
         
         column = layout.column()
         column.label(text="All tracks")
-        column.prop(settings, "do_includes_power_pin")
-        column.prop(settings, "do_also_export")
-        column.prop(settings, "do_do_not_overwrite")
         
         row = layout.row()
         row.scale_y = 2
