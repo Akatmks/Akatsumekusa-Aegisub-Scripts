@@ -1,0 +1,31 @@
+name: dependency-control-on-merge-to-dev
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - dev
+
+jobs:
+  generate-depctrl-json:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: dev
+      - uses: actions/setup-python@v4
+        with:
+          python-version: |
+            3.10
+            3.11
+          cache: pip
+          cache-dependency-path: .hooks/requirements.txt
+      - run: |
+          pip install -r .hooks/requirements.txt
+          .hooks/hooks/pre-commit
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -m "DepCtrl: GitHub Actions on merge update" --no-verify
+          git push

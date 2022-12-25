@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 # Copyright (c) Akatsumekusa and contributors
 
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -20,6 +21,10 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+# If anyone wants to use this DependencyControl for their own
+# repository, please ping Akatsumekusa and let them explain how this
+# works.
 
 from datetime import datetime, timezone
 from git import Repo
@@ -143,6 +148,15 @@ def writeVersion(p, version):
 
     repo.index.add(str(p))
 
+def getNameForFilesFile(p):
+    parts = p.parts
+    if len(p.parts) == 2 or len(p.parts) == 3:
+        return p.suffix
+    elif len(p.parts) > 3:
+        return PurePosixPath("/", *p.parts[3:]).as_posix()
+    else:
+        raise ValueError(str(p))
+
 if __name__ == "__main__":
     p = Path("DependencyControl.json")
     if not p.exists():
@@ -221,8 +235,7 @@ if __name__ == "__main__":
                 moduleRegisterPathList[namespace] = p
             
             DependencyControl["modules"][namespace]["channels"]["dev"]["files"].append({
-                "name": p.suffix if len(p.parts) == 2 or len(p.parts) == 3 else \
-                        PurePosixPath("/", *p.parts[3:len(p.parts)]).as_posix(),
+                "name": getNameForFilesFile(p),
                 "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
                 "sha1": sha1sum(p)
             })
@@ -230,8 +243,11 @@ if __name__ == "__main__":
     added = []
     removed = []
     changed = []
-    for diff_index in repo.head.commit.diff():
-        match diff_index.change_type:
+    diff_indexes = repo.head.commit.diff()
+    if not diff_indexes:
+        diff_indexes = repo.head.commit.diff("HEAD^")
+    for diff_index in diff_indexes:
+        match diff_index.change_type: # match requires Python 3.10
             case "A":
                 added.append(Path(diff_index.b_path))
             case "D":
@@ -259,9 +275,14 @@ if __name__ == "__main__":
             namespace = getNamespace(p)
             if namespace not in changedModules:
                 changedModules[namespace] = True
+
                 currentVersion = Version(DependencyControl["modules"][namespace]["channels"]["dev"]["version"])
                 currentVersion.patch += 1
                 writeVersion(moduleRegisterPathList[namespace], currentVersion)
+                for file in DependencyControl["modules"][namespace]["channels"]["dev"]["files"]:
+                    if file.name == getNameForFilesFile(p):
+                        file["sha1"] = sha1sum(p)
+
                 DependencyControl["modules"][namespace]["channels"]["dev"]["version"] = str(currentVersion)
                 DependencyControl["modules"][namespace]["channels"]["dev"]["released"] = datetime.now(timezone.utc).date().isoformat()
     for p in removed:
@@ -271,12 +292,12 @@ if __name__ == "__main__":
             namespace = getNamespace(p)
             if namespace in moduleRegisterPathList and namespace not in changedModules:
                 changedModules[namespace] = True
+
                 currentVersion = Version(DependencyControl["modules"][namespace]["channels"]["dev"]["version"])
                 currentVersion.patch += 1
                 writeVersion(moduleRegisterPathList[namespace], currentVersion)
                 for file in DependencyControl["macros"][namespace]["channels"]["dev"]["files"]:
-                    if file.name == p.suffix if len(p.parts) == 2 or len(p.parts) == 3 else \
-                                    PurePosixPath("/", *p.parts[3:len(p.parts)]).as_posix():
+                    if file.name == getNameForFilesFile(p):
                         file["sha1"] = sha1sum(p)
 
                 DependencyControl["modules"][namespace]["channels"]["dev"]["version"] = str(currentVersion)
