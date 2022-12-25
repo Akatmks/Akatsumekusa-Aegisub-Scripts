@@ -23,4 +23,4 @@
 # SOFTWARE.
 
 .hooks/hooks/pre-commit
-git commit -m "DepCtrl: Local post-merge update" --no-verify
+git diff-index --cached --quiet HEAD || git commit -m "DepCtrl: Local post-merge update" --no-verify
