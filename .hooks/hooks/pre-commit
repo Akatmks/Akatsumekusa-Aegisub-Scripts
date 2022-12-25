@@ -251,6 +251,8 @@ if __name__ == "__main__":
             currentVersion = Version(DependencyControl["macros"][namespace]["channels"]["dev"]["version"])
             currentVersion.patch += 1
             writeVersion(p, currentVersion)
+            DependencyControl["macros"][namespace]["channels"]["dev"]["files"][0]["sha1"] = sha1sum(p)
+
             DependencyControl["macros"][namespace]["channels"]["dev"]["version"] = str(currentVersion)
             DependencyControl["macros"][namespace]["channels"]["dev"]["released"] = datetime.now(timezone.utc).date().isoformat()
         if p.is_relative_to("modules"):
@@ -272,6 +274,11 @@ if __name__ == "__main__":
                 currentVersion = Version(DependencyControl["modules"][namespace]["channels"]["dev"]["version"])
                 currentVersion.patch += 1
                 writeVersion(moduleRegisterPathList[namespace], currentVersion)
+                for file in DependencyControl["macros"][namespace]["channels"]["dev"]["files"]:
+                    if file.name == p.suffix if len(p.parts) == 2 or len(p.parts) == 3 else \
+                                    PurePosixPath("/", *p.parts[3:len(p.parts)]).as_posix():
+                        file["sha1"] = sha1sum(p)
+
                 DependencyControl["modules"][namespace]["channels"]["dev"]["version"] = str(currentVersion)
                 DependencyControl["modules"][namespace]["channels"]["dev"]["released"] = datetime.now(timezone.utc).date().isoformat()
 
