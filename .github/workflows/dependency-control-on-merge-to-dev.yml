@@ -27,5 +27,6 @@ jobs:
       - run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
+          git config core.hooksPath .hooks/hooks
           git diff-index --cached --quiet HEAD || git commit -m "DepCtrl: GitHub Actions on merge update" --no-verify
           git push
