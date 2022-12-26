@@ -25,25 +25,25 @@ local versioning = {}
 
 versioning.name = "aka.template"
 versioning.description = "Module aka.template"
-versioning.version = "0.1.8"
+versioning.version = "0.1.9"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.template"
 
--- local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
--- if hasDepCtrl then
---     DepCtrl({
---         name = versioning.name,
---         description = versioning.description,
---         version = versioning.version,
---         author = versioning.author,
---         moduleName = versioning.namespace,
---         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
---         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
---         {
---             { "aka.config2" }
---         }
---     }):requireModules()
--- end
+local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
+if hasDepCtrl then
+    DepCtrl({
+        name = versioning.name,
+        description = versioning.description,
+        version = versioning.version,
+        author = versioning.author,
+        moduleName = versioning.namespace,
+        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        {
+            { "aka.config2" }
+        }
+    }):requireModules()
+end
 
 local template = require("aka.template.template")
 

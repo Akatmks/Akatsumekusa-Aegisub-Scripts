@@ -25,27 +25,27 @@ local versioning = {}
 
 versioning.name = "aka.config2"
 versioning.description = "Module aka.config2"
-versioning.version = "0.1.10"
+versioning.version = "0.1.11"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config2"
 
--- local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
--- if hasDepCtrl then
---     DepCtrl({
---         name = versioning.name,
---         description = versioning.description,
---         version = versioning.version,
---         author = versioning.author,
---         moduleName = versioning.namespace,
---         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
---         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
---         {
---             { "aegisub.re" },
---             { "aegisub.unicode" },
---             { "lfs" }
---         }
---     }):requireModules()
--- end
+local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
+if hasDepCtrl then
+    DepCtrl({
+        name = versioning.name,
+        description = versioning.description,
+        version = versioning.version,
+        author = versioning.author,
+        moduleName = versioning.namespace,
+        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        {
+            { "aegisub.re" },
+            { "aegisub.unicode" },
+            { "lfs" }
+        }
+    }):requireModules()
+end
 
 local config2 = require("aka.config2.config2")
 

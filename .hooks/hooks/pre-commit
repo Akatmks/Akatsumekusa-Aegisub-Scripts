@@ -350,7 +350,7 @@ if __name__ == "__main__":
                 currentVersion.patch += 1
                 writeVersion(moduleRegisterPathList[namespace], currentVersion)
                 for file in DependencyControl["modules"][namespace]["channels"][branch]["files"]:
-                    if file.name == getNameForFilesFile(p):
+                    if file["name"] == getNameForFilesFile(p):
                         file["sha1"] = sha1sum(p)
 
                 DependencyControl["modules"][namespace]["channels"][branch]["version"] = str(currentVersion)
@@ -367,7 +367,7 @@ if __name__ == "__main__":
                 currentVersion.patch += 1
                 writeVersion(moduleRegisterPathList[namespace], currentVersion)
                 for file in DependencyControl["macros"][namespace]["channels"][branch]["files"]:
-                    if file.name == getNameForFilesFile(p):
+                    if file["name"] == getNameForFilesFile(p):
                         file["sha1"] = sha1sum(p)
 
                 DependencyControl["modules"][namespace]["channels"][branch]["version"] = str(currentVersion)
