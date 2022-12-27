@@ -1,31 +1,24 @@
 # aae-export.py
+# Copyright (c) Akatsumekusa, arch1t3cht, Martin Herkt and contributors
 
-# Function AAEExportExportAll._generate() at or about line 144,
-# excluding inner function generate_power_pin() at or about line 252,
-# is copied from the original `aae-export.py` by Martin Herkt.
-#
-# Other part of this script, including the aforementioned inner
-# function generate_power_pin(), is written by arch1t3cht,
-# Akatsumekusa and contributors.
+#  
+#            :::         :::     ::::::::::                                
+#         :+: :+:     :+: :+:   :+:                                        
+#       +:+   +:+   +:+   +:+  +:+                                         
+#     +#++:++#++: +#++:++#++: +#++:++#                                     
+#    +#+     +#+ +#+     +#+ +#+                                           
+#   #+#     #+# #+#     #+# #+#                                            
+#  ###     ### ###     ### ##########                                      
+#        :::::::::: :::    ::: :::::::::   ::::::::  ::::::::: ::::::::::: 
+#       :+:        :+:    :+: :+:    :+: :+:    :+: :+:    :+:    :+:      
+#      +:+         +:+  +:+  +:+    +:+ +:+    +:+ +:+    +:+    +:+       
+#     +#++:++#     +#++:+   +#++:++#+  +#+    +:+ +#++:++#:     +#+        
+#    +#+         +#+  +#+  +#+        +#+    +#+ +#+    +#+    +#+         
+#   #+#        #+#    #+# #+#        #+#    #+# #+#    #+#    #+#          
+#  ########## ###    ### ###         ########  ###    ###    ###           
+#  
 
-# Copyright (c) 2013, Martin Herkt
-#
-# Permission to use, copy, modify, and/or distribute this software for
-# any purpose with or without fee is hereby granted, provided that the
-# above copyright notice and this permission notice appear in all
-# copies.
-#
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
-# WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
-# AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
-# DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
-# PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
-# TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-# PERFORMANCE OF THIS SOFTWARE.
-
-# Copyright (c) arch1t3cht, Akatsumekusa and contributors
-#
+# ---------------------------------------------------------------------
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -45,6 +38,9 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# ---------------------------------------------------------------------
+# Title font: Alligator by Simon Bradley
+# ---------------------------------------------------------------------
 
 bl_info = {
     "name": "Adobe After Effects 6.0 Keyframe Data Export",
@@ -53,7 +49,7 @@ bl_info = {
     "version": (0, 2, 7),
     "support": "COMMUNITY",
     "category": "Video Tools",
-    "blender": (2, 93, 0),
+    "blender": (3, 1, 0),
     "location": "Clip Editor > Tools > Solve > AAE Export",
     "warning": "",
     "doc_url": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
@@ -63,13 +59,12 @@ bl_info = {
 import bpy
 import bpy_extras.io_utils
 from datetime import datetime
-import math
 from pathlib import Path
 
 # ("import name", "PyPI name", "minimum version")
 smoothing_modules = (("numpy", "numpy", ""), ("sklearn", "scikit-learn", "0.18"))
 
-is_smoothing_available = False
+is_smoothing_modules_available = False
 
 class AAEExportSettings(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettings"
@@ -79,39 +74,51 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                            description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is having trouble with the Power Pin data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
                                            default=True)
     do_smoothing: bpy.props.BoolProperty(name="Enable",
-                                         description="Perform smoothing on tracking data.\nThis put the position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks into Huber Regressor. Huber Regressor is an L2-regularized regression model that is robust to outliers.\n\nPlease note that the smoothing feature is very rudimentary and may cause more problems than it solves. Akatsumekusa recommends trying it only if the tracking is unbearably poor.\n\nAlso, Akatsumekusa is working on a new script that will provide this feature much better than it is right now. Please expect Non Carbonated AAE Export to come out sometime in 2023" if is_smoothing_available else \
+                                         description="Perform smoothing on tracking data.\nThis put the position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks into Huber Regressor. Huber Regressor is an L2-regularized regression model that is robust to outliers.\n\nPlease note that the smoothing feature is very rudimentary and may cause more problems than it solves. Akatsumekusa recommends trying it only if the tracking is unbearably poor.\n\nAlso, Akatsumekusa is working on a new script that will provide this feature much better than it is right now. Please expect Non Carbonated AAE Export to come out sometime in 2023" if is_smoothing_modules_available else \
                                                      "Perform smoothing on tracking data.\nThis feature requires additional packages to be installed. Please head to „Edit > Preference > Add-ons > Video Tools: AAE Export“ to install the dependencies",
                                          default=False)
+    smoothing_do_position: bpy.props.BoolProperty(name="Position Smoothing",
+                                                  description="Perform smoothing on position data",
+                                                  default=True)
     smoothing_position_degree: bpy.props.IntProperty(name="Max Position Degree",
                                                      description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
                                                      default=3,
                                                      min=1,
                                                      soft_max=10)
+    smoothing_do_scale: bpy.props.BoolProperty(name="Scale Smoothing",
+                                               description="Perform smoothing on scale data",
+                                               default=True)
     smoothing_scale_degree: bpy.props.IntProperty(name="Max Scale Degree",
                                                   description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may cause overfitting",
                                                   default=2,
                                                   min=1,
                                                   soft_max=5)
+    smoothing_do_rotation: bpy.props.BoolProperty(name="Rotation Smoothing",
+                                               description="Perform smoothing on rotation data.\nPlease note that rotation calculation in AAE Export is very basic. Performing smoothing on rotations with high velocity may yield unexpected results",
+                                               default=True)
     smoothing_rotation_degree: bpy.props.IntProperty(name="Max Rotation Degree",
                                                      description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may very likely cause overfitting",
                                                      default=2,
                                                      min=1,
                                                      soft_max=5)
-    smoothing_perspective_degree: bpy.props.IntProperty(name="Max Perspective Degree",
-                                                     description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
-                                                     default=3,
-                                                     min=1,
-                                                     soft_max=10)
+    smoothing_do_power_pin: bpy.props.BoolProperty(name="Power Pin Smoothing",
+                                                   description="Perform smoothing on Power Pin data",
+                                                   default=True)
+    smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Power Pin Degree",
+                                                      description="The maximal polynomial degree of Power Pin data.\nPlease note that Huber Regressor is applied on Power Pin data relative to the position data instead of perspective.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
+                                                      default=2,
+                                                      min=1,
+                                                      soft_max=10)
     smoothing_position_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                        description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nAkatsumekusa sets the default value of this option to 1.25",
-                                                        default=1.25,
+                                                        description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nAkatsumekusa sets the default value of this option to 1.40",
+                                                        default=1.40,
                                                         min=1.00,
-                                                        soft_max=2.00,
+                                                        soft_max=3.00,
                                                         step=1,
                                                         precision=2)
-    smoothing_predictive: bpy.props.BoolProperty(name="Predictive Smoothing",
-                                                 description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
-                                                 default=False)
+    smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
+                                                              description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
+                                                              default=False)
     do_also_export: bpy.props.BoolProperty(name="Auto export",
                                            description="Automatically export the selected track to file while copying",
                                            default=True)
@@ -123,51 +130,6 @@ class AAEExportExportAll(bpy.types.Operator):
     bl_label = "Export"
     bl_description = "Export all tracking markers and plane tracks to AAE files next to the original movie clip"
     bl_idname = "movieclip.aae_export_export_all"
-
-    @staticmethod
-    def _plane_track_center(l, m, n, o):
-        """
-        Parameters
-        ----------
-        l : list[float]
-        m : list[float]
-        n : list[float]
-        o : list[float]
-            The four points of a plane track in either clockwise or
-            counterwise order before multiplying with clip.size.
-
-        Returns
-        -------
-        i : list[float]
-            The centre of plane track. NEVER None. NEVER None.
-
-        """
-        # https://stackoverflow.com/questions/563198
-        px = l[0]
-        py = l[1]
-        rx = n[0] - l[0]
-        ry = n[1] - l[1]
-        qx = m[0]
-        qy = m[1]
-        sx = o[0] - m[0]
-        sy = o[1] - m[1]
-
-        j = rx * sy - ry * sx
-        k = (qx - px) * ry - (qy - py) * rx
-
-        if j == 0 and k == 0:
-            # The points are collinear
-            return [(px * 2 + rx + qx * 2 + sx) / 4, (py * 2 + ry + qy * 2 + sy) / 4]
-        elif j == 0 and k != 0:
-            # The two lines are parallel
-            # It could return AAEExportExportAll._plane_track_center(l, n, m, o)
-            # but that will give a false sense of security as if this
-            # function can deal with hourglass-shaped input.
-            return [(px * 2 + rx + qx * 2 + sx) / 4, (py * 2 + ry + qy * 2 + sy) / 4]
-        else: # j != 0
-            # The two lines intersects
-            t = k / j
-            return [px + t * rx, py + t * ry]
 
     def execute(self, context):
         clip = context.edit_movieclip
@@ -187,7 +149,7 @@ class AAEExportExportAll(bpy.types.Operator):
         Parameters
         ----------
         clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or MovieTrackingPlaneTrack
+        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
         settings : AAEExportSettings or None
             AAEExportSettings.
 
@@ -196,221 +158,813 @@ class AAEExportExportAll(bpy.types.Operator):
         aae : str
 
         """
+        if is_smoothing_modules_available:
+            ratio, multiplier \
+                = AAEExportExportAll._calculate_aspect_ratio( \
+                      clip)
 
+            position, scale, limited_rotation, power_pin \
+                = AAEExportExportAll._prepare_data( \
+                      clip, track, ratio)
 
+            if settings.do_smoothing:
+                position \
+                    = AAEExportExportAll._smoothing( \
+                          position, \
+                          settings.smoothing_do_position, settings.smoothing_do_predictive_smoothing, \
+                          settings.smoothing_position_degree, settings.smoothing_position_epsilon)
 
+                scale \
+                    = AAEExportExportAll._smoothing( \
+                          scale, \
+                          settings.smoothing_do_scale, settings.smoothing_do_predictive_smoothing, \
+                          settings.smoothing_scale_degree, settings.smoothing_position_epsilon)
 
+                rotation \
+                    = AAEExportExportAll._unlimit_rotation( \
+                          limited_rotation)
+                
+                rotation \
+                    = AAEExportExportAll._smoothing( \
+                          rotation, \
+                          settings.smoothing_do_rotation, settings.smoothing_do_predictive_smoothing, \
+                          settings.smoothing_rotation_degree, settings.smoothing_position_epsilon)
 
+                limited_rotation \
+                    = AAEExportExportAll._limit_rotation( \
+                          rotation)
 
+                for i in range(4):
+                    power_pin[i] \
+                        = AAEExportExportAll._smoothing( \
+                              power_pin[i], \
+                              settings.smoothing_do_power_pin, settings.smoothing_do_predictive_smoothing, \
+                              settings.smoothing_power_pin_degree, settings.smoothing_position_epsilon)
 
+            aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
+                = AAEExportExportAll._generate_aae( \
+                      position, scale, limited_rotation, power_pin, \
+                      multiplier)
 
+        else: # not is_smoothing_modules_available
+            aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
+                = AAEExportExportAll._generate_aae_non_numpy( \
+                      clip, track)
 
+        aae \
+            = AAEExportExportAll._combine_aae( \
+                  clip, \
+                  aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
+                  settings.do_includes_power_pin)
 
+        return aae
 
+    @staticmethod
+    def _calculate_aspect_ratio(clip):
+        """
+        Calculate aspect ratio.
 
+        Parameters
+        ----------
+        clip : bpy.types.MovieClip
 
+        Returns
+        -------
+        ratio : npt.NDArray[float64]
+        multiplier: float
 
+        """
+        import numpy as np
 
+        ar = clip.size[0] / clip.size[1]
+        # As of 2021/2022
+        if ar < 1 / 1.35: # 9:16, 9:19 and higher videos
+            return np.array([1 / 1.35, 1 / 1.35 / ar], dtype=np.float64), clip.size[0] / 1 * 1.35
+        elif ar < 1: # vertical videos from 1:1, 3:4, up to 1:1.35
+            return np.array([ar, 1], dtype=np.float64), clip.size[1]
+        elif ar <= 1.81: # 1:1, 4:3, 16:9, up to 1920 x 1061
+            return np.array([ar, 1], dtype=np.float64), clip.size[1]
+        else: # Ultrawide
+            return np.array([1.81, 1.81 / ar], dtype=np.float64), clip.size[0] / 1.81
 
+    @staticmethod
+    def _prepare_data(clip, track, ratio):
+        """
+        Create position, scale, rotation and Power Pin array from tracking markers. [Step 04]
 
+        Parameters
+        ----------
+        clip : bpy.types.MovieClip
+        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
+        ratio : npt.NDArray[float]
+            ratio likely from Step 03
 
+        Returns
+        -------
+        position : npt.NDArray[float64]
+        scale : npt.NDArray[float64]
+        limited_rotation : npt.NDArray[float64]
+        power_pin : npt.NDArray[float64]
 
+        """
+        if track.__class__.__name__ == "MovieTrackingTrack":
+            position, misshapen_power_pin \
+                = AAEExportExportAll._prepare_position_and_misshapen_power_pin_marker_track( \
+                      clip, track, ratio)
+        elif track.__class__.__name__ == "MovieTrackingPlaneTrack":
+            position, misshapen_power_pin \
+                = AAEExportExportAll._prepare_position_and_misshapen_power_pin_plane_track( \
+                      clip, track, ratio)
+        else:
+            raise ValueError("track.__class__.__name__ \"" + track.__class__.__name__ + "\" not recognised")
 
+        scale, limited_rotation \
+            = AAEExportExportAll._prepare_scale_and_limited_rotation( \
+                  misshapen_power_pin)
 
+        power_pin \
+            = AAEExportExportAll._prepare_power_pin( \
+                  misshapen_power_pin)
 
+        return position, scale, limited_rotation, power_pin
 
+    @staticmethod
+    def _prepare_position_and_misshapen_power_pin_marker_track(clip, track, ratio):
+        """
+        Create position and misshapen_power_pin array from marker track.
 
+        Parameters
+        ----------
+        clip : bpy.types.MovieClip
+        track : bpy.types.MovieTrackingTrack
+        ratio : npt.NDArray[float]
 
+        Returns
+        -------
+        position : npt.NDArray[float64]
+        misshapen_power_pin : npt.NDArray[float64]
+            As explained below.
 
+        """
+        import numpy as np
 
+        if not clip.frame_duration >= 1:
+            raise ValueError("clip.frame_duration must be greater than or equal to 1")
 
-        startarea = None
-        startwidth = None
-        startheight = None
-        startrot = None
+        # position array structure
+        # +----------+----------------------------------------------------------+
+        # |          |          Frame 0  Frame 1  Frame 2  Frame 3  Frame 4     |
+        # +----------+----------------------------------------------------------+
+        # | Position | array([  [x, y],  [x, y],  [x, y],  [x, y],  [x, y]   ]) |
+        # +----------+----------------------------------------------------------+
+        # The origin will be located at the upper left corner of the video,
+        # contrary to Blender's usual lower left corner.
+        #
+        # The x and y value will have a pixel aspect ratio of 1:1. See
+        # _calculate_aspect_ratio for the range where x and y value is on
+        # screen.
+        #
+        # The start frame of a video will be frame 0, instead of Blender's
+        # usual frame 1.
+        # 
+        # Also, on the topic of precision, NC AAE Export uses float64 across
+        # the whole script instead of Blender's float32.
+        position = np.full((clip.frame_duration, 2), np.nan, dtype=np.float64)
+        # power_pin array structure
+        # +--------------------+------------------------------------------------------------+
+        # |                    |           Frame 0  Frame 1  Frame 2  Frame 3  Frame 4      |
+        # +--------------------+------------------------------------------------------------+
+        # | Upper-Left Corner  | array([[  [x, y],  [x, y],  [x, y],  [x, y],  [x, y]   ],  |
+        # |   (Power Pin-0002) |                                                            |
+        # | Upper-Right Corner |        [  [x, y],  [x, y],  [x, y],  [x, y],  [x, y]   ],  |
+        # |   (Power Pin-0003) |                                                            |
+        # | Lower-Left Corner  |        [  [x, y],  [x, y],  [x, y],  [x, y],  [x, y]   ],  |
+        # |   (Power Pin-0004) |                                                            |
+        # | Lower-Right Corner |        [  [x, y],  [x, y],  [x, y],  [x, y],  [x, y]   ]]) |
+        # |   (Power Pin-0005) |                                                            |
+        # +--------------------+------------------------------------------------------------+
+        # power pin position is not absolute and is relative to the position
+        # array
+        # 
+        # misshapen_power_pin array structure
+        # +---------+-----------------------------------------------------------------+
+        # |         |           Upper-Left  Upper-Right  Lower-Left  Lower-Right      |
+        # +---------+-----------------------------------------------------------------+
+        # | Frame 0 | array([[  x, y,       x, y,        x, y        x, y         ],  |
+        # | Frame 1 |        [  x, y,       x, y,        x, y        x, y         ],  |
+        # | Frame 2 |        [  x, y,       x, y,        x, y        x, y         ],  |
+        # | Frame 3 |        [  x, y,       x, y,        x, y        x, y         ],  |
+        # | Frame 4 |        [  x, y,       x, y,        x, y        x, y         ]]) |
+        # +---------+-----------------------------------------------------------------+
+        misshapen_power_pin = np.full((clip.frame_duration, 8), np.nan, dtype=np.float64)
 
-        data = []
-
-        aae = "Adobe After Effects 6.0 Keyframe Data\n\n"
-        aae += "\tUnits Per Second\t{0:.3f}\n".format(clip.fps)
-        aae += "\tSource Width\t{0}\n".format(clip.size[0])
-        aae += "\tSource Height\t{0}\n".format(clip.size[1])
-        aae += "\tSource Pixel Aspect Ratio\t1\n"
-        aae += "\tComp Pixel Aspect Ratio\t1\n\n"
-
-        for marker in track.markers if track.markers[0].__class__.__name__ == "MovieTrackingMarker" else track.markers[1:-1]:
+        for marker in track.markers:
             if not 0 < marker.frame <= clip.frame_duration:
                 continue
             if marker.mute:
                 continue
+            position[marker.frame - 1] = [marker.co[0], 1 - marker.co[1]]
+            misshapen_power_pin[marker.frame - 1] = [marker.pattern_corners[3][0], 1 - marker.pattern_corners[3][1], \
+                                                     marker.pattern_corners[2][0], 1 - marker.pattern_corners[2][1], \
+                                                     marker.pattern_corners[0][0], 1 - marker.pattern_corners[0][1], \
+                                                     marker.pattern_corners[1][0], 1 - marker.pattern_corners[1][1]]
 
-            if marker.__class__.__name__ == "MovieTrackingMarker":
-                coords = marker.co
-                corners = marker.pattern_corners
-            else: # "MovieTrackingPlaneMarker"
-                coords = AAEExportExportAll._plane_track_center(marker.corners[0], marker.corners[1], marker.corners[2], marker.corners[3])
-                corners = [[p[0] - coords[0], p[1] - coords[1]] for p in marker.corners]
+        position *= ratio
+        misshapen_power_pin *= np.tile(ratio, 4)
+
+        return position, misshapen_power_pin
+
+    @staticmethod
+    def _prepare_position_and_misshapen_power_pin_plane_track(clip, track, ratio):
+        """
+        Create position and misshapen_power_pin array from plane track.
+
+        Parameters
+        ----------
+        clip : bpy.types.MovieClip
+        track : bpy.types.MovieTrackingTrack
+        ratio : npt.NDArray[float]
+
+        Returns
+        -------
+        position : npt.NDArray[float64]
+        misshapen_power_pin : npt.NDArray[float64]
+            As explained in _prepare_position_and_power_pin_marker_track().
+
+        """
+        import numpy as np
+
+        if not clip.frame_duration >= 1:
+            raise ValueError("clip.frame_duration must be greater than or equal to 1")
             
-            area = 0
-            width = math.sqrt((corners[1][0] - corners[0][0]) * (corners[1][0] - corners[0][0]) + (corners[1][1] - corners[0][1]) * (corners[1][1] - corners[0][1]))
-            height = math.sqrt((corners[3][0] - corners[0][0]) * (corners[3][0] - corners[0][0]) + (corners[3][1] - corners[0][1]) * (corners[3][1] - corners[0][1]))
-            for i in range(1,3):
-                x1 = corners[i][0] - corners[0][0]
-                y1 = corners[i][1] - corners[0][1]
-                x2 = corners[i+1][0] - corners[0][0]
-                y2 = corners[i+1][1] - corners[0][1]
-                area += x1 * y2 - x2 * y1
-            
-            area = abs(area / 2)
+        # As explained in _prepare_position_and_power_pin_marker_track()
+        misshapen_power_pin = np.full((clip.frame_duration, 8), np.nan, dtype=np.float64)
 
-            if startarea == None:
-                startarea = area
+        for marker in track.markers[1:-1]:
+            if not 0 < marker.frame <= clip.frame_duration:
+                continue
+            if marker.mute:
+                continue
+            misshapen_power_pin[marker.frame - 1] = [marker.corners[3][0], 1 - marker.corners[3][1],
+                                                     marker.corners[2][0], 1 - marker.corners[2][1],
+                                                     marker.corners[0][0], 1 - marker.corners[0][1],
+                                                     marker.corners[1][0], 1 - marker.corners[1][1]]
+          
+        misshapen_power_pin *= np.tile(ratio, 4)
 
-            if startwidth == None:
-                startwidth = width
-            if startheight == None:
-                startheight = height
-
-            zoom = math.sqrt(area / startarea) * 100
-
-            xscale = width / startwidth * 100
-            yscale = height / startheight * 100
-
-            diff = [(corners[0][0] + corners[1][0]) / 2, (corners[0][1] + corners[1][1]) / 2]
-
-            rotation = math.atan2(diff[0], diff[1]) * 180 / math.pi
-
-            if startrot == None:
-                startrot = rotation
-                rotation = 0
+        # https://stackoverflow.com/questions/563198/
+        def eat(slice):
+            if slice[0] == np.nan:
+                return np.full((2), np.nan, dtype=np.float64)
             else:
-                rotation -= startrot - 360
+                p = slice[0:2]
+                r = slice[6:8] - slice[0:2]
+                q = slice[4:6]
+                s = slice[2:4] - slice[4:6]
+                t = np.cross((q - p), s) / np.cross(r, s)
+                return p + t * r
+        position = np.apply_along_axis(eat, 1, misshapen_power_pin)
+        misshapen_power_pin -= np.tile(position, 4)
 
-            x = coords[0] * clip.size[0]
-            y = (1 - coords[1]) * clip.size[1]
+        return position, misshapen_power_pin
+        
+    @staticmethod
+    def _prepare_scale_and_limited_rotation(misshapen_power_pin):
+        """
+        Create scale and rotation array.
 
-            data.append([marker.frame, x, y, xscale, yscale, rotation])
+        Parameters
+        ----------
+        misshapen_power_pin : npt.NDArray[float64]
 
-        posline = "\t{0}\t{1:.3f}\t{2:.3f}\t0"
-        scaleline = "\t{0}\t{1:.3f}\t{2:.3f}\t100"
-        rotline = "\t{0}\t{1:.3f}"
+        Returns
+        -------
+        scale : npt.NDArray[float64]
+            scale is a 2D array unmultiplied.
+        limited_rotation : npt.NDArray[float64]
+            rotation is an 1D array unmultiplied as well.
 
-        positions = "\n".join([posline.format(d[0], d[1], d[2]) for d in data])
-        scales = "\n".join([scaleline.format(d[0], d[3], d[4]) for d in data])
-        rotations = "\n".join([rotline.format(d[0], d[5]) for d in data])
+        """
+        import numpy as np
+        import numpy.linalg as LA
+        
+        # https://stackoverflow.com/questions/1401712/
+        scale_x = LA.norm((misshapen_power_pin[:, 0:2] - misshapen_power_pin[:, 2:4] + misshapen_power_pin[:, 4:6] - misshapen_power_pin[:, 6:8]) / 2, axis=1)
+        scale_y = LA.norm((misshapen_power_pin[:, 0:2] - misshapen_power_pin[:, 4:6] + misshapen_power_pin[:, 2:4] - misshapen_power_pin[:, 6:8]) / 2, axis=1)
+        scale = np.hstack((scale_x.reshape((-1, 1)), scale_y.reshape((-1, 1))))
+        try:
+            scale /= scale[np.nonzero(~np.isnan(scale_x))[0][0]]
+        except IndexError:
+            raise ValueError("At least one marker in track.markers needs to be not marker.mute")
 
-        aae += "Anchor Point\n"
-        aae += "\tFrame\tX pixels\tY pixels\tZ pixels\n"
-        aae += positions
+        rotation_x = (misshapen_power_pin[:, 0] + misshapen_power_pin[:, 2]) / 2
+        rotation_y = (misshapen_power_pin[:, 1] + misshapen_power_pin[:, 3]) / 2
+        limited_rotation = np.arctan2(rotation_x, -rotation_y)
 
-        aae += "\n\n"
-        aae += "Position\n"
-        aae += "\tFrame\tX pixels\tY pixels\tZ pixels\n"
-        aae += positions
+        return scale, limited_rotation
 
-        aae += "\n\n"
-        aae += "Scale\n"
-        aae += "\tFrame\tX percent\tY percent\tZ percent\n"
-        aae += scales
+    @staticmethod
+    def _prepare_power_pin(misshapen_power_pin):
+        """
+        Create scale and rotation array.
 
-        aae += "\n\n"
-        aae += "Rotation\n"
-        aae += "\tFrame Degrees\n"
-        aae += rotations
+        Parameters
+        ----------
+        misshapen_power_pin : npt.NDArray[float64]
 
-        def generate_power_pin(clip, track):
-            power_pin = ""
+        Returns
+        -------
+        power_pin : npt.NDArray[float64]
 
-            frames = []
-            corners = []
-            for marker in track.markers if track.markers[0].__class__.__name__ == "MovieTrackingMarker" else track.markers[1:-1]:
+        """
+        import numpy as np
+
+        return np.swapaxes(misshapen_power_pin.reshape((-1, 4, 2)), 0, 1)
+
+    @staticmethod
+    def _smoothing(data, do_smoothing, do_predictive_smoothing, degree, epsilon):
+        """
+        Perform smoothing depending on the smoothing settings.
+
+        Parameters
+        ----------
+        data : npt.NDArray[float64]
+            position, scale, rotation and each power_pin
+        do_smoothing : bool
+        do_predictive_smoothing : bool
+        degree : int
+        epsilon : int
+
+        Returns
+        -------
+        data : npt.NDArray[float64]
+
+        """
+        if data.ndim == 2:
+            for i in range(data.shape[1]):
+                data[:, i] \
+                    = AAEExportExportAll._smoothing( \
+                          data[:, i], do_smoothing, do_predictive_smoothing, degree, epsilon)
+        
+        elif data.ndim == 1:
+            match (do_smoothing << 1) + do_predictive_smoothing: # match case requires Python 3.10 (Blender 3.1)
+                case 0b11:
+                    predicted_data = AAEExportExportAll._smoothing_univariate(data, degree, epsilon)
+                    return predicted_data
+                case 0b10:
+                    predicted_data = AAEExportExportAll._smoothing_univariate(data, degree, epsilon)
+                    predicted_data[np.isnan(data)] = np.nan
+                    return predicted_data
+                case 0b01:
+                    predicted_data = AAEExportExportAll._smoothing_univariate(data, degree, epsilon)
+                    data[np.isnan(data)] = predicted_data[np.isnan(data)]
+                    return data
+                case 0b00:
+                    return data
+        else:
+            raise ValueError("data.ndim must be either 1 or 2")
+
+    @staticmethod
+    def _smoothing_univariate(data, degree, epsilon):
+        """
+        Perform smoothing depending on the smoothing settings.
+
+        Parameters
+        ----------
+        data : npt.NDArray[float64]
+            univariate data
+        degree : int
+        epsilon : int
+
+        Returns
+        -------
+        predicted_data : npt.NDArray[float64]
+            data with all frames filled with predicted value
+
+        """
+        import numpy as np
+        from sklearn.preprocessing import PolynomialFeatures
+        from sklearn.linear_model import HuberRegressor
+        from sklearn.pipeline import Pipeline
+
+        X = np.arange(data.shape[0])[(index := ~np.isnan(data))].reshape(-1, 1) # := requires Python 3.8 (Blender 2.93)
+        y = data[index]
+
+        return Pipeline([("poly", PolynomialFeatures(degree=degree)), \
+                         ("huber", HuberRegressor(epsilon=epsilon))]) \
+                   .fit(X, y) \
+                   .predict(np.arange(data.shape[0]).reshape(-1, 1))
+
+    @staticmethod
+    def _unlimit_rotation(limited_rotation):
+        """
+        Unlimit the rotation.
+
+        Parameters
+        ----------
+        limited_rotation : npt.NDArray[float64]
+
+        Returns
+        -------
+        rotation : npt.NDArray[float64]
+
+        """
+        import numpy as np
+
+        diff = np.diff(limited_rotation)
+
+        for i in np.nonzero(diff > np.pi)[0]:
+            limited_rotation[i+1:] -= 2 * np.pi
+        for i in np.nonzero(diff <= -np.pi)[0]:
+            limited_rotation[i+1:] += 2 * np.pi
+
+        return limited_rotation
+
+    @staticmethod
+    def _limit_rotation(rotation):
+        """
+        Limit the rotation.
+
+        Parameters
+        ----------
+        rotation : npt.NDArray[float64]
+
+        Returns
+        -------
+        limited_rotation : npt.NDArray[float64]
+
+        """
+        import numpy as np
+
+        return np.remainder(rotation, np.pi)
+
+    @staticmethod
+    def _generate_aae(position, scale, limited_rotation, power_pin, clip, multiplier):
+        """
+        Finalised and stringify the data.
+
+        Parameters
+        ----------
+        position : npt.NDArray[float64]
+        scale : npt.NDArray[float64]
+        limited_rotation : npt.NDArray[float64]
+        power_pin : npt.NDArray[float64]
+        multiplier: float
+
+        Returns
+        -------
+        aae_position : list[str]
+        aae_scale : list[str]
+        aae_rotation : list[str]
+        aae_power_pin_0002 : list[str]
+        aae_power_pin_0003 : list[str]
+        aae_power_pin_0004 : list[str]
+        aae_power_pin_0005 : list[str]
+
+        """
+        position *= multiplier
+        scale *= 100.0
+        limited_rotation *= 180.0 / np.pi
+        power_pin += position
+        power_pin *= multiplier
+
+        aae_position = []
+        aae_scale = []
+        aae_rotation = []
+        aae_power_pin_0002 = []
+        aae_power_pin_0003 = []
+        aae_power_pin_0004 = []
+        aae_power_pin_0005 = []
+
+        for frame in range(position.shape[0]):
+            if position[frame][0] != np.nan:
+                aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t0".format(frame + 1, *position[frame]))
+            if scale[frame][0] != np.nan:
+                aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t100".format(frame + 1, *scale[frame]))
+            if limited_rotation[frame] != np.nan:
+                aae_rotation.append("\t{:d}\t{:.3f}".format(frame + 1, limited_rotation[frame]))
+            if power_pin[0][frame][0] != np.nan:
+                aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[0][frame]))
+                aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[1][frame]))
+                aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[2][frame]))
+                aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[3][frame]))
+
+        return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
+        
+    @staticmethod
+    def _generate_aae_non_numpy(clip, track):
+        """
+        Generate aae without numpy.
+
+        Parameters
+        ----------
+        clip : bpy.types.MovieClip
+        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
+
+        Returns
+        -------
+        aae_position : list[str]
+        aae_scale : list[str]
+        aae_rotation : list[str]
+        aae_power_pin_0002 : list[str]
+        aae_power_pin_0003 : list[str]
+        aae_power_pin_0004 : list[str]
+        aae_power_pin_0005 : list[str]
+
+        """
+        aae_position = []
+        aae_scale = []
+        aae_rotation = []
+        aae_power_pin_0002 = []
+        aae_power_pin_0003 = []
+        aae_power_pin_0004 = []
+        aae_power_pin_0005 = []
+
+        scale_base = None
+
+        if track.__class__.__name__ == "MovieTrackingTrack":
+            for marker in track.markers:
                 if not 0 < marker.frame <= clip.frame_duration:
                     continue
                 if marker.mute:
                     continue
 
-                frames.append(marker.frame)
-                if marker.__class__.__name__ == "MovieTrackingMarker":
-                    corners.append([list([c[0] + marker.co[0], c[1] + marker.co[1]]) for c in marker.pattern_corners])
-                else: # "MovieTrackingPlaneMarker"
-                    corners.append([list(c) for c in marker.corners])
-            
-            for pini, corneri in [(2, 3), (3, 2), (4, 0), (5, 1)]:
-                power_pin += f"\n\nEffects\tCC Power Pin #1\tCC Power Pin-000{pini}"
-                power_pin += "\n\tFrame\tX pixels\tY pixels"
+                position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, scale_base \
+                    = AAEExportExportAll._calculate_marker_track_per_frame_non_numpy( \
+                          clip, marker, scale_base)
 
-                for i, plane in enumerate(corners):
-                    corner = plane[corneri]
-                    x = corner[0] * clip.size[0]
-                    y = (1 - corner[1]) * clip.size[1]
-                    power_pin += f"\n\t{frames[i]}\t{x:.3f}\t{y:.3f}"
+                AAEExportExportAll._generate_aae_per_frame_non_numpy( \
+                    marker, \
+                    aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
+                    position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005)
 
-            return power_pin
+        elif track.__class__.__name__ == "MovieTrackingPlaneTrack":
+            for marker in track.markers[1:-1]:
+                if not 0 < marker.frame <= clip.frame_duration:
+                    continue
+                if marker.mute:
+                    continue
+
+                position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, scale_base
+                    = AAEExportExportAll._calculate_plane_track_per_frame_non_numpy( \
+                          clip, marker, scale_base)
+
+                AAEExportExportAll._generate_aae_per_frame_non_numpy( \
+                    marker, \
+                    aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
+                    position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005)
+
+        else:
+            raise ValueError("track.__class__.__name__ \"" + track.__class__.__name__ + "\" not recognised")
+
+        return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
+
+    @staticmethod
+    def _calculate_marker_track_per_frame_non_numpy(clip, marker, scale_base):
+        """
+        Generate data without numpy.
+
+        Parameters
+        ----------
+        clip : bpy.types.MovieClip
+        marker : bpy.types.MovieTrackingMarker
+        scale_base : tuple[float] or None
+
+        Returns
+        -------
+        position : tuple[float]
+        scale : tuple[float]
+        rotate : float
+        power_pin_0002 : tuple[float]
+        power_pin_0003 : tuple[float]
+        power_pin_0004 : tuple[float]
+        power_pin_0005 : tuple[float]
+        scale_base : tuple[float]
+        """
+        import math
+
+        position = (float(marker.co[0]) * clip.size[0],
+                    1 - float(marker.co[1]) * clip.size[1])
+
+        relative_power_pin_0002 = (float(marker.pattern_corners[3][0]) * clip.size[0],
+                                   1 - float(marker.pattern_corners[3][1]) * clip.size[1])
+        relative_power_pin_0003 = (float(marker.pattern_corners[2][0]) * clip.size[0],
+                                   1 - float(marker.pattern_corners[2][1]) * clip.size[1])
+        relative_power_pin_0004 = (float(marker.pattern_corners[0][0]) * clip.size[0],
+                                   1 - float(marker.pattern_corners[0][1]) * clip.size[1])
+        relative_power_pin_0005 = (float(marker.pattern_corners[1][0]) * clip.size[0],
+                                   1 - float(marker.pattern_corners[1][1]) * clip.size[1])
+
+        scale = (math.sqrt(math.pow((relative_power_pin_0002[0] - relative_power_pin_0003[0] + relative_power_pin_0004[0] - relative_power_pin_0005[0]) / 2, 2) + \
+                           math.pow((relative_power_pin_0002[1] - relative_power_pin_0003[1] + relative_power_pin_0004[1] - relative_power_pin_0005[1]) / 2, 2)),
+                 math.sqrt(math.pow((relative_power_pin_0002[0] - relative_power_pin_0004[0] + relative_power_pin_0003[0] - relative_power_pin_0005[0]) / 2, 2) + \
+                           math.pow((relative_power_pin_0002[1] - relative_power_pin_0004[1] + relative_power_pin_0003[1] - relative_power_pin_0005[1]) / 2, 2)))
+        if scale_base == None:
+            scale_base = scale
+            scale = (100.0, 100.0)
+        else:
+            scale = (scale[0] / scale_base[0] * 100, scale[1] / scale_base[1] * 100)
+
+        rotation = np.atan2((relative_power_pin_0002[0] + relative_power_pin_0003[0]) / 2,
+                            -(relative_power_pin_0002[1] + relative_power_pin_0003[1]) / 2)
+
+        power_pin_0002 = (relative_power_pin_0002[0] + position[0], relative_power_pin_0002[1] + position[1])
+        power_pin_0003 = (relative_power_pin_0003[0] + position[0], relative_power_pin_0003[1] + position[1])
+        power_pin_0004 = (relative_power_pin_0004[0] + position[0], relative_power_pin_0004[1] + position[1])
+        power_pin_0005 = (relative_power_pin_0005[0] + position[0], relative_power_pin_0005[1] + position[1])
+
+        return position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, scale_base
+
+    @staticmethod
+    def _calculate_plane_track_per_frame_non_numpy(clip, marker, scale_base):
+        """
+        Generate data without numpy.
+
+        Parameters
+        ----------
+        clip : bpy.types.MovieClip
+        marker : bpy.types.MovieTrackingPlaneMarker
+        scale_base : tuple[float] or None
+
+        Returns
+        -------
+        position : tuple[float]
+        scale : tuple[float]
+        rotate : float
+        power_pin_0002 : tuple[float]
+        power_pin_0003 : tuple[float]
+        power_pin_0004 : tuple[float]
+        power_pin_0005 : tuple[float]
+        scale_base : tuple[float]
+        """
+        import math
+
+        power_pin_0002 = (float(marker.corners[3][0]) * clip.size[0],
+                          1 - float(marker.corners[3][1]) * clip.size[1])
+        power_pin_0003 = (float(marker.corners[2][0]) * clip.size[0],
+                          1 - float(marker.corners[2][1]) * clip.size[1])
+        power_pin_0004 = (float(marker.corners[0][0]) * clip.size[0],
+                          1 - float(marker.corners[0][1]) * clip.size[1])
+        power_pin_0005 = (float(marker.corners[1][0]) * clip.size[0],
+                          1 - float(marker.corners[1][1]) * clip.size[1])
+                          
+        position \
+            = AAEExportExportAll._calculate_centre_plane_track_per_frame_non_numpy( \
+                  power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005)
     
-        if do_includes_power_pin:
-            aae += generate_power_pin(clip, track)
+        scale = (math.sqrt(math.pow((power_pin_0002[0] - power_pin_0003[0] + power_pin_0004[0] - power_pin_0005[0]) / 2, 2) + \
+                           math.pow((power_pin_0002[1] - power_pin_0003[1] + power_pin_0004[1] - power_pin_0005[1]) / 2, 2)),
+                 math.sqrt(math.pow((power_pin_0002[0] - power_pin_0004[0] + power_pin_0003[0] - power_pin_0005[0]) / 2, 2) + \
+                           math.pow((power_pin_0002[1] - power_pin_0004[1] + power_pin_0003[1] - power_pin_0005[1]) / 2, 2)))
+        if scale_base == None:
+            scale_base = scale
+            scale = (100.0, 100.0)
+        else:
+            scale = (scale[0] / scale_base[0] * 100, scale[1] / scale_base[1] * 100)
 
-        aae += "\n\nEnd of Keyframe Data\n"
+        rotation = np.atan2((relative_power_pin_0002[0] + relative_power_pin_0003[0]) / 2 - position[0],
+                            -((relative_power_pin_0002[1] + relative_power_pin_0003[1]) / 2 - position[1]))
+
+        return position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, scale_base
+
+    @staticmethod
+    def _calculate_centre_plane_track_per_frame_non_numpy(power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005):
+        """
+        Parameters
+        ----------
+        power_pin_0002 : tuple[float]
+        power_pin_0003 : tuple[float]
+        power_pin_0004 : tuple[float]
+        power_pin_0005 : tuple[float]
+
+        Returns
+        -------
+        i : tuple[float]
+            The centre of plane track. Never None.
+
+        """
+        # https://stackoverflow.com/questions/563198
+        px = power_pin_0002[0]
+        py = power_pin_0002[1]
+        rx = power_pin_0002[0] - power_pin_0005[0]
+        ry = power_pin_0002[1] - power_pin_0005[1]
+        qx = power_pin_0004[0]
+        qy = power_pin_0004[1]
+        sx = power_pin_0004[0] - power_pin_0003[0]
+        sy = power_pin_0004[1] - power_pin_0003[1]
+
+        j = rx * sy - ry * sx
+        k = (qx - px) * ry - (qy - py) * rx
+
+        if j == 0 and k == 0:
+            # The points are collinear
+            return [(px * 2 + rx + qx * 2 + sx) / 4, (py * 2 + ry + qy * 2 + sy) / 4]
+        elif j == 0 and k != 0:
+            # The two lines are parallel
+            # It could return AAEExportExportAll._plane_track_center(l, n, m, o)
+            # but that will give a false sense of security as if this
+            # function can deal with hourglass-shaped input.
+            return [(px * 2 + rx + qx * 2 + sx) / 4, (py * 2 + ry + qy * 2 + sy) / 4]
+        else: # j != 0
+            # The two lines intersects
+            t = k / j
+            return [px + t * rx, py + t * ry]
+
+    @staticmethod
+    def _generate_aae_per_frame_non_numpy(marker, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005):
+        """
+        Generate aae per frame without numpy.
+
+        Parameters
+        ----------
+        marker : bpy.types.MovieTrackingMarker or bpy.types.MovieTrackingPlaneMarker
+        aae_position : list[str]
+        aae_scale : list[str]
+        aae_rotation : list[str]
+        aae_power_pin_0002 : list[str]
+        aae_power_pin_0003 : list[str]
+        aae_power_pin_0004 : list[str]
+        aae_power_pin_0005 : list[str]
+        position : tuple[float]
+        scale : tuple[float]
+        rotate : float
+        power_pin_0002 : tuple[float]
+        power_pin_0003 : tuple[float]
+        power_pin_0004 : tuple[float]
+        power_pin_0005 : tuple[float]
+
+        """
+        aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t0".format(marker.frame, *position))
+        aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t100".format(marker.frame, *scale))
+        aae_rotation.append("\t{:d}\t{:.3f}".format(marker.frame, rotation))
+        aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0002))
+        aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0003))
+        aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0004))
+        aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0005))
+
+    @staticmethod
+    def _combine_aae(clip, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, do_includes_power_pin)
+        """
+        Combine and finish aae.
+
+        Parameters
+        ----------
+        clip : clip : bpy.types.MovieClip
+        aae_position : list[str]
+        aae_scale : list[str]
+        aae_rotation : list[str]
+        aae_power_pin_0002 : list[str]
+        aae_power_pin_0003 : list[str]
+        aae_power_pin_0004 : list[str]
+        aae_power_pin_0005 : list[str]
+
+        Returns
+        -------
+        aae : str
+
+        """
+        aae = ""
+
+        aae += "Adobe After Effects 6.0 Keyframe Data\n\n"
+        aae += "\tUnits Per Second\t{:.3f}\n".format(clip.fps)
+        aae += "\tSource Width\t{:d}\n".format(clip.size[0])
+        aae += "\tSource Height\t{:d}\n".format(clip.size[1])
+        aae += "\tSource Pixel Aspect Ratio\t1\n"
+        aae += "\tComp Pixel Aspect Ratio\t1\n\n"
+
+        aae += "Anchor Point\n"
+        aae += "\tFrame\tX pixels\tY pixels\tZ pixels\n"
+        aae += "\n".join(aae_position) + "\n\n"
+
+        aae += "Position\n"
+        aae += "\tFrame\tX pixels\tY pixels\tZ pixels\n"
+        aae += "\n".join(aae_position) + "\n\n"
+
+        aae += "Scale\n"
+        aae += "\tFrame\tX percent\tY percent\tZ percent\n"
+        aae += "\n".join(aae_scale) + "\n\n"
+
+        aae += "Rotation\n"
+        aae += "\tFrame\tDegrees\n"
+        aae += "\n".join(aae_rotation) + "\n\n"
+
+        if do_includes_power_pin:
+            aae += "Effects	CC Power Pin #1	CC Power Pin-0002\n"
+            aae += "\tFrame\tX pixels\tY pixels\n"
+            aae += "\n".join(aae_power_pin_0002) + "\n\n"
+            aae += "Effects	CC Power Pin #1	CC Power Pin-0003\n"
+            aae += "\tFrame\tX pixels\tY pixels\n"
+            aae += "\n".join(aae_power_pin_0003) + "\n\n"
+            aae += "Effects	CC Power Pin #1	CC Power Pin-0004\n"
+            aae += "\tFrame\tX pixels\tY pixels\n"
+            aae += "\n".join(aae_power_pin_0004) + "\n\n"
+            aae += "Effects	CC Power Pin #1	CC Power Pin-0005\n"
+            aae += "\tFrame\tX pixels\tY pixels\n"
+            aae += "\n".join(aae_power_pin_0005) + "\n\n"
+
+        aae += "End of Keyframe Data\n"
 
         return aae
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     @staticmethod
     def _export_to_file(clip, track, aae, prefix, do_do_not_overwrite):
@@ -653,8 +1207,8 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
             if importlib.util.find_spec(module[0]) == None:
                 return {'FINISHED'}
 
-        global is_smoothing_available
-        is_smoothing_available = True
+        global is_smoothing_modules_available
+        is_smoothing_modules_available = True
 
         unregister_register_class()
         
@@ -707,12 +1261,12 @@ def register():
     elif importlib.util.find_spec("distutils") != None: # distutils deprecated in Python 3.12
         import distutils.version
     
-    global is_smoothing_available
+    global is_smoothing_modules_available
     for module in smoothing_modules:
         if importlib.util.find_spec(module[0]) == None:
             register_register_classes()
 
-            is_smoothing_available = False
+            is_smoothing_modules_available = False
             break
 
         if module[2]:
@@ -722,16 +1276,16 @@ def register():
                 if packaging.version.parse(module_version) < packaging.version.parse(module[2]):
                     register_register_classes()
 
-                    is_smoothing_available = False
+                    is_smoothing_modules_available = False
                     break
             elif "distutils" in locals(): # distutils deprecated in Python 3.12
                 if distutils.version.LooseVersion(module_version) < distutils.version.LooseVersion(module[2]):
                     register_register_classes()
 
-                    is_smoothing_available = False
+                    is_smoothing_modules_available = False
                     break
     else:
-        is_smoothing_available = True
+        is_smoothing_modules_available = True
 
     register_main_classes()
 
@@ -753,7 +1307,7 @@ def register_register_classes():
     bpy.types.WindowManager.AAEExportRegisterSettings = bpy.props.PointerProperty(type=AAEExportRegisterSettings)
     
 def unregister():
-    if not is_smoothing_available:
+    if not is_smoothing_modules_available:
         unregister_register_class()
     
     unregister_main_class()
