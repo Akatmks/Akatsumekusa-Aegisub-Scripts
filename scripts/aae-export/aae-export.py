@@ -50,7 +50,7 @@ bl_info = {
     "name": "Adobe After Effects 6.0 Keyframe Data Export",
     "description": "Export motion tracking data as Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE file",
     "author": "Martin Herkt, arch1t3cht, Akatsumekusa",
-    "version": (0, 2, 6),
+    "version": (0, 2, 7),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (2, 93, 0),
@@ -66,15 +66,54 @@ from datetime import datetime
 import math
 from pathlib import Path
 
+# ("import name", "PyPI name", "minimum version")
+smoothing_modules = (("numpy", "numpy", ""), ("sklearn", "scikit-learn", "0.18"))
+
+is_smoothing_available = False
+
 class AAEExportSettings(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettings"
     bl_idname = "AAEExportSettings"
     
+    do_includes_power_pin: bpy.props.BoolProperty(name="Enable",
+                                           description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is having trouble with the Power Pin data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
+                                           default=True)
+    do_smoothing: bpy.props.BoolProperty(name="Enable",
+                                         description="Perform smoothing on tracking data.\nThis put the position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks into Huber Regressor. Huber Regressor is an L2-regularized regression model that is robust to outliers.\n\nPlease note that the smoothing feature is very rudimentary and may cause more problems than it solves. Akatsumekusa recommends trying it only if the tracking is unbearably poor.\n\nAlso, Akatsumekusa is working on a new script that will provide this feature much better than it is right now. Please expect Non Carbonated AAE Export to come out sometime in 2023" if is_smoothing_available else \
+                                                     "Perform smoothing on tracking data.\nThis feature requires additional packages to be installed. Please head to „Edit > Preference > Add-ons > Video Tools: AAE Export“ to install the dependencies",
+                                         default=False)
+    smoothing_position_degree: bpy.props.IntProperty(name="Max Position Degree",
+                                                     description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
+                                                     default=3,
+                                                     min=1,
+                                                     soft_max=10)
+    smoothing_scale_degree: bpy.props.IntProperty(name="Max Scale Degree",
+                                                  description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may cause overfitting",
+                                                  default=2,
+                                                  min=1,
+                                                  soft_max=5)
+    smoothing_rotation_degree: bpy.props.IntProperty(name="Max Rotation Degree",
+                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may very likely cause overfitting",
+                                                     default=2,
+                                                     min=1,
+                                                     soft_max=5)
+    smoothing_perspective_degree: bpy.props.IntProperty(name="Max Perspective Degree",
+                                                     description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
+                                                     default=3,
+                                                     min=1,
+                                                     soft_max=10)
+    smoothing_position_epsilon: bpy.props.FloatProperty(name="Epsilon",
+                                                        description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nAkatsumekusa sets the default value of this option to 1.25",
+                                                        default=1.25,
+                                                        min=1.00,
+                                                        soft_max=2.00,
+                                                        step=1,
+                                                        precision=2)
+    smoothing_predictive: bpy.props.BoolProperty(name="Predictive Smoothing",
+                                                 description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
+                                                 default=False)
     do_also_export: bpy.props.BoolProperty(name="Auto export",
                                            description="Automatically export the selected track to file while copying",
-                                           default=True)
-    do_includes_power_pin: bpy.props.BoolProperty(name="Includes Power Pin",
-                                           description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is having trouble with the Power Pin data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
                                            default=True)
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
                                                 description="Generate unique files every time",
@@ -135,28 +174,56 @@ class AAEExportExportAll(bpy.types.Operator):
         settings = context.screen.AAEExportSettings
 
         for track in clip.tracking.tracks:
-            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, settings.do_includes_power_pin), None, settings.do_do_not_overwrite)
+            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, settings), None, settings.do_do_not_overwrite)
 
         for plane_track in clip.tracking.plane_tracks:
-            AAEExportExportAll._export_to_file(clip, plane_track, AAEExportExportAll._generate(clip, plane_track, settings.do_includes_power_pin), None, settings.do_do_not_overwrite)
+            AAEExportExportAll._export_to_file(clip, plane_track, AAEExportExportAll._generate(clip, plane_track, settings), None, settings.do_do_not_overwrite)
         
         return {"FINISHED"}
 
     @staticmethod
-    def _generate(clip, track, do_includes_power_pin):
+    def _generate(clip, track, settings):
         """
         Parameters
         ----------
         clip : bpy.types.MovieClip
         track : bpy.types.MovieTrackingTrack or MovieTrackingPlaneTrack
-        do_includes_power_pin : bool
-            AAEExportSettings.do_includes_power_pin.
+        settings : AAEExportSettings or None
+            AAEExportSettings.
 
         Returns
         -------
         aae : str
 
         """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         startarea = None
         startwidth = None
         startheight = None
@@ -287,6 +354,64 @@ class AAEExportExportAll(bpy.types.Operator):
 
         return aae
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     @staticmethod
     def _export_to_file(clip, track, aae, prefix, do_do_not_overwrite):
         """
@@ -335,11 +460,7 @@ class AAEExportExportAll(bpy.types.Operator):
             Likely coming from _generated().
             
         """
-        if is_pyperclip_available:
-            import pyperclip
-            pyperclip.copy(aae)
-        else:
-            context.window_manager.clipboard = aae
+        context.window_manager.clipboard = aae
 
 class AAEExportCopySingleTrack(bpy.types.Operator):
     bl_label = "Copy"
@@ -350,7 +471,7 @@ class AAEExportCopySingleTrack(bpy.types.Operator):
         clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
 
-        aae = AAEExportExportAll._generate(clip, context.selected_movieclip_tracks[0], settings.do_includes_power_pin)
+        aae = AAEExportExportAll._generate(clip, context.selected_movieclip_tracks[0], settings)
         
         AAEExportExportAll._copy_to_clipboard(context, aae)
         if settings.do_also_export:
@@ -370,7 +491,7 @@ class AAEExportCopyPlaneTrack(bpy.types.Operator):
         aae = None
         for plane_track in context.edit_movieclip.tracking.plane_tracks:
             if plane_track.select == True:
-                aae = AAEExportExportAll._generate(clip, plane_track, settings.do_includes_power_pin)
+                aae = AAEExportExportAll._generate(clip, plane_track, settings)
                 break
 
         AAEExportExportAll._copy_to_clipboard(context, aae)
@@ -488,10 +609,10 @@ class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         settings = context.screen.AAEExportSettings
 
         for track in clip.tracking.tracks:
-            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, False), self.filepath, True)
+            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, None), self.filepath, True)
 
         for plane_track in clip.tracking.plane_tracks:
-            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, plane_track, False), self.filepath, True)
+            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, plane_track, None), self.filepath, True)
 
         return {"FINISHED"}
 
@@ -503,24 +624,17 @@ classes = (AAEExportSettings,
            AAEExportSelectedTrack,
            AAEExportAllTracks,
            AAEExportLegacy)
-           
-# ("import name", "PyPI name", "minimum version")
-pyperclip_modules = (("pyperclip", "pyperclip", ""),)
-
-is_pyperclip_available = False
 
 class AAEExportRegisterSettings(bpy.types.PropertyGroup):
     bl_label = "AAEExportRegisterSettings"
     bl_idname = "AAEExportRegisterSettings"
-    
-    is_advanced: bpy.props.BoolProperty(name="Advanced", default=False)
 
-class AAEExportRegisterInstallpyperclip(bpy.types.Operator):
-    bl_label = "Install Pyperclip"
-    bl_description = "In case Blender's builtin clipboard feature isn't functional, AAE Export provides a workaround using external module Pyperclip.\nBy clicking this button, AAE Export will download and install " + \
-                     (" and ".join([", ".join(["pip"] + [module[1] for module in pyperclip_modules[:-1]]), pyperclip_modules[-1][1]]) if len(pyperclip_modules) != 0 else "pip") + \
+class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
+    bl_label = "Install Optional Packages"
+    bl_description = "AAE Export's smoothing feature requires additional packages to be installed.\nBy clicking this button, AAE Export will download and install " + \
+                     (" and ".join([", ".join(["pip"] + [module[1] for module in smoothing_modules[:-1]]), smoothing_modules[-1][1]]) if len(smoothing_modules) != 0 else "pip") + \
                      " into your Blender distribution.\nThis process might take up to 3 minutes. Your Blender will freeze during the process"
-    bl_idname = "preference.aae_export_register_install_pyperclip"
+    bl_idname = "preference.aae_export_register_install_smoothing_dependencies"
     bl_options = {"REGISTER", "INTERNAL"}
 
     def execute(self, context):
@@ -533,18 +647,18 @@ class AAEExportRegisterInstallpyperclip(bpy.types.Operator):
             self._execute_nt(context)
         else:
             subprocess.run([sys.executable, "-m", "ensurepip"], check=True) # sys.executable requires Blender 2.93
-            subprocess.run([sys.executable, "-m", "pip", "install"] + [module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in pyperclip_modules], check=True)
+            subprocess.run([sys.executable, "-m", "pip", "install"] + [module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in smoothing_modules], check=True)
             
-        for module in pyperclip_modules:
+        for module in smoothing_modules:
             if importlib.util.find_spec(module[0]) == None:
                 return {'FINISHED'}
 
-        global is_pyperclip_available
-        is_pyperclip_available = True
+        global is_smoothing_available
+        is_smoothing_available = True
 
         unregister_register_class()
         
-        self.report({"INFO"}, "Pyperclip installed successfully.")
+        self.report({"INFO"}, "Dependencies installed successfully.")
 
         return {'FINISHED'}
 
@@ -564,7 +678,7 @@ class AAEExportRegisterInstallpyperclip(bpy.types.Operator):
 
             f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"ensurepip\"], check=True)\n")
             f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"pip\", \"install\", \"" + \
-                                        "\", \"".join([module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in pyperclip_modules]) + \
+                                        "\", \"".join([module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in smoothing_modules]) + \
                                         "\"], check=True)\n")
 
             f.write("\texcept:\n")
@@ -581,16 +695,10 @@ class AAEExportRegisterPreferencePanel(bpy.types.AddonPreferences):
         layout = self.layout
         settings = context.window_manager.AAEExportRegisterSettings
 
-        column = layout.column()
-        column.prop(settings, "is_advanced",
-                    icon="TRIA_DOWN" if settings.is_advanced else "TRIA_RIGHT",
-                    emboss=False)
-
-        if settings.is_advanced:
-            column.operator("preference.aae_export_register_install_pyperclip", icon="CONSOLE")
+        layout.operator("preference.aae_export_register_install_smoothing_dependencies", icon="CONSOLE")
 
 register_classes = (AAEExportRegisterSettings,
-                    AAEExportRegisterInstallpyperclip,
+                    AAEExportRegisterInstallSmoothingDependencies,
                     AAEExportRegisterPreferencePanel)
 def register():
     import importlib.util
@@ -599,12 +707,12 @@ def register():
     elif importlib.util.find_spec("distutils") != None: # distutils deprecated in Python 3.12
         import distutils.version
     
-    global is_pyperclip_available
-    for module in pyperclip_modules:
+    global is_smoothing_available
+    for module in smoothing_modules:
         if importlib.util.find_spec(module[0]) == None:
             register_register_classes()
 
-            is_pyperclip_available = False
+            is_smoothing_available = False
             break
 
         if module[2]:
@@ -614,16 +722,16 @@ def register():
                 if packaging.version.parse(module_version) < packaging.version.parse(module[2]):
                     register_register_classes()
 
-                    is_pyperclip_available = False
+                    is_smoothing_available = False
                     break
             elif "distutils" in locals(): # distutils deprecated in Python 3.12
                 if distutils.version.LooseVersion(module_version) < distutils.version.LooseVersion(module[2]):
                     register_register_classes()
 
-                    is_pyperclip_available = False
+                    is_smoothing_available = False
                     break
     else:
-        is_pyperclip_available = True
+        is_smoothing_available = True
 
     register_main_classes()
 
@@ -645,7 +753,7 @@ def register_register_classes():
     bpy.types.WindowManager.AAEExportRegisterSettings = bpy.props.PointerProperty(type=AAEExportRegisterSettings)
     
 def unregister():
-    if not is_pyperclip_available:
+    if not is_smoothing_available:
         unregister_register_class()
     
     unregister_main_class()
