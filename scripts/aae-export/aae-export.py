@@ -43,10 +43,10 @@
 # ---------------------------------------------------------------------
 
 bl_info = {
-    "name": "Adobe After Effects 6.0 Keyframe Data Export",
-    "description": "Export motion tracking data as Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE file",
+    "name": "AAE Export",
+    "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Martin Herkt, arch1t3cht, Akatsumekusa",
-    "version": (0, 2, 7),
+    "version": (0, 3, 0),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -70,54 +70,68 @@ class AAEExportSettings(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettings"
     bl_idname = "AAEExportSettings"
     
-    do_includes_power_pin: bpy.props.BoolProperty(name="Enable",
+    do_includes_power_pin: bpy.props.BoolProperty(name="Includes Power Pin",
                                            description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is having trouble with the Power Pin data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
                                            default=True)
+    do_smoothing_fake: bpy.props.BoolProperty(name="Enable",
+                                              description="Perform smoothing on tracking data.\nThis feature requires additional packages to be installed. Please head to „Edit > Preference > Add-ons > Video Tools: AAE Export“ to install the dependencies",
+                                              default=False)
     do_smoothing: bpy.props.BoolProperty(name="Enable",
-                                         description="Perform smoothing on tracking data.\nThis put the position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks into Huber Regressor. Huber Regressor is an L2-regularized regression model that is robust to outliers.\n\nPlease note that the smoothing feature is very rudimentary and may cause more problems than it solves. Akatsumekusa recommends trying it only if the tracking is unbearably poor.\n\nAlso, Akatsumekusa is working on a new script that will provide this feature much better than it is right now. Please expect Non Carbonated AAE Export to come out sometime in 2023" if is_smoothing_modules_available else \
-                                                     "Perform smoothing on tracking data.\nThis feature requires additional packages to be installed. Please head to „Edit > Preference > Add-ons > Video Tools: AAE Export“ to install the dependencies",
+                                         description="Perform smoothing on tracking data.\nThis uses position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks to fit polynomial regression models, and uses the fit models to generate smoothed data.\n\nPlease note that this smoothing feature is very rudimentary and may cause more problems than it solves. Akatsumekusa recommends trying it only if the tracking is unbearably poor.\n\nAlso, Akatsumekusa is working on a new script that will provide this feature much better than it is right now. Please expect Non Carbonated AAE Export to come out sometime in 2023",
                                          default=False)
-    smoothing_do_position: bpy.props.BoolProperty(name="Position Smoothing",
+    smoothing_do_position: bpy.props.BoolProperty(name="Smooth",
                                                   description="Perform smoothing on position data",
                                                   default=True)
-    smoothing_position_degree: bpy.props.IntProperty(name="Max Position Degree",
+    smoothing_position_degree: bpy.props.IntProperty(name="Max Degree",
                                                      description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
                                                      default=3,
                                                      min=1,
-                                                     soft_max=10)
-    smoothing_do_scale: bpy.props.BoolProperty(name="Scale Smoothing",
+                                                     soft_max=5)
+    smoothing_do_scale: bpy.props.BoolProperty(name="Smooth",
                                                description="Perform smoothing on scale data",
                                                default=True)
-    smoothing_scale_degree: bpy.props.IntProperty(name="Max Scale Degree",
+    smoothing_scale_degree: bpy.props.IntProperty(name="Max Degree",
                                                   description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may cause overfitting",
                                                   default=2,
                                                   min=1,
-                                                  soft_max=5)
-    smoothing_do_rotation: bpy.props.BoolProperty(name="Rotation Smoothing",
+                                                  soft_max=4)
+    smoothing_do_rotation: bpy.props.BoolProperty(name="Smooth",
                                                description="Perform smoothing on rotation data.\nPlease note that rotation calculation in AAE Export is very basic. Performing smoothing on rotations with high velocity may yield unexpected results",
                                                default=True)
-    smoothing_rotation_degree: bpy.props.IntProperty(name="Max Rotation Degree",
-                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may very likely cause overfitting",
+    smoothing_rotation_degree: bpy.props.IntProperty(name="Max Degree",
+                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may cause overfitting",
                                                      default=2,
                                                      min=1,
-                                                     soft_max=5)
-    smoothing_do_power_pin: bpy.props.BoolProperty(name="Power Pin Smoothing",
+                                                     soft_max=4)
+    smoothing_do_power_pin: bpy.props.BoolProperty(name="Smooth",
                                                    description="Perform smoothing on Power Pin data",
                                                    default=True)
-    smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Power Pin Degree",
-                                                      description="The maximal polynomial degree of Power Pin data.\nPlease note that Huber Regressor is applied on Power Pin data relative to the position data instead of perspective.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
+    smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Degree",
+                                                      description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
                                                       default=2,
                                                       min=1,
-                                                      soft_max=10)
-    smoothing_position_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                        description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nAkatsumekusa sets the default value of this option to 1.40",
-                                                        default=1.40,
-                                                        min=1.00,
-                                                        soft_max=3.00,
-                                                        step=1,
-                                                        precision=2)
+                                                      soft_max=5)
+    smoothing_position_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "The Huber Regressor is an L2-regularised regression model that is robust to outliers"),
+                                                                ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model"),
+                                                                ("LINEAR", "Least Squares Regressor", "Ordinary least squares regression model")),
+                                                         name="Linear Model",
+                                                         default="HUBER")
+    smoothing_position_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
+                                                              description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers",
+                                                              default=1.45,
+                                                              min=1.00,
+                                                              soft_max=2.50,
+                                                              step=1,
+                                                              precision=2)
+    smoothing_position_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
+                                                              description="The alpha of a Lasso Regressor controls the regularisation strength",
+                                                              default=1.00,
+                                                              min=0.00,
+                                                              soft_max=100.0,
+                                                              step=1,
+                                                              precision=2)
     smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
-                                                              description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
+                                                              description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
                                                               default=False)
     do_also_export: bpy.props.BoolProperty(name="Auto export",
                                            description="Automatically export the selected track to file while copying",
@@ -163,7 +177,7 @@ class AAEExportExportAll(bpy.types.Operator):
                 = AAEExportExportAll._calculate_aspect_ratio( \
                       clip)
 
-            position, scale, limited_rotation, power_pin \
+            position, scale, semilimited_rotation, power_pin \
                 = AAEExportExportAll._prepare_data( \
                       clip, track, ratio)
 
@@ -172,23 +186,26 @@ class AAEExportExportAll(bpy.types.Operator):
                     = AAEExportExportAll._smoothing( \
                           position, \
                           settings.smoothing_do_position, settings.smoothing_do_predictive_smoothing, \
-                          settings.smoothing_position_degree, settings.smoothing_position_epsilon)
+                          settings.smoothing_position_degree, \
+                          settings.smoothing_position_regressor, settings.smoothing_position_epsilon, settings.smoothing_position_lasso_alpha)
 
                 scale \
                     = AAEExportExportAll._smoothing( \
                           scale, \
                           settings.smoothing_do_scale, settings.smoothing_do_predictive_smoothing, \
-                          settings.smoothing_scale_degree, settings.smoothing_position_epsilon)
+                          settings.smoothing_scale_degree, \
+                          settings.smoothing_position_regressor, settings.smoothing_position_epsilon, settings.smoothing_position_lasso_alpha)
 
                 rotation \
                     = AAEExportExportAll._unlimit_rotation( \
-                          limited_rotation)
+                          semilimited_rotation)
                 
                 rotation \
                     = AAEExportExportAll._smoothing( \
                           rotation, \
                           settings.smoothing_do_rotation, settings.smoothing_do_predictive_smoothing, \
-                          settings.smoothing_rotation_degree, settings.smoothing_position_epsilon)
+                          settings.smoothing_rotation_degree, \
+                          settings.smoothing_position_regressor, settings.smoothing_position_epsilon, settings.smoothing_position_lasso_alpha)
 
                 limited_rotation \
                     = AAEExportExportAll._limit_rotation( \
@@ -199,7 +216,13 @@ class AAEExportExportAll(bpy.types.Operator):
                         = AAEExportExportAll._smoothing( \
                               power_pin[i], \
                               settings.smoothing_do_power_pin, settings.smoothing_do_predictive_smoothing, \
-                              settings.smoothing_power_pin_degree, settings.smoothing_position_epsilon)
+                              settings.smoothing_power_pin_degree, \
+                              settings.smoothing_position_regressor, settings.smoothing_position_epsilon, settings.smoothing_position_lasso_alpha)
+
+            else:
+                limited_rotation \
+                    = AAEExportExportAll._limit_rotation( \
+                          semilimited_rotation)
 
             aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
                 = AAEExportExportAll._generate_aae( \
@@ -263,7 +286,7 @@ class AAEExportExportAll(bpy.types.Operator):
         -------
         position : npt.NDArray[float64]
         scale : npt.NDArray[float64]
-        limited_rotation : npt.NDArray[float64]
+        semilimited_rotation : npt.NDArray[float64]
         power_pin : npt.NDArray[float64]
 
         """
@@ -278,15 +301,15 @@ class AAEExportExportAll(bpy.types.Operator):
         else:
             raise ValueError("track.__class__.__name__ \"" + track.__class__.__name__ + "\" not recognised")
 
-        scale, limited_rotation \
-            = AAEExportExportAll._prepare_scale_and_limited_rotation( \
+        scale, semilimited_rotation \
+            = AAEExportExportAll._prepare_scale_and_semilimited_rotation( \
                   misshapen_power_pin)
 
         power_pin \
             = AAEExportExportAll._prepare_power_pin( \
                   misshapen_power_pin)
 
-        return position, scale, limited_rotation, power_pin
+        return position, scale, semilimited_rotation, power_pin
 
     @staticmethod
     def _prepare_position_and_misshapen_power_pin_marker_track(clip, track, ratio):
@@ -364,10 +387,10 @@ class AAEExportExportAll(bpy.types.Operator):
             if marker.mute:
                 continue
             position[marker.frame - 1] = [marker.co[0], 1 - marker.co[1]]
-            misshapen_power_pin[marker.frame - 1] = [marker.pattern_corners[3][0], 1 - marker.pattern_corners[3][1], \
-                                                     marker.pattern_corners[2][0], 1 - marker.pattern_corners[2][1], \
-                                                     marker.pattern_corners[0][0], 1 - marker.pattern_corners[0][1], \
-                                                     marker.pattern_corners[1][0], 1 - marker.pattern_corners[1][1]]
+            misshapen_power_pin[marker.frame - 1] = [marker.pattern_corners[3][0], -marker.pattern_corners[3][1], \
+                                                     marker.pattern_corners[2][0], -marker.pattern_corners[2][1], \
+                                                     marker.pattern_corners[0][0], -marker.pattern_corners[0][1], \
+                                                     marker.pattern_corners[1][0], -marker.pattern_corners[1][1]]
 
         position *= ratio
         misshapen_power_pin *= np.tile(ratio, 4)
@@ -429,7 +452,7 @@ class AAEExportExportAll(bpy.types.Operator):
         return position, misshapen_power_pin
         
     @staticmethod
-    def _prepare_scale_and_limited_rotation(misshapen_power_pin):
+    def _prepare_scale_and_semilimited_rotation(misshapen_power_pin):
         """
         Create scale and rotation array.
 
@@ -441,7 +464,7 @@ class AAEExportExportAll(bpy.types.Operator):
         -------
         scale : npt.NDArray[float64]
             scale is a 2D array unmultiplied.
-        limited_rotation : npt.NDArray[float64]
+        semilimited_rotation : npt.NDArray[float64]
             rotation is an 1D array unmultiplied as well.
 
         """
@@ -449,8 +472,8 @@ class AAEExportExportAll(bpy.types.Operator):
         import numpy.linalg as LA
         
         # https://stackoverflow.com/questions/1401712/
-        scale_x = LA.norm((misshapen_power_pin[:, 0:2] - misshapen_power_pin[:, 2:4] + misshapen_power_pin[:, 4:6] - misshapen_power_pin[:, 6:8]) / 2, axis=1)
-        scale_y = LA.norm((misshapen_power_pin[:, 0:2] - misshapen_power_pin[:, 4:6] + misshapen_power_pin[:, 2:4] - misshapen_power_pin[:, 6:8]) / 2, axis=1)
+        scale_x = LA.norm(misshapen_power_pin[:, 0:2] - misshapen_power_pin[:, 2:4] + misshapen_power_pin[:, 4:6] - misshapen_power_pin[:, 6:8], axis=1)
+        scale_y = LA.norm(misshapen_power_pin[:, 0:2] - misshapen_power_pin[:, 4:6] + misshapen_power_pin[:, 2:4] - misshapen_power_pin[:, 6:8], axis=1)
         scale = np.hstack((scale_x.reshape((-1, 1)), scale_y.reshape((-1, 1))))
         try:
             scale /= scale[np.nonzero(~np.isnan(scale_x))[0][0]]
@@ -459,9 +482,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
         rotation_x = (misshapen_power_pin[:, 0] + misshapen_power_pin[:, 2]) / 2
         rotation_y = (misshapen_power_pin[:, 1] + misshapen_power_pin[:, 3]) / 2
-        limited_rotation = np.arctan2(rotation_x, -rotation_y)
+        semilimited_rotation = np.arctan2(rotation_x, -rotation_y)
 
-        return scale, limited_rotation
+        return scale, semilimited_rotation
 
     @staticmethod
     def _prepare_power_pin(misshapen_power_pin):
@@ -482,7 +505,7 @@ class AAEExportExportAll(bpy.types.Operator):
         return np.swapaxes(misshapen_power_pin.reshape((-1, 4, 2)), 0, 1)
 
     @staticmethod
-    def _smoothing(data, do_smoothing, do_predictive_smoothing, degree, epsilon):
+    def _smoothing(data, do_smoothing, do_predictive_smoothing, degree, regressor, huber_epsilon, lasso_alpha):
         """
         Perform smoothing depending on the smoothing settings.
 
@@ -493,30 +516,34 @@ class AAEExportExportAll(bpy.types.Operator):
         do_smoothing : bool
         do_predictive_smoothing : bool
         degree : int
-        epsilon : int
+        regressor : str
+        huber_epsilon : int
+        lasso_alpha : int
 
         Returns
         -------
         data : npt.NDArray[float64]
 
         """
+        import numpy as np
+
         if data.ndim == 2:
             for i in range(data.shape[1]):
                 data[:, i] \
                     = AAEExportExportAll._smoothing( \
-                          data[:, i], do_smoothing, do_predictive_smoothing, degree, epsilon)
+                          data[:, i], do_smoothing, do_predictive_smoothing, degree, regressor, huber_epsilon, lasso_alpha)
         
         elif data.ndim == 1:
             match (do_smoothing << 1) + do_predictive_smoothing: # match case requires Python 3.10 (Blender 3.1)
                 case 0b11:
-                    predicted_data = AAEExportExportAll._smoothing_univariate(data, degree, epsilon)
+                    predicted_data = AAEExportExportAll._smoothing_univariate(data, degree, regressor, huber_epsilon, lasso_alpha)
                     return predicted_data
                 case 0b10:
-                    predicted_data = AAEExportExportAll._smoothing_univariate(data, degree, epsilon)
+                    predicted_data = AAEExportExportAll._smoothing_univariate(data, degree, regressor, huber_epsilon, lasso_alpha)
                     predicted_data[np.isnan(data)] = np.nan
                     return predicted_data
                 case 0b01:
-                    predicted_data = AAEExportExportAll._smoothing_univariate(data, degree, epsilon)
+                    predicted_data = AAEExportExportAll._smoothing_univariate(data, degree, regressor, huber_epsilon, lasso_alpha)
                     data[np.isnan(data)] = predicted_data[np.isnan(data)]
                     return data
                 case 0b00:
@@ -525,7 +552,7 @@ class AAEExportExportAll(bpy.types.Operator):
             raise ValueError("data.ndim must be either 1 or 2")
 
     @staticmethod
-    def _smoothing_univariate(data, degree, epsilon):
+    def _smoothing_univariate(data, degree, regressor, huber_epsilon, lasso_alpha):
         """
         Perform smoothing depending on the smoothing settings.
 
@@ -534,7 +561,9 @@ class AAEExportExportAll(bpy.types.Operator):
         data : npt.NDArray[float64]
             univariate data
         degree : int
-        epsilon : int
+        regressor : str
+        huber_epsilon : int
+        lasso_alpha : int
 
         Returns
         -------
@@ -544,25 +573,38 @@ class AAEExportExportAll(bpy.types.Operator):
         """
         import numpy as np
         from sklearn.preprocessing import PolynomialFeatures
-        from sklearn.linear_model import HuberRegressor
+        from sklearn.linear_model import HuberRegressor, Lasso, LinearRegression
         from sklearn.pipeline import Pipeline
 
         X = np.arange(data.shape[0])[(index := ~np.isnan(data))].reshape(-1, 1) # := requires Python 3.8 (Blender 2.93)
         y = data[index]
 
-        return Pipeline([("poly", PolynomialFeatures(degree=degree)), \
-                         ("huber", HuberRegressor(epsilon=epsilon))]) \
-                   .fit(X, y) \
-                   .predict(np.arange(data.shape[0]).reshape(-1, 1))
+        if regressor == "HUBER":
+            return Pipeline([("poly", PolynomialFeatures(degree=degree)), \
+                             ("huber", HuberRegressor(epsilon=huber_epsilon))]) \
+                       .fit(X, y) \
+                       .predict(np.arange(data.shape[0]).reshape(-1, 1))
+        elif regressor == "LASSO":
+            return Pipeline([("poly", PolynomialFeatures(degree=degree)), \
+                             ("lasso", Lasso(alpha=lasso_alpha))]) \
+                       .fit(X, y) \
+                       .predict(np.arange(data.shape[0]).reshape(-1, 1))
+        elif regressor == "LINEAR":
+            return Pipeline([("poly", PolynomialFeatures(degree=degree)), \
+                             ("regressor", LinearRegression())]) \
+                       .fit(X, y) \
+                       .predict(np.arange(data.shape[0]).reshape(-1, 1))
+        else:
+            raise ValueError("regressor " + regressor + " not recognised")
 
     @staticmethod
-    def _unlimit_rotation(limited_rotation):
+    def _unlimit_rotation(semilimited_rotation):
         """
         Unlimit the rotation.
 
         Parameters
         ----------
-        limited_rotation : npt.NDArray[float64]
+        semilimited_rotation : npt.NDArray[float64]
 
         Returns
         -------
@@ -571,14 +613,14 @@ class AAEExportExportAll(bpy.types.Operator):
         """
         import numpy as np
 
-        diff = np.diff(limited_rotation)
+        diff = np.diff(semilimited_rotation)
 
         for i in np.nonzero(diff > np.pi)[0]:
-            limited_rotation[i+1:] -= 2 * np.pi
+            semilimited_rotation[i+1:] -= 2 * np.pi
         for i in np.nonzero(diff <= -np.pi)[0]:
-            limited_rotation[i+1:] += 2 * np.pi
+            semilimited_rotation[i+1:] += 2 * np.pi
 
-        return limited_rotation
+        return semilimited_rotation
 
     @staticmethod
     def _limit_rotation(rotation):
@@ -596,10 +638,10 @@ class AAEExportExportAll(bpy.types.Operator):
         """
         import numpy as np
 
-        return np.remainder(rotation, np.pi)
+        return np.remainder(rotation, 2 * np.pi)
 
     @staticmethod
-    def _generate_aae(position, scale, limited_rotation, power_pin, clip, multiplier):
+    def _generate_aae(position, scale, limited_rotation, power_pin, multiplier):
         """
         Finalised and stringify the data.
 
@@ -622,11 +664,13 @@ class AAEExportExportAll(bpy.types.Operator):
         aae_power_pin_0005 : list[str]
 
         """
+        import numpy as np
+
         position *= multiplier
         scale *= 100.0
         limited_rotation *= 180.0 / np.pi
-        power_pin += position
         power_pin *= multiplier
+        power_pin += position
 
         aae_position = []
         aae_scale = []
@@ -638,9 +682,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
         for frame in range(position.shape[0]):
             if position[frame][0] != np.nan:
-                aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t0".format(frame + 1, *position[frame]))
+                aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(frame + 1, *position[frame], 0.0))
             if scale[frame][0] != np.nan:
-                aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t100".format(frame + 1, *scale[frame]))
+                aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(frame + 1, *scale[frame], 100.0))
             if limited_rotation[frame] != np.nan:
                 aae_rotation.append("\t{:d}\t{:.3f}".format(frame + 1, limited_rotation[frame]))
             if power_pin[0][frame][0] != np.nan:
@@ -689,7 +733,8 @@ class AAEExportExportAll(bpy.types.Operator):
                 if marker.mute:
                     continue
 
-                position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, scale_base \
+                position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, \
+                scale_base \
                     = AAEExportExportAll._calculate_marker_track_per_frame_non_numpy( \
                           clip, marker, scale_base)
 
@@ -705,7 +750,8 @@ class AAEExportExportAll(bpy.types.Operator):
                 if marker.mute:
                     continue
 
-                position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, scale_base
+                position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, \
+                scale_base \
                     = AAEExportExportAll._calculate_plane_track_per_frame_non_numpy( \
                           clip, marker, scale_base)
 
@@ -747,26 +793,26 @@ class AAEExportExportAll(bpy.types.Operator):
                     1 - float(marker.co[1]) * clip.size[1])
 
         relative_power_pin_0002 = (float(marker.pattern_corners[3][0]) * clip.size[0],
-                                   1 - float(marker.pattern_corners[3][1]) * clip.size[1])
+                                   -float(marker.pattern_corners[3][1]) * clip.size[1])
         relative_power_pin_0003 = (float(marker.pattern_corners[2][0]) * clip.size[0],
-                                   1 - float(marker.pattern_corners[2][1]) * clip.size[1])
+                                   -float(marker.pattern_corners[2][1]) * clip.size[1])
         relative_power_pin_0004 = (float(marker.pattern_corners[0][0]) * clip.size[0],
-                                   1 - float(marker.pattern_corners[0][1]) * clip.size[1])
+                                   -float(marker.pattern_corners[0][1]) * clip.size[1])
         relative_power_pin_0005 = (float(marker.pattern_corners[1][0]) * clip.size[0],
-                                   1 - float(marker.pattern_corners[1][1]) * clip.size[1])
+                                   -float(marker.pattern_corners[1][1]) * clip.size[1])
 
-        scale = (math.sqrt(math.pow((relative_power_pin_0002[0] - relative_power_pin_0003[0] + relative_power_pin_0004[0] - relative_power_pin_0005[0]) / 2, 2) + \
-                           math.pow((relative_power_pin_0002[1] - relative_power_pin_0003[1] + relative_power_pin_0004[1] - relative_power_pin_0005[1]) / 2, 2)),
-                 math.sqrt(math.pow((relative_power_pin_0002[0] - relative_power_pin_0004[0] + relative_power_pin_0003[0] - relative_power_pin_0005[0]) / 2, 2) + \
-                           math.pow((relative_power_pin_0002[1] - relative_power_pin_0004[1] + relative_power_pin_0003[1] - relative_power_pin_0005[1]) / 2, 2)))
+        scale = (math.sqrt(math.pow(relative_power_pin_0002[0] - relative_power_pin_0003[0] + relative_power_pin_0004[0] - relative_power_pin_0005[0], 2) + \
+                           math.pow(relative_power_pin_0002[1] - relative_power_pin_0003[1] + relative_power_pin_0004[1] - relative_power_pin_0005[1], 2)),
+                 math.sqrt(math.pow(relative_power_pin_0002[0] - relative_power_pin_0004[0] + relative_power_pin_0003[0] - relative_power_pin_0005[0], 2) + \
+                           math.pow(relative_power_pin_0002[1] - relative_power_pin_0004[1] + relative_power_pin_0003[1] - relative_power_pin_0005[1], 2)))
         if scale_base == None:
             scale_base = scale
             scale = (100.0, 100.0)
         else:
             scale = (scale[0] / scale_base[0] * 100, scale[1] / scale_base[1] * 100)
 
-        rotation = np.atan2((relative_power_pin_0002[0] + relative_power_pin_0003[0]) / 2,
-                            -(relative_power_pin_0002[1] + relative_power_pin_0003[1]) / 2)
+        rotation = math.atan2((relative_power_pin_0002[0] + relative_power_pin_0003[0]) / 2,
+                              -(relative_power_pin_0002[1] + relative_power_pin_0003[1]) / 2) % (2 * math.pi) * 180 / math.pi
 
         power_pin_0002 = (relative_power_pin_0002[0] + position[0], relative_power_pin_0002[1] + position[1])
         power_pin_0003 = (relative_power_pin_0003[0] + position[0], relative_power_pin_0003[1] + position[1])
@@ -800,30 +846,30 @@ class AAEExportExportAll(bpy.types.Operator):
         import math
 
         power_pin_0002 = (float(marker.corners[3][0]) * clip.size[0],
-                          1 - float(marker.corners[3][1]) * clip.size[1])
+                          (1 - float(marker.corners[3][1])) * clip.size[1])
         power_pin_0003 = (float(marker.corners[2][0]) * clip.size[0],
-                          1 - float(marker.corners[2][1]) * clip.size[1])
+                          (1 - float(marker.corners[2][1])) * clip.size[1])
         power_pin_0004 = (float(marker.corners[0][0]) * clip.size[0],
-                          1 - float(marker.corners[0][1]) * clip.size[1])
+                          (1 - float(marker.corners[0][1])) * clip.size[1])
         power_pin_0005 = (float(marker.corners[1][0]) * clip.size[0],
-                          1 - float(marker.corners[1][1]) * clip.size[1])
+                          (1 - float(marker.corners[1][1])) * clip.size[1])
                           
         position \
             = AAEExportExportAll._calculate_centre_plane_track_per_frame_non_numpy( \
                   power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005)
     
-        scale = (math.sqrt(math.pow((power_pin_0002[0] - power_pin_0003[0] + power_pin_0004[0] - power_pin_0005[0]) / 2, 2) + \
-                           math.pow((power_pin_0002[1] - power_pin_0003[1] + power_pin_0004[1] - power_pin_0005[1]) / 2, 2)),
-                 math.sqrt(math.pow((power_pin_0002[0] - power_pin_0004[0] + power_pin_0003[0] - power_pin_0005[0]) / 2, 2) + \
-                           math.pow((power_pin_0002[1] - power_pin_0004[1] + power_pin_0003[1] - power_pin_0005[1]) / 2, 2)))
+        scale = (math.sqrt(math.pow(power_pin_0002[0] - power_pin_0003[0] + power_pin_0004[0] - power_pin_0005[0], 2) + \
+                           math.pow(power_pin_0002[1] - power_pin_0003[1] + power_pin_0004[1] - power_pin_0005[1], 2)),
+                 math.sqrt(math.pow(power_pin_0002[0] - power_pin_0004[0] + power_pin_0003[0] - power_pin_0005[0], 2) + \
+                           math.pow(power_pin_0002[1] - power_pin_0004[1] + power_pin_0003[1] - power_pin_0005[1], 2)))
         if scale_base == None:
             scale_base = scale
             scale = (100.0, 100.0)
         else:
-            scale = (scale[0] / scale_base[0] * 100, scale[1] / scale_base[1] * 100)
+            scale = (scale[0] / scale_base[0] * 100, scale[1] / scale_base[1] * 100) % (2 * math.pi) * 180 / math.pi
 
-        rotation = np.atan2((relative_power_pin_0002[0] + relative_power_pin_0003[0]) / 2 - position[0],
-                            -((relative_power_pin_0002[1] + relative_power_pin_0003[1]) / 2 - position[1]))
+        rotation = math.atan2((power_pin_0002[0] + power_pin_0003[0]) / 2 - position[0],
+                              -((power_pin_0002[1] + power_pin_0003[1]) / 2 - position[1]))
 
         return position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, scale_base
 
@@ -894,8 +940,8 @@ class AAEExportExportAll(bpy.types.Operator):
         power_pin_0005 : tuple[float]
 
         """
-        aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t0".format(marker.frame, *position))
-        aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t100".format(marker.frame, *scale))
+        aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(marker.frame, *position, 0.0))
+        aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(marker.frame, *scale, 100.0))
         aae_rotation.append("\t{:d}\t{:.3f}".format(marker.frame, rotation))
         aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0002))
         aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0003))
@@ -903,7 +949,7 @@ class AAEExportExportAll(bpy.types.Operator):
         aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0005))
 
     @staticmethod
-    def _combine_aae(clip, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, do_includes_power_pin)
+    def _combine_aae(clip, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, do_includes_power_pin):
         """
         Combine and finish aae.
 
@@ -929,8 +975,8 @@ class AAEExportExportAll(bpy.types.Operator):
         aae += "\tUnits Per Second\t{:.3f}\n".format(clip.fps)
         aae += "\tSource Width\t{:d}\n".format(clip.size[0])
         aae += "\tSource Height\t{:d}\n".format(clip.size[1])
-        aae += "\tSource Pixel Aspect Ratio\t1\n"
-        aae += "\tComp Pixel Aspect Ratio\t1\n\n"
+        aae += "\tSource Pixel Aspect Ratio\t{:d}\n".format(1)
+        aae += "\tComp Pixel Aspect Ratio\t{:d}\n\n".format(1)
 
         aae += "Anchor Point\n"
         aae += "\tFrame\tX pixels\tY pixels\tZ pixels\n"
@@ -1060,19 +1106,10 @@ class AAEExport(bpy.types.Panel):
     bl_space_type = "CLIP_EDITOR"
     bl_region_type = "TOOLS"
     bl_category = "Solve"
+    bl_order = 1000000
 
     def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-        
-        settings = context.screen.AAEExportSettings
-        
-        column = layout.column(heading="Export")
-        column.prop(settings, "do_includes_power_pin")
-        column = layout.column(heading="Preference")
-        column.prop(settings, "do_also_export")
-        column.prop(settings, "do_do_not_overwrite")
+        pass
 
     @classmethod
     def poll(cls, context):
@@ -1085,6 +1122,7 @@ class AAEExportSelectedTrack(bpy.types.Panel):
     bl_region_type = "TOOLS"
     bl_category = "Solve"
     bl_parent_id = "SOLVE_PT_aae_export"
+    bl_order = 10
 
     def draw(self, context):
         layout = self.layout
@@ -1125,6 +1163,7 @@ class AAEExportAllTracks(bpy.types.Panel):
     bl_region_type = "TOOLS"
     bl_category = "Solve"
     bl_parent_id = "SOLVE_PT_aae_export"
+    bl_order = 100
 
     def draw(self, context):
         layout = self.layout
@@ -1141,6 +1180,69 @@ class AAEExportAllTracks(bpy.types.Panel):
         row.enabled = len(context.edit_movieclip.tracking.tracks) >= 1 or \
                       len(context.edit_movieclip.tracking.plane_tracks) >= 1
         row.operator("movieclip.aae_export_export_all")
+
+class AAEExportOptions(bpy.types.Panel):
+    bl_label = "Export Options"
+    bl_idname = "SOLVE_PT_aae_export_options"
+    bl_space_type = "CLIP_EDITOR"
+    bl_region_type = "TOOLS"
+    bl_category = "Solve"
+    bl_parent_id = "SOLVE_PT_aae_export"
+    bl_order = 1000
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        
+        settings = context.screen.AAEExportSettings
+        
+        # layout.separator(factor=0.0)
+        box = layout.box()
+        column = box.column(heading="Export")
+        column.prop(settings, "do_includes_power_pin")
+        # layout.separator(factor=0.6)
+        box = layout.box()
+        column = box.column(heading="Preference")
+        column.prop(settings, "do_also_export")
+        column.prop(settings, "do_do_not_overwrite")
+        # layout.separator(factor=0.6)
+        box = layout.box()
+        if is_smoothing_modules_available:
+            column = box.column(heading="Smoothing")
+            column.prop(settings, "do_smoothing")
+            column.separator(factor=0.0)
+            sub_column = column.column(heading="Position")
+            sub_column.enabled = settings.do_smoothing
+            sub_column.prop(settings, "smoothing_do_position")
+            sub_column.prop(settings, "smoothing_position_degree")
+            sub_column = column.column(heading="Scale")
+            sub_column.enabled = settings.do_smoothing
+            sub_column.prop(settings, "smoothing_do_scale")
+            sub_column.prop(settings, "smoothing_scale_degree")
+            sub_column = column.column(heading="Rotation")
+            sub_column.enabled = settings.do_smoothing
+            sub_column.prop(settings, "smoothing_do_rotation")
+            sub_column.prop(settings, "smoothing_rotation_degree")
+            sub_column = column.column(heading="Power Pin")
+            sub_column.enabled = settings.do_smoothing
+            sub_column.prop(settings, "smoothing_do_power_pin")
+            sub_column.prop(settings, "smoothing_power_pin_degree")
+            sub_column = column.column()
+            sub_column.enabled = settings.do_smoothing
+            sub_column.prop(settings, "smoothing_position_regressor")
+            if settings.smoothing_position_regressor == "HUBER":
+                sub_column.prop(settings, "smoothing_position_huber_epsilon")
+            elif settings.smoothing_position_regressor == "LASSO":
+                sub_column.prop(settings, "smoothing_position_lasso_alpha")
+            sub_column = column.column()
+            sub_column.enabled = settings.do_smoothing
+            sub_column.prop(settings, "smoothing_do_predictive_smoothing")
+        else:
+            column = box.column(heading="Smoothing")
+            column.enabled = False
+            column.prop(settings, "do_smoothing_fake")
+        # layout.separator(factor=0.0)
 
     @classmethod
     def poll(cls, context):
@@ -1177,6 +1279,7 @@ classes = (AAEExportSettings,
            AAEExport,
            AAEExportSelectedTrack,
            AAEExportAllTracks,
+           AAEExportOptions,
            AAEExportLegacy)
 
 class AAEExportRegisterSettings(bpy.types.PropertyGroup):
