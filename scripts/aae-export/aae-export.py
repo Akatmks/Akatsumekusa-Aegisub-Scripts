@@ -46,7 +46,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Martin Herkt, arch1t3cht, Akatsumekusa",
-    "version": (0, 3, 0),
+    "version": (1, 0, 0),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -58,8 +58,6 @@ bl_info = {
 
 import bpy
 import bpy_extras.io_utils
-from datetime import datetime
-from pathlib import Path
 
 # ("import name", "PyPI name", "minimum version")
 smoothing_modules = (("numpy", "numpy", ""), ("sklearn", "scikit-learn", "0.18"))
@@ -84,7 +82,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                   default=True)
     smoothing_position_degree: bpy.props.IntProperty(name="Max Degree",
                                                      description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
-                                                     default=3,
+                                                     default=2,
                                                      min=1,
                                                      soft_max=5)
     smoothing_do_scale: bpy.props.BoolProperty(name="Smooth",
@@ -100,7 +98,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                default=True)
     smoothing_rotation_degree: bpy.props.IntProperty(name="Max Degree",
                                                      description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may cause overfitting",
-                                                     default=2,
+                                                     default=1,
                                                      min=1,
                                                      soft_max=4)
     smoothing_do_power_pin: bpy.props.BoolProperty(name="Smooth",
@@ -118,14 +116,14 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                          default="HUBER")
     smoothing_position_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
                                                               description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers",
-                                                              default=1.45,
+                                                              default=1.50,
                                                               min=1.00,
-                                                              soft_max=2.50,
+                                                              soft_max=10.00,
                                                               step=1,
                                                               precision=2)
     smoothing_position_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
                                                               description="The alpha of a Lasso Regressor controls the regularisation strength",
-                                                              default=1.00,
+                                                              default=0.10,
                                                               min=0.00,
                                                               soft_max=100.0,
                                                               step=1,
@@ -155,7 +153,7 @@ class AAEExportExportAll(bpy.types.Operator):
         for plane_track in clip.tracking.plane_tracks:
             AAEExportExportAll._export_to_file(clip, plane_track, AAEExportExportAll._generate(clip, plane_track, settings), None, settings.do_do_not_overwrite)
         
-        return {"FINISHED"}
+        return { "FINISHED" }
 
     @staticmethod
     def _generate(clip, track, settings):
@@ -187,14 +185,14 @@ class AAEExportExportAll(bpy.types.Operator):
                           position, \
                           settings.smoothing_do_position, settings.smoothing_do_predictive_smoothing, \
                           settings.smoothing_position_degree, \
-                          settings.smoothing_position_regressor, settings.smoothing_position_epsilon, settings.smoothing_position_lasso_alpha)
+                          settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
 
                 scale \
                     = AAEExportExportAll._smoothing( \
                           scale, \
                           settings.smoothing_do_scale, settings.smoothing_do_predictive_smoothing, \
                           settings.smoothing_scale_degree, \
-                          settings.smoothing_position_regressor, settings.smoothing_position_epsilon, settings.smoothing_position_lasso_alpha)
+                          settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
 
                 rotation \
                     = AAEExportExportAll._unlimit_rotation( \
@@ -205,7 +203,7 @@ class AAEExportExportAll(bpy.types.Operator):
                           rotation, \
                           settings.smoothing_do_rotation, settings.smoothing_do_predictive_smoothing, \
                           settings.smoothing_rotation_degree, \
-                          settings.smoothing_position_regressor, settings.smoothing_position_epsilon, settings.smoothing_position_lasso_alpha)
+                          settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
 
                 limited_rotation \
                     = AAEExportExportAll._limit_rotation( \
@@ -217,7 +215,7 @@ class AAEExportExportAll(bpy.types.Operator):
                               power_pin[i], \
                               settings.smoothing_do_power_pin, settings.smoothing_do_predictive_smoothing, \
                               settings.smoothing_power_pin_degree, \
-                              settings.smoothing_position_regressor, settings.smoothing_position_epsilon, settings.smoothing_position_lasso_alpha)
+                              settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
 
             else:
                 limited_rotation \
@@ -532,6 +530,7 @@ class AAEExportExportAll(bpy.types.Operator):
                 data[:, i] \
                     = AAEExportExportAll._smoothing( \
                           data[:, i], do_smoothing, do_predictive_smoothing, degree, regressor, huber_epsilon, lasso_alpha)
+            return data
         
         elif data.ndim == 1:
             match (do_smoothing << 1) + do_predictive_smoothing: # match case requires Python 3.10 (Blender 3.1)
@@ -669,6 +668,7 @@ class AAEExportExportAll(bpy.types.Operator):
         position *= multiplier
         scale *= 100.0
         limited_rotation *= 180.0 / np.pi
+        limited_rotation[limited_rotation >= 359.9995] = 0.0
         power_pin *= multiplier
         power_pin += position
 
@@ -790,7 +790,7 @@ class AAEExportExportAll(bpy.types.Operator):
         import math
 
         position = (float(marker.co[0]) * clip.size[0],
-                    1 - float(marker.co[1]) * clip.size[1])
+                    (1 - float(marker.co[1])) * clip.size[1])
 
         relative_power_pin_0002 = (float(marker.pattern_corners[3][0]) * clip.size[0],
                                    -float(marker.pattern_corners[3][1]) * clip.size[1])
@@ -866,10 +866,10 @@ class AAEExportExportAll(bpy.types.Operator):
             scale_base = scale
             scale = (100.0, 100.0)
         else:
-            scale = (scale[0] / scale_base[0] * 100, scale[1] / scale_base[1] * 100) % (2 * math.pi) * 180 / math.pi
+            scale = (scale[0] / scale_base[0] * 100, scale[1] / scale_base[1] * 100)
 
         rotation = math.atan2((power_pin_0002[0] + power_pin_0003[0]) / 2 - position[0],
-                              -((power_pin_0002[1] + power_pin_0003[1]) / 2 - position[1]))
+                              -((power_pin_0002[1] + power_pin_0003[1]) / 2 - position[1])) % (2 * math.pi) * 180 / math.pi
 
         return position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, scale_base
 
@@ -907,7 +907,7 @@ class AAEExportExportAll(bpy.types.Operator):
             return [(px * 2 + rx + qx * 2 + sx) / 4, (py * 2 + ry + qy * 2 + sy) / 4]
         elif j == 0 and k != 0:
             # The two lines are parallel
-            # It could return AAEExportExportAll._plane_track_center(l, n, m, o)
+            # It could return AAEExportExportAll._calculate_centre_plane_track_per_frame_non_numpy(l, n, m, o)
             # but that will give a false sense of security as if this
             # function can deal with hourglass-shaped input.
             return [(px * 2 + rx + qx * 2 + sx) / 4, (py * 2 + ry + qy * 2 + sy) / 4]
@@ -942,6 +942,8 @@ class AAEExportExportAll(bpy.types.Operator):
         """
         aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(marker.frame, *position, 0.0))
         aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(marker.frame, *scale, 100.0))
+        if rotation >= 359.9995:
+            rotation = 0.0
         aae_rotation.append("\t{:d}\t{:.3f}".format(marker.frame, rotation))
         aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0002))
         aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0003))
@@ -1026,6 +1028,9 @@ class AAEExportExportAll(bpy.types.Operator):
             AAEExportSettings.do_do_not_overwrite.
 
         """
+        from datetime import datetime
+        from pathlib import Path
+
         coords = None
         if track.markers[0].__class__.__name__ == "MovieTrackingMarker":
             for marker in track.markers:
@@ -1035,7 +1040,7 @@ class AAEExportExportAll(bpy.types.Operator):
         else: # "MovieTrackingPlaneMarker"
             for marker in track.markers:
                 if not marker.mute:
-                    coords = AAEExportExportAll._plane_track_center(marker.corners[0], marker.corners[1], marker.corners[2], marker.corners[3])
+                    coords = AAEExportExportAll._calculate_centre_plane_track_per_frame_non_numpy(marker.corners[3], marker.corners[2], marker.corners[0], marker.corners[1])
                     coords = (coords[0] * clip.size[0], (1 - coords[1]) * clip.size[1])
                     break
 
@@ -1077,7 +1082,7 @@ class AAEExportCopySingleTrack(bpy.types.Operator):
         if settings.do_also_export:
             AAEExportExportAll._export_to_file(clip, context.selected_movieclip_tracks[0], aae, None, settings.do_do_not_overwrite)
         
-        return {"FINISHED"}
+        return { "FINISHED" }
 
 class AAEExportCopyPlaneTrack(bpy.types.Operator):
     bl_label = "Copy"
@@ -1098,7 +1103,7 @@ class AAEExportCopyPlaneTrack(bpy.types.Operator):
         if settings.do_also_export:
             AAEExportExportAll._export_to_file(clip, clip.tracking.plane_tracks[0], aae, None, settings.do_do_not_overwrite)
         
-        return {"FINISHED"}
+        return { "FINISHED" }
     
 class AAEExport(bpy.types.Panel):
     bl_label = "AAE Export"
@@ -1106,7 +1111,6 @@ class AAEExport(bpy.types.Panel):
     bl_space_type = "CLIP_EDITOR"
     bl_region_type = "TOOLS"
     bl_category = "Solve"
-    bl_order = 1000000
 
     def draw(self, context):
         pass
@@ -1189,6 +1193,7 @@ class AAEExportOptions(bpy.types.Panel):
     bl_category = "Solve"
     bl_parent_id = "SOLVE_PT_aae_export"
     bl_order = 1000
+    bl_options = { "DEFAULT_CLOSED" }
 
     def draw(self, context):
         layout = self.layout
@@ -1197,16 +1202,13 @@ class AAEExportOptions(bpy.types.Panel):
         
         settings = context.screen.AAEExportSettings
         
-        # layout.separator(factor=0.0)
         box = layout.box()
         column = box.column(heading="Export")
         column.prop(settings, "do_includes_power_pin")
-        # layout.separator(factor=0.6)
         box = layout.box()
         column = box.column(heading="Preference")
         column.prop(settings, "do_also_export")
         column.prop(settings, "do_do_not_overwrite")
-        # layout.separator(factor=0.6)
         box = layout.box()
         if is_smoothing_modules_available:
             column = box.column(heading="Smoothing")
@@ -1242,7 +1244,6 @@ class AAEExportOptions(bpy.types.Panel):
             column = box.column(heading="Smoothing")
             column.enabled = False
             column.prop(settings, "do_smoothing_fake")
-        # layout.separator(factor=0.0)
 
     @classmethod
     def poll(cls, context):
@@ -1253,7 +1254,7 @@ class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     bl_label = "Export to Adobe After Effects 6.0 Keyframe Data"
     bl_idname = "export.aae_export_legacy"
     filename_ext = ""
-    filter_glob = bpy.props.StringProperty(default="*", options={"HIDDEN"})
+    filter_glob = bpy.props.StringProperty(default="*", options={ "HIDDEN" })
 
     def execute(self, context):
         if len(bpy.data.movieclips) == 0:
@@ -1270,7 +1271,7 @@ class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         for plane_track in clip.tracking.plane_tracks:
             AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, plane_track, None), self.filepath, True)
 
-        return {"FINISHED"}
+        return { "FINISHED" }
 
 classes = (AAEExportSettings,
            AAEExportExportAll,
@@ -1287,12 +1288,12 @@ class AAEExportRegisterSettings(bpy.types.PropertyGroup):
     bl_idname = "AAEExportRegisterSettings"
 
 class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
-    bl_label = "Install Optional Packages"
+    bl_label = "Install Additional Packages (Optional)"
     bl_description = "AAE Export's smoothing feature requires additional packages to be installed.\nBy clicking this button, AAE Export will download and install " + \
                      (" and ".join([", ".join(["pip"] + [module[1] for module in smoothing_modules[:-1]]), smoothing_modules[-1][1]]) if len(smoothing_modules) != 0 else "pip") + \
                      " into your Blender distribution.\nThis process might take up to 3 minutes. Your Blender will freeze during the process"
     bl_idname = "preference.aae_export_register_install_smoothing_dependencies"
-    bl_options = {"REGISTER", "INTERNAL"}
+    bl_options = { "REGISTER", "INTERNAL" }
 
     def execute(self, context):
         import importlib.util
@@ -1315,9 +1316,9 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
 
         unregister_register_class()
         
-        self.report({"INFO"}, "Dependencies installed successfully.")
+        self.report({ "INFO" }, "Dependencies installed successfully.")
 
-        return {'FINISHED'}
+        return { "FINISHED" }
 
     def _execute_nt(self, context):
         # Python, in a Python, in a PowerShell, in a Python
