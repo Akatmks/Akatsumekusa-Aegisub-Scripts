@@ -1,5 +1,6 @@
 # aae-export.py
-# Copyright (c) Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors
+# Copyright (c) Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and
+# contributors
 
 #  
 #            :::         :::     ::::::::::                                
@@ -449,7 +450,7 @@ class AAEExportExportAll(bpy.types.Operator):
         #         return p + t * r
 
         # https://stackoverflow.com/questions/563198/
-        def eat(slice):
+        def eat_(slice):
             if slice[0] == np.nan:
                 return np.full((2), np.nan, dtype=np.float64)
             try:
@@ -458,7 +459,7 @@ class AAEExportExportAll(bpy.types.Operator):
                 return np.mean(slice.reshape((4, 2)), axis=0)
             else:
                 return (1 - t) * slice[0:2] + t * slice[6:8]
-        position = np.apply_along_axis(eat, 1, misshapen_power_pin)
+        position = np.apply_along_axis(eat_, 1, misshapen_power_pin)
         misshapen_power_pin -= np.tile(position, 4)
 
         return position, misshapen_power_pin
@@ -904,18 +905,18 @@ class AAEExportExportAll(bpy.types.Operator):
 
         """
         # LU decomposition thanks to arch1t3cht
-        def calculate_coef(a, b):
+        def calculate_coef_(a, b):
             return ((a[1] - b[1], b[0] - a[0]), b[0] * a[1] - a[0] * b[1])
-        def caluclate_solution(A, b):
+        def caluclate_solution_(A, b):
             det = A[0][0] * A[1][1] - A[0][1] * A[1][0]
             if det == 0:
                 return None
             else:
                 return ((A[1][1] * b[0][0] - A[0][1] * b[1][0]) / det, (A[0][0] * b[1][0] - A[1][0] * b[0][0]) / det)
         
-        coef_a = calculate_coef(power_pin_0002, power_pin_0005)
-        coef_b = calculate_coef(power_pin_0003, power_pin_0004)
-        result = caluclate_solution((coef_a[0], coef_b[0]), ((coef_a[1],), (coef_b[1],)))
+        coef_a = calculate_coef_(power_pin_0002, power_pin_0005)
+        coef_b = calculate_coef_(power_pin_0003, power_pin_0004)
+        result = caluclate_solution_((coef_a[0], coef_b[0]), ((coef_a[1],), (coef_b[1],)))
 
         if result:
             return result
@@ -1307,6 +1308,7 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
         import os
         import subprocess
         import sys
+        import threading
 
         if os.name == "nt":
             self._execute_nt(context)
@@ -1320,10 +1322,14 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
 
         global is_smoothing_modules_available
         is_smoothing_modules_available = True
-
-        unregister_register_class()
         
         self.report({ "INFO" }, "Dependencies installed successfully.")
+
+        def unregister_register_class_():
+            global is_register_classes_registered
+            unregister_register_class()
+            is_register_classes_registered = False
+        threading.Timer(300, unregister_register_class_).start()
 
         return { "FINISHED" }
 
@@ -1358,11 +1364,17 @@ class AAEExportRegisterPreferencePanel(bpy.types.AddonPreferences):
         layout = self.layout
         settings = context.window_manager.AAEExportRegisterSettings
 
-        layout.operator("preference.aae_export_register_install_smoothing_dependencies", icon="CONSOLE")
+        if not is_smoothing_modules_available:
+            layout.operator("preference.aae_export_register_install_smoothing_dependencies", icon="CONSOLE")
+        else:
+            layout.label(text="Dependencies installed successfully.")
 
 register_classes = (AAEExportRegisterSettings,
                     AAEExportRegisterInstallSmoothingDependencies,
                     AAEExportRegisterPreferencePanel)
+
+is_register_classes_registered = False
+
 def register():
     import importlib.util
     if importlib.util.find_spec("packaging") != None:
@@ -1371,9 +1383,12 @@ def register():
         import distutils.version
     
     global is_smoothing_modules_available
+    global is_register_classes_registered
+
     for module in smoothing_modules:
         if importlib.util.find_spec(module[0]) == None:
             register_register_classes()
+            is_register_classes_registered = True
 
             is_smoothing_modules_available = False
             break
@@ -1384,12 +1399,14 @@ def register():
             if "packaging" in locals():
                 if packaging.version.parse(module_version) < packaging.version.parse(module[2]):
                     register_register_classes()
+                    is_register_classes_registered = True
 
                     is_smoothing_modules_available = False
                     break
             elif "distutils" in locals(): # distutils deprecated in Python 3.12
                 if distutils.version.LooseVersion(module_version) < distutils.version.LooseVersion(module[2]):
                     register_register_classes()
+                    is_register_classes_registered = True
 
                     is_smoothing_modules_available = False
                     break
@@ -1416,8 +1433,10 @@ def register_register_classes():
     bpy.types.WindowManager.AAEExportRegisterSettings = bpy.props.PointerProperty(type=AAEExportRegisterSettings)
     
 def unregister():
-    if not is_smoothing_modules_available:
+    global is_register_classes_registered
+    if is_register_classes_registered:
         unregister_register_class()
+        is_register_classes_registered = False
     
     unregister_main_class()
 

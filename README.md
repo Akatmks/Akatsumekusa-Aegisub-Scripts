@@ -4,10 +4,10 @@
 
 AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisub-Motion](https://github.com/TypesettingTools/Aegisub-Motion/) and [Aegisub-Perspective-Motion](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts/tree/daily_stream) compatible AAE data.  
 
-–　[Download](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/master/scripts/aae-export/aae-export.py)  
-–　[Tutorial 1: Install AAE Export](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/master/docs/aae-export-tutorial.md#tutorial-1-install-aae-export)  
-–　[Tutorial 2: Track a simple pan using tracking marker](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/master/docs/aae-export-tutorial.md#tutorial-2-track-a-simple-pan-using-tracking-marker)  
-–　[Tutorial 3: Track perspective using plane track](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/master/docs/aae-export-tutorial.md#tutorial-3-track-perspective-using-plane-track)  
+–　[Download](scripts/aae-export/aae-export.py)  
+–　[Tutorial 1: Install AAE Export](docs/aae-export-tutorial.md#tutorial-1-install-aae-export)  
+–　[Tutorial 2: Track a simple pan using tracking marker](docs/aae-export-tutorial.md#tutorial-2-track-a-simple-pan-using-tracking-marker)  
+–　[Tutorial 3: Track perspective using plane track](docs/aae-export-tutorial.md#tutorial-3-track-perspective-using-plane-track)  
 
 Thanks to  
 
