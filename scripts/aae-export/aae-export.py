@@ -1,5 +1,5 @@
 # aae-export.py
-# Copyright (c) Akatsumekusa, arch1t3cht, Martin Herkt and contributors
+# Copyright (c) Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors
 
 #  
 #            :::         :::     ::::::::::                                
@@ -45,7 +45,7 @@
 bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
-    "author": "Martin Herkt, arch1t3cht, Akatsumekusa",
+    "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
     "version": (1, 0, 0),
     "support": "COMMUNITY",
     "category": "Video Tools",
@@ -81,7 +81,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                   description="Perform smoothing on position data",
                                                   default=True)
     smoothing_position_degree: bpy.props.IntProperty(name="Max Degree",
-                                                     description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
+                                                     description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may cause overfitting",
                                                      default=2,
                                                      min=1,
                                                      soft_max=5)
@@ -97,7 +97,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                description="Perform smoothing on rotation data.\nPlease note that rotation calculation in AAE Export is very basic. Performing smoothing on rotations with high velocity may yield unexpected results",
                                                default=True)
     smoothing_rotation_degree: bpy.props.IntProperty(name="Max Degree",
-                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may cause overfitting",
+                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 1. Note that high degree settings may cause overfitting",
                                                      default=1,
                                                      min=1,
                                                      soft_max=4)
@@ -105,7 +105,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                    description="Perform smoothing on Power Pin data",
                                                    default=True)
     smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Degree",
-                                                      description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa sets the default value of this option to 3. Note that high degree settings may cause overfitting",
+                                                      description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa sets the default value of this option to 2. Note that high degree settings may cause overfitting",
                                                       default=2,
                                                       min=1,
                                                       soft_max=5)
@@ -414,6 +414,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
         """
         import numpy as np
+        import numpy.linalg as LA
 
         if not clip.frame_duration >= 1:
             raise ValueError("clip.frame_duration must be greater than or equal to 1")
@@ -433,17 +434,30 @@ class AAEExportExportAll(bpy.types.Operator):
           
         misshapen_power_pin *= np.tile(ratio, 4)
 
+        # This is discarded due to it being unstable, despite its slightly
+        # faster speed.
+        # https://stackoverflow.com/questions/563198/
+        # def eat(slice):
+        #     if slice[0] == np.nan:
+        #         return np.full((2), np.nan, dtype=np.float64)
+        #     else:
+        #         p = slice[0:2]
+        #         r = slice[6:8] - slice[0:2]
+        #         q = slice[4:6]
+        #         s = slice[2:4] - slice[4:6]
+        #         t = np.cross((q - p), s) / np.cross(r, s)
+        #         return p + t * r
+
         # https://stackoverflow.com/questions/563198/
         def eat(slice):
             if slice[0] == np.nan:
                 return np.full((2), np.nan, dtype=np.float64)
+            try:
+                t = LA.solve(np.transpose(np.vstack((slice[6:8] - slice[0:2], slice[2:4] - slice[4:6]))), slice[2:4] - slice[0:2])[0]
+            except LA.LinAlgError:
+                return np.mean(slice.reshape((4, 2)), axis=0)
             else:
-                p = slice[0:2]
-                r = slice[6:8] - slice[0:2]
-                q = slice[4:6]
-                s = slice[2:4] - slice[4:6]
-                t = np.cross((q - p), s) / np.cross(r, s)
-                return p + t * r
+                return (1 - t) * slice[0:2] + t * slice[6:8]
         position = np.apply_along_axis(eat, 1, misshapen_power_pin)
         misshapen_power_pin -= np.tile(position, 4)
 
@@ -889,32 +903,25 @@ class AAEExportExportAll(bpy.types.Operator):
             The centre of plane track. Never None.
 
         """
-        # https://stackoverflow.com/questions/563198
-        px = power_pin_0002[0]
-        py = power_pin_0002[1]
-        rx = power_pin_0002[0] - power_pin_0005[0]
-        ry = power_pin_0002[1] - power_pin_0005[1]
-        qx = power_pin_0004[0]
-        qy = power_pin_0004[1]
-        sx = power_pin_0004[0] - power_pin_0003[0]
-        sy = power_pin_0004[1] - power_pin_0003[1]
+        # LU decomposition thanks to arch1t3cht
+        def calculate_coef(a, b):
+            return ((a[1] - b[1], b[0] - a[0]), b[0] * a[1] - a[0] * b[1])
+        def caluclate_solution(A, b):
+            det = A[0][0] * A[1][1] - A[0][1] * A[1][0]
+            if det == 0:
+                return None
+            else:
+                return ((A[1][1] * b[0][0] - A[0][1] * b[1][0]) / det, (A[0][0] * b[1][0] - A[1][0] * b[0][0]) / det)
+        
+        coef_a = calculate_coef(power_pin_0002, power_pin_0005)
+        coef_b = calculate_coef(power_pin_0003, power_pin_0004)
+        result = caluclate_solution((coef_a[0], coef_b[0]), ((coef_a[1],), (coef_b[1],)))
 
-        j = rx * sy - ry * sx
-        k = (qx - px) * ry - (qy - py) * rx
-
-        if j == 0 and k == 0:
-            # The points are collinear
-            return [(px * 2 + rx + qx * 2 + sx) / 4, (py * 2 + ry + qy * 2 + sy) / 4]
-        elif j == 0 and k != 0:
-            # The two lines are parallel
-            # It could return AAEExportExportAll._calculate_centre_plane_track_per_frame_non_numpy(l, n, m, o)
-            # but that will give a false sense of security as if this
-            # function can deal with hourglass-shaped input.
-            return [(px * 2 + rx + qx * 2 + sx) / 4, (py * 2 + ry + qy * 2 + sy) / 4]
-        else: # j != 0
-            # The two lines intersects
-            t = k / j
-            return [px + t * rx, py + t * ry]
+        if result:
+            return result
+        else:
+            return ((power_pin_0002[0] + power_pin_0003[0] + power_pin_0004[0] + power_pin_0005[0]) / 4, \
+                    (power_pin_0002[1] + power_pin_0003[1] + power_pin_0004[1] + power_pin_0005[1]) / 4)
 
     @staticmethod
     def _generate_aae_per_frame_non_numpy(marker, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005):
@@ -1288,10 +1295,10 @@ class AAEExportRegisterSettings(bpy.types.PropertyGroup):
     bl_idname = "AAEExportRegisterSettings"
 
 class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
-    bl_label = "Install Additional Packages (Optional)"
-    bl_description = "AAE Export's smoothing feature requires additional packages to be installed.\nBy clicking this button, AAE Export will download and install " + \
+    bl_label = "Install Dependencies for Smoothing (Optional)"
+    bl_description = "This will download and install " + \
                      (" and ".join([", ".join(["pip"] + [module[1] for module in smoothing_modules[:-1]]), smoothing_modules[-1][1]]) if len(smoothing_modules) != 0 else "pip") + \
-                     " into your Blender distribution.\nThis process might take up to 3 minutes. Your Blender will freeze during the process"
+                     " into your Blender distribution. Akatsumekusa estimates the process to take roughly 3 minutes. Your Blender will freeze during the process"
     bl_idname = "preference.aae_export_register_install_smoothing_dependencies"
     bl_options = { "REGISTER", "INTERNAL" }
 
@@ -1322,10 +1329,8 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
 
     def _execute_nt(self, context):
         # Python, in a Python, in a PowerShell, in a Python
-        import importlib.util
         import os
         from pathlib import PurePath
-        import subprocess
         import sys
         from tempfile import NamedTemporaryFile
 
