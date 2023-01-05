@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -1320,20 +1320,39 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
 
     def execute(self, context):
         import importlib.util
+        if importlib.util.find_spec("packaging") != None:
+            import packaging.version
+        elif importlib.util.find_spec("distutils") != None: # distutils deprecated in Python 3.12
+            import distutils.version
         import os
-        import subprocess
+        import platform
         import sys
         import threading
 
         if os.name == "nt":
-            self._execute_nt(context)
+            self._execute_sys_win32(context)
+        elif sys.platform == "darwin" and "aae_export_id_mac" in globals():
+            self._execute_aae_export_id_mac(context)
+        elif sys.platform == "linux" and platform.machine in ["x86_64", "amd64", "x64"] and "aae_export_id_linux_x86_64" in globals():
+            self._execute_aae_export_id_linux_x86_64(context)
+        elif sys.platform == "linux":
+            self._execute_sys_linux(context)
         else:
-            subprocess.run([sys.executable, "-m", "ensurepip"], check=True) # sys.executable requires Blender 2.93
-            subprocess.run([sys.executable, "-m", "pip", "install", "--no-input"] + [module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in smoothing_modules], check=True)
+            self._execute_direct_unspecified(context)
             
         for module in smoothing_modules:
             if importlib.util.find_spec(module[0]) == None:
-                return {'FINISHED'}
+                return { "FINISHED" }
+                
+            if module[2]:
+                exec("import " + module[0])
+                module_version = eval(module[0] + ".__version__")
+                if "packaging" in locals():
+                    if packaging.version.parse(module_version) < packaging.version.parse(module[2]):
+                        return { "FINISHED" }
+                elif "distutils" in locals(): # distutils deprecated in Python 3.12
+                    if distutils.version.LooseVersion(module_version) < distutils.version.LooseVersion(module[2]):
+                        return { "FINISHED" }
 
         global is_smoothing_modules_available
         is_smoothing_modules_available = True
@@ -1348,10 +1367,9 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
 
         return { "FINISHED" }
 
-    def _execute_nt(self, context):
-        # Python, in a Python, in a PowerShell, in a Python
-        import os
+    def _execute_sys_win32(self, context):
         from pathlib import PurePath
+        import subprocess
         import sys
         from tempfile import NamedTemporaryFile
 
@@ -1362,15 +1380,87 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
 
             f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"ensurepip\"], check=True)\n")
             f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"pip\", \"install\", \"--no-input\", \"" + \
-                                        "\", \"".join([module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in smoothing_modules]) + \
+                                        "\", \"".join([module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules]) + \
                                         "\"], check=True)\n")
 
             f.write("\texcept:\n")
             f.write("\t\ttraceback.print_exc()\n")
             f.write("\t\tos.system(\"pause\")\n")
 
+        # Python, in a Python, in a PowerShell, in a Python
         print("aae-export: " + "PowerShell -Command \"& {Start-Process \\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\" -Verb runAs -Wait}\"")
-        os.system("PowerShell -Command \"& {Start-Process \\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\" -Verb runAs -Wait}\"")
+        subprocess.run("PowerShell -Command \"& {Start-Process \\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\" -Verb runAs -Wait}\"", check=True)
+
+    def _execute_sys_linux(self, context):
+        from pathlib import PurePath
+        import subprocess
+        import sys
+        from tempfile import NamedTemporaryFile
+
+        with NamedTemporaryFile(mode="w+", encoding="utf-8", suffix=".py", delete=False) as f:
+            f.write("import os, subprocess, sys, traceback\n")
+            f.write("if __name__ == \"__main__\":\n")
+            f.write("\ttry:\n")
+
+            f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"ensurepip\"], check=True)\n")
+            f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"pip\", \"install\", \"--no-input\", \"" + \
+                                        "\", \"".join([module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules]) + \
+                                        "\"], check=True)\n")
+
+            f.write("\texcept:\n")
+            f.write("\t\ttraceback.print_exc()\n")
+            f.write("\t\tprint()\n")
+            f.write("\t\tinput(\"Press Enter to continue... \")\n")
+
+        print("aae-export: terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"")
+        subprocess.run("terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"", check=True)
+
+    def _execute_aae_export_id_mac(self, context):
+        import base64
+        import io
+        import subprocess
+        import sys
+        import tarfile
+        import tempfile
+        from pathlib import PurePath
+
+        path = tempfile.mkdtemp()
+        with tarfile.open(io.BytesIO(base64.b85decode(aae_export_id_mac)), "r", errorlevel=1) as tar:
+            tar.extractall(path=path)
+
+        try:
+            subprocess.run([PurePath(path, "aae-export-install-dependencies.app", "Contents", "MacOS", "aae-export-install-dependencies").as_posix(), \
+                            sys.executable] + \
+                           [module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules], check=True)
+        except:
+            self._execute_direct_unspecified(self, context)
+
+    def _execute_aae_export_id_linux_x86_64(self, context):
+        import base64
+        import io
+        import subprocess
+        import sys
+        import tarfile
+        import tempfile
+        from pathlib import PurePath
+
+        path = tempfile.mkdtemp()
+        with tarfile.open(io.BytesIO(base64.b85decode(aae_export_id_linux_x86_64)), "r", errorlevel=1) as tar:
+            tar.extractall(path=path)
+
+        try:
+            subprocess.run([PurePath(path, "aae-export-install-dependencies").as_posix(), \
+                            sys.executable] + \
+                           [module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules], check=True)
+        except:
+            self._execute_direct_unspecified(self, context)
+
+    def _execute_direct_unspecified(self, context):
+        import subprocess
+        import sys
+
+        subprocess.run([sys.executable, "-m", "ensurepip"], check=True) # sys.executable requires Blender 2.93
+        subprocess.run([sys.executable, "-m", "pip", "install", "--no-input"] + [module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules], check=True)
 
 class AAEExportRegisterPreferencePanel(bpy.types.AddonPreferences):
     bl_idname = __name__
