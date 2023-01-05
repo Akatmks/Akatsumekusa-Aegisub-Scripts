@@ -1329,7 +1329,7 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
             self._execute_nt(context)
         else:
             subprocess.run([sys.executable, "-m", "ensurepip"], check=True) # sys.executable requires Blender 2.93
-            subprocess.run([sys.executable, "-m", "pip", "install"] + [module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in smoothing_modules], check=True)
+            subprocess.run([sys.executable, "-m", "pip", "install", "--no-input"] + [module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in smoothing_modules], check=True)
             
         for module in smoothing_modules:
             if importlib.util.find_spec(module[0]) == None:
@@ -1361,7 +1361,7 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
             f.write("\ttry:\n")
 
             f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"ensurepip\"], check=True)\n")
-            f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"pip\", \"install\", \"" + \
+            f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"pip\", \"install\", \"--no-input\", \"" + \
                                         "\", \"".join([module[1] + ">=" + module[2] if module[2] != "" else module[1] for module in smoothing_modules]) + \
                                         "\"], check=True)\n")
 
