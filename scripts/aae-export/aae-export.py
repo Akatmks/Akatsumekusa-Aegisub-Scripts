@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 0, 2),
+    "version": (1, 0, 3),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -99,7 +99,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                   description="Perform smoothing on position data",
                                                   default=True)
     smoothing_position_degree: bpy.props.IntProperty(name="Max Degree",
-                                                     description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. High degree settings may very likely cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                     description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                      default=2,
                                                      min=1,
                                                      soft_max=5)
@@ -107,7 +107,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                description="Perform smoothing on scale data",
                                                default=True)
     smoothing_scale_degree: bpy.props.IntProperty(name="Max Degree",
-                                                  description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 2. High degree settings may very likely cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                  description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                   default=2,
                                                   min=1,
                                                   soft_max=4)
@@ -115,7 +115,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                description="Perform smoothing on rotation data.\nPlease note that rotation calculation in AAE Export is very basic. Performing smoothing on rotations with high velocity may yield unexpected results",
                                                default=True)
     smoothing_rotation_degree: bpy.props.IntProperty(name="Max Degree",
-                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa sets the default value of this option to 1. High degree settings may very likely cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                      default=1,
                                                      min=1,
                                                      soft_max=4)
@@ -123,13 +123,13 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                    description="Perform smoothing on Power Pin data",
                                                    default=True)
     smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Degree",
-                                                      description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa sets the default value of this option to 2. High degree settings may very likely cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                      description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                       default=2,
                                                       min=1,
                                                       soft_max=5)
     smoothing_position_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
                                                                 ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                ("LINEAR", "Least Squares Regressor", "Ordinary least squares regression model.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                                                                ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
                                                          name="Linear Model",
                                                          default="HUBER")
     smoothing_position_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
@@ -1312,10 +1312,10 @@ class AAEExportRegisterSettings(bpy.types.PropertyGroup):
     bl_label = "AAEExportRegisterSettings"
     bl_idname = "AAEExportRegisterSettings"
 
-class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
+class AAEExportRegisterSmoothingID(bpy.types.Operator):
     bl_label = "Install Dependencies for Smoothing (Optional)"
     bl_description = get_smoothing_modules_install_description()
-    bl_idname = "preference.aae_export_register_install_smoothing_dependencies"
+    bl_idname = "preference.aae_export_register_smoothing_id"
     bl_options = { "REGISTER", "INTERNAL" }
 
     def execute(self, context):
@@ -1333,7 +1333,7 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
             self._execute_sys_win32(context)
         elif sys.platform == "darwin" and "aae_export_id_mac" in globals():
             self._execute_aae_export_id_mac(context)
-        elif sys.platform == "linux" and platform.machine in ["x86_64", "x86-64", "amd64", "x64"] and "aae_export_id_linux_x86_64" in globals():
+        elif sys.platform == "linux" and platform.machine() in ["x86_64", "x86-64", "amd64", "x64"] and "aae_export_id_linux_x86_64" in globals():
             self._execute_aae_export_id_linux_x86_64(context)
         elif sys.platform == "linux":
             self._execute_sys_linux(context)
@@ -1412,8 +1412,15 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
             f.write("\t\tprint()\n")
             f.write("\t\tinput(\"Press Enter to continue... \")\n")
 
-        print("aae-export: terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"")
-        subprocess.run("terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"", check=True)
+        try:
+            print("aae-export: terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"")
+            subprocess.run("terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"", check=True)
+        except:
+            try:
+                print("aae-export: xterm -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"")
+                subprocess.run("xterm -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"", check=True)
+            except:
+                self._execute_direct_unspecified(self, context)
 
     def _execute_aae_export_id_mac(self, context):
         import base64
@@ -1425,7 +1432,7 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
         from pathlib import PurePath
 
         path = tempfile.mkdtemp()
-        with tarfile.open(io.BytesIO(base64.b85decode(aae_export_id_mac)), "r", errorlevel=1) as tar:
+        with tarfile.open(fileobj=io.BytesIO(base64.b85decode(aae_export_id_mac)), mode="r", errorlevel=1) as tar:
             tar.extractall(path=path)
 
         try:
@@ -1445,7 +1452,7 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
         from pathlib import PurePath
 
         path = tempfile.mkdtemp()
-        with tarfile.open(io.BytesIO(base64.b85decode(aae_export_id_linux_x86_64)), "r", errorlevel=1) as tar:
+        with tarfile.open(fileobj=io.BytesIO(base64.b85decode(aae_export_id_linux_x86_64)), mode="r", errorlevel=1) as tar:
             tar.extractall(path=path)
 
         try:
@@ -1453,7 +1460,7 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
                             sys.executable] + \
                            [module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules], check=True)
         except:
-            self._execute_direct_unspecified(self, context)
+            self._execute_sys_linux(self, context)
 
     def _execute_direct_unspecified(self, context):
         import subprocess
@@ -1470,12 +1477,12 @@ class AAEExportRegisterPreferencePanel(bpy.types.AddonPreferences):
         settings = context.window_manager.AAEExportRegisterSettings
 
         if not is_smoothing_modules_available:
-            layout.operator("preference.aae_export_register_install_smoothing_dependencies", icon="CONSOLE")
+            layout.operator("preference.aae_export_register_smoothing_id", icon="CONSOLE")
         else:
             layout.label(text="Dependencies installed successfully.")
 
 register_classes = (AAEExportRegisterSettings,
-                    AAEExportRegisterInstallSmoothingDependencies,
+                    AAEExportRegisterSmoothingID,
                     AAEExportRegisterPreferencePanel)
 
 is_register_classes_registered = False
