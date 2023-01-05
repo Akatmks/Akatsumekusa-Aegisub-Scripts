@@ -40,13 +40,16 @@ int main(int argc, char** argv) {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
     QGuiApplication app(argc, argv);
+    Process process(&app);
 
     main_setInformation(app);
-    main_parseArg(app);
+    main_parseArg(app, process);
 
     main_setFont(app);
 
     QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty(QStringLiteral("process"), &process);
+
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject* obj, const QUrl& objUrl) {
@@ -54,8 +57,6 @@ int main(int argc, char** argv) {
                              QCoreApplication::exit(-1);
                      }, Qt::QueuedConnection);
     engine.load(url);
-
-    main_setPrintout(engine);
 
     return app.exec();
 }
@@ -66,13 +67,13 @@ void main_setInformation(QGuiApplication& app) {
     app.setApplicationVersion("1.0");
 }
 
-void main_parseArg(QGuiApplication& app) {
+void main_parseArg(const QGuiApplication& app, Process& process) {
     QCommandLineParser parser;
 
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.addPositionalArgument("python", "Path to Python binary.");
-    parser.addPositionalArgument("packages ...", "Pip packages to install.");
+    parser.addPositionalArgument(QStringLiteral("python"), QStringLiteral("Path to Python binary."));
+    parser.addPositionalArgument(QStringLiteral("packages ..."), QStringLiteral("Pip packages to install."));
 
     parser.process(app);
 
@@ -80,20 +81,14 @@ void main_parseArg(QGuiApplication& app) {
     if(args.size() < 2)
         parser.showHelp(-1);
 
-    python = args.at(0);
-    packages = args.sliced(1);
+    process.setPython(args.at(0));
+    process.setPackages(args.sliced(1));
 }
-
 
 void main_setFont(QGuiApplication& app) {
     QFont Font;
     Font.setStyleHint(QFont::Monospace);
     Font.setFamily(Font.defaultFamily());
     app.setFont(Font);
-}
-
-void main_setPrintout(QQmlApplicationEngine& engine) {
-    Printout printout;
-    engine.rootContext()->setContextProperty("printout", &printout);
 }
 

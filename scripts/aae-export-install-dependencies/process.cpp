@@ -21,33 +21,157 @@
  */
 
 
+#include <QChar>
+#include <QGuiApplication>
 #include <QObject>
+#include <QProcess>
+#include <QQuickWindow>
 #include <QString>
 #include <QStringList>
 
 #include "process.h"
 
 
-QString python;
-QStringList packages;
-
-
 Printout::Printout(QObject* parent): QObject(parent) {}
-QString Printout::text() {
-    return m_text;
+
+QString Printout::printout() {
+    return m_printout;
 }
-void Printout::setText(const QString& text) {
-    if(m_text == text)
+void Printout::setPrintout(const QString& printout) {
+    if(m_printout == printout)
         return;
 
-    m_text = text;
-    emit textChanged();
+    m_printout = printout;
+    emit printoutChanged();
 }
-void Printout::appendText(const QString& text) {
-    if(text.length() == 0)
+void Printout::appendPrintout(const QString& printout) {
+    if(printout.length() == 0)
         return;
 
-    m_text += text;
-    emit textChanged();
+    m_printout += printout;
+    emit printoutChanged();
+}
+
+
+Process::Process(QGuiApplication* app, Printout* parent): Printout(parent) {
+    app_ = app;
+
+    QObject::connect(&process, &QProcess::finished,
+                     this, &Process::complete);
+    QObject::connect(&process, &QProcess::errorOccurred,
+                     this, &Process::error);
+    QObject::connect(&process, &QProcess::readyReadStandardOutput,
+                     this, &Process::readstdout);
+    QObject::connect(&process, &QProcess::readyReadStandardError,
+                     this, &Process::readstderr);
+}
+
+
+QString& Process::python() {
+    return m_python;
+}
+QStringList& Process::packages() {
+    return m_packages;
+}
+void Process::setPython(const QString& python) {
+    m_python = python;
+}
+void Process::setPackages(const QStringList& packages) {
+    m_packages = packages;
+}
+
+
+void Process::run() {
+    if(step == 0) {
+        step = 1;
+        runensurepip();
+    }
+}
+void Process::term() {
+    if(process.state() != QProcess::NotRunning) {
+        if(!is_termed) {
+            is_termed = true;
+
+            process.terminate();
+            if(!process.waitForFinished(2000))
+                process.kill();
+        }
+        else
+            process.kill();
+    }
+}
+void Process::complete(int exitCode, QProcess::ExitStatus exitStatus) {
+    // success
+    if(exitCode == 0 && exitStatus == QProcess::NormalExit) {
+        if(!is_termed) {
+            if(step == 1) {
+                step = 2;
+                runpipinstall();
+            }
+            else if(step == 2) {
+                app_->quit();
+            }
+        }
+    }
+    // not success
+    else {
+        QString printout;
+
+        printout += QChar::LineFeed;
+        printout += QStringLiteral("The command \"");
+        printout += process.program();
+        printout += QChar::Space;
+        printout += process.arguments().join(QChar::Space);
+        if(exitStatus != QProcess::NormalExit)
+            printout += QStringLiteral("\" crashed");
+        else { // exitCode != 0
+            printout += QStringLiteral("\" returned a non-zero code: ");
+            printout += QString::number(exitCode);
+        }
+        printout += QChar::LineFeed;
+
+        appendPrintout(printout);
+    }
+}
+void Process::error(QProcess::ProcessError error) {
+    if(error == QProcess::FailedToStart) {
+        QString printout;
+
+        printout += QStringLiteral("The command \"");
+        printout += process.program();
+        printout += QChar::Space;
+        printout += process.arguments().join(QChar::Space);
+        printout += QStringLiteral("\" failed to start");
+        printout += QChar::LineFeed;
+
+        appendPrintout(printout);
+    }
+}
+
+
+void Process::readstdout() {
+    appendPrintout(process.readAllStandardOutput());
+}
+void Process::readstderr() {
+    appendPrintout(process.readAllStandardError());
+}
+
+
+void Process::runensurepip() {
+    QStringList arguments;
+    arguments << "-m" << "ensurepip";
+    process.setProgram(m_python);
+    process.setArguments(arguments);
+
+    process.start();
+}
+void Process::runpipinstall() {
+    QStringList arguments;
+    arguments << "-m" << "pip" << "install" << "--no-input";
+    arguments += m_packages;
+    process.setProgram(m_python);
+    process.setArguments(arguments);
+
+    process.start();
 }
 

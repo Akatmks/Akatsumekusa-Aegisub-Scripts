@@ -24,14 +24,17 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
-void main_setInformation(QGuiApplication& app);
-void main_parseArg(QGuiApplication& app);
+#include "process.h"
 
+
+void main_setInformation(QGuiApplication& app);
+void main_parseArg(const QGuiApplication& app, Process& process);
 void main_setFont(QGuiApplication& app);
-void main_setPrintout(QQmlApplicationEngine& engine);
+
 
 #endif // MAIN_H
 

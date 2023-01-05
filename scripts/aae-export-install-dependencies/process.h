@@ -24,33 +24,72 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
+
+#include <QGuiApplication>
 #include <QObject>
+#include <QProcess>
 #include <QQmlEngine>
+#include <QQuickWindow>
 #include <QString>
 #include <QStringList>
 
-extern QString python;
-extern QStringList packages;
 
 class Printout: public QObject {
     Q_OBJECT
-    Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+    Q_PROPERTY(QString printout READ printout WRITE setPrintout NOTIFY printoutChanged)
     QML_ELEMENT
     QML_UNCREATABLE("")
 
 public:
     explicit Printout(QObject* parent = nullptr);
 
-    QString text();
-    void setText(const QString& text);
-    void appendText(const QString& text);
+    QString printout();
+    void setPrintout(const QString& printout);
+    void appendPrintout(const QString& printout);
 
 signals:
-    void textChanged();
+    void printoutChanged();
 
 private:
-    QString m_text;
+    QString m_printout;
 };
+
+
+class Process: public Printout {
+    Q_OBJECT
+    QML_ELEMENT
+    QML_UNCREATABLE("")
+
+public:
+    explicit Process(QGuiApplication* app, Printout* parent = nullptr);
+
+    QString& python();
+    QStringList& packages();
+    void setPython(const QString& python);
+    void setPackages(const QStringList& packages);
+
+    Q_INVOKABLE void run();
+    Q_INVOKABLE void term();
+public slots:
+    void complete(int exitCode, QProcess::ExitStatus exitStatus = QProcess::NormalExit);
+    void error(QProcess::ProcessError error);
+
+    void readstdout();
+    void readstderr();
+
+private:
+    QProcess process;
+    int step = 0;
+
+    void runensurepip();
+    void runpipinstall();
+    QString m_python;
+    QStringList m_packages;
+
+    QGuiApplication* app_;
+    bool is_termed = false;
+};
+
 
 #endif // PROCESS_H
 
