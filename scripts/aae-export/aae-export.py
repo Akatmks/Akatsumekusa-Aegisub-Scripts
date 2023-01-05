@@ -1333,7 +1333,7 @@ class AAEExportRegisterInstallSmoothingDependencies(bpy.types.Operator):
             self._execute_sys_win32(context)
         elif sys.platform == "darwin" and "aae_export_id_mac" in globals():
             self._execute_aae_export_id_mac(context)
-        elif sys.platform == "linux" and platform.machine in ["x86_64", "amd64", "x64"] and "aae_export_id_linux_x86_64" in globals():
+        elif sys.platform == "linux" and platform.machine in ["x86_64", "x86-64", "amd64", "x64"] and "aae_export_id_linux_x86_64" in globals():
             self._execute_aae_export_id_linux_x86_64(context)
         elif sys.platform == "linux":
             self._execute_sys_linux(context)
