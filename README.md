@@ -2,13 +2,23 @@
 
 <img src="https://user-images.githubusercontent.com/112813970/209281100-3d7dfa0b-1ccb-4918-8bef-6e136a29a1ec.jpg" alt="AAE Export Function Preview" width="186" align="left" />
 
-AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisub-Motion](https://github.com/TypesettingTools/Aegisub-Motion/) and [Aegisub-Perspective-Motion](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts/tree/daily_stream) compatible AAE data.
+AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisub-Motion](https://github.com/TypesettingTools/Aegisub-Motion/) and [Aegisub-Perspective-Motion](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts/tree/daily_stream) compatible AAE data.  
 
-–　[Download](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/master/scripts/aae-export/aae-export.py)  
-–　[Tutorial 1: Install AAE Export](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/master/docs/aae-export-tutorial.md#tutorial-1-install-aae-export)  
-–　[Tutorial 2: Track a simple pan using tracking marker](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/master/docs/aae-export-tutorial.md#tutorial-2-track-a-simple-pan-using-tracking-marker)  
-–　[Tutorial 3: Track perspective using plane track](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/master/docs/aae-export-tutorial.md#tutorial-3-track-perspective-using-plane-track)  
+–　[Download (Windows)](scripts/aae-export/aae-export.py)  
+–　[Download (Linux x86_64)](scripts/aae-export-linux-x86_64/aae-export.py)  
+–　[Download (Linux aarch64)](scripts/aae-export/aae-export.py)  
+–　[Download (Mac)](scripts/aae-export-mac/aae-export.py)  
+–　[Tutorial 1: Install AAE Export](docs/aae-export-tutorial.md#tutorial-1-install-aae-export)  
+–　[Tutorial 2: Track a simple pan using tracking marker](docs/aae-export-tutorial.md#tutorial-2-track-a-simple-pan-using-tracking-marker)  
+–　[Tutorial 3: Track perspective using plane track](docs/aae-export-tutorial.md#tutorial-3-track-perspective-using-plane-track)  
 
-For anyone who is interested, there is also a [more complex script](https://github.com/Akatmks/Non-Carbonated-Motion) in development. There is no guarantee when that script will be finished but hope it will come sooner rather than later.  
+Thanks to  
+
+–　arch1t3cht for helping in improving algorithms and for developing the original AAE Export (Power Pin) script.  
+–　bucket3432, petzku and others for helping with UI/UX design.  
+–　Martin Herkt for developing the original AAE Export script in 2012.  
+
+The tutorial for the new smoothing feature is underway. For anyone who is interested, there is also a [more complex script](https://github.com/Akatmks/Non-Carbonated-Motion) in development. It will be much better at correcting tracking error or bias than current smoothing feature. There is no guarantee when that script will be finished but hope it will come sooner rather than later.
+ 
 
 <br clear="left" />
