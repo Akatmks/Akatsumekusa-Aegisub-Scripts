@@ -21,4 +21,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cat "${0%/*}/../aae-export/aae-export.py" "${0%/*}/aae-export-install-dependencies.py" > "${0%/*}/aae-export.py"
+cat "${0%/*}/../aae-export/aae-export.py" \
+    <(echo) \
+    <(echo -n "aae_export_b_mac = \"") \
+    "${0%/*}/libbase122.base64" \
+    <(echo "\".encode(\"utf-8\")") \
+    <(echo -n "aae_export_id_mac = \"") \
+    "${0%/*}/aae-export-install-dependencies.base122" \
+    <(echo "\".encode(\"utf-8\")") > "${0%/*}/aae-export.py"

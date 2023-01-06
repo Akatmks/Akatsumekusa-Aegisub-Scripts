@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 0, 3),
+    "version": (1, 0, 5),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -1330,13 +1330,17 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
         import threading
 
         if os.name == "nt":
-            self._execute_sys_win32(context)
-        elif sys.platform == "darwin" and "aae_export_id_mac" in globals():
-            self._execute_aae_export_id_mac(context)
-        elif sys.platform == "linux" and platform.machine() in ["x86_64", "x86-64", "amd64", "x64"] and "aae_export_id_linux_x86_64" in globals():
-            self._execute_aae_export_id_linux_x86_64(context)
-        elif sys.platform == "linux":
-            self._execute_sys_linux(context)
+            self._execute_sys_win32()
+        elif sys.platform == "darwin" and \
+             "aae_export_b_mac" in globals() and "aae_export_id_mac" in globals():
+            self._execute_aae_export_id_mac()
+        elif (sys.platform == "linux" or sys.platform.startwith("freebsd")) and platform.machine() in ["x86_64", "x86-64", "amd64", "x64"] and \
+             "aae_export_b_linux_x86_64" in globals() and "aae_export_id_linux_x86_64" in globals() and \
+             not os.system("dpkg --version > /dev/null") == 0: # Some Debian-based distros seems to have problem running `python -m ensurepip`. Until this problem is addressed
+                                               # in aae-export-install-dependencies, all distros using dpkg will skip the aae-export-install-dependencies step.
+            self._execute_aae_export_id_linux_x86_64()
+        elif sys.platform == "linux" or sys.platform.startwith("freebsd"):
+            self._execute_sys_linux()
         else:
             self._execute_direct_unspecified(context)
             
@@ -1367,9 +1371,9 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
 
         return { "FINISHED" }
 
-    def _execute_sys_win32(self, context):
+    def _execute_sys_win32(self):
         from pathlib import PurePath
-        import subprocess
+        import os
         import sys
         from tempfile import NamedTemporaryFile
 
@@ -1389,11 +1393,12 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
 
         # Python, in a Python, in a PowerShell, in a Python
         print("aae-export: " + "PowerShell -Command \"& {Start-Process \\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\" -Verb runAs -Wait}\"")
-        subprocess.run("PowerShell -Command \"& {Start-Process \\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\" -Verb runAs -Wait}\"", check=True)
+        if os.system("PowerShell -Command \"& {Start-Process \\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\" -Verb runAs -Wait}\"") != 0:
+            self._execute_direct_unspecified()
 
-    def _execute_sys_linux(self, context):
+    def _execute_sys_linux(self):
         from pathlib import PurePath
-        import subprocess
+        import os
         import sys
         from tempfile import NamedTemporaryFile
 
@@ -1402,7 +1407,7 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
             f.write("if __name__ == \"__main__\":\n")
             f.write("\ttry:\n")
 
-            f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"ensurepip\"], check=True)\n")
+            f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"ensurepip\"])\n")
             f.write("\t\tsubprocess.run([\"" + PurePath(sys.executable).as_posix() + "\", \"-m\", \"pip\", \"install\", \"--no-input\", \"" + \
                                         "\", \"".join([module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules]) + \
                                         "\"], check=True)\n")
@@ -1410,21 +1415,23 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
             f.write("\texcept:\n")
             f.write("\t\ttraceback.print_exc()\n")
             f.write("\t\tprint()\n")
-            f.write("\t\tinput(\"Press Enter to continue... \")\n")
+            f.write("\t\tinput(\"Press Enter to continue ... \")\n")
 
-        try:
-            print("aae-export: terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"")
-            subprocess.run("terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"", check=True)
-        except:
-            try:
-                print("aae-export: xterm -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"")
-                subprocess.run("xterm -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"", check=True)
-            except:
-                self._execute_direct_unspecified(self, context)
+        print("aae-export: terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"")
+        if os.system("terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"") != 0:
+            print("aae-export: gnome-terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"")
+            if os.system("gnome-terminal -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"") != 0:
+                print("aae-export: konsole -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"")
+                if os.system("konsole -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"") != 0:
+                    print("aae-export: xterm -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"")
+                    if os.system("xterm -e \"\\\"" + sys.executable + "\\\" \\\"" + PurePath(f.name).as_posix() + "\\\"\"") != 0:
+                        self._execute_direct_unspecified()
 
-    def _execute_aae_export_id_mac(self, context):
+    def _execute_aae_export_id_mac(self):
         import base64
-        import io
+        from ctypes import CDLL, c_char_p, c_size_t, create_string_buffer
+        from io import BytesIO
+        from math import ceil
         import subprocess
         import sys
         import tarfile
@@ -1432,19 +1439,35 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
         from pathlib import PurePath
 
         path = tempfile.mkdtemp()
-        with tarfile.open(fileobj=io.BytesIO(base64.b85decode(aae_export_id_mac)), mode="r", errorlevel=1) as tar:
-            tar.extractall(path=path)
 
         try:
+            with tarfile.open(fileobj=BytesIO(base64.standard_b64decode(aae_export_b_mac)), mode="r", errorlevel=1) as tar:
+                tar.extractall(path=path)
+
+            print("aae-export: \"" + PurePath(path, "libbase122.dylib").as_posix() + "\"")
+            base122 = CDLL(PurePath(path, "libbase122.dylib").as_posix())
+            base122.decode.argtypes = (c_char_p, c_size_t, c_char_p, c_size_t)
+            base122.decode.restype = c_size_t
+            out_size = base122.decode(c_char_p(aae_export_id_mac), c_size_t((size := len(aae_export_id_mac))),
+                                      (out := create_string_buffer(ceil(size * 1.20))), c_size_t(ceil(size * 1.20)))
+            with tarfile.open(fileobj=BytesIO(out.raw[:out_size]), mode="r", errorlevel=1) as tar:
+                tar.extractall(path=path)
+
+            print("aae-export: \"" + \
+                  PurePath(path, "aae-export-install-dependencies.app", "Contents", "MacOS", "aae-export-install-dependencies").as_posix() + "\" \"" + \
+                  sys.executable + "\" " + \
+                  " ".join([module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules]))
             subprocess.run([PurePath(path, "aae-export-install-dependencies.app", "Contents", "MacOS", "aae-export-install-dependencies").as_posix(), \
                             sys.executable] + \
                            [module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules], check=True)
         except:
-            self._execute_direct_unspecified(self, context)
+            self._execute_direct_unspecified()
 
-    def _execute_aae_export_id_linux_x86_64(self, context):
+    def _execute_aae_export_id_linux_x86_64(self):
         import base64
-        import io
+        from ctypes import CDLL, c_char_p, c_size_t, create_string_buffer
+        from io import BytesIO
+        from math import ceil
         import subprocess
         import sys
         import tarfile
@@ -1452,21 +1475,37 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
         from pathlib import PurePath
 
         path = tempfile.mkdtemp()
-        with tarfile.open(fileobj=io.BytesIO(base64.b85decode(aae_export_id_linux_x86_64)), mode="r", errorlevel=1) as tar:
-            tar.extractall(path=path)
 
         try:
+            with tarfile.open(fileobj=BytesIO(base64.standard_b64decode(aae_export_b_linux_x86_64)), mode="r", errorlevel=1) as tar:
+                tar.extractall(path=path)
+
+            print("aae-export: \"" + PurePath(path, "libbase122.so").as_posix() + "\"")
+            base122 = CDLL(PurePath(path, "libbase122.so").as_posix())
+            base122.decode.argtypes = (c_char_p, c_size_t, c_char_p, c_size_t)
+            base122.decode.restype = c_size_t
+            out_size = base122.decode(c_char_p(aae_export_id_linux_x86_64), c_size_t((size := len(aae_export_id_linux_x86_64))),
+                                      (out := create_string_buffer(ceil(size * 1.20))), c_size_t(ceil(size * 1.20)))
+            with tarfile.open(fileobj=BytesIO(out.raw[:out_size]), mode="r", errorlevel=1) as tar:
+                tar.extractall(path=path)
+
+            print("aae-export: \"" + \
+                  PurePath(path, "aae-export-install-dependencies").as_posix() + "\" \"" + \
+                  sys.executable + "\" " + \
+                  " ".join([module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules]))
             subprocess.run([PurePath(path, "aae-export-install-dependencies").as_posix(), \
                             sys.executable] + \
                            [module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules], check=True)
         except:
-            self._execute_sys_linux(self, context)
+            self._execute_sys_linux()
 
-    def _execute_direct_unspecified(self, context):
+    def _execute_direct_unspecified(self):
         import subprocess
         import sys
 
-        subprocess.run([sys.executable, "-m", "ensurepip"], check=True) # sys.executable requires Blender 2.93
+        print("aae-export: \"" + sys.executable + "\" -m ensurepip")
+        subprocess.run([sys.executable, "-m", "ensurepip"]) # sys.executable requires Blender 2.93
+        print("aae-export: \"" + sys.executable + "\" -m pip install --no-input " + " ".join([module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules]))
         subprocess.run([sys.executable, "-m", "pip", "install", "--no-input"] + [module[1] + ">=" + module[2] if module[2] else module[1] for module in smoothing_modules], check=True)
 
 class AAEExportRegisterPreferencePanel(bpy.types.AddonPreferences):
