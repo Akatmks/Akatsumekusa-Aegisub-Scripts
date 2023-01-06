@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 0, 5),
+    "version": (1, 0, 6),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -99,7 +99,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                   description="Perform smoothing on position data",
                                                   default=True)
     smoothing_position_degree: bpy.props.IntProperty(name="Max Degree",
-                                                     description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                     description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                      default=2,
                                                      min=1,
                                                      soft_max=5)
@@ -107,7 +107,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                description="Perform smoothing on scale data",
                                                default=True)
     smoothing_scale_degree: bpy.props.IntProperty(name="Max Degree",
-                                                  description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                  description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                   default=2,
                                                   min=1,
                                                   soft_max=4)
@@ -115,7 +115,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                description="Perform smoothing on rotation data.\nPlease note that rotation calculation in AAE Export is very basic. Performing smoothing on rotations with high velocity may yield unexpected results",
                                                default=True)
     smoothing_rotation_degree: bpy.props.IntProperty(name="Max Degree",
-                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                      default=1,
                                                      min=1,
                                                      soft_max=4)
@@ -123,24 +123,24 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                    description="Perform smoothing on Power Pin data",
                                                    default=True)
     smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Degree",
-                                                      description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                      description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                       default=2,
                                                       min=1,
                                                       soft_max=5)
     smoothing_position_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                                                                ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                                                                ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
                                                          name="Linear Model",
                                                          default="HUBER")
     smoothing_position_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                              description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                                                              description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
                                                               default=1.50,
                                                               min=1.00,
                                                               soft_max=10.00,
                                                               step=1,
                                                               precision=2)
     smoothing_position_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                              description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, plesae visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                                                              description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
                                                               default=0.10,
                                                               min=0.00,
                                                               soft_max=100.0,
