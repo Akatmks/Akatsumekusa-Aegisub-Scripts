@@ -101,37 +101,41 @@ void Process::term() {
     }
 }
 void Process::complete(int exitCode, QProcess::ExitStatus exitStatus) {
-    // success
-    if(exitCode == 0 && exitStatus == QProcess::NormalExit) {
-        if(!is_termed) {
-            if(step == 1) {
-                step = 2;
-                runpipinstall();
-            }
-            else if(step == 2) {
+    if(!is_termed) {
+        if(step == 1) {
+            if(exitCode != 0 || exitStatus != QProcess::NormalExit)
+                complete_printout(exitCode, exitStatus);
+
+            step = 2;
+            runpipinstall();
+        }
+        else if(step == 2) {
+            if(exitCode != 0 || exitStatus != QProcess::NormalExit)
+                complete_printout(exitCode, exitStatus);
+
+            else
                 app_->quit();
-            }
         }
     }
-    // not success
-    else {
-        QString printout;
+}
+void Process::complete_printout(int exitCode, QProcess::ExitStatus exitStatus) {
+    QString printout;
 
-        printout += QChar::LineFeed;
-        printout += QStringLiteral("The command \"");
-        printout += process.program();
-        printout += QChar::Space;
-        printout += process.arguments().join(QChar::Space);
-        if(exitStatus != QProcess::NormalExit)
-            printout += QStringLiteral("\" crashed");
-        else { // exitCode != 0
-            printout += QStringLiteral("\" returned a non-zero code: ");
-            printout += QString::number(exitCode);
-        }
-        printout += QChar::LineFeed;
-
-        appendPrintout(printout);
+    printout += QChar::LineFeed;
+    printout += QStringLiteral("The command \"");
+    printout += process.program();
+    printout += QChar::Space;
+    printout += process.arguments().join(QChar::Space);
+    if(exitStatus != QProcess::NormalExit)
+        printout += QStringLiteral("\" crashed");
+    else { // exitCode != 0
+        printout += QStringLiteral("\" returned a non-zero code: ");
+        printout += QString::number(exitCode);
     }
+    printout += QChar::LineFeed;
+    printout += QChar::LineFeed;
+
+    appendPrintout(printout);
 }
 void Process::error(QProcess::ProcessError error) {
     if(error == QProcess::FailedToStart) {

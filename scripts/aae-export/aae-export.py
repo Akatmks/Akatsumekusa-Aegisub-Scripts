@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 0, 6),
+    "version": (1, 0, 7),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -99,7 +99,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                   description="Perform smoothing on position data",
                                                   default=True)
     smoothing_position_degree: bpy.props.IntProperty(name="Max Degree",
-                                                     description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                     description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                      default=2,
                                                      min=1,
                                                      soft_max=5)
@@ -107,7 +107,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                description="Perform smoothing on scale data",
                                                default=True)
     smoothing_scale_degree: bpy.props.IntProperty(name="Max Degree",
-                                                  description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                  description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                   default=2,
                                                   min=1,
                                                   soft_max=4)
@@ -115,7 +115,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                description="Perform smoothing on rotation data.\nPlease note that rotation calculation in AAE Export is very basic. Performing smoothing on rotations with high velocity may yield unexpected results",
                                                default=True)
     smoothing_rotation_degree: bpy.props.IntProperty(name="Max Degree",
-                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                      default=1,
                                                      min=1,
                                                      soft_max=4)
@@ -123,7 +123,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                    description="Perform smoothing on Power Pin data",
                                                    default=True)
     smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Degree",
-                                                      description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data. Setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                      description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                       default=2,
                                                       min=1,
                                                       soft_max=5)
@@ -1335,9 +1335,7 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
              "aae_export_b_mac" in globals() and "aae_export_id_mac" in globals():
             self._execute_aae_export_id_mac()
         elif (sys.platform == "linux" or sys.platform.startwith("freebsd")) and platform.machine() in ["x86_64", "x86-64", "amd64", "x64"] and \
-             "aae_export_b_linux_x86_64" in globals() and "aae_export_id_linux_x86_64" in globals() and \
-             not os.system("dpkg --version > /dev/null") == 0: # Some Debian-based distros seems to have problem running `python -m ensurepip`. Until this problem is addressed
-                                               # in aae-export-install-dependencies, all distros using dpkg will skip the aae-export-install-dependencies step.
+             "aae_export_b_linux_x86_64" in globals() and "aae_export_id_linux_x86_64" in globals():
             self._execute_aae_export_id_linux_x86_64()
         elif sys.platform == "linux" or sys.platform.startwith("freebsd"):
             self._execute_sys_linux()

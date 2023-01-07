@@ -72,6 +72,9 @@ public:
     Q_INVOKABLE void term();
 public slots:
     void complete(int exitCode, QProcess::ExitStatus exitStatus = QProcess::NormalExit);
+private:
+    void complete_printout(int exitCode, QProcess::ExitStatus exitStatus);
+public slots:
     void error(QProcess::ProcessError error);
 
     void readstdout();

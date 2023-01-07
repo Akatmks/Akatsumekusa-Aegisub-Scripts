@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
 
 void main_setInformation(QGuiApplication& app) {
     app.setApplicationName("aae-export-install-dependencies");
-    app.setApplicationVersion("1.0");
+    app.setApplicationVersion("1.1");
 }
 
 void main_parseArg(const QGuiApplication& app, Process& process) {
