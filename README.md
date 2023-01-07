@@ -1,4 +1,4 @@
-## aae-export.py
+## aae-export
 
 <img src="https://user-images.githubusercontent.com/112813970/209281100-3d7dfa0b-1ccb-4918-8bef-6e136a29a1ec.jpg" alt="AAE Export Function Preview" width="186" align="left" />
 
@@ -18,7 +18,9 @@ Thanks to
 –　bucket3432, petzku and others for helping with UI/UX design.  
 –　Martin Herkt for developing the original AAE Export script in 2012.  
 
-The tutorial for the new smoothing feature is underway. For anyone who is interested, there is also a [more complex script](https://github.com/Akatmks/Non-Carbonated-Motion) in development. It will be much better at correcting tracking error or bias than current smoothing feature. There is no guarantee when that script will be finished but hope it will come sooner rather than later.
- 
+The tutorial for the new smoothing feature is underway. For anyone who is interested, there is also a [more complex script](https://github.com/Akatmks/Non-Carbonated-Motion) in development. It will be much better at correcting tracking error or bias than current smoothing feature. There is no guarantee when that script will be finished but hope it will come sooner rather than later.<br clear="left" />
 
-<br clear="left" />
+*License information*  
+– *aae-export was originally released by Martin Herkt under ISC License. Since then, AAE Export has been completely rewritten, with every original line replaced. It is now released under a single MIT License.*  
+– *[aae-export-install-dependencies](tools/aae-export-install-dependencies) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. The tool is released under MIT License, using [Qt](https://www.qt.io/) libraries under LGPLv3.*  
+– *[aae-export-base122](tools/aae-export-base122) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. It is a wrapper of Kevin Albertson's [libbase122](https://github.com/kevinAlbs/libbase122) library, and is released under Apache License.*  
