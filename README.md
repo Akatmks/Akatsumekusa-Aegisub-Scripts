@@ -21,6 +21,6 @@ Thanks to
 The tutorial for the new smoothing feature is underway. For anyone who is interested, there is also a [more complex script](https://github.com/Akatmks/Non-Carbonated-Motion) in development. It will be much better at correcting tracking error or bias than current smoothing feature. There is no guarantee when that script will be finished but hope it will come sooner rather than later.<br clear="left" />
 
 *License information*  
-– *aae-export was originally released by Martin Herkt under ISC License. Since then, AAE Export has been completely rewritten, with every original line replaced. It is now released under a single MIT License.*  
+– *aae-export was originally released by Martin Herkt under ISC License. Since then, aae-export has been completely rewritten, with every original line replaced. It is now released under a single MIT License.*  
 – *[aae-export-install-dependencies](tools/aae-export-install-dependencies) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. The tool is released under MIT License, using [Qt](https://www.qt.io/) libraries under LGPLv3.*  
 – *[aae-export-base122](tools/aae-export-base122) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. It is a wrapper of Kevin Albertson's [libbase122](https://github.com/kevinAlbs/libbase122) library, and is released under Apache License.*  
