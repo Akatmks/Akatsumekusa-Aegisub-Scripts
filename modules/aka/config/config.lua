@@ -83,19 +83,13 @@ edit_config_gui = function(...)
     if type(arg[3]) ~= "function" then table.insert(arg, 3, function() return true end) end validation_func = arg[3]
     if type(arg[4]) ~= "function" then table.insert(arg, 3, nil) end validation_func = arg[3]
     if type(arg[5]) ~= "function" then table.insert(arg, 3, validation_func) end validation_func = arg[3]
-    assert(type(arg[6]) == "table") assert(arg[6]["name_b"])
-    word_name_b = arg[6]["name_b"] word_config_b = arg[6]["config_b"] word_template = arg[6]["template"] word_templates_b = arg[6]["templates_b"]
+    assert(type(arg[6]) == "table")
+    assert(type(arg[6]["name_b"]) == "string") word_name_b = arg[6]["name_b"]
+    word_config_b = type(arg[6]["config_b"]) == "string" and arg[6]["config_b"] or "𝗖𝗼𝗻𝗳𝗶𝗴"
+    word_template = type(arg[6]["template"]) == "string" and arg[6]["template"] or "Template"
+    word_templates_b = type(arg[6]["templates_b"]) == "string" and arg[6]["templates_b"] or "𝗧𝗲𝗺𝗽𝗹𝗮𝘁𝗲𝘀"
     assert(type(arg[7]) == "table") config_templates = arg[7]
     is_no_gui_init = arg[8] or false
-
-    subfolder = subfolder or ""
-    validation_func = validation_func or function() return true end
-    validation_func_ui = validation_func_ui or validation_func
-    assert(word_name_b ~= nil)
-    word_config_b = word_config_b or "𝗖𝗼𝗻𝗳𝗶𝗴"
-    word_template = word_template or "Template"
-    word_templates_b = word_templates_b or "𝗧𝗲𝗺𝗽𝗹𝗮𝘁𝗲𝘀"
-    assert(config_templates ~= nil)
 
     local config_file
     local config_string
