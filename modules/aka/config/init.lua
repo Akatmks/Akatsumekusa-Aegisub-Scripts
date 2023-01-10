@@ -37,7 +37,7 @@ local versioning = {}
 
 versioning.name = "aka.config"
 versioning.description = "Module aka.config"
-versioning.version = "0.1.13"
+versioning.version = "0.1.14"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config"
 

@@ -36,29 +36,58 @@ local config_no_gui
 ------------------------------------------------
 -- Open the GUI and edit the config, either when the user asks for an edit, or when the config failed to parse or is not found
 -- 
--- @param str config: The name for the config file without the file extension
--- @param str subfolder [""]: The subfolder where the config is in;
+-- This function is also overloaded, at full, it is:
+-- function(string config, string subfolder,
+--          function validation_func, function ui_func, function validation_func_ui,
+--          table words, table config_templates,
+--          boolean is_no_gui_init)
+-- Among these arguments, string subfolder, function validation_func, function ui_func, function validation_func_ui
+-- and boolean is_no_gui_init can be omitted in place
+-- 
+-- @param string config: The name for the config file without the file extension
+-- @param string subfolder [""]: The subfolder where the config is in;
 --                               Set this to "" if the config are in the root config directory
--- @param func validation_func [function() return true end]: The function to validate the config before sending back;
---                                                           It should take the config data as param and return true if the validation is sucessful,
---                                                           Otherwise it should return an int as error message count and a table of string as error messages
--- @param func ui_func [nil]: The function to display a custom ui instead of the default JSON editor;
---                            It should take the config data as param and return true and the new config data as table if sucessful,
---                            If for whatever reason it wants to open the default JSON editor instead, it should return a string "JSON" and a new config data table to be converted to string;
---                            After the user close the JSON editor, the new new config data will be fed back to the ui_func again.
---                            In case the user cancel the ui or escape the ui, the function should return false
--- @param func validation_func_ui [validation_func]: The function to validate the config before sending to ui_func;
--- @param str word_name_b: The name of the config for display in the title of GUI
--- @param str word_config_b ["𝗖𝗼𝗻𝗳𝗶𝗴"]: The English word for config
--- @param str word_template ["Template"]: The English word for template
--- @param str word_templates_b ["𝗧𝗲𝗺𝗽𝗹𝗮𝘁𝗲𝘀"]: The English word for templates
+-- @param function validation_func [function() return true end]: The function to validate the config before sending back;
+--                                                               It should take the config data as param and return true if the validation is sucessful,
+--                                                               Otherwise it should return an int as error message count and a table of string as error messages
+-- @param function ui_func [nil]: The function to display a custom ui instead of the default JSON editor;
+--                                It should take the config data as param and return true and the new config data as table if sucessful,
+--                                If for whatever reason it wants to open the default JSON editor instead, it should return a string "JSON" and a new config data table to be converted to string;
+--                                After the user close the JSON editor, the new new config data will be fed back to the ui_func again.
+--                                In case the user cancel the ui or escape the ui, the function should return false
+-- @param function validation_func_ui [validation_func]: The function to validate the config before sending to ui_func
+-- @param table words The words to be displayed in the GUI, which contains these key-value pairs:
+--        string name_b: The name of the config for display in the title of GUI, bold
+--        string config_b ["𝗖𝗼𝗻𝗳𝗶𝗴"]: The English word for config, bold
+--        string template ["Template"]: The English word for template
+--        string templates_b ["𝗧𝗲𝗺𝗽𝗹𝗮𝘁𝗲𝘀"]: The English word for templates, bold
 -- @param table config_templates: Templates for the config
--- @param bool is_no_gui_init [false]: Do not show GUI but instead use the first config template to create config
+-- @param boolean is_no_gui_init [false]: Do not show GUI but instead use the first config template to create config
 --
 -- @returns bool is_success: True if the config was sucessfully created or validated
 -- @returns table config_data: The table read from the config
-edit_config_gui = function(config, subfolder, validation_func, ui_func, validation_func_ui, word_name_b, word_config_b, word_template, word_templates_b, config_templates, is_no_gui_init)
-    assert(config ~= nil)
+edit_config_gui = function(...)
+    local config
+    local subfolder
+    local validation_func
+    local ui_func
+    local validation_func_ui
+    local word_name_b
+    local word_config_b
+    local word_template
+    local word_templates_b
+    local config_templates
+    local is_no_gui_init
+    assert(type(arg[1]) == "string") config = arg[1]
+    if type(arg[2]) ~= "string" then table.insert(arg, 2, "") end subfolder = arg[2]
+    if type(arg[3]) ~= "function" then table.insert(arg, 3, function() return true end) end validation_func = arg[3]
+    if type(arg[4]) ~= "function" then table.insert(arg, 3, nil) end validation_func = arg[3]
+    if type(arg[5]) ~= "function" then table.insert(arg, 3, validation_func) end validation_func = arg[3]
+    assert(type(arg[6]) == "table") assert(arg[6]["name_b"])
+    word_name_b = arg[6]["name_b"] word_config_b = arg[6]["config_b"] word_template = arg[6]["template"] word_templates_b = arg[6]["templates_b"]
+    assert(type(arg[7]) == "table") config_templates = arg[7]
+    is_no_gui_init = arg[8] or false
+
     subfolder = subfolder or ""
     validation_func = validation_func or function() return true end
     validation_func_ui = validation_func_ui or validation_func
@@ -173,7 +202,7 @@ config_gui = function(config_string, msg_count, msg, word_name_b, word_config_b,
     local height_template_textbox
 
     templates = {}
-    for k in pairs(config_templates) do table.insert(templates, k) end
+    for k in pairs(config_templates) do if type(k) ~= "number" then table.insert(templates, k) end end
     if atemplate then template = atemplate.get_template_key(config_templates)
     else template = templates[1] end
     if msg_count == 0 then height = 19 height_template_textbox = height - 2

@@ -13,7 +13,7 @@ If everything works out to be fine, this will return `true` as well as the confi
 
 When you want to save a config, you can do:  
 ```lua
-is_success = config.write_config("aka.MyMacro", config_data = config_data)
+is_success = config.write_config("aka.MyMacro", config_data)
 ```
 
 ### Using subfolders

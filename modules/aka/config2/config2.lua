@@ -66,19 +66,29 @@ config_dir = aegisub.decode_path(hasDepCtrl and DepCtrl.config.c.configDir or "?
 
 ------------------------------------------------
 -- Read the specified config and return a table.
--- This is the only function to run when loading config.
--- If the config wasn't successfully read, please always run edit_config_gui() instead.
+--
+-- This function is overloaded, it accepts one of the following forms:
+-- function(string config)
+-- function(string config, string subfolder)
+-- function(string config, function validation_func)
+-- function(string config, string subfolder, function validation_func)
 -- 
--- @param str config: The name for the config file without the file extension
--- @param str subfolder [""]: The subfolder where the config is in; Set this to "" if the config are in the root config dir
--- @param func validation_func [function() return true end]: The function to validate the config before sending back;
---                                                           It should take the config data as param and return true if the validation is sucessful,
---                                                           Otherwise it should return an int as error message count and a table of string as error messages
+-- @param string config: The name for the config file without the file extension
+-- @param string subfolder [""]: The subfolder where the config is in; Set this to "" if the config are in the root config dir
+-- @param function validation_func [function() return true end]: The function to validate the config before sending back;
+--                                                               It should take the config data as param and return true if the validation is sucessful,
+--                                                               Otherwise it should return an int as error message count and a table of string as error messages
 -- 
--- @returns bool is_success: True if the config was successfully read
+-- @returns boolean is_success: True if the config was successfully read
 -- @returns table config_data: The table read from the config
-read_config = function(config, subfolder, validation_func)
-    assert(config ~= nil)
+read_config = function(...)
+    local config
+    local subfolder
+    local validation_func
+    assert(type(arg[1]) == "string") config = arg[1]
+    if type(arg[2]) == "string" then subfolder = arg[2]
+    elseif type(arg[2]) == "function" then validation_func = arg[2] end
+    if type(arg[3]) == "function" then validation_func = validation_func or arg[3] end
     subfolder = subfolder or ""
     validation_func = validation_func or function() return true end
 
@@ -96,6 +106,12 @@ read_config = function(config, subfolder, validation_func)
 end
 -------------------------------------------------
 -- Overwrite the specified config with the table.
+--
+-- This function is overloaded, it accepts one of the following forms:
+-- function(string config)
+-- function(string config, string subfolder)
+-- function(string config, table config_data)
+-- function(string config, string subfolder, table config_data)
 -- 
 -- @param str config: The name for the config file without the file extension
 -- @param str subfolder [""]: The subfolder where the config is in;
@@ -103,10 +119,16 @@ end
 -- @param table config_data: The table to save to the config
 -- 
 -- @returns bool is_success: True if the config was successfully saved
-write_config = function(config, subfolder, config_data)
-    assert(config ~= nil)
+write_config = function(...)
+    local config
+    local subfolder
+    local config_data
+    assert(type(arg[1]) == "string") config = arg[1]
+    if type(arg[2]) == "string" then subfolder = arg[2]
+    elseif type(arg[2]) == "table" then config_data = arg[2] end
+    if type(arg[3]) == "table" then config_data = config_data or arg[3] end
     subfolder = subfolder or ""
-    assert(config_data ~= nil)
+    assert(config_data)
 
     local config_directory
     local config_file
