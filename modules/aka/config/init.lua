@@ -29,14 +29,15 @@
 -- basic GUI so that the user may edit the JSON in Aegisub. The JSON editor
 -- supports templates or presets.
 --
--- Tutorial are available at docs/Using aka.config.md
+-- If you for whatever reason are interested in using this module, tutorials
+-- are available at „docs/Using aka.config.md“.
 ------------------------------------------------------------------------------
 
 local versioning = {}
 
 versioning.name = "aka.config"
 versioning.description = "Module aka.config"
-versioning.version = "0.1.12"
+versioning.version = "0.1.13"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config"
 

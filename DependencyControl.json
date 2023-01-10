@@ -22,7 +22,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "2ca4888b05dc1edb2694033ffaa6a197986bdde2"
+                            "sha1": "f758ef5f297ea34f22b370c953f2f299f35b5065"
                         }
                     ],
                     "requireModules": [
@@ -34,7 +34,7 @@
                             "optional": true
                         }
                     ],
-                    "version": "0.1.12",
+                    "version": "0.1.13",
                     "released": "2023-01-10"
                 }
             },
@@ -56,7 +56,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config2/init.lua",
-                            "sha1": "44b06258283989b7fc06a6233e159705eae713a4"
+                            "sha1": "9a38fe3682d03284a183b1cf96b62967ed8d41da"
                         },
                         {
                             "name": "/json.lua",
@@ -75,8 +75,8 @@
                             "moduleName": "lfs"
                         }
                     ],
-                    "version": "0.1.11",
-                    "released": "2022-12-26"
+                    "version": "0.1.12",
+                    "released": "2023-01-10"
                 }
             },
             "author": "Akatsumekusa and contributors",

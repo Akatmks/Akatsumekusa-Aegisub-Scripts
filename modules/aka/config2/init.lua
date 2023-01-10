@@ -21,11 +21,15 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------
+-- Tutorials are available at „docs/Using aka.config.md“.
+------------------------------------------------------------------------------
+
 local versioning = {}
 
 versioning.name = "aka.config2"
 versioning.description = "Module aka.config2"
-versioning.version = "0.1.11"
+versioning.version = "0.1.12"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config2"
 
