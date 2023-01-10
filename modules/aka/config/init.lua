@@ -22,22 +22,21 @@
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
--- If you want to have a try at aka.config, here is a small tutorial.
--- 
 -- Although this module is called aka.config, you can serialise anything you
 -- want using this module, not only configs.
 -- This module, compared to other serialisation modules like DepCtrl's
 -- ConfigHandler, generates beautified JSON. Additionally, it also provides a
 -- basic GUI so that the user may edit the JSON in Aegisub. The JSON editor
 -- supports templates or presets.
--- 
--- In order to 
+--
+-- Tutorial are available at docs/Using aka.config.md
+------------------------------------------------------------------------------
 
 local versioning = {}
 
 versioning.name = "aka.config"
 versioning.description = "Module aka.config"
-versioning.version = "0.1.11"
+versioning.version = "0.1.12"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config"
 

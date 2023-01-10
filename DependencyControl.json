@@ -17,12 +17,12 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "d4722f020e0d5cfa36333fcc8ff370c9ad461e05"
+                            "sha1": "526e3eb4b163850bf8888cad60d517a2ac8e5d7c"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "02ae0ea62c38aa441969f53bb3e2de3e1502bff1"
+                            "sha1": "2ca4888b05dc1edb2694033ffaa6a197986bdde2"
                         }
                     ],
                     "requireModules": [
@@ -34,8 +34,8 @@
                             "optional": true
                         }
                     ],
-                    "version": "0.1.11",
-                    "released": "2022-12-26"
+                    "version": "0.1.12",
+                    "released": "2023-01-10"
                 }
             },
             "author": "Akatsumekusa and contributors",

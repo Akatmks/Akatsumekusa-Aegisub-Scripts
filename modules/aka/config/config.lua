@@ -217,11 +217,7 @@ end end end
 -- @param table config_templates: Templates for the config
 -- 
 -- @returns str config_string: The first template in the templates table
-config_no_gui = function(config_templates)
-    for k, v in pairs(config_templates) do
-        if atemplate then atemplate.select_template_key(k) end
-        return v
-end end
+config_no_gui = function(config_templates) return config_templates[config_templates[1]] end
 
 local functions = {}
 
