@@ -100,14 +100,13 @@ In its arguments:
     ```
 * `is_no_gui_init` is the argument we mentioned before. If the config file doesn't exist or is empty, the default preset specified in `config_templates` will be applied automatically without opening the GUI if `is_no_gui_init` is set to `true`.  
 
-Among all the arguments, these are optional:  
+As explained in previous sections, all optional arguments can be omitted in place when calling the function in aka.config. This includes:  
 ```lua
 function(config, subfolder, validation_func, ui_func, validation_func_ui, words, config_templates, is_no_gui_init)
 -- Optional:     ^          ^                ^        ^                                            ^
 ```
-As explained in previous sections, all optional arguments can be omitted in place when calling the function.  
 
-`edit_config_gui` will save the applied config and then return `true` with config data as Lua table if everything works out. It will return `false` if the user close or cancel the config GUI.  
+`edit_config_gui` will save the applied config and return `true` with config data as Lua table if everything works out. It will return `false` if the user close or cancel the config GUI.  
 
 Combining all three functions together, we now have a full config setup:  
 ```lua
@@ -148,7 +147,7 @@ aegisub.register_macro("MyMacro/Do Something", "Do Something", function(sub, sel
         is_success, config_data_ = config.read_config("numbers", "aka.MyMacro", config_validate)
         if is_success then config_data = config_data_
         else
-            is_success, config_data_ = config.edit_config_gui("numbers", "aka.MyMacro", config_validate, nil, nil, "𝗠𝘆𝗠𝗮𝗰𝗿𝗼", "𝗖𝗼𝗻𝗳𝗶𝗴", "Preset", "𝗣𝗿𝗲𝘀𝗲𝘁𝘀", config_templates, true)
+            is_success, config_data_ = config.edit_config_gui("numbers", "aka.MyMacro", config_validate, "𝗠𝘆𝗠𝗮𝗰𝗿𝗼", "𝗖𝗼𝗻𝗳𝗶𝗴", "Preset", "𝗣𝗿𝗲𝘀𝗲𝘁𝘀", config_templates, true)
             if is_success then config_data = config_data_
             else aegisub.cancel() end
     end end
@@ -158,7 +157,7 @@ aegisub.register_macro("MyMacro/Edit Numbers", "Edit Numbers for MyMacro", funct
     local is_success
     local config_data_
 
-    is_success, config_data_ = config.edit_config_gui("numbers", "aka.MyMacro", config_validate, nil, nil, "𝗠𝘆𝗠𝗮𝗰𝗿𝗼", "𝗖𝗼𝗻𝗳𝗶𝗴", "Preset", "𝗣𝗿𝗲𝘀𝗲𝘁𝘀", config_templates)
+    is_success, config_data_ = config.edit_config_gui("numbers", "aka.MyMacro", config_validate, "𝗠𝘆𝗠𝗮𝗰𝗿𝗼", "𝗖𝗼𝗻𝗳𝗶𝗴", "Preset", "𝗣𝗿𝗲𝘀𝗲𝘁𝘀", config_templates)
     if is_success then config_data = config_data_
     else aegisub.cancel() end
 end)
