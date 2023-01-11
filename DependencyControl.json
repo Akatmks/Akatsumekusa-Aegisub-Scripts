@@ -45,17 +45,19 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.Cycles.lua",
-                            "sha1": "89e93c65374c614b0477301da9e172851377b6a1"
+                            "sha1": "7854932cc48f3098f00043a19b50c28f68a58ba4"
                         }
                     ],
-                    "version": "0.1.2",
+                    "version": "0.1.3",
                     "default": true,
                     "requireModules": [
                         {
-                            "moduleName": "a-mo.LineCollection"
+                            "moduleName": "a-mo.LineCollection",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json"
                         },
                         {
-                            "moduleName": "l0.ASSFoundation"
+                            "moduleName": "l0.ASSFoundation",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ASSFoundation/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.config"

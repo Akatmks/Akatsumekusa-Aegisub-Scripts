@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.Cycles"
 versioning.description = "Macro aka.Cycles"
-versioning.version = "0.1.2"
+versioning.version = "0.1.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Cycles"
 
-versioning.requireModules = "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.template\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"a-mo.LineCollection\", \"feed\": \"https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json\" }, { \"moduleName\": \"l0.ASSFoundation\", \"feed\": \"https://raw.githubusercontent.com/TypesettingTools/ASSFoundation/master/DependencyControl.json\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.template\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
