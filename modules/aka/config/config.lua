@@ -79,10 +79,10 @@ edit_config_gui = function(...)
     local config_templates
     local is_no_gui_init
     assert(type(arg[1]) == "string") config = arg[1]
-    if type(arg[2]) ~= "string" then table.insert(arg, 2, "") end subfolder = arg[2]
-    if type(arg[3]) ~= "function" then table.insert(arg, 3, function() return true end) end validation_func = arg[3]
-    if type(arg[4]) ~= "function" then table.insert(arg, 3, nil) end validation_func = arg[3]
-    if type(arg[5]) ~= "function" then table.insert(arg, 3, validation_func) end validation_func = arg[3]
+    if type(arg[2]) == nil then arg[2] = "" elseif type(arg[2]) ~= "string" then table.insert(arg, 2, "") end subfolder = arg[2]
+    if type(arg[3]) == nil then arg[3] = function() return true end elseif type(arg[3]) ~= "function" then table.insert(arg, 3, function() return true end) end validation_func = arg[3]
+    if type(arg[4]) ~= "function" or type(arg[4]) ~= "nil" then table.insert(arg, 3, nil) end validation_func = arg[3]
+    if type(arg[5]) == nil then arg[5] = validation_func elseif type(arg[5]) ~= "function" then table.insert(arg, 3, validation_func) end validation_func = arg[3]
     assert(type(arg[6]) == "table")
     assert(type(arg[6]["name_b"]) == "string") word_name_b = arg[6]["name_b"]
     word_config_b = type(arg[6]["config_b"]) == "string" and arg[6]["config_b"] or "𝗖𝗼𝗻𝗳𝗶𝗴"

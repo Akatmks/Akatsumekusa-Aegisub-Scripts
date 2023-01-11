@@ -15,7 +15,7 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "fb720bedcad98718393b25c92ef348ece81e4b6e"
+                            "sha1": "1a790a3e9fb7731d31eb46547142b2f28b38eaa6"
                         },
                         {
                             "name": "/init.lua",
@@ -23,7 +23,7 @@
                             "sha1": "2b32dd1db272464b96f23f23f1f74c5d0eeabc14"
                         }
                     ],
-                    "version": "0.1.17",
+                    "version": "0.1.18",
                     "default": true,
                     "requireModules": [
                         {
@@ -90,7 +90,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/luajit-request/init.lua",
-                            "sha1": "3fa44469d6b92e6a85c630f79b8b880b570f1054"
+                            "sha1": "95626664ee85a10a6a9fa5d481394d92318f8f5e"
                         },
                         {
                             "name": "/libcurl-x64.dll",
