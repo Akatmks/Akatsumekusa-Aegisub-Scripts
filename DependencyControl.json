@@ -9,10 +9,8 @@
     "macros": {},
     "modules": {
         "aka.config": {
-            "url": "@{baseUrl}",
             "channels": {
                 "dev": {
-                    "default": true,
                     "files": [
                         {
                             "name": "/config.lua",
@@ -22,9 +20,11 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "636242ebcca4942ab92bd09203cdbb516c891cc5"
+                            "sha1": "2b32dd1db272464b96f23f23f1f74c5d0eeabc14"
                         }
                     ],
+                    "version": "0.1.17",
+                    "default": true,
                     "requireModules": [
                         {
                             "moduleName": "aka.config2"
@@ -34,19 +34,17 @@
                             "optional": true
                         }
                     ],
-                    "version": "0.1.15",
-                    "released": "2023-01-10"
+                    "released": "2023-01-11"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.config",
-            "description": "Module aka.config"
+            "description": "Module aka.config",
+            "url": "@{baseUrl}"
         },
         "aka.config2": {
-            "url": "@{baseUrl}",
             "channels": {
                 "dev": {
-                    "default": true,
                     "files": [
                         {
                             "name": "/config2.lua",
@@ -56,7 +54,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config2/init.lua",
-                            "sha1": "0735c4842db0ce066a80234ff934e9597d9b528e"
+                            "sha1": "beda2eeb600c896e0ad269fdc5cc701a1d6ffe53"
                         },
                         {
                             "name": "/json.lua",
@@ -64,6 +62,8 @@
                             "sha1": "ee8c50e05d7f7012a0fc1c373987e55a385142c0"
                         }
                     ],
+                    "version": "0.1.15",
+                    "default": true,
                     "requireModules": [
                         {
                             "moduleName": "aegisub.re"
@@ -75,24 +75,61 @@
                             "moduleName": "lfs"
                         }
                     ],
-                    "version": "0.1.13",
-                    "released": "2023-01-10"
+                    "released": "2023-01-11"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.config2",
-            "description": "Module aka.config2"
+            "description": "Module aka.config2",
+            "url": "@{baseUrl}"
         },
-        "aka.template": {
-            "url": "@{baseUrl}",
+        "aka.luajit-request": {
             "channels": {
                 "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/luajit-request/init.lua",
+                            "sha1": "3fa44469d6b92e6a85c630f79b8b880b570f1054"
+                        },
+                        {
+                            "name": "/libcurl-x64.dll",
+                            "url": "@{fileBaseUrl}/modules/aka/luajit-request/libcurl-x64.dll",
+                            "sha1": "f1efdab4a346d4aec11e6c2e51b535e37a48fca0"
+                        },
+                        {
+                            "name": "/luajit-curl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/luajit-request/luajit-curl.lua",
+                            "sha1": "05ab9acdf8d40819325a16d25195f95339f134c8"
+                        }
+                    ],
+                    "version": "1.0.2",
                     "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ffi"
+                        },
+                        {
+                            "moduleName": "requireffi.requireffi",
+                            "version": "0.1.2"
+                        }
+                    ],
+                    "released": "2023-01-11"
+                }
+            },
+            "author": "Lucien Greathouse, slightly altered by Akatsumekusa",
+            "name": "aka.luajit-request",
+            "description": "Module luajit-request",
+            "url": "@{baseUrl}"
+        },
+        "aka.template": {
+            "channels": {
+                "dev": {
                     "files": [
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/template/init.lua",
-                            "sha1": "26d2a9783ef80f140545a41a93808d7deef3c8fb"
+                            "sha1": "c9c2a4889442abc03bec0e8bb9caf1c5d6051627"
                         },
                         {
                             "name": "/template.lua",
@@ -100,18 +137,20 @@
                             "sha1": "7f880c2ffe13276736753ef5f4eda67eb438827f"
                         }
                     ],
+                    "version": "0.1.11",
+                    "default": true,
                     "requireModules": [
                         {
                             "moduleName": "aka.config2"
                         }
                     ],
-                    "version": "0.1.9",
-                    "released": "2022-12-26"
+                    "released": "2023-01-11"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.template",
-            "description": "Module aka.template"
+            "description": "Module aka.template",
+            "url": "@{baseUrl}"
         }
     }
 }

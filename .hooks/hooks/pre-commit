@@ -95,8 +95,8 @@ from semantic_version import Version
 import sys
 
 repo = Repo(".")
-branch = "dev"
-
+branch = "dev" # Generator is only active in the set branch
+default = True
 DependencyControl = {
     "dependencyControlFeedFormatVersion": "0.3.0",
 
@@ -108,63 +108,26 @@ DependencyControl = {
     "fileBaseUrl": "raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}",
 
     "macros": {},
-    "modules": {
-        "aka.config": {
-            "url": "@{baseUrl}",
-            # author
-            # name
-            # description
-            "channels": {
-                branch: {
-                    # version
-                    # released
-                    "default": True,
-                    "files": [], # name url sha1
-                    "requireModules": [
-                        { "moduleName": "aka.config2" },
-                        { "moduleName": "aka.template", "optional": True }
-                    ]
-                }
-            }
-        },
-        "aka.config2": {
-            "url": "@{baseUrl}",
-            # author
-            # name
-            # description
-            "channels": {
-                branch: {
-                    # version
-                    # released
-                    "default": True,
-                    "files": [], # name url sha1
-                    "requireModules": [
-                        { "moduleName": "aegisub.re" },
-                        { "moduleName": "aegisub.unicode" },
-                        { "moduleName": "lfs" }
-                    ]
-                }
-            }
-        },
-        "aka.template": {
-            "url": "@{baseUrl}",
-            # author
-            # name
-            # description
-            "channels": {
-                branch: {
-                    # version
-                    # released
-                    "default": True,
-                    "files": [], # name url sha1
-                    "requireModules": [
-                        { "moduleName": "aka.config2" }
-                    ]
-                }
-            }
-        }
-    }
+    "modules": {}
+        # namespace: {
+        #     author
+        #     name
+        #     description
+        #     url
+        #     "channels": {
+        #         branch: {
+        #             version
+        #             released
+        #             default
+        #             "files": [], # name url sha1
+        #             "requireModules": [] # moduleName
+        #         }
+        #     }
+        # }
 }
+excluded_files = [
+    "modules/aka/luajit-request/LICENSE.md"
+]
 
 previousDependencyControl = None
 
@@ -184,11 +147,15 @@ def search(p):
     with p.open("r", encoding="utf-8") as f:
         s = f.read()
         
-    for key in ["name", "description", "version", "author", "namespace"]:
+    for key in ["name", "description", "version", "author", "namespace", "requireModules"]:
         match = re.search(getSearchPattern[p.suffix](key), s)
-        if not match:
-            return None
-        d[key] = match.group(2)
+        if match:
+            d[key] = re.sub("\\\\([\"\'])", "\\1", match.group(2))
+        else:
+            if key == "requireModules":
+                d[key] = None
+            else:
+                return None
 
     return d
 
@@ -217,13 +184,16 @@ def writeVersion(p, version):
 def getNameForFilesFile(p):
     parts = p.parts
     if len(p.parts) == 2 or len(p.parts) == 3:
-        return p.suffix
+        return "." + p.suffix
     elif len(p.parts) > 3:
         return PurePosixPath("/", *p.parts[3:]).as_posix()
     else:
         raise ValueError(str(p))
 
 if __name__ == "__main__":
+    if not repo.active_branch.name == branch:
+        sys.exit()
+
     p = Path("DependencyControl.json")
     if not p.exists():
         sys.exit()
@@ -238,77 +208,63 @@ if __name__ == "__main__":
         p = Path(entry[0])
 
         if p.is_relative_to("macros"):
-            namespace = getNamespace(p)
-            d = search(p)
+            mtype = "macros"
+        elif p.is_relative_to("modules"):
+            mtype = "modules"
+        else:
+            continue
+        if p.as_posix() in excluded_files:
+            continue
+        
+        # Create the file in the list
+        namespace = getNamespace(p)
 
-            if d:
-                if namespace != d["namespace"]:
-                    raise ValueError(str(p))
-                if namespace not in DependencyControl["macros"]:
-                    raise ValueError(str(p))
-                
-                DependencyControl["macros"][namespace]["author"] = d["author"]
-                DependencyControl["macros"][namespace]["name"] = d["name"]
-                DependencyControl["macros"][namespace]["description"] = d["description"]
+        if namespace not in DependencyControl[mtype]:
+            DependencyControl[mtype][namespace] = {}
+        if "channels" not in DependencyControl[mtype][namespace]:
+            DependencyControl[mtype][namespace]["channels"] = {}
+        if branch not in DependencyControl[mtype][namespace]["channels"]:
+            DependencyControl[mtype][namespace]["channels"][branch] = {}
+        if "files" not in DependencyControl[mtype][namespace]["channels"][branch]:
+            DependencyControl[mtype][namespace]["channels"][branch]["files"] = []
+        DependencyControl[mtype][namespace]["channels"][branch]["files"].append({
+            "name": getNameForFilesFile(p),
+            "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
+            "sha1": sha1sum(p)
+        })
 
-                if previousDependencyControl and namespace in previousDependencyControl["macros"]:
-                    previousVersion = Version(previousDependencyControl["macros"][namespace]["channels"][branch]["version"])
-                    currentVersion = Version(d["version"])
-                    if previousVersion == currentVersion:
-                        DependencyControl["macros"][namespace]["channels"][branch]["version"] = d["version"]
-                        DependencyControl["macros"][namespace]["channels"][branch]["released"] = previousDependencyControl["macros"][namespace]["channels"][branch]["released"]
-                    elif previousVersion < currentVersion:
-                        DependencyControl["macros"][namespace]["channels"][branch]["version"] = d["version"]
-                        DependencyControl["macros"][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
-                    else:
-                        raise ValueError(str(p))
-                else:
-                    DependencyControl["macros"][namespace]["channels"][branch]["version"] = d["version"]
-                    DependencyControl["macros"][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
+        # Check if the file is the registering file
+        d = search(p)
 
-                DependencyControl["macros"][namespace]["channels"][branch]["files"].append({
-                    "name": "." + p.suffix,
-                    "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
-                    "sha1": sha1sum(p)
-                })
-            else:
+        if d:
+            if namespace != d["namespace"]:
                 raise ValueError(str(p))
-        if p.is_relative_to("modules"):
-            namespace = getNamespace(p)
-            d = search(p)
-
-            if d:
-                if namespace != d["namespace"]:
-                    raise ValueError(str(p))
-                if namespace not in DependencyControl["modules"]:
-                    raise ValueError(str(p))
-
-                DependencyControl["modules"][namespace]["author"] = d["author"]
-                DependencyControl["modules"][namespace]["name"] = d["name"]
-                DependencyControl["modules"][namespace]["description"] = d["description"]
-
-                if previousDependencyControl and namespace in previousDependencyControl["modules"]:
-                    previousVersion = Version(previousDependencyControl["modules"][namespace]["channels"][branch]["version"])
-                    currentVersion = Version(d["version"])
-                    if previousVersion == currentVersion:
-                        DependencyControl["modules"][namespace]["channels"][branch]["version"] = d["version"]
-                        DependencyControl["modules"][namespace]["channels"][branch]["released"] = previousDependencyControl["modules"][namespace]["channels"][branch]["released"]
-                    elif previousVersion < currentVersion:
-                        DependencyControl["modules"][namespace]["channels"][branch]["version"] = d["version"]
-                        DependencyControl["modules"][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
-                    else:
-                        raise ValueError(str(p))
-                else:
-                    DependencyControl["modules"][namespace]["channels"][branch]["version"] = d["version"]
-                    DependencyControl["modules"][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
-                
-                moduleRegisterPathList[namespace] = p
             
-            DependencyControl["modules"][namespace]["channels"][branch]["files"].append({
-                "name": getNameForFilesFile(p),
-                "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
-                "sha1": sha1sum(p)
-            })
+            DependencyControl[mtype][namespace]["author"] = d["author"]
+            DependencyControl[mtype][namespace]["name"] = d["name"]
+            DependencyControl[mtype][namespace]["description"] = d["description"]
+            DependencyControl[mtype][namespace]["url"] = "@{baseUrl}"
+
+            DependencyControl[mtype][namespace]["channels"][branch]["version"] = d["version"]
+            DependencyControl[mtype][namespace]["channels"][branch]["default"] = default
+            if d["requireModules"]:
+                DependencyControl[mtype][namespace]["channels"][branch]["requireModules"] = eval(d["requireModules"])
+            if previousDependencyControl and \
+               namespace in previousDependencyControl[mtype] and \
+               "channels" in previousDependencyControl[mtype][namespace] and \
+               branch in DependencyControl[mtype][namespace]["channels"]:
+                previousVersion = Version(previousDependencyControl[mtype][namespace]["channels"][branch]["version"])
+                currentVersion = Version(d["version"])
+                if previousVersion == currentVersion:
+                    DependencyControl[mtype][namespace]["channels"][branch]["released"] = previousDependencyControl[mtype][namespace]["channels"][branch]["released"]
+                elif previousVersion < currentVersion:
+                    DependencyControl[mtype][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
+                else:
+                    raise ValueError(str(p))
+            else:
+                DependencyControl[mtype][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
+
+            moduleRegisterPathList[namespace] = p
 
     added = []
     removed = []
@@ -366,7 +322,7 @@ if __name__ == "__main__":
                 currentVersion = Version(DependencyControl["modules"][namespace]["channels"][branch]["version"])
                 currentVersion.patch += 1
                 writeVersion(moduleRegisterPathList[namespace], currentVersion)
-                for file in DependencyControl["macros"][namespace]["channels"][branch]["files"]:
+                for file in DependencyControl["modules"][namespace]["channels"][branch]["files"]:
                     if file["name"] == getNameForFilesFile(p):
                         file["sha1"] = sha1sum(p)
 
