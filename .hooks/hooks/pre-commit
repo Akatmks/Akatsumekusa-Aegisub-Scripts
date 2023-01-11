@@ -184,7 +184,7 @@ def writeVersion(p, version):
 def getNameForFilesFile(p):
     parts = p.parts
     if len(p.parts) == 2 or len(p.parts) == 3:
-        return "." + p.suffix
+        return p.suffix
     elif len(p.parts) > 3:
         return PurePosixPath("/", *p.parts[3:]).as_posix()
     else:
@@ -306,8 +306,8 @@ if __name__ == "__main__":
                 currentVersion.patch += 1
                 writeVersion(moduleRegisterPathList[namespace], currentVersion)
                 for file in DependencyControl["modules"][namespace]["channels"][branch]["files"]:
-                    if file["name"] == getNameForFilesFile(p):
-                        file["sha1"] = sha1sum(p)
+                    if file["name"] == getNameForFilesFile(moduleRegisterPathList[namespace]):
+                        file["sha1"] = sha1sum(moduleRegisterPathList[namespace])
 
                 DependencyControl["modules"][namespace]["channels"][branch]["version"] = str(currentVersion)
                 DependencyControl["modules"][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
@@ -323,8 +323,8 @@ if __name__ == "__main__":
                 currentVersion.patch += 1
                 writeVersion(moduleRegisterPathList[namespace], currentVersion)
                 for file in DependencyControl["modules"][namespace]["channels"][branch]["files"]:
-                    if file["name"] == getNameForFilesFile(p):
-                        file["sha1"] = sha1sum(p)
+                    if file["name"] == getNameForFilesFile(moduleRegisterPathList[namespace]):
+                        file["sha1"] = sha1sum(moduleRegisterPathList[namespace])
 
                 DependencyControl["modules"][namespace]["channels"][branch]["version"] = str(currentVersion)
                 DependencyControl["modules"][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()

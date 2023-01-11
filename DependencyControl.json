@@ -6,7 +6,73 @@
     "baseUrl": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     "url": "@{baseUrl}",
     "fileBaseUrl": "raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}",
-    "macros": {},
+    "macros": {
+        "NN.fanhua": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}/macros/NN.fanhua.lua",
+                            "sha1": "b5fa4bc25b3eebecba3ffb3a060742d63d00c4d5"
+                        }
+                    ],
+                    "version": "0.1.2",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.luajit-request"
+                        },
+                        {
+                            "moduleName": "aka.config"
+                        },
+                        {
+                            "moduleName": "aka.template"
+                        }
+                    ],
+                    "released": "2023-01-11"
+                }
+            },
+            "author": "Akatsumekusa",
+            "name": "NN.fanhua",
+            "description": "Macro NN.fanhua",
+            "url": "@{baseUrl}"
+        },
+        "aka.Cycles": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}/macros/aka.Cycles.lua",
+                            "sha1": "89e93c65374c614b0477301da9e172851377b6a1"
+                        }
+                    ],
+                    "version": "0.1.2",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "a-mo.LineCollection"
+                        },
+                        {
+                            "moduleName": "l0.ASSFoundation"
+                        },
+                        {
+                            "moduleName": "aka.config"
+                        },
+                        {
+                            "moduleName": "aka.template"
+                        }
+                    ],
+                    "released": "2023-01-11"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.Cycles",
+            "description": "Macro aka.Cycles",
+            "url": "@{baseUrl}"
+        }
+    },
     "modules": {
         "aka.config": {
             "channels": {
@@ -20,7 +86,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "2b32dd1db272464b96f23f23f1f74c5d0eeabc14"
+                            "sha1": "ffd17afde34ddcbe42711380cbb15f7b190d4551"
                         }
                     ],
                     "version": "0.1.18",

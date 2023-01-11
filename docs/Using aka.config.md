@@ -139,7 +139,7 @@ config_templates = { ["MyMacro Default"] = [[[
 ]
 ]],                  "MyMacro Default" }
 
-aegisub.register_macro("MyMacro/Do Something", "Do Something", function(sub, sel)
+aegisub.register_macro("MyMacro/Do Something", "Do Something", function(sub, sel, act)
     local is_success
     local config_data_
 
@@ -151,7 +151,7 @@ aegisub.register_macro("MyMacro/Do Something", "Do Something", function(sub, sel
             if is_success then config_data = config_data_
             else aegisub.cancel() end
     end end
-    do_something(sub, sel)
+    do_something(sub, sel, act)
 end)
 aegisub.register_macro("MyMacro/Edit Numbers", "Edit Numbers for MyMacro", function()
     local is_success
