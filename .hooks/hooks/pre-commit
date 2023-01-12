@@ -25,6 +25,15 @@
 # ---------------------------------------------------------------------
 
 # ---------------------------------------------------------------------
+# The info down there is outdated! This DependencyControl generator
+# is now fully automated. There are still a few bugs to catch and a few
+# more features to be added.
+#
+# If you want to use this DependencyControl generator for your own
+# repository, please ping Akatsumekusa and let them help you set up.
+# ---------------------------------------------------------------------
+
+# ---------------------------------------------------------------------
 # Hi, wanderer! If you wants to use this DependencyControl generator
 # for your own repository, please ping Akatsumekusa and let them help
 # you set up. However, if that's not possible for whatever reason, here
@@ -95,8 +104,8 @@ from semantic_version import Version
 import sys
 
 repo = Repo(".")
-branch = "dev" # Generator is only active in the set branch
-default = True
+dev_branch = "dev"
+dev_default = True
 DependencyControl = {
     "dependencyControlFeedFormatVersion": "0.3.0",
 
@@ -128,6 +137,9 @@ DependencyControl = {
 excluded_files = [
     "modules/aka/luajit-request/LICENSE.md"
 ]
+platform_dependent_files = {
+    "modules/aka/luajit-request/libcurl-x64.dll": ["Windows-x64", "Windows-arm"]
+}
 
 previousDependencyControl = None
 
@@ -191,7 +203,7 @@ def getNameForFilesFile(p):
         raise ValueError(str(p))
 
 if __name__ == "__main__":
-    if not repo.active_branch.name == branch:
+    if not repo.active_branch.name == dev_branch:
         sys.exit()
 
     p = Path("DependencyControl.json")
@@ -223,15 +235,24 @@ if __name__ == "__main__":
             DependencyControl[mtype][namespace] = {}
         if "channels" not in DependencyControl[mtype][namespace]:
             DependencyControl[mtype][namespace]["channels"] = {}
-        if branch not in DependencyControl[mtype][namespace]["channels"]:
-            DependencyControl[mtype][namespace]["channels"][branch] = {}
-        if "files" not in DependencyControl[mtype][namespace]["channels"][branch]:
-            DependencyControl[mtype][namespace]["channels"][branch]["files"] = []
-        DependencyControl[mtype][namespace]["channels"][branch]["files"].append({
-            "name": getNameForFilesFile(p),
-            "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
-            "sha1": sha1sum(p)
-        })
+        if dev_branch not in DependencyControl[mtype][namespace]["channels"]:
+            DependencyControl[mtype][namespace]["channels"][dev_branch] = {}
+        if "files" not in DependencyControl[mtype][namespace]["channels"][dev_branch]:
+            DependencyControl[mtype][namespace]["channels"][dev_branch]["files"] = []
+        if p.as_posix() in platform_dependent_files:
+            for platform in platform_dependent_files[p.as_posix()]:
+                DependencyControl[mtype][namespace]["channels"][dev_branch]["files"].append({
+                    "name": getNameForFilesFile(p),
+                    "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
+                    "sha1": sha1sum(p),
+                    "platform": platform
+                })
+        else:
+            DependencyControl[mtype][namespace]["channels"][dev_branch]["files"].append({
+                "name": getNameForFilesFile(p),
+                "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
+                "sha1": sha1sum(p)
+            })
 
         # Check if the file is the registering file
         d = search(p)
@@ -245,24 +266,24 @@ if __name__ == "__main__":
             DependencyControl[mtype][namespace]["description"] = d["description"]
             DependencyControl[mtype][namespace]["url"] = "@{baseUrl}"
 
-            DependencyControl[mtype][namespace]["channels"][branch]["version"] = d["version"]
-            DependencyControl[mtype][namespace]["channels"][branch]["default"] = default
+            DependencyControl[mtype][namespace]["channels"][dev_branch]["version"] = d["version"]
+            DependencyControl[mtype][namespace]["channels"][dev_branch]["default"] = dev_default
             if d["requireModules"]:
-                DependencyControl[mtype][namespace]["channels"][branch]["requireModules"] = eval(d["requireModules"])
+                DependencyControl[mtype][namespace]["channels"][dev_branch]["requireModules"] = eval(d["requireModules"])
             if previousDependencyControl and \
                namespace in previousDependencyControl[mtype] and \
                "channels" in previousDependencyControl[mtype][namespace] and \
-               branch in DependencyControl[mtype][namespace]["channels"]:
-                previousVersion = Version(previousDependencyControl[mtype][namespace]["channels"][branch]["version"])
+               dev_branch in DependencyControl[mtype][namespace]["channels"]:
+                previousVersion = Version(previousDependencyControl[mtype][namespace]["channels"][dev_branch]["version"])
                 currentVersion = Version(d["version"])
                 if previousVersion == currentVersion:
-                    DependencyControl[mtype][namespace]["channels"][branch]["released"] = previousDependencyControl[mtype][namespace]["channels"][branch]["released"]
+                    DependencyControl[mtype][namespace]["channels"][dev_branch]["released"] = previousDependencyControl[mtype][namespace]["channels"][dev_branch]["released"]
                 elif previousVersion < currentVersion:
-                    DependencyControl[mtype][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
+                    DependencyControl[mtype][namespace]["channels"][dev_branch]["released"] = datetime.now(timezone.utc).date().isoformat()
                 else:
                     raise ValueError(str(p))
             else:
-                DependencyControl[mtype][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
+                DependencyControl[mtype][namespace]["channels"][dev_branch]["released"] = datetime.now(timezone.utc).date().isoformat()
 
             moduleRegisterPathList[namespace] = p
 
@@ -290,27 +311,27 @@ if __name__ == "__main__":
     for p in added + changed:
         if p.is_relative_to("macros"):
             namespace = getNamespace(p)
-            currentVersion = Version(DependencyControl["macros"][namespace]["channels"][branch]["version"])
+            currentVersion = Version(DependencyControl["macros"][namespace]["channels"][dev_branch]["version"])
             currentVersion.patch += 1
             writeVersion(p, currentVersion)
-            DependencyControl["macros"][namespace]["channels"][branch]["files"][0]["sha1"] = sha1sum(p)
+            DependencyControl["macros"][namespace]["channels"][dev_branch]["files"][0]["sha1"] = sha1sum(p)
 
-            DependencyControl["macros"][namespace]["channels"][branch]["version"] = str(currentVersion)
-            DependencyControl["macros"][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
+            DependencyControl["macros"][namespace]["channels"][dev_branch]["version"] = str(currentVersion)
+            DependencyControl["macros"][namespace]["channels"][dev_branch]["released"] = datetime.now(timezone.utc).date().isoformat()
         if p.is_relative_to("modules"):
             namespace = getNamespace(p)
             if namespace not in changedModules:
                 changedModules[namespace] = True
 
-                currentVersion = Version(DependencyControl["modules"][namespace]["channels"][branch]["version"])
+                currentVersion = Version(DependencyControl["modules"][namespace]["channels"][dev_branch]["version"])
                 currentVersion.patch += 1
                 writeVersion(moduleRegisterPathList[namespace], currentVersion)
-                for file in DependencyControl["modules"][namespace]["channels"][branch]["files"]:
+                for file in DependencyControl["modules"][namespace]["channels"][dev_branch]["files"]:
                     if file["name"] == getNameForFilesFile(moduleRegisterPathList[namespace]):
                         file["sha1"] = sha1sum(moduleRegisterPathList[namespace])
 
-                DependencyControl["modules"][namespace]["channels"][branch]["version"] = str(currentVersion)
-                DependencyControl["modules"][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
+                DependencyControl["modules"][namespace]["channels"][dev_branch]["version"] = str(currentVersion)
+                DependencyControl["modules"][namespace]["channels"][dev_branch]["released"] = datetime.now(timezone.utc).date().isoformat()
     for p in removed:
         if p.is_relative_to("macros"):
             pass
@@ -319,15 +340,15 @@ if __name__ == "__main__":
             if namespace in moduleRegisterPathList and namespace not in changedModules:
                 changedModules[namespace] = True
 
-                currentVersion = Version(DependencyControl["modules"][namespace]["channels"][branch]["version"])
+                currentVersion = Version(DependencyControl["modules"][namespace]["channels"][dev_branch]["version"])
                 currentVersion.patch += 1
                 writeVersion(moduleRegisterPathList[namespace], currentVersion)
-                for file in DependencyControl["modules"][namespace]["channels"][branch]["files"]:
+                for file in DependencyControl["modules"][namespace]["channels"][dev_branch]["files"]:
                     if file["name"] == getNameForFilesFile(moduleRegisterPathList[namespace]):
                         file["sha1"] = sha1sum(moduleRegisterPathList[namespace])
 
-                DependencyControl["modules"][namespace]["channels"][branch]["version"] = str(currentVersion)
-                DependencyControl["modules"][namespace]["channels"][branch]["released"] = datetime.now(timezone.utc).date().isoformat()
+                DependencyControl["modules"][namespace]["channels"][dev_branch]["version"] = str(currentVersion)
+                DependencyControl["modules"][namespace]["channels"][dev_branch]["released"] = datetime.now(timezone.utc).date().isoformat()
 
     p = Path("DependencyControl.json")
     with p.open("w", encoding="utf-8") as f:

@@ -67,6 +67,8 @@ local config_no_gui
 -- @returns bool is_success: True if the config was sucessfully created or validated
 -- @returns table config_data: The table read from the config
 edit_config_gui = function(...)
+    local arg = table.pack(...)
+    
     local config
     local subfolder
     local validation_func

@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.Cycles"
 versioning.description = "Macro aka.Cycles"
-versioning.version = "0.1.3"
+versioning.version = "0.1.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Cycles"
 
-versioning.requireModules = "[{ \"moduleName\": \"a-mo.LineCollection\", \"feed\": \"https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json\" }, { \"moduleName\": \"l0.ASSFoundation\", \"feed\": \"https://raw.githubusercontent.com/TypesettingTools/ASSFoundation/master/DependencyControl.json\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.template\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"l0.ASSFoundation\", \"feed\": \"https://raw.githubusercontent.com/TypesettingTools/ASSFoundation/master/DependencyControl.json\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.template\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -48,13 +48,20 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "a-mo.LineCollection" },
             { "l0.ASSFoundation" },
+            { "aka.actor" },
             { "aka.config" },
             { "aka.template" }
         }
     }):requireModules()
 end
-local LineCollection = require("a-mo.LineCollection")
 local ASS = require("l0.ASSFoundation")
-local config = require("aka.config")
+local aactor = require("aka.actor")
+local aconfig = require("aka.config")
+
+local Cycles = function(sub, sel, act, tag)
+    local line
+
+    line = sub[act]
+    if aactor.flag(line, "switch") then end
+end

@@ -1,3 +1,8 @@
+# DependencyControl
+.hooks/hooks/pre-commit linguist-language=Python
+.hooks/hooks/post-merge linguist-language=Shell
+DependencyControl.json linguist-generated
+
 # aae-export
 scripts/aae-export-mac/aae-export.py linguist-generated
 scripts/aae-export-mac/aae-export-install-dependencies.base122 linguist-generated
@@ -10,3 +15,7 @@ scripts/aae-export-linux-x86_64/libbase122.base64 linguist-generated
 tools/aae-export-base122/base122.c linguist-vendored
 tools/aae-export-base122/base122.h linguist-vendored
 tools/aae-export-base122/util.h linguist-vendored
+
+# aka.luajit-request
+modules/aka/luajit-request/init.lua linguist-vendored
+modules/aka/luajit-request/luajit-curl.lua linguist-vendored

@@ -82,6 +82,8 @@ config_dir = aegisub.decode_path(hasDepCtrl and DepCtrl.config.c.configDir or "?
 -- @returns boolean is_success: True if the config was successfully read
 -- @returns table config_data: The table read from the config
 read_config = function(...)
+    local arg = table.pack(...)
+    
     local config
     local subfolder
     local validation_func
@@ -120,6 +122,8 @@ end
 -- 
 -- @returns bool is_success: True if the config was successfully saved
 write_config = function(...)
+    local arg = table.pack(...)
+
     local config
     local subfolder
     local config_data

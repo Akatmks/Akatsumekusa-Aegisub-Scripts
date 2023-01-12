@@ -1,4 +1,4 @@
--- aka.config
+-- aka.BackupProto.lua
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -21,31 +21,25 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-------------------------------------------------------------------------------
--- Although this module is called aka.config, you can serialise anything you
--- want using this module, not only configs.
--- This module, compared to other serialisation modules like DepCtrl's
--- ConfigHandler, generates beautified JSON. Additionally, it also provides a
--- basic GUI so that the user may edit the JSON in Aegisub. The JSON editor
--- supports templates or presets.
---
--- If you for whatever reason are interested in using this module, tutorials
--- are available at „docs/Using aka.config.md“.
-------------------------------------------------------------------------------
-
 local versioning = {}
 
-versioning.name = "aka.config"
-versioning.description = "Module aka.config"
-versioning.version = "0.1.19"
+versioning.name = "BackupProto"
+versioning.description = "Macro BackupProto"
+versioning.version = "0.1.1"
 versioning.author = "Akatsumekusa and contributors"
-versioning.namespace = "aka.config"
+versioning.namespace = "aka.BackupProto"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aka.template\", \"optional\": True }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.actor\" }]"
+
+script_name = versioning.name
+script_description = versioning.description
+script_version = versioning.version
+script_author = versioning.author
+script_namespace = versioning.namespace
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
-    DepCtrl({
+    DepCtrl = DepCtrl({
         name = versioning.name,
         description = versioning.description,
         version = versioning.version,
@@ -54,29 +48,57 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "aka.config2" },
-            { "aka.template", optional = true }
+            { "aka.actor" }
         }
-    }):requireModules()
+    })
+    DepCtrl:requireModules()
+end
+local aactor = require("aka.actor")
+
+local Backup
+local backup
+local select
+
+Backup = function(sub, sel, act)
+    local i
+    local j
+
+    j = #sel repeat
+        i = 1 repeat
+            if j - i == sel[j] - sel[i] then
+                sel, act = backup(sub, sel, act, sel[i], sel[j])
+                j = i - 1
+                break
+            else i = i + 1 end
+        until false
+    until j == 0
+    
+    return sel, act
+end
+backup = function(sub, sel, act, i, j)
+    local k
+    local line
+
+    for _ = i, j do
+        line = sub[j]
+        aactor.onemoreFlag(line, "backup")
+        line.comment = true
+        sub[-i] = line
+    end
+
+    for k in ipairs(sel) do sel[k] = select(sel[k], i, j) end
+    act = select(act, i, j)
+    return sel, act
+end
+select = function(selected, i, j)
+    if selected < i then return selected
+    else return selected + j - i + 1 end
 end
 
-local config = require("aka.config.config")
-
-local functions = {}
-
-functions.versioning = versioning
-
-functions.read_config = config.read_config
-functions.write_config = config.write_config
-functions.edit_config_gui = config.edit_config_gui
-
-functions.json = config.json
-functions.config_dir = config.config_dir
-functions.validate = config.validate
-functions.config_gui2 = config.config_gui2
-functions.config_gui3 = config.config_gui3
-functions.config_gui = config.config_gui
-functions.get_template_key = config.get_template_key
-functions.select_template_key = config.select_template_key
-
-return functions
+if hasDepCtrl then
+    DepCtrl:registerMacros({
+        { "Backup", "Backup selected lines", Backup }
+    })
+else
+    aegisub.register_macro("BackupProto/Backup", "Backup selected lines", Backup)
+end

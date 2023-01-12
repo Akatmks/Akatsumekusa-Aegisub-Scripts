@@ -1065,7 +1065,7 @@ local function grok_string(self, text, start, options)
                   next_character = text:match('^(.[\128-\191])', i)
                elseif byte_count == 3 then
                   next_character = text:match('^(.[\128-\191][\128-\191])', i)
-               elseif byte_count == 3 then
+               elseif byte_count == 4 then
                   next_character = text:match('^(.[\128-\191][\128-\191][\128-\191])', i)
                end
 

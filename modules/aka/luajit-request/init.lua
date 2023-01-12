@@ -28,7 +28,7 @@ local versioning = {}
 
 versioning.name = "aka.luajit-request"
 versioning.description = "Module luajit-request"
-versioning.version = "1.0.2"
+versioning.version = "1.0.3"
 versioning.author = "Lucien Greathouse, slightly altered by Akatsumekusa"
 versioning.namespace = "aka.luajit-request"
 
@@ -46,7 +46,7 @@ if hasDepCtrl then
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
             { "ffi" },
-            { "requireffi.requireffi", version: "0.1.2" }
+            { "requireffi.requireffi", version = "0.1.2" }
         }
     }):requireModules()
 end
