@@ -24,12 +24,12 @@
 local versioning = {}
 
 versioning.name = "BackupProto"
-versioning.description = "Macro BackupProto"
-versioning.version = "0.1.1"
+versioning.description = "Backup selected lines"
+versioning.version = "0.1.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.BackupProto"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.actor\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aegisub.re\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -48,16 +48,20 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "aka.actor" }
+            { "aka.actor" },
+            { "aegisub.re" }
         }
     })
     DepCtrl:requireModules()
 end
 local aactor = require("aka.actor")
+local re = require("aegisub.re")
 
 local Backup
 local backup
 local select
+
+local Field
 
 Backup = function(sub, sel, act)
     local i
@@ -81,7 +85,14 @@ backup = function(sub, sel, act, i, j)
 
     for _ = i, j do
         line = sub[j]
-        aactor.onemoreFlag(line, "backup")
+
+        if aactor.flag(line, "backup") then
+            aactor.clearFlag(line, "backup")
+            line.comment = false
+            sub[j] = line
+        end
+
+        aactor.setFlag(line, "backup")
         line.comment = true
         sub[-i] = line
     end
@@ -95,10 +106,38 @@ select = function(selected, i, j)
     else return selected + j - i + 1 end
 end
 
+Field = function()
+    local dialog
+    local buttons
+    local button_ids
+    local button
+    local result_table
+
+    dialog = { { class = "label",                           x = 0, y = 0, width = 24,
+                                                            label = "Select the field " .. versioning.name .. " is going to put backup flag in" },
+               { class = "label",                           x = 2, y = 1, width = 5,
+                                                            label = "Field: " },
+               { class = "dropdown", name = "field",        x = 7, y = 1, width = 6,
+                                                            items = { "Actor", "Effect", "Style" }, value = re.sub(aactor.field:field(), "^\\w", string.upper) },
+               { class = "label",                           x = 0, y = 2, width = 24,
+                                                            label = "Note that this setting will apply to all Akatsumekusa's scripts" } }
+    buttons = { "&Apply", "Figurative" }
+    button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Figurative", no = "Figurative", cancel = "Figurative" }
+
+    button, result_table = aegisub.dialog.display(dialog, buttons, button_ids)
+
+    if button == false or button == "Figurative" then aegisub.cancel()
+    elseif button == "&Apply" then
+        aactor.field:setField(string.lower(result_table["field"]))
+    end
+end
+
 if hasDepCtrl then
     DepCtrl:registerMacros({
-        { "Backup", "Backup selected lines", Backup }
+        { "Backup", "Backup selected lines", Backup },
+        { "Edit settings", "Edit backup settings", Field }
     })
 else
     aegisub.register_macro("BackupProto/Backup", "Backup selected lines", Backup)
+    aegisub.register_macro("BackupProto/Edit settings", "Edit backup settings", Field)
 end

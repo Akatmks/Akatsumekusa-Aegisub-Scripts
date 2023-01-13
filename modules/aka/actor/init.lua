@@ -21,11 +21,13 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
+-- Explainaries are at the bottom
+
 local versioning = {}
 
 versioning.name = "aka.actor"
 versioning.description = "Module aka.actor"
-versioning.version = "0.1.1"
+versioning.version = "0.1.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.actor"
 
@@ -62,26 +64,35 @@ local toggleFlag
 local onemoreFlag
 local onelessFlag
 
---                (?<=[^\\]\s|^\s|^)([^\s\\]*(?:\\.[^\s\\]*)*)(\s+)
+--                (?<=[^\\]\s|^\s|^)([^\s\\]*(?:\\.[^\s\\]*)*)(\s+|$)
 -- Since this is a gmatch from start to end with every match followed by another, the lookbehind part could be omitted
---                ([^\s\\]*(?:\\.[^\s\\]*)*)(\s+)
-exp = re.compile("([^\\s\\\\]*(?:\\\\.[^\\s\\\\]*)*)(\\s+)")
+--                ([^\s\\]*(?:\\.[^\s\\]*)*)(\s+|$)
+exp = re.compile("([^\\s\\\\]*(?:\\\\.[^\\s\\\\]*)*)(\\s+|$)")
 
 flags = function(line, flag)
-    local _flag
     local flags
     local matches
+    local text
+    local _flag
 
     flags = {}
     matches = {}
 
-    for match in exp:gmatch(line[field:field()]) do
-        _flag = {}
-        _flag["body"] = match[2]["str"]
-        _flag["tail"] = match[3]["str"]
-        table.insert(flags, _flag)
+    text = line[field:field()]
+    while string.len(text) ~= 0 do
+        match = exp:match(text)
+        if match[1]["first"] == 1 then
+            _flag = {}
+            _flag["body"] = match[2]["str"] or ""
+            _flag["tail"] = match[3]["str"] or ""
+            table.insert(flags, _flag)
 
-        if _flag["body"] == flag then table.insert(matches, #flags) end
+            if _flag["body"] == flag then table.insert(matches, #flags) end
+
+            text = string.sub(text, match[1]["last"] + 1)
+        else -- Due to escaping EOL
+            text = text .. " "
+        end
     end
 
     return flags, matches
@@ -99,7 +110,7 @@ setFlags = function(line, flags)
                 else flags[i]["tail"] = "" end
             end
 
-            line[field:field()] = line[field:field()] + flags[i]["body"] + flags[i]["tail"]
+            line[field:field()] = line[field:field()] .. flags[i]["body"] .. flags[i]["tail"]
         until true
     end
 end
@@ -119,7 +130,7 @@ setFlag = function(line, flag)
     _flags, matches = flags(line, flag)
 
     if #matches == 0 then
-        table.insert(_flags, { ["head"] = flag })
+        table.insert(_flags, { ["body"] = flag })
     end
 
     setFlags(line, _flags)
@@ -131,7 +142,7 @@ clearFlag = function(line, flag)
     _flags, matches = flags(line, flag)
 
     for _, match in ipairs(matches) do
-        _flags[match]["head"] = nil
+        _flags[match]["body"] = nil
     end
 
     setFlags(line, _flags)
@@ -144,10 +155,10 @@ toggleFlag = function(line, flag)
 
     if #matches ~= 0 then
         for _, match in ipairs(matches) do
-            _flags[match]["head"] = nil
+            _flags[match]["body"] = nil
         end
     else
-        table.insert(_flags, { ["head"] = flag })
+        table.insert(_flags, { ["body"] = flag })
     end
 
     setFlags(line, _flags)
@@ -157,7 +168,7 @@ onemoreFlag = function(line, flag)
     
     _flags = flags(line, flag)
 
-    table.insert(_flags, { ["head"] = flag })
+    table.insert(_flags, { ["body"] = flag })
 
     setFlags(line, _flags)
 end
@@ -166,7 +177,7 @@ onelessFlag = function(line, flag)
     
     _flags = flags(line, flag)
 
-    _flags[#flags]["head"] = nil
+    _flags[#flags]["body"] = nil
 
     setFlags(line, _flags)
 end
@@ -175,14 +186,25 @@ local functions = {}
 
 functions.versioning = versioning
 
+-- Check if a flag is set
+-- Return false if the flag is not set,
+-- Or return an integer for the times the flag is set
 functions.flag = flag_
+-- If flag is not set, set flag to 1
 functions.setFlag = setFlag
+-- If flag is set, unset the flag
 functions.clearFlag = clearFlag
+-- If flag is set, unset the flag,
+-- Otherwise if flag is not set, set flag to 1
 functions.toggleFlag = toggleFlag
+-- Append one more flag
 functions.onemoreFlag = onemoreFlag
+-- Remove one flag
 functions.onelessFlag = onelessFlag
 
 -- Note that this field is shared between all scripts using aka.actor
+-- Use field:field() to get the field using,
+-- Use field:setField() to set the field to either "actor", "effect" or "style"
 functions.field = field
 
 return functions

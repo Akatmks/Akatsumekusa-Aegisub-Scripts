@@ -45,22 +45,25 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.BackupProto.lua",
-                            "sha1": "2bdf8b856f4884557a1ecf4de70ab1095e11c704"
+                            "sha1": "ac0a02d44d90851e872315a1b0eb397df1c10559"
                         }
                     ],
-                    "version": "0.1.1",
+                    "version": "0.1.2",
                     "default": true,
                     "requireModules": [
                         {
                             "moduleName": "aka.actor"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-01-12"
+                    "released": "2023-01-13"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "BackupProto",
-            "description": "Macro BackupProto",
+            "description": "Backup selected lines",
             "url": "@{baseUrl}"
         },
         "aka.Cycles": {
@@ -112,10 +115,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/actor/init.lua",
-                            "sha1": "75e9bffbf1276374d1d83f544c834debc2797ed4"
+                            "sha1": "27a479344197b8bded4ade3028ceb74d9bdabb77"
                         }
                     ],
-                    "version": "0.1.1",
+                    "version": "0.1.2",
                     "default": true,
                     "requireModules": [
                         {
@@ -125,7 +128,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-01-12"
+                    "released": "2023-01-13"
                 }
             },
             "author": "Akatsumekusa and contributors",
