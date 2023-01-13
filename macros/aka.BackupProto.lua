@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "BackupProto"
 versioning.description = "Backup selected lines"
-versioning.version = "0.1.2"
+versioning.version = "0.1.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.BackupProto"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aegisub.re\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.actor\", \"version\": \"0.0.0\" }, { \"moduleName\": \"aegisub.re\" }]"
 
 script_name = versioning.name
 script_description = versioning.description

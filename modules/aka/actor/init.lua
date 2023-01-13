@@ -27,11 +27,11 @@ local versioning = {}
 
 versioning.name = "aka.actor"
 versioning.description = "Module aka.actor"
-versioning.version = "0.1.2"
+versioning.version = "0.1.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.actor"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aegisub.re\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.config2\", \"version\": \"0.0.0\" }, { \"moduleName\": \"aegisub.re\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
