@@ -45,10 +45,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.BackupProto.lua",
-                            "sha1": "4dc88822bbcae9b1a97facabb8b2afbe9d5303a9"
+                            "sha1": "fe4f21ccc7d4c41b34084775952d9120e437031d"
                         }
                     ],
-                    "version": "0.1.4",
+                    "version": "0.2.1",
                     "default": true,
                     "requireModules": [
                         {

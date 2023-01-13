@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "BackupProto"
 versioning.description = "Backup selected lines"
-versioning.version = "0.1.4"
+versioning.version = "0.2.1"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.BackupProto"
 
@@ -86,16 +86,32 @@ backup = function(sub, sel, act, i, j)
     for _ = i, j do
         line = sub[j]
 
-        if aactor.flag(line, "backup") then
+        -- The logic is quite weird. Think it like this:
+        -- Why would you want to make a backup of a backup?
+        -- It's because you want to use the new copy of the backup to do something new.
+        -- That's why it will automatically uncomment the new lines for you to use.
+        if aactor.flag(line, "backup-c") then
+            line.comment = true
+            sub[-i] = line
+
+            aactor.clearFlag(line, "backup")
+            aactor.clearFlag(line, "backup-c")
+            sub[j + 1] = line
+        elseif aactor.flag(line, "backup") then
+            line.comment = true
+            sub[-i] = line
+
             aactor.clearFlag(line, "backup")
             line.comment = false
-            sub[j] = line
-        end
+            sub[j + 1] = line
 
-        aactor.setFlag(line, "backup")
-        line.comment = true
-        sub[-i] = line
-    end
+        else
+            if line.comment ~= true then
+                aactor.setFlag(line, "backup")
+                line.comment = true
+            else aactor.setFlag(line, "backup-c") end
+            sub[-i] = line
+    end end
 
     for k in ipairs(sel) do sel[k] = select(sel[k], i, j) end
     act = select(act, i, j)
@@ -115,9 +131,9 @@ Field = function()
 
     dialog = { { class = "label",                           x = 0, y = 0, width = 24,
                                                             label = "Select the field " .. versioning.name .. " is going to put backup flag in" },
-               { class = "label",                           x = 2, y = 1, width = 5,
+               { class = "label",                           x = 1, y = 1, width = 5,
                                                             label = "Field: " },
-               { class = "dropdown", name = "field",        x = 7, y = 1, width = 6,
+               { class = "dropdown", name = "field",        x = 6, y = 1, width = 6,
                                                             items = { "Actor", "Effect", "Style" }, value = re.sub(aactor.field:field(), "^\\w", string.upper) },
                { class = "label",                           x = 0, y = 2, width = 24,
                                                             label = "Note that this setting will apply to all Akatsumekusa's scripts" } }
