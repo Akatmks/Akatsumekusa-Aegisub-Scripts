@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.Cycles"
 versioning.description = "Macro aka.Cycles"
-versioning.version = "0.1.5"
+versioning.version = "0.1.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Cycles"
 
-versioning.requireModules = "[{ \"moduleName\": \"l0.ASSFoundation\", \"version\": \"0.0.0\", \"feed\": \"https://raw.githubusercontent.com/TypesettingTools/ASSFoundation/master/DependencyControl.json\" }, { \"moduleName\": \"aka.actor\", \"version\": \"0.0.0\" }, { \"moduleName\": \"aka.config\", \"version\": \"0.0.0\" }, { \"moduleName\": \"aka.template\", \"version\": \"0.0.0\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"l0.ASSFoundation\", \"feed\": \"https://raw.githubusercontent.com/TypesettingTools/ASSFoundation/master/DependencyControl.json\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.template\" }]"
 
 script_name = versioning.name
 script_description = versioning.description

@@ -20,11 +20,11 @@ local versioning = {}
 
 versioning.name = "NN.fanhua"
 versioning.description = "Macro NN.fanhua"
-versioning.version = "0.1.3"
+versioning.version = "0.1.4"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.fanhua"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.luajit-request\", \"version\": \"0.0.0\" }, { \"moduleName\": \"aka.config\", \"version\": \"0.0.0\" }, { \"moduleName\": \"aka.template\", \"version\": \"0.0.0\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.luajit-request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.template\" }]"
 
 script_name = versioning.name
 script_description = versioning.description

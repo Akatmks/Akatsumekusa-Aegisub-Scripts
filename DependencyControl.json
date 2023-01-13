@@ -14,23 +14,20 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/NN.fanhua.lua",
-                            "sha1": "b2f950f048459bad2a2df1253f98dcc0ec08d075"
+                            "sha1": "863afd2947429aa57f0bad7426d1a004d2cc3a5b"
                         }
                     ],
-                    "version": "0.1.3",
+                    "version": "0.1.4",
                     "default": true,
                     "requireModules": [
                         {
-                            "moduleName": "aka.luajit-request",
-                            "version": "0.0.0"
+                            "moduleName": "aka.luajit-request"
                         },
                         {
-                            "moduleName": "aka.config",
-                            "version": "0.0.0"
+                            "moduleName": "aka.config"
                         },
                         {
-                            "moduleName": "aka.template",
-                            "version": "0.0.0"
+                            "moduleName": "aka.template"
                         }
                     ],
                     "released": "2023-01-13"
@@ -48,15 +45,14 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.BackupProto.lua",
-                            "sha1": "c3681800b42ee96938a323128cf154ee59562f48"
+                            "sha1": "4dc88822bbcae9b1a97facabb8b2afbe9d5303a9"
                         }
                     ],
-                    "version": "0.1.3",
+                    "version": "0.1.4",
                     "default": true,
                     "requireModules": [
                         {
-                            "moduleName": "aka.actor",
-                            "version": "0.0.0"
+                            "moduleName": "aka.actor"
                         },
                         {
                             "moduleName": "aegisub.re"
@@ -77,28 +73,24 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.Cycles.lua",
-                            "sha1": "fdf86c9dfe480f378760376e2bba618e9ddf0bed"
+                            "sha1": "3de60f0c1086704744e0085ef5838ff9b65fade9"
                         }
                     ],
-                    "version": "0.1.5",
+                    "version": "0.1.6",
                     "default": true,
                     "requireModules": [
                         {
                             "moduleName": "l0.ASSFoundation",
-                            "version": "0.0.0",
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ASSFoundation/master/DependencyControl.json"
                         },
                         {
-                            "moduleName": "aka.actor",
-                            "version": "0.0.0"
+                            "moduleName": "aka.actor"
                         },
                         {
-                            "moduleName": "aka.config",
-                            "version": "0.0.0"
+                            "moduleName": "aka.config"
                         },
                         {
-                            "moduleName": "aka.template",
-                            "version": "0.0.0"
+                            "moduleName": "aka.template"
                         }
                     ],
                     "released": "2023-01-13"
@@ -123,15 +115,14 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/actor/init.lua",
-                            "sha1": "1796395a0272fde8880f7116135bdb74a21f631a"
+                            "sha1": "cf6e1999d497e12ee83d7750d33d3f182433f478"
                         }
                     ],
-                    "version": "0.1.3",
+                    "version": "0.1.4",
                     "default": true,
                     "requireModules": [
                         {
-                            "moduleName": "aka.config2",
-                            "version": "0.0.0"
+                            "moduleName": "aka.config2"
                         },
                         {
                             "moduleName": "aegisub.re"
@@ -157,20 +148,18 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "0fe6fc1d7f950c535e0f7b90d05e949c88aee747"
+                            "sha1": "c4187dc15008023c082d1c6814cd768e6c558ce2"
                         }
                     ],
-                    "version": "0.1.20",
+                    "version": "0.1.21",
                     "default": true,
                     "requireModules": [
                         {
-                            "moduleName": "aka.config2",
-                            "version": "0.0.0"
+                            "moduleName": "aka.config2"
                         },
                         {
                             "moduleName": "aka.template",
-                            "optional": true,
-                            "version": "0.0.0"
+                            "optional": true
                         }
                     ],
                     "released": "2023-01-13"
@@ -275,7 +264,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/template/init.lua",
-                            "sha1": "248263873e44e846ecf29ec7f4435f3b083fb329"
+                            "sha1": "9596f8e1358cbaf564edc888b721167192eb499b"
                         },
                         {
                             "name": "/template.lua",
@@ -283,12 +272,11 @@
                             "sha1": "7f880c2ffe13276736753ef5f4eda67eb438827f"
                         }
                     ],
-                    "version": "0.1.12",
+                    "version": "0.1.13",
                     "default": true,
                     "requireModules": [
                         {
-                            "moduleName": "aka.config2",
-                            "version": "0.0.0"
+                            "moduleName": "aka.config2"
                         }
                     ],
                     "released": "2023-01-13"
