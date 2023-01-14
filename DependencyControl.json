@@ -103,6 +103,36 @@
         }
     },
     "modules": {
+        "NN.cjk_unicode": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/cjk_characters.json",
+                            "url": "@{fileBaseUrl}/modules/NN/cjk_unicode/cjk_characters.json",
+                            "sha1": "0e9c56724d116ef59f7065a5cc31a67bae0bb2d7"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/NN/cjk_unicode/init.lua",
+                            "sha1": "aa4ef0723bacacf720f6261b6658a6ce09565613"
+                        }
+                    ],
+                    "version": "0.1.1",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aegisub.unicode"
+                        }
+                    ],
+                    "released": "2023-01-14"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "NN.cjk_unicode",
+            "description": "Module NN.cjk_unicode",
+            "url": "@{baseUrl}"
+        },
         "aka.actor": {
             "channels": {
                 "dev": {
