@@ -29,26 +29,95 @@ The tutorial for the new smoothing feature is underway. For anyone who is intere
 
 These two modules are designed to handle one thing and one thing only, auto spacing in Japanese and Chinese subtitles, yet it is extrememly complex.  
 
-NN.CJCharacter only recognised common characters in subtitles. These are the basic types for the characters:    
+NN.CJCharacter only recognised common characters in subtitles. These are the basic types for the characters:   
 
-| | `Scriptio Continua` | `Space Separated` |
-| -- | :--: | :--: |
-| `Kanji/Hanzi` | ○ | ○ |
-| `Hiragana` | ○ | ○ |
-| `Katakana` | ○ | ○ |
-| `Halfwidth Katakana` | ○ | × |
-| `Kana` | ○ | ○ |
-| `Bopomofo` | × | ○ |
-| `Hangul` | × | ○ |
-| `Alphabetic` | × | ○ |
-| `Numeral` | ○ | ○ |
-| `Fullwidth Alphabetic` | ○ | × |
-| `Fullwidth Numeral` | ○ | × |
-| `Halfwidth Alphanumeric Symbol` | × | ○ |
-| `Half/Full/Variablewidth Front/Read Continuous Symbol` | ○ | × |
-| `Half/Full/Variablewidth Front Continuous Rear Separated Symbol` | – | – |
-| `Half/Full/Variablewidth Front Separated Rear Continuous Symbol` | – | – |
-| `Half/Full/Variablewidth Front/Rear Separated Symbol` | × | ○ |
+<table>
+  <tr>
+    <td></td>
+    <td align="center"><code>Scriptio Continua</code></td>
+    <td align="center"><code>Space Separated</code></td>
+  </tr>
+  <tr>
+    <td align="right"><code>Kanji/Hanzi</code></td>
+    <td align="center">○</td>
+    <td align="center">○</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Hiragana</code></td>
+    <td align="center">○</td>
+    <td align="center">○</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Katakana</code></td>
+    <td align="center">○</td>
+    <td align="center">○</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Halfwidth Katakana</code></td>
+    <td align="center">○</td>
+    <td align="center">×</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Kana</code></td>
+    <td align="center">○</td>
+    <td align="center">○</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Bopomofo</code></td>
+    <td align="center">×</td>
+    <td align="center">○</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Hangul</code></td>
+    <td align="center">×</td>
+    <td align="center">○</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Alphabetical</code></td>
+    <td align="center">×</td>
+    <td align="center">○</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Numeral</code></td>
+    <td align="center">○</td>
+    <td align="center">○</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Fullwidth Alphabetical</code></td>
+    <td align="center">○</td>
+    <td align="center">×</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Fullwidth Numeral</code></td>
+    <td align="center">○</td>
+    <td align="center">×</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Halfwidth Alphanumeric Symbol</code></td>
+    <td align="center">×</td>
+    <td align="center">○</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Half/Full/Variablewidth Front/Read Continuous Symbol</code></td>
+    <td align="center">○</td>
+    <td align="center">×</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Half/Full/Variablewidth Front Continuous Rear Separated Symbol</code></td>
+    <td align="center">–</td>
+    <td align="center">–</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Half/Full/Variablewidth Front Separated Rear Continuous Symbol</code></td>
+    <td align="center">–</td>
+    <td align="center">–</td>
+  </tr>
+  <tr>
+    <td align="right"><code>Half/Full/Variablewidth Front/Rear Separated Symbol</code></td>
+    <td align="center">×</td>
+    <td align="center">○</td>
+  </tr>
+</table>
 
 * `Kanji/Hanzi`: or Kanji and Hanzi. This includes all the unified or compatibility CJK Ideographs in Unicode.  
 * `Hiragana`: This contains all the common Hiragana, as well as `ゝ` and a few archaic characters like `𛀁`.  
