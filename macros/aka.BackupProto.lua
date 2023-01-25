@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "BackupProto"
 versioning.description = "Backup selected lines"
-versioning.version = "0.2.1"
+versioning.version = "0.2.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.BackupProto"
 
@@ -136,7 +136,7 @@ Field = function()
                { class = "dropdown", name = "field",        x = 6, y = 1, width = 6,
                                                             items = { "Actor", "Effect", "Style" }, value = re.sub(aactor.field:field(), "^\\w", string.upper) },
                { class = "label",                           x = 0, y = 2, width = 24,
-                                                            label = "Note that this setting will apply to all Akatsumekusa's scripts" } }
+                                                            label = "This setting will apply to all Akatsumekusa's scripts." } }
     buttons = { "&Apply", "Figurative" }
     button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Figurative", no = "Figurative", cancel = "Figurative" }
 

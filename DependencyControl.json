@@ -45,10 +45,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.BackupProto.lua",
-                            "sha1": "fe4f21ccc7d4c41b34084775952d9120e437031d"
+                            "sha1": "24dd3a2b2aaa7168285f228d62d05f01ffcfed23"
                         }
                     ],
-                    "version": "0.2.1",
+                    "version": "0.2.2",
                     "default": true,
                     "requireModules": [
                         {
@@ -58,7 +58,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-01-13"
+                    "released": "2023-01-25"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -103,34 +103,29 @@
         }
     },
     "modules": {
-        "NN.cjk_unicode": {
+        "NN.CJCharacter": {
             "channels": {
                 "dev": {
                     "files": [
                         {
-                            "name": "/cjk_characters.json",
-                            "url": "@{fileBaseUrl}/modules/NN/cjk_unicode/cjk_characters.json",
-                            "sha1": "0e9c56724d116ef59f7065a5cc31a67bae0bb2d7"
-                        },
-                        {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/NN/cjk_unicode/init.lua",
-                            "sha1": "aa4ef0723bacacf720f6261b6658a6ce09565613"
+                            "url": "@{fileBaseUrl}/modules/NN/CJCharacter/init.lua",
+                            "sha1": "a75b74b1008191e55ff4c8d2044923b3505ba05f"
                         }
                     ],
-                    "version": "0.1.1",
+                    "version": "0.1.2",
                     "default": true,
                     "requireModules": [
                         {
                             "moduleName": "aegisub.unicode"
                         }
                     ],
-                    "released": "2023-01-14"
+                    "released": "2023-01-25"
                 }
             },
             "author": "Akatsumekusa and contributors",
-            "name": "NN.cjk_unicode",
-            "description": "Module NN.cjk_unicode",
+            "name": "NN.CJCharacter",
+            "description": "Module NN.CJCharacter",
             "url": "@{baseUrl}"
         },
         "aka.actor": {

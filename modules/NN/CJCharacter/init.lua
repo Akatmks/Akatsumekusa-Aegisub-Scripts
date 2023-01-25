@@ -23,11 +23,11 @@
 
 local versioning = {}
 
-versioning.name = "NN.cjk_unicode"
-versioning.description = "Module NN.cjk_unicode"
-versioning.version = "0.1.1"
+versioning.name = "NN.CJCharacter"
+versioning.description = "Module NN.CJCharacter"
+versioning.version = "0.1.2"
 versioning.author = "Akatsumekusa and contributors"
-versioning.namespace = "NN.cjk_unicode"
+versioning.namespace = "NN.CJCharacter"
 
 versioning.requireModules = "[{ \"moduleName\": \"aegisub.unicode\" }]"
 

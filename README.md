@@ -24,3 +24,40 @@ The tutorial for the new smoothing feature is underway. For anyone who is intere
 – *aae-export was originally released by Martin Herkt under ISC License. Since then, aae-export has been completely rewritten, with every original line replaced. It is now released under a single MIT License.*  
 – *[aae-export-install-dependencies](tools/aae-export-install-dependencies) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. The tool is released under MIT License, using [Qt](https://www.qt.io/) libraries under LGPLv3.*  
 – *[aae-export-base122](tools/aae-export-base122) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. It is a wrapper of Kevin Albertson's [libbase122](https://github.com/kevinAlbs/libbase122) library, and is released under Apache License.*  
+
+## NN.CJSpacing && NN.CJCharacter
+
+These two modules are designed to handle one thing and one thing only, auto spacing in Japanese and Chinese subtitles, yet it is extrememly complex.  
+
+NN.CJCharacter only recognised common characters in subtitles. These are the basic types for the characters:    
+
+| | `Scriptio Continua` | `Space Separated` |
+| -- | :--: | :--: |
+| `Kanji/Hanzi` | ○ | ○ |
+| `Hiragana` | ○ | ○ |
+| `Katakana` | ○ | ○ |
+| `Halfwidth Katakana` | ○ | × |
+| `Kana` | ○ | ○ |
+| `Bopomofo` | × | ○ |
+| `Hangul` | × | ○ |
+| `Alphabetic` | × | ○ |
+| `Numeral` | ○ | ○ |
+| `Fullwidth Alphabetic` | ○ | × |
+| `Fullwidth Numeral` | ○ | × |
+| `Halfwidth Alphanumeric Symbol` | × | ○ |
+| `Half/Full/Variablewidth Front/Read Continuous Symbol` | ○ | × |
+| `Half/Full/Variablewidth Front Continuous Rear Separated Symbol` | – | – |
+| `Half/Full/Variablewidth Front Separated Rear Continuous Symbol` | – | – |
+| `Half/Full/Variablewidth Front/Rear Separated Symbol` | × | ○ |
+
+* `Kanji/Hanzi`: or Kanji and Hanzi. This includes all the unified or compatibility CJK Ideographs in Unicode.  
+* `Hiragana`: This contains all the common Hiragana, as well as `ゝ` and a few archaic characters like `𛀁`.  
+* `Katakana`: This includes all the common fullwidth Katakana, as well as fullwidth Katakana for Ainu like `ㇰ`.  
+* `Katakana Halfwidth`: This includes all the halfwidth Katakana.  
+* `Katakana Taiwanese`: This includes the tone marks in Taiwanese Katakana.  
+* `Kana`: This includes the Hentaigana.  
+* `Hangul`: This includes all the precomposed Hangul and Hangul Jamo.  
+* `Bopomofo`: This includes all the bopomofos as well as the five tone marks.  
+* `Numerical Halfwidth`: This includes numerical digits from `0` to `9`, as well as decimal separators like `.` and other symbols like `%` and `€`.  
+* `Latin Halfwidth`: This includes latin letters like `a` and `z`, letters with diacritic like `â` and `ž`, ligatures like `ﬁ` and other forms.  
+
