@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 0, 7),
+    "version": (1, 1, 0),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -102,7 +102,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                      description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                      default=2,
                                                      min=1,
-                                                     soft_max=5)
+                                                     soft_max=16)
     smoothing_do_scale: bpy.props.BoolProperty(name="Smooth",
                                                description="Perform smoothing on scale data",
                                                default=True)
@@ -110,7 +110,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                   description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                   default=2,
                                                   min=1,
-                                                  soft_max=4)
+                                                  soft_max=16)
     smoothing_do_rotation: bpy.props.BoolProperty(name="Smooth",
                                                description="Perform smoothing on rotation data.\nPlease note that rotation calculation in AAE Export is very basic. Performing smoothing on rotations with high velocity may yield unexpected results",
                                                default=True)
@@ -118,7 +118,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                      description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                      default=1,
                                                      min=1,
-                                                     soft_max=4)
+                                                     soft_max=16)
     smoothing_do_power_pin: bpy.props.BoolProperty(name="Smooth",
                                                    description="Perform smoothing on Power Pin data",
                                                    default=True)
@@ -126,12 +126,12 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                       description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                                                       default=2,
                                                       min=1,
-                                                      soft_max=5)
+                                                      soft_max=16)
     smoothing_position_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
                                                                 ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
                                                                 ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
                                                          name="Linear Model",
-                                                         default="HUBER")
+                                                         default="LINEAR")
     smoothing_position_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
                                                               description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
                                                               default=1.50,
@@ -468,7 +468,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
         # https://stackoverflow.com/questions/563198/
         def eat_(slice):
-            if slice[0] == np.nan:
+            if np.isnan(slice[0]):
                 return np.full((2), np.nan, dtype=np.float64)
             try:
                 t = LA.solve(np.transpose(np.vstack((slice[6:8] - slice[0:2], slice[2:4] - slice[4:6]))), slice[2:4] - slice[0:2])[0]
@@ -713,13 +713,13 @@ class AAEExportExportAll(bpy.types.Operator):
         aae_power_pin_0005 = []
 
         for frame in range(position.shape[0]):
-            if position[frame][0] != np.nan:
+            if not np.isnan(position[frame][0]):
                 aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(frame + 1, *position[frame], 0.0))
-            if scale[frame][0] != np.nan:
+            if not np.isnan(scale[frame][0]):
                 aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(frame + 1, *scale[frame], 100.0))
-            if limited_rotation[frame] != np.nan:
+            if not np.isnan(limited_rotation[frame]):
                 aae_rotation.append("\t{:d}\t{:.3f}".format(frame + 1, limited_rotation[frame]))
-            if power_pin[0][frame][0] != np.nan:
+            if not np.isnan(power_pin[0][frame][0]):
                 aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[0][frame]))
                 aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[1][frame]))
                 aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[2][frame]))
@@ -1227,9 +1227,9 @@ class AAEExportOptions(bpy.types.Panel):
         
         settings = context.screen.AAEExportSettings
         
-        box = layout.box()
-        column = box.column(heading="Export")
-        column.prop(settings, "do_includes_power_pin")
+        # box = layout.box()
+        # column = box.column(heading="Export")
+        # column.prop(settings, "do_includes_power_pin")
         box = layout.box()
         column = box.column(heading="Preference")
         column.prop(settings, "do_also_export")
