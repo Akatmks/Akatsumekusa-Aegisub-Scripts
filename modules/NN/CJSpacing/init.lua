@@ -1,4 +1,4 @@
--- NN.CJCharacter
+-- NN.CJSpacing
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -18,11 +18,13 @@
 
 local versioning = {}
 
-versioning.name = "NN.CJCharacter"
-versioning.description = "Module NN.CJCharacter"
-versioning.version = "0.1.5"
+versioning.name = "NN.CJSpacing"
+versioning.description = "Module NN.CJSpacing"
+versioning.version = "0.1.1"
 versioning.author = "Akatsumekusa and contributors"
-versioning.namespace = "NN.CJCharacter"
+versioning.namespace = "NN.CJSpacing"
+
+versioning.requireModules = "[{ \"moduleName\": \"NN.CJCharacter\" }, { \"moduleName\": \"aegisub.unicode\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -33,24 +35,16 @@ if hasDepCtrl then
         author = versioning.author,
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json"
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        {
+            { "NN.CJCharacter" },
+            { "aegisub.unicode" }
+        }
     }):requireModules()
 end
+local characters = require("NN.CJCharacter")
+local unicode = require("aegisub.unicode")
 
-local characters
-local f
-local at
-
-f = assert(io.open("NN/CJCharacter/characters.ansi", "rb"))
-characters = f:read("*all")
-f:close()
-at = function(idx) return string.sub(characters, idx, idx) end
-
-local functions
-
-functions.characters = characters
-functions.at = at
-
-functions.versioning = versioning
-
-return functions
+function()
+    type = characters.at(unicode.codepoint(something))
+end

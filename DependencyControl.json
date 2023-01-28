@@ -115,22 +115,45 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/NN/CJCharacter/init.lua",
-                            "sha1": "1c807fe8252c75be267fa3bd9c63168c65971909"
+                            "sha1": "7983e7e9abfc1d903419db26f8dc9c43cbe5ee77"
                         }
                     ],
-                    "version": "0.1.4",
+                    "version": "0.1.5",
                     "default": true,
-                    "requireModules": [
-                        {
-                            "moduleName": "aegisub.unicode"
-                        }
-                    ],
-                    "released": "2023-01-27"
+                    "released": "2023-01-28"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "NN.CJCharacter",
             "description": "Module NN.CJCharacter",
+            "url": "@{baseUrl}"
+        },
+        "NN.CJSpacing": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/NN/CJSpacing/init.lua",
+                            "sha1": "5e04daf714ef773482828d7a400dfa1cd2a44d6c"
+                        }
+                    ],
+                    "version": "0.1.1",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "NN.CJCharacter"
+                        },
+                        {
+                            "moduleName": "aegisub.unicode"
+                        }
+                    ],
+                    "released": "2023-01-28"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "NN.CJSpacing",
+            "description": "Module NN.CJSpacing",
             "url": "@{baseUrl}"
         },
         "aka.actor": {

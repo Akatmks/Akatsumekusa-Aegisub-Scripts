@@ -1,15 +1,15 @@
 ## Using aka.config
 
-There are several ways to use aka.config.  
+aka.config is an Aegisub module to handle config.  
 
-### The basic of basic 
+### The basic of basic
 
 The basic of aka.config involves two simple functions, `read_config` and `write_config`.  
 ```lua
 config = require("aka.config")
 is_success, config_data = config.read_config("aka.MyMacro") -- This will read the config from aka.MyMacro.json in the config directory
 ```
-If everything works out to be fine, this will return `true` as well as the config data as Lua table. In case the config file doesn't exist (for example if the user install the script for the first time), or the config file is not valid JSON and can not be parsed, this will return `false` and `nil`.  
+If everything works out, this will return `true` as well as the config data as Lua table. In case the config file doesn't exist (for example if the user install the script for the first time), or the config file is not valid JSON and can not be parsed, this will return `false` and `nil`.  
 
 When you want to save a config, you can do:  
 ```lua
@@ -33,7 +33,7 @@ By this point, some of you may be wondering why subfolder is placed as the secon
 
 You could pass a custom function to aka.config to validate your config. The minimum requirement for a validation function is simple. It takes in the config data as Lua table, and returns `true` if everything is good.  
 
-For example, if you have `aka.MyMacro/numbers.json` and you want to make sure it contains an table (array) of numbers, you can do:  
+For example, if you have `aka.MyMacro/numbers.json` and you want to make sure it contains a table (array) of numbers, you can do:  
 ```lua
 config = require("aka.config")
 config_validate = function(config_data) -- You could also write it as `function config_validate(config_data)` if you are more familiar with that
