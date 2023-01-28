@@ -110,7 +110,7 @@
                         {
                             "name": "/characters.ansi",
                             "url": "@{fileBaseUrl}/modules/NN/CJCharacter/characters.ansi",
-                            "sha1": "7f29e15761fa4588777438305a470cec5528aca2"
+                            "sha1": "58e3b7d4ed4a4c3a162263bf2e63124e12e25694"
                         },
                         {
                             "name": "/init.lua",
@@ -145,10 +145,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/actor/init.lua",
-                            "sha1": "cf6e1999d497e12ee83d7750d33d3f182433f478"
+                            "sha1": "95c83084a594ad96979909f1d8bb826570c1e784"
                         }
                     ],
-                    "version": "0.1.4",
+                    "version": "0.1.5",
                     "default": true,
                     "requireModules": [
                         {
@@ -158,7 +158,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-01-13"
+                    "released": "2023-01-28"
                 }
             },
             "author": "Akatsumekusa and contributors",

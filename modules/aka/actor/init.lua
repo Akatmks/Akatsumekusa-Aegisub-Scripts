@@ -27,7 +27,7 @@ local versioning = {}
 
 versioning.name = "aka.actor"
 versioning.description = "Module aka.actor"
-versioning.version = "0.1.4"
+versioning.version = "0.1.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.actor"
 
@@ -72,6 +72,7 @@ exp = re.compile("([^\\s\\\\]*(?:\\\\.[^\\s\\\\]*)*)(\\s+|$)")
 flags = function(line, flag)
     local flags
     local matches
+    local last_tail
     local text
     local _flag
 
@@ -88,6 +89,7 @@ flags = function(line, flag)
             table.insert(flags, _flag)
 
             if _flag["body"] == flag then table.insert(matches, #flags) end
+            last_tail = _flag["tail"]
 
             text = string.sub(text, match[1]["last"] + 1)
         else -- Due to escaping EOL
@@ -95,9 +97,9 @@ flags = function(line, flag)
         end
     end
 
-    return flags, matches
+    return flags, matches, last_tail
 end
-setFlags = function(line, flags)
+setFlags = function(line, flags, last_tail)
     line[field:field()] = ""
 
     -- nil body will not be included but "" body will
@@ -105,14 +107,12 @@ setFlags = function(line, flags)
     for i = 1, #flags do
         repeat
             if not flags[i]["body"] then break end
-            if not flags[i]["tail"] or flags[i]["tail"] == "" then
-                if i ~= #flags then flags[i]["tail"] = " "
-                else flags[i]["tail"] = "" end
-            end
+            if not flags[i]["tail"] or flags[i]["tail"] == "" then flags[i]["tail"] = " " end
 
             line[field:field()] = line[field:field()] .. flags[i]["body"] .. flags[i]["tail"]
         until true
     end
+    line[field:field()] = string.gsub(line[field:field()], "%s*$", last_tail)
 end
 
 flag_ = function(line, flag)
@@ -126,32 +126,35 @@ end
 setFlag = function(line, flag)
     local _flags
     local matches
+    local last_tail
     
-    _flags, matches = flags(line, flag)
+    _flags, matches, last_tail = flags(line, flag)
 
     if #matches == 0 then
         table.insert(_flags, { ["body"] = flag })
     end
 
-    setFlags(line, _flags)
+    setFlags(line, _flags, last_tail)
 end
 clearFlag = function(line, flag)
     local _flags
     local matches
+    local last_tail
     
-    _flags, matches = flags(line, flag)
+    _flags, matches, last_tail = flags(line, flag)
 
     for _, match in ipairs(matches) do
         _flags[match]["body"] = nil
     end
 
-    setFlags(line, _flags)
+    setFlags(line, _flags, last_tail)
 end
 toggleFlag = function(line, flag)
     local _flags
     local matches
+    local last_tail
     
-    _flags, matches = flags(line, flag)
+    _flags, matches, last_tail = flags(line, flag)
 
     if #matches ~= 0 then
         for _, match in ipairs(matches) do
@@ -161,25 +164,27 @@ toggleFlag = function(line, flag)
         table.insert(_flags, { ["body"] = flag })
     end
 
-    setFlags(line, _flags)
+    setFlags(line, _flags, last_tail)
 end
 onemoreFlag = function(line, flag)
     local _flags
+    local last_tail
     
-    _flags = flags(line, flag)
+    _flags, _, last_tail = flags(line, flag)
 
     table.insert(_flags, { ["body"] = flag })
 
-    setFlags(line, _flags)
+    setFlags(line, _flags, last_tail)
 end
 onelessFlag = function(line, flag)
     local _flags
+    local last_tail
     
-    _flags = flags(line, flag)
+    _flags, _, last_tail = flags(line, flag)
 
     _flags[#flags]["body"] = nil
 
-    setFlags(line, _flags)
+    setFlags(line, _flags, last_tail)
 end
 
 local functions = {}
