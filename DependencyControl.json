@@ -115,12 +115,12 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/NN/CJCharacter/init.lua",
-                            "sha1": "7983e7e9abfc1d903419db26f8dc9c43cbe5ee77"
+                            "sha1": "2c18f5e6ddc0a5cb2443fd6f571277180d4aeda1"
                         }
                     ],
-                    "version": "0.1.5",
+                    "version": "0.1.6",
                     "default": true,
-                    "released": "2023-01-28"
+                    "released": "2023-01-30"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -264,6 +264,34 @@
             "description": "Module aka.config2",
             "url": "@{baseUrl}"
         },
+        "aka.config6": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/config6/init.lua",
+                            "sha1": "3a2e61f3f5cc23e7b8f7daf8a83ab0c19b83541a"
+                        }
+                    ],
+                    "version": "0.1.1",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "json"
+                        },
+                        {
+                            "moduleName": "lfs"
+                        }
+                    ],
+                    "released": "2023-01-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.config6",
+            "description": "Module aka.config6",
+            "url": "@{baseUrl}"
+        },
         "aka.luajit-request": {
             "channels": {
                 "dev": {
@@ -338,6 +366,41 @@
             "author": "Akatsumekusa and contributors",
             "name": "aka.template",
             "description": "Module aka.template",
+            "url": "@{baseUrl}"
+        },
+        "aka.workflow": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/config.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/config.lua",
+                            "sha1": "f882642ab9284bbc9cfe6188c84ec158eb1b81ac"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/init.lua",
+                            "sha1": "bf66fb2bb41db9a024d9ddf611487943f7c7ccf6"
+                        },
+                        {
+                            "name": "/run.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/run.lua",
+                            "sha1": "39419a02c4ae23225510a59439de692f9004bfb8"
+                        },
+                        {
+                            "name": "/workflow.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/workflow.lua",
+                            "sha1": "50154fc8e82e4947b0d43336817b98d84c7cde24"
+                        }
+                    ],
+                    "version": "0.1.1",
+                    "default": true,
+                    "released": "2023-01-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.workflow",
+            "description": "Module aka.workflow",
             "url": "@{baseUrl}"
         }
     }

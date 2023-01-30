@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "NN.CJCharacter"
 versioning.description = "Module NN.CJCharacter"
-versioning.version = "0.1.5"
+versioning.version = "0.1.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "NN.CJCharacter"
 
@@ -34,7 +34,7 @@ if hasDepCtrl then
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json"
-    }):requireModules()
+    })
 end
 
 local characters
