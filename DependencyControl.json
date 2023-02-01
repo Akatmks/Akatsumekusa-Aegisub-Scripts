@@ -38,6 +38,34 @@
             "description": "Macro NN.fanhua",
             "url": "@{baseUrl}"
         },
+        "NN.switchst": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}/macros/NN.switchst.lua",
+                            "sha1": "ce97f371b0ba276e215329d7fabf30c96cae3d23"
+                        }
+                    ],
+                    "version": "0.1.1",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.actor"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        }
+                    ],
+                    "released": "2023-02-01"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "Switch CHS and CHT",
+            "description": "Comment and uncomment all the CHS and CHT lines in the subtitle",
+            "url": "@{baseUrl}"
+        },
         "aka.BackupProto": {
             "channels": {
                 "dev": {
@@ -168,10 +196,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/actor/init.lua",
-                            "sha1": "95c83084a594ad96979909f1d8bb826570c1e784"
+                            "sha1": "dd3b527ac2e1001c53f5b7bb0889819c456813b8"
                         }
                     ],
-                    "version": "0.1.5",
+                    "version": "0.1.6",
                     "default": true,
                     "requireModules": [
                         {
@@ -181,7 +209,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-01-28"
+                    "released": "2023-02-01"
                 }
             },
             "author": "Akatsumekusa and contributors",

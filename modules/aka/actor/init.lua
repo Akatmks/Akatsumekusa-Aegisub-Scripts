@@ -27,7 +27,7 @@ local versioning = {}
 
 versioning.name = "aka.actor"
 versioning.description = "Module aka.actor"
-versioning.version = "0.1.5"
+versioning.version = "0.1.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.actor"
 
@@ -72,6 +72,7 @@ exp = re.compile("([^\\s\\\\]*(?:\\\\.[^\\s\\\\]*)*)(\\s+|$)")
 flags = function(line, flag)
     local flags
     local matches
+    local match
     local last_tail
     local text
     local _flag
