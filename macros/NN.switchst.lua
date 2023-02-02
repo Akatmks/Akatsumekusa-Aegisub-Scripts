@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Switch CHS and CHT"
 versioning.description = "Comment and uncomment all the CHS and CHT lines in the subtitle"
-versioning.version = "0.1.1"
+versioning.version = "0.1.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "NN.switchst"
 
@@ -85,12 +85,11 @@ SwitchST = function(sub)
                     sub[i] = line
                 end
             elseif target == "chs" and aactor.flag(line, "cht") or
-                    target == "cht" and aactor.flag(line, "chs") then
+                   target == "cht" and aactor.flag(line, "chs") then
                 if line.comment == false then
                     line.comment = true
                     sub[i] = line
-                end
-end end end end
+end end end end end
 
 Field = function()
     local dialog

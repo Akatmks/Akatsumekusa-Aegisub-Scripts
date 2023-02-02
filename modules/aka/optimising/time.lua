@@ -35,9 +35,7 @@ local time
 
 time = function()
     kernel32.QueryPerformanceCounter(QPC)
-    if QPF[0] == 0 then
-        kernel32.QueryPerformanceFrequency(QPF)
-    end
+    if QPF[0] == 0 then kernel32.QueryPerformanceFrequency(QPF) end
 
     return tonumber(QPC[0]) / tonumber(QPF[0])
 end

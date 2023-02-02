@@ -45,10 +45,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/NN.switchst.lua",
-                            "sha1": "ce97f371b0ba276e215329d7fabf30c96cae3d23"
+                            "sha1": "ed0f798a90f40576d93634d6034bea77e5d8fa31"
                         }
                     ],
-                    "version": "0.1.1",
+                    "version": "0.1.2",
                     "default": true,
                     "requireModules": [
                         {
@@ -58,7 +58,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-02-01"
+                    "released": "2023-02-02"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -344,22 +344,17 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/optimising/init.lua",
-                            "sha1": "226afbb6e40816d497d56944b4d69871c0cd71f4"
-                        },
-                        {
-                            "name": "/time.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/optimising/time.lua",
-                            "sha1": "e032ed40960ee3cda42fb75d30e3194b504f1dc2"
+                            "sha1": "ea84f4329bee003e922cd08ed7a8d551ed825657"
                         }
                     ],
-                    "version": "0.1.1",
+                    "version": "0.1.2",
                     "default": true,
                     "requireModules": [
                         {
                             "moduleName": "aka.singlesimple"
                         },
                         {
-                            "moduleName": "ffi"
+                            "moduleName": "PT.PreciseTimer"
                         }
                     ],
                     "released": "2023-02-02"

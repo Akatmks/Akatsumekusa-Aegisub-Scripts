@@ -135,7 +135,8 @@ DependencyControl = {
         # }
 }
 excluded_files = [
-    "modules/aka/luajit-request/LICENSE.md"
+    "modules/aka/luajit-request/LICENSE.md",
+    "modules/aka/optimising/time.lua"
 ]
 platform_dependent_files = {
     "modules/aka/luajit-request/libcurl-x64.dll": ["Windows-x64", "Windows-arm"],
