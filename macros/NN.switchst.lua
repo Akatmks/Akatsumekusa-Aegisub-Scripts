@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Switch CHS and CHT"
 versioning.description = "Comment and uncomment all the CHS and CHT lines in the subtitle"
-versioning.version = "0.1.2"
+versioning.version = "0.1.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "NN.switchst"
 

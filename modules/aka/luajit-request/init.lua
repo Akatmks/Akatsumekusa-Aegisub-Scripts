@@ -28,7 +28,7 @@ local versioning = {}
 
 versioning.name = "aka.luajit-request"
 versioning.description = "Module luajit-request"
-versioning.version = "1.0.3"
+versioning.version = "1.0.4"
 versioning.author = "Lucien Greathouse, slightly altered by Akatsumekusa"
 versioning.namespace = "aka.luajit-request"
 

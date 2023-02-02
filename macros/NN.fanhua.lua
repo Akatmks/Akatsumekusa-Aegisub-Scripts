@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "NN.fanhua"
 versioning.description = "Macro NN.fanhua"
-versioning.version = "0.1.4"
+versioning.version = "0.1.5"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.fanhua"
 
