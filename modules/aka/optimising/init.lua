@@ -1,4 +1,4 @@
--- aka.config6
+-- aka.optimising
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -21,19 +21,15 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-------------------------------------------------------------------------------
--- Tutorials are available at „docs/Using aka.config.md“.
-------------------------------------------------------------------------------
-
 local versioning = {}
 
-versioning.name = "aka.config6"
-versioning.description = "Module aka.config6"
+versioning.name = "aka.optimising"
+versioning.description = "Module aka.optimising"
 versioning.version = "0.1.1"
 versioning.author = "Akatsumekusa and contributors"
-versioning.namespace = "aka.config6"
+versioning.namespace = "aka.optimising"
 
-versioning.requireModules = "[{ \"moduleName\": \"json\" }, { \"moduleName\": \"lfs\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.singlesimple\" }, { \"moduleName\": \"ffi\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -46,14 +42,42 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "json" },
-            { "lfs" }
+            { "aka.singlesimple" },
+            { "ffi" }
         }
     }):requireModules()
 end
 
+local clock = require("aka.optimising.time")
+local ssconfig = require("aka.singlesimple").make_config("aka.optimising", { true, false }, false)
+
+local start
+local lap
+local time
+
+start = function()
+    if jit.os ~= "Windows" then
+        aegisub.debug.out(3, "[aka.optimising] aka.optimising is only supported on Windows.\n")
+        aegisub.debug.out(3, "[aka.optimising] Please turn aka.optimising config to false in order to avoid this error.\n")
+        aegisub.cancel()
+    end
+    if ssconfig:value() then
+        time = clock.time()
+        aegisub.debug.out(3, "[aka.optimising][" .. string.format("%.6f", 0) .. "] Start aka.optimising\n")
+end end
+lap = function(lap_name)
+    if ssconfig:value() then
+        aegisub.debug.out(3, "[aka.optimising][" .. string.format("%.6f", clock.time() - time) .. "] " .. tostring(lap_name) .. "\n")
+end end
+
 local functions = {}
 
 functions.versioning = versioning
+
+functions.start = start
+functions.lap = lap
+
+functions.time = time
+functions.ssconfig = ssconfig
 
 return functions

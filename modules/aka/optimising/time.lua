@@ -1,4 +1,4 @@
--- aka.actor
+-- aka.optimising
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -21,44 +21,29 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-local aconfig = require("aka.config2")
+local ffi       = require("ffi")
+ffi.cdef[[
+    bool QueryPerformanceCounter(int64_t* lpPerformanceCount);
+    bool QueryPerformanceFrequency(int64_t* lpFrequency);
+]]
+local kernel32  = ffi.load("kernel32.dll")
+local QPC       = ffi.new("int64_t[1]")
+local QPF       = ffi.new("int64_t[1]")
+      QPF[0]    = 0
 
-local validation_func
+local time
 
-validation_func = function(config_data)
-    -- The only three string fields in https://github.com/arch1t3cht/Aegisub/blob/8c387cb63bf941eeaf30c6c5c849ced5604e786d/src/auto4_lua_assfile.cpp#L288
-    return type(config_data[1]) == "string" and
-           (config_data[1] == "actor" or
-            config_data[1] == "effect" or
-            config_data[1] == "style")
+time = function()
+    kernel32.QueryPerformanceCounter(QPC)
+    if QPF[0] == 0 then
+        kernel32.QueryPerformanceFrequency(QPF)
+    end
+
+    return tonumber(QPC[0]) / tonumber(QPF[0])
 end
 
-local Config = {}
-Config.__index = Config
+local functions = {}
 
-setmetatable(Config, { __call = function(cls) return cls.new() end })
-Config.new = function()
-    local self = setmetatable({}, Config)
+functions.time = time
 
-    local is_success
-    local config_data
-
-    is_success, config_data = aconfig.read_config("aka.actor", validation_func)
-    if is_success then self._field = config_data[1]
-    else self._field = "actor" aconfig.write_config("aka.actor", { self._field }) end
-
-    return self
-end
-
-Config.field = function(self)
-    return self._field
-end
-Config.setField = function(self, field)
-    local config_data
-
-    config_data = { field }
-    assert(validation_func(config_data))
-    self._field = field aconfig.write_config("aka.actor", config_data)
-end
-
-return Config()
+return functions

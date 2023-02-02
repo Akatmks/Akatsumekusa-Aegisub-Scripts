@@ -29,7 +29,7 @@ local versioning = {}
 
 versioning.name = "aka.workflow"
 versioning.description = "Module aka.workflow"
-versioning.version = "0.1.1"
+versioning.version = "0.1.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.workflow"
 
@@ -42,7 +42,7 @@ if hasDepCtrl then
         author = versioning.author,
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json"
     })
 end
 

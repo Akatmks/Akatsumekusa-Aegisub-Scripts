@@ -138,7 +138,14 @@ excluded_files = [
     "modules/aka/luajit-request/LICENSE.md"
 ]
 platform_dependent_files = {
-    "modules/aka/luajit-request/libcurl-x64.dll": ["Windows-x64", "Windows-arm"]
+    "modules/aka/luajit-request/libcurl-x64.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/lua-apr/apr_dbd_sqlite3-1.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/lua-apr/core.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/lua-apr/libapr-1.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/lua-apr/libapreq2.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/lua-apr/libapriconv-1.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/lua-apr/libaprutil-1.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/lua-apr/sqlite3.dll": ["Windows-x64", "Windows-arm"]
 }
 
 previousDependencyControl = None

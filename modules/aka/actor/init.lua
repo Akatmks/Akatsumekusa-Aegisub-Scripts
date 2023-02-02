@@ -27,11 +27,11 @@ local versioning = {}
 
 versioning.name = "aka.actor"
 versioning.description = "Module aka.actor"
-versioning.version = "0.1.6"
+versioning.version = "0.1.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.actor"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aegisub.re\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.singlesimple\" }, { \"moduleName\": \"aegisub.re\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -44,13 +44,13 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "aka.config2" },
+            { "aka.singlesimple" },
             { "aegisub.re" },
         }
     }):requireModules()
 end
 
-local field = require("aka.actor.config")
+local field = require("aka.singlesimple").make_config("aka.actor", { "actor", "effect", "style" }, "actor")
 local re = require("aegisub.re")
 
 local exp
@@ -79,8 +79,9 @@ flags = function(line, flag)
 
     flags = {}
     matches = {}
+    last_tail = ""
 
-    text = line[field:field()]
+    text = line[field:value()]
     while string.len(text) ~= 0 do
         match = exp:match(text)
         if match[1]["first"] == 1 then
@@ -101,7 +102,7 @@ flags = function(line, flag)
     return flags, matches, last_tail
 end
 setFlags = function(line, flags, last_tail)
-    line[field:field()] = ""
+    line[field:value()] = ""
 
     -- nil body will not be included but "" body will
     -- Both nil and "" tail will be treated as " "
@@ -110,10 +111,10 @@ setFlags = function(line, flags, last_tail)
             if not flags[i]["body"] then break end
             if not flags[i]["tail"] or flags[i]["tail"] == "" then flags[i]["tail"] = " " end
 
-            line[field:field()] = line[field:field()] .. flags[i]["body"] .. flags[i]["tail"]
+            line[field:value()] = line[field:value()] .. flags[i]["body"] .. flags[i]["tail"]
         until true
     end
-    line[field:field()] = string.gsub(line[field:field()], "%s*$", last_tail)
+    line[field:value()] = string.gsub(line[field:value()], "%s*$", last_tail)
 end
 
 flag_ = function(line, flag)
@@ -209,8 +210,8 @@ functions.onemoreFlag = onemoreFlag
 functions.onelessFlag = onelessFlag
 
 -- Note that this field is shared between all scripts using aka.actor
--- Use field:field() to get the field using,
--- Use field:setField() to set the field to either "actor", "effect" or "style"
+-- Use field:value() to get the field using,
+-- Use field:setValue() to set the field to either "actor", "effect" or "style"
 functions.field = field
 
 return functions

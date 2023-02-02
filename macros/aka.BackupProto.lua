@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "BackupProto"
 versioning.description = "Backup selected lines"
-versioning.version = "0.2.2"
+versioning.version = "0.2.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.BackupProto"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aegisub.re\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.optimising\", \"optional\": True }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -49,13 +49,15 @@ if hasDepCtrl then
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
             { "aka.actor" },
-            { "aegisub.re" }
+            { "aegisub.re" },
+            { "aka.optimising", optional = true }
         }
     })
     DepCtrl:requireModules()
 end
 local aactor = require("aka.actor")
 local re = require("aegisub.re")
+local hasOptimising, optimising = pcall(require, "aka.optimising")
 
 local Backup
 local backup
@@ -66,10 +68,14 @@ local Field
 Backup = function(sub, sel, act)
     local i
     local j
+    
+    if hasOptimising then optimising.start() end
 
     j = #sel repeat
         i = 1 repeat
             if j - i == sel[j] - sel[i] then
+                if hasOptimising then optimising.lap("Backup line " .. tostring(i) .. " to " .. tostring(j)) end
+                
                 sel, act = backup(sub, sel, act, sel[i], sel[j])
                 j = i - 1
                 break
@@ -77,6 +83,7 @@ Backup = function(sub, sel, act)
         until false
     until j == 0
     
+    if hasOptimising then optimising.lap("Backup finished") end
     return sel, act
 end
 backup = function(sub, sel, act, i, j)
@@ -134,7 +141,7 @@ Field = function()
                { class = "label",                           x = 1, y = 1, width = 5,
                                                             label = "Field: " },
                { class = "dropdown", name = "field",        x = 6, y = 1, width = 6,
-                                                            items = { "Actor", "Effect", "Style" }, value = re.sub(aactor.field:field(), "^\\w", string.upper) },
+                                                            items = { "Actor", "Effect", "Style" }, value = re.sub(aactor.field:value(), "^\\w", string.upper) },
                { class = "label",                           x = 0, y = 2, width = 24,
                                                             label = "This setting will apply to all Akatsumekusa's scripts." } }
     buttons = { "&Apply", "Figurative" }
@@ -144,7 +151,7 @@ Field = function()
 
     if button == false or button == "Figurative" then aegisub.cancel()
     elseif button == "&Apply" then
-        aactor.field:setField(string.lower(result_table["field"]))
+        aactor.field:setValue(string.lower(result_table["field"]))
     end
 end
 

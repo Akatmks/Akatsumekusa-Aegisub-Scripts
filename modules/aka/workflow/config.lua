@@ -22,19 +22,19 @@
 ------------------------------------------------------------------------------
 
 local json = require("json")
-local aconfig = require(aka.config2)
+local aconfig = require("aka.config2")
 
 local config
 local config_table
 
-config = function ()
+config = function()
     local is_success
     local config_file
 
     if not config_table then
         config_file = io.open(aconfig.config_dir .. "/aka.workflow/workflows.json", "r")
         if config_file then
-            is_success, config_table = pcall(json.decode(config_file:read("*all")))
+            is_success, config_table = pcall(json.decode, config_file:read("*all"))
             assert(config_file:close())
             if not is_success then config_table = nil end
     end end
