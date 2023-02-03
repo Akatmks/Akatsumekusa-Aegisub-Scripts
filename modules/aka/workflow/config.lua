@@ -21,24 +21,34 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-local json = require("json")
-local aconfig = require("aka.config2")
+local ConfigHandler
+local settings
 
-local config
-local config_table
+local init_config
+local check_config
 
-config = function()
-    local is_success
-    local config_file
+init_config = function(ConfigHandler_)
+    ConfigHandler = ConfigHandler or ConfigHandler_
+    assert(ConfigHandler)
+end
 
-    if not config_table then
-        config_file = io.open(aconfig.config_dir .. "/aka.workflow/workflows.json", "r")
-        if config_file then
-            is_success, config_table = pcall(json.decode, config_file:read("*all"))
-            assert(config_file:close())
-            if not is_success then config_table = nil end
-    end end
-    if not config_table then end
+check_config = function()
+    if not settings then
+        local is_success
+        local msg
 
-    return config_table
+        ConfigHandler = ConfigHandler_
+
+        is_success, msg = ConfigHandler:load()
+        if not is_success then -- use aconfig.config_gui3 (?) end
+        settings = ConfigHandler.c.settings
+        -- validate
+    end
+end
+
+return function(ConfigHandler_)
+    init_config(ConfigHandler_)
+
+
+
 end

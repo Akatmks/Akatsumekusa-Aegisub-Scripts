@@ -20,11 +20,11 @@ local versioning = {}
 
 versioning.name = "NN.fanhua"
 versioning.description = "Macro NN.fanhua"
-versioning.version = "0.1.6"
+versioning.version = "0.1.7"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.fanhua"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.luajit-request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.template\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.template\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -43,7 +43,7 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "aka.luajit-request" },
+            { "aka.request" },
             { "aka.config" },
             { "aka.template" }
         }

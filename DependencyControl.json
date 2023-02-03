@@ -14,14 +14,14 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/NN.fanhua.lua",
-                            "sha1": "06ff45368aa5ee8cd4f517597b871a997239eeae"
+                            "sha1": "41230cfc2e5981fac5851216d54de780ad0ae584"
                         }
                     ],
-                    "version": "0.1.6",
+                    "version": "0.1.7",
                     "default": true,
                     "requireModules": [
                         {
-                            "moduleName": "aka.luajit-request"
+                            "moduleName": "aka.request"
                         },
                         {
                             "moduleName": "aka.config"
@@ -147,10 +147,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/NN/CJCharacter/init.lua",
-                            "sha1": "1c7e62d8bf39cc03b5095ca564b0fa114d0118ac"
+                            "sha1": "a7f810d3b287e4230b1a5f815a49b797345b3066"
                         }
                     ],
-                    "version": "0.1.8",
+                    "version": "0.1.9",
                     "default": true,
                     "released": "2023-02-03"
                 }
@@ -223,7 +223,7 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "bb1564f54427555c8dec69ecd6d917a5df0461d9"
+                            "sha1": "b8bfab194aafb15b3cc64ce62551ccd66686be8e"
                         },
                         {
                             "name": "/init.lua",
@@ -499,12 +499,12 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/workflow/config.lua",
-                            "sha1": "c8947cabb44fd26053d78a7df7cc3f99031e1d27"
+                            "sha1": "69b6a062c951256e7b6188b11b98bef04746d56d"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/workflow/init.lua",
-                            "sha1": "91a45940b4609b3a22490e85926ab706b47de8e6"
+                            "sha1": "2bb2a1566cbdbd120abbbfe5f5d2ded1c2fde9d8"
                         },
                         {
                             "name": "/run.lua",
@@ -514,11 +514,16 @@
                         {
                             "name": "/workflow.lua",
                             "url": "@{fileBaseUrl}/modules/aka/workflow/workflow.lua",
-                            "sha1": "39bcfa6b114e9958c9a3fca88a54a01a67739182"
+                            "sha1": "db7e010e08812579821057a02e3a4daebd8da0b8"
                         }
                     ],
-                    "version": "0.1.4",
+                    "version": "0.1.5",
                     "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.config"
+                        }
+                    ],
                     "released": "2023-02-03"
                 }
             },

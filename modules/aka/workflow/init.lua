@@ -29,22 +29,27 @@ local versioning = {}
 
 versioning.name = "aka.workflow"
 versioning.description = "Module aka.workflow"
-versioning.version = "0.1.4"
+versioning.version = "0.1.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.workflow"
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json"
-    })
-end
+versioning.requireModules = "[{ \"moduleName\": \"aka.config\" }]"
+
+local DepCtrl = (require("l0.DependencyControl"))({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+    {
+        { "aka.config" }
+    }
+})
+DepCtrl:requireModules()
+
+local config = (require("aka.workflow.config"))(DepCtrl:getConfigHandler(nil, nil, true))
 
 local functions = {}
 

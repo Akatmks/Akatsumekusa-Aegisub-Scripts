@@ -22,10 +22,45 @@
 ------------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
+-- Workflow register
+-- A module need to have a workflow table in the root table:
+-- ```
+-- local functions = {}
+-- functions.versioning = versioning
+-- functions.workflow = workflow
+-- return functions
+-- ```
+-- The workflow table:
+-- ```
+-- workflow = {
+--     -- The main function
+--     run = function(subs, sel, act, config, extra_data)
+--         return sel, act, extra_data
+--     end
+--
+--     -- If you are processing subtitles line by line, you should set both values to 1;
+--     -- If, for example, you are doing gradient and you need lines to be grouped by 2, you should set both values to 2;
+--     -- If you don't really know how many lines you should be feed with, you can set both values to 0;
+--     max_lines_taken = 1 -- Setting this to 0 means inf
+--     min_lines_taken = 1 -- Setting this to 0 is the same as 1
+--
+--     -- There are 4 possible values for multithreading
+--     -- true if each line section is processed independent of each other and
+--     --         YOU DON'T INSERT OR DELETE LINES FROM THE SUBTITLE OBJECT,
+--     -- "aggressive" if you expect your process to be slower than 50 ms per line section and
+--     --                 each line section is processed independent of each other and
+--     --                 YOU DON'T INSERT OR DELETE LINES FROM THE SUBTITLE OBJECT
+--     -- false if you multithreading is not possible (the line sections will still be fed one by one)
+--     -- "manual" if you will need all the lines to be fed to you at once
+--     multithreading = true
+-- }
+-- ```
+------------------------------------------------------------------------------
 -- Workflow table:
 -- ```
 -- {
---     ["work"] = "aka.Backup",
+--     ["runner"] = "aka.Backup",
+--     ["work"] = {}
 --     ["flow"] = {}
 -- }
 -- ```
@@ -33,8 +68,8 @@
 -- table as config.
 -- ```
 -- {
---     ["work"] = "aka.Backup",
---     ["flow"] = "Flow Name"
+--     ["worker"] = "aka.Backup",
+--     ["work"] = "Work Name"
 -- }
 -- ```
 -- If flow is a string, aka.workflow will read the workflow with the specified

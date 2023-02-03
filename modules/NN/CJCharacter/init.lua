@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "NN.CJCharacter"
 versioning.description = "Module NN.CJCharacter"
-versioning.version = "0.1.8"
+versioning.version = "0.1.9"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "NN.CJCharacter"
 
@@ -41,7 +41,7 @@ local characters
 local f
 local at
 
-f = assert(io.open("NN/CJCharacter/characters.ansi", "rb"))
+f = assert(io.open(debug.getinfo(1).source:match("@?(.*[/\\])") .. "characters.ansi", "rb"))
 characters = f:read("*all")
 f:close()
 at = function(idx) return string.sub(characters, idx, idx) end
