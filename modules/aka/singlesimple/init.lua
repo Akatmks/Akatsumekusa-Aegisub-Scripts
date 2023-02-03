@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "0.1.2"
+versioning.version = "0.1.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 

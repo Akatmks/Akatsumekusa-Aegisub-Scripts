@@ -16,6 +16,6 @@ tools/aae-export-base122/base122.c linguist-vendored
 tools/aae-export-base122/base122.h linguist-vendored
 tools/aae-export-base122/util.h linguist-vendored
 
-# aka.luajit-request
-modules/aka/luajit-request/init.lua linguist-vendored
-modules/aka/luajit-request/luajit-curl.lua linguist-vendored
+# aka.request
+modules/aka/request/luajit-request/init.lua linguist-vendored
+modules/aka/request/luajit-request/luajit-curl.lua linguist-vendored

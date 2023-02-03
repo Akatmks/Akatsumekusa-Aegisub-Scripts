@@ -139,14 +139,10 @@ excluded_files = [
     "modules/aka/optimising/time.lua"
 ]
 platform_dependent_files = {
-    "modules/aka/luajit-request/libcurl-x64.dll": ["Windows-x64", "Windows-arm"],
-    "modules/aka/lua-apr/apr_dbd_sqlite3-1.dll": ["Windows-x64", "Windows-arm"],
-    "modules/aka/lua-apr/core.dll": ["Windows-x64", "Windows-arm"],
-    "modules/aka/lua-apr/libapr-1.dll": ["Windows-x64", "Windows-arm"],
-    "modules/aka/lua-apr/libapreq2.dll": ["Windows-x64", "Windows-arm"],
-    "modules/aka/lua-apr/libapriconv-1.dll": ["Windows-x64", "Windows-arm"],
-    "modules/aka/lua-apr/libaprutil-1.dll": ["Windows-x64", "Windows-arm"],
-    "modules/aka/lua-apr/sqlite3.dll": ["Windows-x64", "Windows-arm"]
+    "modules/aka/request/luajit-request/libcurl.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/effil/effil.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/effil/effil.so": ["Linux-x64", "BSD-x64", "POSIX-x64"],
+    "modules/aka/effil/effil-osx.so": ["OSX-x64", "OSX-arm"],
 }
 
 previousDependencyControl = None
@@ -196,7 +192,7 @@ def writeVersion(p, version):
                lambda match: match.group(1) + str(version) + match.group(3),
                s)
     
-    with p.open("w", encoding="utf-8") as f:
+    with p.open("w", encoding="utf-8", newline="\n") as f:
         f.write(s)
 
     repo.index.add(str(p))
@@ -359,6 +355,6 @@ if __name__ == "__main__":
                 DependencyControl["modules"][namespace]["channels"][dev_branch]["released"] = datetime.now(timezone.utc).date().isoformat()
 
     p = Path("DependencyControl.json")
-    with p.open("w", encoding="utf-8") as f:
+    with p.open("w", encoding="utf-8", newline="\n") as f:
         json.dump(DependencyControl, f, indent=4)
     repo.index.add(str(p))

@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.Cycles"
 versioning.description = "Macro aka.Cycles"
-versioning.version = "0.1.7"
+versioning.version = "0.1.8"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Cycles"
 

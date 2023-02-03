@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "NN.CJCharacter"
 versioning.description = "Module NN.CJCharacter"
-versioning.version = "0.1.7"
+versioning.version = "0.1.8"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "NN.CJCharacter"
 

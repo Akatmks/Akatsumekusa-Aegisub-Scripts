@@ -1,4 +1,4 @@
--- aka.optimising
+-- aka.effil
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -23,13 +23,13 @@
 
 local versioning = {}
 
-versioning.name = "aka.optimising"
-versioning.description = "Module aka.optimising"
-versioning.version = "0.1.5"
+versioning.name = "aka.effil"
+versioning.description = "Module aka.effil"
+versioning.version = "0.1.1"
 versioning.author = "Akatsumekusa and contributors"
-versioning.namespace = "aka.optimising"
+versioning.namespace = "aka.effil"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.singlesimple\" }, { \"moduleName\": \"PT.PreciseTimer\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"ffi\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -42,37 +42,17 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "aka.singlesimple" },
-            { "PT.PreciseTimer" }
+            { "ffi" }
         }
-    }):requireModules()
+    })
 end
 
-local PT = require("PT.PreciseTimer")
-local ssconfig = require("aka.singlesimple").make_config("aka.optimising", { true, false }, false)
+if ffi.os ~= "OSX" then
+    local effil = require("aka.effil.effil")
+else
+    local effil = require("aka.effil.effil-osx")
+end
 
-local start
-local lap
-local timer
+effil.versioning = versioning
 
-start = function()
-    if ssconfig:value() then
-        timer = PT.new()
-        aegisub.debug.out(3, "[aka.optimising][" .. string.format("%.6f", 0) .. "] Start aka.optimising\n")
-end end
-lap = function(lap_name)
-    if ssconfig:value() then
-        aegisub.debug.out(3, "[aka.optimising][" .. string.format("%.6f", timer:timeElapsed()) .. "] " .. tostring(lap_name) .. "\n")
-end end
-
-local functions = {}
-
-functions.versioning = versioning
-
-functions.start = start
-functions.lap = lap
-
-functions.time = time
-functions.ssconfig = ssconfig
-
-return functions
+return effil

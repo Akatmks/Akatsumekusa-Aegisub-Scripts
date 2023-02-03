@@ -1,9 +1,9 @@
 --[[
-LuaJIT-cURL
+LuaJIT-Request
 Lucien Greathouse, slightly altered by Akatsumekusa
-LuaJIT FFI cURL binding aimed at cURL version 7.38.0.
+Wrapper for LuaJIT-cURL for easy HTTP(S) requests.
 
-Copyright (c) 2014 lucien Greathouse
+Copyright (c) 2016 Lucien Greathouse
 
 This software is provided 'as-is', without any express
 or implied warranty. In no event will the authors be held
@@ -25,8 +25,12 @@ not be misrepresented as being the original software.
 ]]
 
 local ffi = require("ffi")
-local requireffi = require("requireffi.requireffi")
-local curl = requireffi("aka.luajit-request.curl")
+if jit.os == "Windows" then
+	local requireffi = require("requireffi.requireffi")
+	local curl = requireffi("aka.request.luajit-request.curl")
+else
+	local curl = ffi.load("libcurl")
+end
 
 if (jit.os == "Windows") then
 	--Windows!

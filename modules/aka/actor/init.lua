@@ -27,7 +27,7 @@ local versioning = {}
 
 versioning.name = "aka.actor"
 versioning.description = "Module aka.actor"
-versioning.version = "0.1.8"
+versioning.version = "0.1.9"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.actor"
 
@@ -45,7 +45,7 @@ if hasDepCtrl then
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
             { "aka.singlesimple" },
-            { "aegisub.re" },
+            { "aegisub.re" }
         }
     }):requireModules()
 end
