@@ -33,8 +33,10 @@
 -- The workflow table:
 -- ```
 -- workflow = {
+--     display_name = "BackupProto"
+--
 --     -- The main function
---     run = function(subs, sel, act, config, extra_data)
+--     run = function(subs, sel, act, work, extra_data)
 --         return sel, act, extra_data
 --     end
 --
@@ -59,7 +61,7 @@
 -- Workflow table:
 -- ```
 -- {
---     ["runner"] = "aka.Backup",
+--     ["runner"] = "aka.backup",
 --     ["work"] = {}
 --     ["flow"] = {}
 -- }

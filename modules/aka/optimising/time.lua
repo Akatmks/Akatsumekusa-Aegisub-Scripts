@@ -23,8 +23,8 @@
 
 local ffi       = require("ffi")
 ffi.cdef[[
-    bool QueryPerformanceCounter(int64_t* lpPerformanceCount);
-    bool QueryPerformanceFrequency(int64_t* lpFrequency);
+bool QueryPerformanceCounter(int64_t* lpPerformanceCount);
+bool QueryPerformanceFrequency(int64_t* lpFrequency);
 ]]
 local kernel32  = ffi.load("kernel32.dll")
 local QPC       = ffi.new("int64_t[1]")

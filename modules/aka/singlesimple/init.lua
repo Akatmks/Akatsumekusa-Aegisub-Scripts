@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "0.1.3"
+versioning.version = "0.1.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
@@ -69,13 +69,13 @@ make_config = function(...)
     local possible_values
     local default_value
     assert(type(arg[1]) == "string") config = arg[1]
-    if #arg >= 4 and type(arg[2]) == "string" then
+    if type(arg[2]) == "string" then
         subfolder = arg[2]
         assert(type(arg[3]) == "table") possible_values = arg[3]
-        default_value = arg[4]
+        assert(type(arg[4]) == "table") default_value = arg[4]
     else
-        possible_values = arg[2]
-        default_value = arg[3]
+        assert(type(arg[2]) == "table") possible_values = arg[2]
+        assert(type(arg[3]) == "table") default_value = arg[3]
     end
 
     local Config

@@ -83,8 +83,8 @@ edit_config_gui = function(...)
     assert(type(arg[1]) == "string") config = arg[1]
     if type(arg[2]) == nil then arg[2] = "" elseif type(arg[2]) ~= "string" then table.insert(arg, 2, "") end subfolder = arg[2]
     if type(arg[3]) == nil then arg[3] = function() return true end elseif type(arg[3]) ~= "function" then table.insert(arg, 3, function() return true end) end validation_func = arg[3]
-    if type(arg[4]) ~= "function" or type(arg[4]) ~= "nil" then table.insert(arg, 3, nil) end validation_func = arg[3]
-    if type(arg[5]) == nil then arg[5] = validation_func elseif type(arg[5]) ~= "function" then table.insert(arg, 3, validation_func) end validation_func = arg[3]
+    if type(arg[4]) ~= "function" or type(arg[4]) ~= "nil" then table.insert(arg, 3, nil) end ui_func = arg[4]
+    if type(arg[5]) == nil then arg[5] = validation_func elseif type(arg[5]) ~= "function" then table.insert(arg, 3, validation_func) end validation_func_ui = arg[5]
     assert(type(arg[6]) == "table")
     assert(type(arg[6]["name_b"]) == "string") word_name_b = arg[6]["name_b"]
     word_config_b = type(arg[6]["config_b"]) == "string" and arg[6]["config_b"] or "𝗖𝗼𝗻𝗳𝗶𝗴"
@@ -98,8 +98,6 @@ edit_config_gui = function(...)
     local is_success
     local config_data
     local return_config_data
-    local msg_count
-    local msg
 
     config_file = io.open(config2.config_dir .. "/" .. subfolder .. (subfolder ~= "" and "/" or "") .. config .. ".json", "r")
     if not config_file then
@@ -118,11 +116,11 @@ edit_config_gui = function(...)
             if config_data == false then return false end
             repeat
                 is_success, return_config_data = ui_func(config_data)
-                if return_config_data then config_data = return_config_data end
+                config_data = return_config_data or config_data
                 if is_success == false then return false
                 elseif is_success == "JSON" then
                     return_config_data = config_gui2(json:encode_pretty(config_data), validation_func_ui, word_name_b, word_config_b, word_template, word_templates_b, config_templates)
-                    if return_config_data then config_data = return_config_data end
+                    config_data = return_config_data or config_data
                 end
             until is_success == true
             assert(validation_func(config_data))
