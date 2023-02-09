@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 1, 2),
+    "version": (1, 1, 3),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -886,10 +886,10 @@ class AAEExportExportAll(bpy.types.Operator):
         plot_position(axs[0], position, smoothed_position, "position", smoothing_do_position)
         plot_position(axs[1], scale, smoothed_scale, "scale", smoothing_do_scale)
         plot_univariate(axs[2], rotation, smoothed_rotation, "rotation", smoothing_do_rotation)
-        plot_position(axs[3], power_pin[0], smoothed_power_pin[0], "power_pin_2", smoothing_do_power_pin)
-        plot_position(axs[4], power_pin[1], smoothed_power_pin[1], "power_pin_3", smoothing_do_power_pin)
-        plot_position(axs[5], power_pin[2], smoothed_power_pin[2], "power_pin_4", smoothing_do_power_pin)
-        plot_position(axs[6], power_pin[3], smoothed_power_pin[3], "power_pin_5", smoothing_do_power_pin)
+        plot_position(axs[3], power_pin[0], smoothed_power_pin[0], "power_pin_0002", smoothing_do_power_pin)
+        plot_position(axs[4], power_pin[1], smoothed_power_pin[1], "power_pin_0003", smoothing_do_power_pin)
+        plot_position(axs[5], power_pin[2], smoothed_power_pin[2], "power_pin_0004", smoothing_do_power_pin)
+        plot_position(axs[6], power_pin[3], smoothed_power_pin[3], "power_pin_0005", smoothing_do_power_pin)
 
         fig.canvas.draw()
         with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
