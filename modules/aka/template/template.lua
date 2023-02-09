@@ -30,7 +30,7 @@ local select_template_key
 selected_template_keys = nil do
     local is_successs
 
-    is_successs, selected_template_keys = config2.read_config("template", "aka")
+    is_successs, selected_template_keys = config2.read_config("aka.template")
     if not is_successs then selected_template_keys = nil end
 end
 
@@ -56,7 +56,7 @@ get_template_key = function(config_templates)
 
     for k in pairs(config_templates) do
         selected_template_keys = { key = k, next = selected_template_keys }
-        config2.write_config("template", "aka", selected_template_keys)
+        config2.write_config("aka.template", selected_template_keys)
         return k
 end end
 select_template_key = function(template_key)

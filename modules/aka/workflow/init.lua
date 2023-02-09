@@ -29,11 +29,11 @@ local versioning = {}
 
 versioning.name = "aka.workflow"
 versioning.description = "Module aka.workflow"
-versioning.version = "0.1.6"
+versioning.version = "0.1.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.workflow"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.config\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"ffi\" }]"
 
 local DepCtrl = (require("l0.DependencyControl"))({
     name = versioning.name,
@@ -44,7 +44,8 @@ local DepCtrl = (require("l0.DependencyControl"))({
     url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
     {
-        { "aka.config" }
+        { "aka.config2" },
+        { "ffi" }
     }
 })
 DepCtrl:requireModules()

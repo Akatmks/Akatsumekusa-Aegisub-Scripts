@@ -50,7 +50,7 @@ typedef struct {
     uint32_t  dwAllocationGranularity;
     uint16_t  wProcessorLevel;
     uint16_t  wProcessorRevision;
-} SYSTEM_INFO, * LPSYSTEM_INFO;
+} SYSTEM_INFO, *LPSYSTEM_INFO;
 void GetSystemInfo(LPSYSTEM_INFO lpSystemInfo);
         ]]
         local kernel32      = ffi.load("kernel32.dll")

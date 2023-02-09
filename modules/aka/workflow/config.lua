@@ -40,7 +40,7 @@ check_config = function()
         ConfigHandler = ConfigHandler_
 
         is_success, msg = ConfigHandler:load()
-        if not is_success then -- use aconfig.config_gui3 (?) end
+        if not is_success then  end
         settings = ConfigHandler.c.settings
         -- validate
     end
