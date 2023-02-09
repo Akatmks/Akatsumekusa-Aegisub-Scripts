@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -61,7 +61,10 @@ import bpy
 import bpy_extras.io_utils
 
 # ("import name", "PyPI name", "minimum version")
-smoothing_modules = (("numpy", "numpy", ""), ("sklearn", "scikit-learn", "0.18"))
+smoothing_modules = (("numpy", "numpy", ""),
+                     ("sklearn", "scikit-learn", "0.18"),
+                     ("matplotlib", "matplotlib", ""),
+                     ("PIL", "Pillow", ""))
 
 is_smoothing_modules_available = False
 
@@ -257,6 +260,71 @@ class AAEExportExportAll(bpy.types.Operator):
                   settings.do_includes_power_pin)
 
         return aae
+
+    @staticmethod
+    def _plot_graph(clip, track, settings):
+        """
+        Parameters
+        ----------
+        clip : bpy.types.MovieClip
+        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
+        settings : AAEExportSettings or None
+            AAEExportSettings.
+
+        Returns
+        -------
+        aae : str
+
+        """
+        import numpy as np
+        
+        ratio, multiplier \
+            = AAEExportExportAll._calculate_aspect_ratio( \
+                  clip)
+
+        position, scale, semilimited_rotation, power_pin \
+            = AAEExportExportAll._prepare_data( \
+                  clip, track, ratio)
+
+        smoothed_position \
+            = AAEExportExportAll._smoothing( \
+                  position, \
+                  settings.smoothing_do_position, settings.smoothing_do_predictive_smoothing, \
+                  settings.smoothing_position_degree, \
+                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+        smoothed_scale \
+            = AAEExportExportAll._smoothing( \
+                  scale, \
+                  settings.smoothing_do_scale, settings.smoothing_do_predictive_smoothing, \
+                  settings.smoothing_scale_degree, \
+                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+        rotation \
+            = AAEExportExportAll._unlimit_rotation( \
+                  semilimited_rotation)
+            
+        smoothed_rotation \
+            = AAEExportExportAll._smoothing( \
+                  rotation, \
+                  settings.smoothing_do_rotation, settings.smoothing_do_predictive_smoothing, \
+                  settings.smoothing_rotation_degree, \
+                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+        smoothed_power_pin \
+            = np.empty_like(power_pin)
+        for i in range(4):
+            smoothed_power_pin[i] \
+                = AAEExportExportAll._smoothing( \
+                      power_pin[i], \
+                      settings.smoothing_do_power_pin, settings.smoothing_do_predictive_smoothing, \
+                      settings.smoothing_power_pin_degree, \
+                      settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+        AAEExportExportAll._plot( \
+            position, scale, rotation, power_pin, \
+            smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, \
+            settings.smoothing_do_position, settings.smoothing_do_scale, settings.smoothing_do_rotation, settings.smoothing_do_power_pin)
 
     @staticmethod
     def _calculate_aspect_ratio(clip):
@@ -558,11 +626,13 @@ class AAEExportExportAll(bpy.types.Operator):
         import numpy as np
 
         if data.ndim == 2:
+            predicted_data \
+                = np.empty_like(data)
             for i in range(data.shape[1]):
-                data[:, i] \
+                predicted_data[:, i] \
                     = AAEExportExportAll._smoothing( \
                           data[:, i], do_smoothing, do_predictive_smoothing, degree, regressor, huber_epsilon, lasso_alpha)
-            return data
+            return predicted_data
         
         elif data.ndim == 1:
             match (do_smoothing << 1) + do_predictive_smoothing: # match case requires Python 3.10 (Blender 3.1)
@@ -727,6 +797,104 @@ class AAEExportExportAll(bpy.types.Operator):
 
         return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
         
+    @staticmethod
+    def _plot(position, scale, rotation, power_pin, smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, smoothing_do_position, smoothing_do_scale, smoothing_do_rotation, smoothing_do_power_pin):
+        """
+        Plot the data.
+
+        Parameters
+        ----------
+        position : npt.NDArray[float64]
+        scale : npt.NDArray[float64]
+        rotation : npt.NDArray[float64]
+        power_pin : npt.NDArray[float64]
+        smoothed_position : npt.NDArray[float64]
+        smoothed_scale : npt.NDArray[float64]
+        smoothed_rotation : npt.NDArray[float64]
+        smoothed_power_pin : npt.NDArray[float64]
+        """
+        import matplotlib as mpl
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import PIL
+        import re
+
+        def plot_position(row, position, smoothed_position, label, do_smoothing):
+            row[0].invert_yaxis()
+            row[0].scatter(position[:, 0], position[:, 1], color="red", marker="x", s=1, label="_".join(re.split(" |_", label.lower())), zorder=3.01)
+            if do_smoothing:
+                row[0].plot(smoothed_position[:, 0], smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.02)
+            row[0].legend()
+            row[0].set_xlabel("X")
+            row[0].set_ylabel("Y")
+
+            row[1].scatter(np.arange(1, position.shape[0] + 1), position[:, 0], color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=3.01)
+            if do_smoothing:
+                row[1].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.02)
+            row[1].legend()
+            row[1].set_xlabel("Frame")
+            row[1].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
+
+            if do_smoothing:
+                row[2].plot(np.arange(1, position.shape[0] + 1), position[:, 0] - smoothed_position[:, 0], color="red", label="_".join(re.split(" |_", label.lower())), zorder=3.02)
+                row[2].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0] - smoothed_position[:, 0], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.01)
+                row[2].legend()
+                row[2].set_xlabel("Frame")
+                row[2].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
+            else:
+                row[2].axis("off")
+
+            row[3].scatter(np.arange(1, position.shape[0] + 1), position[:, 1], color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=3.01)
+            if do_smoothing:
+                row[3].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.02)
+            row[3].legend()
+            row[3].set_xlabel("Frame")
+            row[3].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
+
+            if do_smoothing:
+                row[4].plot(np.arange(1, position.shape[0] + 1), position[:, 1] - smoothed_position[:, 1], color="red", label="_".join(re.split(" |_", label.lower())), zorder=3.02)
+                row[4].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1] - smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.01)
+                row[4].legend()
+                row[4].set_xlabel("Frame")
+                row[4].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
+            else:
+                row[4].axis("off")
+        
+        def plot_univariate(row, rotation, smoothed_rotation, label, do_smoothing):
+            row[0].axis("off")
+            
+            row[1].scatter(np.arange(1, rotation.shape[0] + 1), rotation, color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=3.01)
+            if do_smoothing:
+                row[1].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation, color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.02)
+            row[1].legend()
+            row[1].set_xlabel("Frame")
+            row[1].set_ylabel(label.title())
+
+            if do_smoothing:
+                row[2].plot(np.arange(1, rotation.shape[0] + 1), rotation - smoothed_rotation, color="red", label="_".join(re.split(" |_", label.lower())), zorder=3.02)
+                row[2].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation - smoothed_rotation, color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.01)
+                row[2].legend()
+                row[2].set_xlabel("Frame")
+                row[2].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))))
+            else:
+                row[2].axis("off")
+            
+            row[3].axis("off")
+            row[4].axis("off")
+        
+        fig, axs = plt.subplots(ncols=5, nrows=7, figsize=(5 * 5.4, 7 * 4.05), dpi=250, layout="constrained")
+        plot_position(axs[0], position, smoothed_position, "position", smoothing_do_position)
+        plot_position(axs[1], scale, smoothed_scale, "scale", smoothing_do_scale)
+        plot_univariate(axs[2], rotation, smoothed_rotation, "rotation", smoothing_do_rotation)
+        plot_position(axs[3], power_pin[0], smoothed_power_pin[0], "power_pin_2", smoothing_do_power_pin)
+        plot_position(axs[4], power_pin[1], smoothed_power_pin[1], "power_pin_3", smoothing_do_power_pin)
+        plot_position(axs[5], power_pin[2], smoothed_power_pin[2], "power_pin_4", smoothing_do_power_pin)
+        plot_position(axs[6], power_pin[3], smoothed_power_pin[3], "power_pin_5", smoothing_do_power_pin)
+
+        fig.canvas.draw()
+        with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
+            im.show()
+
     @staticmethod
     def _generate_aae_non_numpy(clip, track):
         """
@@ -1129,6 +1297,23 @@ class AAEExportCopyPlaneTrack(bpy.types.Operator):
             AAEExportExportAll._export_to_file(clip, clip.tracking.plane_tracks[0], aae, None, settings.do_do_not_overwrite)
         
         return { "FINISHED" }
+
+class AAEExportPlotGraph(bpy.types.Operator):
+    bl_label = "Plot Graph"
+    bl_description = "Plot the data and the smoothed data on graph"
+    bl_idname = "movieclip.aae_export_plot_graph"
+
+    def execute(self, context):
+        clip = context.edit_movieclip
+        settings = context.screen.AAEExportSettings
+
+        AAEExportExportAll._plot_graph(clip, context.selected_movieclip_tracks[0], settings)
+        for plane_track in context.edit_movieclip.tracking.plane_tracks:
+            if plane_track.select == True:
+                AAEExportExportAll._plot_graph(clip, plane_track, settings)
+                break
+
+        return { "FINISHED" }
     
 class AAEExport(bpy.types.Panel):
     bl_label = "AAE Export"
@@ -1239,6 +1424,14 @@ class AAEExportOptions(bpy.types.Panel):
             column = box.column(heading="Smoothing")
             column.prop(settings, "do_smoothing")
             column.separator(factor=0.0)
+            selected_plane_tracks = 0
+            for plane_track in context.edit_movieclip.tracking.plane_tracks:
+                if plane_track.select == True:
+                    selected_plane_tracks += 1
+            sub_column = column.column()
+            sub_column.enabled = settings.do_smoothing and \
+                                 (selected_plane_tracks == 1) is not (len(context.selected_movieclip_tracks) == 1)
+            sub_column.operator("movieclip.aae_export_plot_graph")
             sub_column = column.column(heading="Position")
             sub_column.enabled = settings.do_smoothing
             sub_column.prop(settings, "smoothing_do_position")
@@ -1302,6 +1495,7 @@ classes = (AAEExportSettings,
            AAEExportExportAll,
            AAEExportCopySingleTrack,
            AAEExportCopyPlaneTrack,
+           AAEExportPlotGraph,
            AAEExport,
            AAEExportSelectedTrack,
            AAEExportAllTracks,
