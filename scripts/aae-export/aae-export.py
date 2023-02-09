@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 1, 1),
+    "version": (1, 1, 2),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -821,39 +821,39 @@ class AAEExportExportAll(bpy.types.Operator):
 
         def plot_position(row, position, smoothed_position, label, do_smoothing):
             row[0].invert_yaxis()
-            row[0].scatter(position[:, 0], position[:, 1], color="red", marker="x", s=1, label="_".join(re.split(" |_", label.lower())), zorder=3.01)
+            row[0].scatter(position[:, 0], position[:, 1], color="red", marker="x", s=1, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
             if do_smoothing:
-                row[0].plot(smoothed_position[:, 0], smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.02)
+                row[0].plot(smoothed_position[:, 0], smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[0].legend()
             row[0].set_xlabel("X")
             row[0].set_ylabel("Y")
 
-            row[1].scatter(np.arange(1, position.shape[0] + 1), position[:, 0], color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=3.01)
+            row[1].scatter(np.arange(1, position.shape[0] + 1), position[:, 0], color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
             if do_smoothing:
-                row[1].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.02)
+                row[1].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[1].legend()
             row[1].set_xlabel("Frame")
             row[1].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
 
             if do_smoothing:
-                row[2].plot(np.arange(1, position.shape[0] + 1), position[:, 0] - smoothed_position[:, 0], color="red", label="_".join(re.split(" |_", label.lower())), zorder=3.02)
-                row[2].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0] - smoothed_position[:, 0], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.01)
+                row[2].plot(np.arange(1, position.shape[0] + 1), position[:, 0] - smoothed_position[:, 0], color="red", label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[2].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0] - smoothed_position[:, 0], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 row[2].legend()
                 row[2].set_xlabel("Frame")
                 row[2].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
             else:
                 row[2].axis("off")
 
-            row[3].scatter(np.arange(1, position.shape[0] + 1), position[:, 1], color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=3.01)
+            row[3].scatter(np.arange(1, position.shape[0] + 1), position[:, 1], color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
             if do_smoothing:
-                row[3].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.02)
+                row[3].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[3].legend()
             row[3].set_xlabel("Frame")
             row[3].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
 
             if do_smoothing:
-                row[4].plot(np.arange(1, position.shape[0] + 1), position[:, 1] - smoothed_position[:, 1], color="red", label="_".join(re.split(" |_", label.lower())), zorder=3.02)
-                row[4].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1] - smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.01)
+                row[4].plot(np.arange(1, position.shape[0] + 1), position[:, 1] - smoothed_position[:, 1], color="red", label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[4].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1] - smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 row[4].legend()
                 row[4].set_xlabel("Frame")
                 row[4].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
@@ -863,16 +863,16 @@ class AAEExportExportAll(bpy.types.Operator):
         def plot_univariate(row, rotation, smoothed_rotation, label, do_smoothing):
             row[0].axis("off")
             
-            row[1].scatter(np.arange(1, rotation.shape[0] + 1), rotation, color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=3.01)
+            row[1].scatter(np.arange(1, rotation.shape[0] + 1), rotation, color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
             if do_smoothing:
-                row[1].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation, color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.02)
+                row[1].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation, color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[1].legend()
             row[1].set_xlabel("Frame")
             row[1].set_ylabel(label.title())
 
             if do_smoothing:
-                row[2].plot(np.arange(1, rotation.shape[0] + 1), rotation - smoothed_rotation, color="red", label="_".join(re.split(" |_", label.lower())), zorder=3.02)
-                row[2].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation - smoothed_rotation, color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=3.01)
+                row[2].plot(np.arange(1, rotation.shape[0] + 1), rotation - smoothed_rotation, color="red", label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[2].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation - smoothed_rotation, color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 row[2].legend()
                 row[2].set_xlabel("Frame")
                 row[2].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))))
