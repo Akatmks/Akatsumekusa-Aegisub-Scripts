@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 1, 3),
+    "version": (1, 1, 4),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -820,6 +820,10 @@ class AAEExportExportAll(bpy.types.Operator):
         import re
 
         def plot_position(row, position, smoothed_position, label, do_smoothing):
+            def test_z_score(data):
+                # Iglewicz and Hoaglin's modified Z-score
+                return np.nonzero(0.6745 * (d := np.absolute(data - np.median(data))) / np.median(d) >= 3)[0]
+
             row[0].invert_yaxis()
             row[0].scatter(position[:, 0], position[:, 1], color="red", marker="x", s=1, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
             if do_smoothing:
@@ -836,8 +840,10 @@ class AAEExportExportAll(bpy.types.Operator):
             row[1].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
 
             if do_smoothing:
-                row[2].plot(np.arange(1, position.shape[0] + 1), position[:, 0] - smoothed_position[:, 0], color="red", label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[2].plot(np.arange(1, position.shape[0] + 1), (p := position[:, 0] - smoothed_position[:, 0]), color="red", label="_".join(re.split(" |_", label.lower())), zorder=2.002)
                 row[2].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0] - smoothed_position[:, 0], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
+                for i in test_z_score(p):
+                    row[2].annotate(i + 1, (i + 1, p[i]))
                 row[2].legend()
                 row[2].set_xlabel("Frame")
                 row[2].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
@@ -852,8 +858,10 @@ class AAEExportExportAll(bpy.types.Operator):
             row[3].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
 
             if do_smoothing:
-                row[4].plot(np.arange(1, position.shape[0] + 1), position[:, 1] - smoothed_position[:, 1], color="red", label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[4].plot(np.arange(1, position.shape[0] + 1), (p := position[:, 1] - smoothed_position[:, 1]), color="red", label="_".join(re.split(" |_", label.lower())), zorder=2.002)
                 row[4].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1] - smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
+                for i in test_z_score(p):
+                    row[4].annotate(i + 1, (i + 1, p[i]))
                 row[4].legend()
                 row[4].set_xlabel("Frame")
                 row[4].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
