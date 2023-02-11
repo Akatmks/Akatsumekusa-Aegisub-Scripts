@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 1, 4),
+    "version": (1, 1, 5),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -508,7 +508,7 @@ class AAEExportExportAll(bpy.types.Operator):
         # As explained in _prepare_position_and_power_pin_marker_track()
         misshapen_power_pin = np.full((clip.frame_duration, 8), np.nan, dtype=np.float64)
 
-        for marker in track.markers[1:-1]:
+        for marker in track.markers:
             if not 0 < marker.frame <= clip.frame_duration:
                 continue
             if marker.mute:
@@ -952,7 +952,7 @@ class AAEExportExportAll(bpy.types.Operator):
                     position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005)
 
         elif track.__class__.__name__ == "MovieTrackingPlaneTrack":
-            for marker in track.markers[1:-1]:
+            for marker in track.markers:
                 if not 0 < marker.frame <= clip.frame_duration:
                     continue
                 if marker.mute:
