@@ -18,7 +18,8 @@ Thanks to
 –　bucket3432, petzku and others for helping with UI/UX design.  
 –　Martin Herkt for developing the original AAE Export script in 2012.  
 
-The tutorial for the new smoothing feature is underway. For anyone who is interested, there is also a [more complex script](https://github.com/Akatmks/Non-Carbonated-Motion) in development. It will be much better at correcting tracking error or bias than current smoothing feature. There is no guarantee when that script will be finished but hope it will come sooner rather than later.<br clear="left" />
+There is currently no tutorial for the smoothing feature, but there is a small [page](docs/aae-export-smoothing-technical-details.md) logging some of the details about the smoothing process.
+<br clear="left" />
 
 *License information*  
 – *aae-export was originally released by Martin Herkt under ISC License. Since then, aae-export has been completely rewritten, with every original line replaced. It is now released under a single MIT License.*  
