@@ -17,4 +17,4 @@
 **Plotting**
 
 * An x–y, frame–x, frame–residual of x, frame–y, and frame–residual of y graph will be plotted for `position`, `scale`, `power_pin` 0002, `power_pin` 0003, `power_pin` 0004, and `power_pin` 0005. A frame–rotation and frame–residual of rotation graph will be plotted for `rotation`. If smoothing is not enabled, only x–y, frame–x and frame-y graph will be plotted.  
-* [Modified Z-score](https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm#Z-Scores) will be calculated for the residual data. if a data has a Z-score higher than 3.0, its frame number will be annotated on the residual graph.  
+* [Modified Z-score](https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm#Z-Scores) will be calculated for the residual data. if a data has a modified Z-score higher than 3.0, its frame number will be annotated on the residual graph.  
