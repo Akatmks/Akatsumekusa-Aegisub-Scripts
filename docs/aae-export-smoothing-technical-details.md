@@ -12,9 +12,9 @@
 **Smoothing**
 
 * The data is split into 13 individual streams: `position` x, `position` y, `scale` x, `scale` y, `rotation`, `power_pin` 0002 x, `power_pin` 0002 y, `power_pin` 0003 x, `power_pin` 0003 y, `power_pin` 0004 x, `power_pin` 0004 y, `power_pin` 0005 x, `power_pin` 0005 y.  
-* Each stream is then fit to a polynomial regression with the specified max degree and linear regression model. [PolynomialFeatures](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html), [LinearRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html), [Lasso](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html), [HuberRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html).  
+* Each stream is then fit to a polynomial regression with the specified max degree and linear regression model. Documents for specific models are available at [PolynomialFeatures](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html), [LinearRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html), [Lasso](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html), [HuberRegressor](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html).  
 
 **Plotting**
 
 * An x–y, frame–x, frame–residual of x, frame–y, and frame–residual of y graph will be plotted for `position`, `scale`, `power_pin` 0002, `power_pin` 0003, `power_pin` 0004, and `power_pin` 0005. A frame–rotation and frame–residual of rotation graph will be plotted for `rotation`. If smoothing is not enabled, only x–y, frame–x and frame-y graph will be plotted.  
-* Modified Z-score will be calculated for the residual data. if a data has a Z-score higher than 3.0, its frame number will be annotated on the residual graph.  
+* [Modified Z-score](https://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm#Z-Scores) will be calculated for the residual data. if a data has a Z-score higher than 3.0, its frame number will be annotated on the residual graph.  
