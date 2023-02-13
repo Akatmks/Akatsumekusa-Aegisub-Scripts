@@ -59,10 +59,16 @@ void GetSystemInfo(LPSYSTEM_INFO lpSystemInfo);
         kernel32.GetSystemInfo(lpSystemInfo)
 
         _threads = tonumber(lpSystemInfo[0].dwNumberOfProcessors)
+    elseif jit.os == "OSX" then
+        local f
+
+        f = assert(io.popen("sysctl -n hw.ncpu", "r"))
+        _threads = f:read("*number")
+        assert(f:close())
     else
         local f
 
-        f = io.popen("nproc", "r")
+        f = assert(io.popen("nproc", "r"))
         _threads = f:read("*number")
         assert(f:close())
 end end
