@@ -4,7 +4,7 @@
 
 * For regular track, `position` and `power_pin` is directly copied from the centre and the corners of the marker, after which the `scale` and `rotation` is calculated from `power_pin`.  
 * For plane track, only `power_pin` is directly copied from the four corners of the plane track, while `position`, `scale` and `rotation` is calculated from `power_pin`.  
-* `position` values are normally within the bounds of the video frame, but may occasionally be outside. For 16:9 video, `position` values inside the video frame has an x value in the range 0–1.778 (16⁄9) and a y value in the range 0–1. The origin of `position` data is set at the top left corner of the video.  
+* `position` values are normally within the bounds of the video frame, but may occasionally be outside. For 16:9 video, `position` values inside the video frame has an x value in the range 0–1.778 (16⁄9) and a y value in the range 0–1. Ranges for videos with other aspect ratio can be found [here](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/1c7aa5fd7f75ea164a2cc554ddd1983eb7fab2be/scripts/aae-export/aae-export.py#L346-L355). The origin of `position` data is set at the top left corner of the video.  
 * `power_pin` data follows the same scale as the `position` data but they are relative to the `position` of the frame instead of the origin.  
 * `scale` data ranges from 0 to 1, while every 2𝜋 in `rotation` data represents a full circle.  
 * `rotation` data is „[unrolled](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/1c7aa5fd7f75ea164a2cc554ddd1983eb7fab2be/scripts/aae-export/aae-export.py#L717-L724)“ before starting the smoothing process.  
