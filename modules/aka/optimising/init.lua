@@ -23,9 +23,9 @@
 
 local versioning = {}
 
-versioning.name = "aka.optimising"
+versioning.name = "‎aka.optimising"
 versioning.description = "Module aka.optimising"
-versioning.version = "0.1.6"
+versioning.version = "0.1.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.optimising"
 
