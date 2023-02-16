@@ -29,7 +29,7 @@ local versioning = {}
 
 versioning.name = "aka.workflow"
 versioning.description = "Module aka.workflow"
-versioning.version = "0.1.7"
+versioning.version = "0.1.8"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.workflow"
 
