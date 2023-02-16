@@ -26,9 +26,9 @@ not be misrepresented as being the original software.
 
 local versioning = {}
 
-versioning.name = "‎aka.request"
+versioning.name = "aka.request"
 versioning.description = "Module aka.request"
-versioning.version = "1.0.6"
+versioning.version = "1.0.7"
 versioning.author = "Lucien Greathouse, slightly altered by Akatsumekusa"
 versioning.namespace = "aka.request"
 

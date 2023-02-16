@@ -18,9 +18,9 @@
 
 local versioning = {}
 
-versioning.name = "‎NN.CJSpacing"
+versioning.name = "NN.CJSpacing"
 versioning.description = "Module NN.CJSpacing"
-versioning.version = "0.1.4"
+versioning.version = "0.1.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "NN.CJSpacing"
 
