@@ -17,7 +17,7 @@ config = aconfig.read_config("aka.MyMacro")
 ```
 ```moon
 config = aconfig.read_config "aka.MyMacro"\unwrapOr
-  index: "Value"
+    index: "Value"
 ```
 This code calls `aconfig.read_config` with `aka.MyMacro`, which tells aka.config to look for a config in `?config/aka.MyMacro.json`. `aconfig.read_config` returns a [`Result` object](Understanding%20aka.outcome), containing either an Ok with the config data or an Err with an error message. We want to use the default settings if config is not available, so we use `unwrapOr` to unwrap the `Result` object with default config table `{ index = "Value" }`.  
 
