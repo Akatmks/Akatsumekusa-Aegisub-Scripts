@@ -195,7 +195,7 @@ if __name__ == "__main__":
     if not Path(lua_transpiler_manifest).exists():
         lua_transpiler = lua_transpiler and False
 
-    if not Path("scripts/aae-export.py").exists():
+    if not Path("scripts/aae-export/aae-export.py").exists():
         aae_export = aae_export and False
 
 
@@ -207,11 +207,6 @@ if __name__ == "__main__":
                 if p.suffix == ".al":
                     subprocess.run(["cargo", "run", "--manifest-path", lua_transpiler_manifest, "--release", "--", p.as_posix()], check=True)
                     repo.index.add(str(p.with_suffix(".lua")))
-
-
-    if aae_export:
-        subprocess.run([Path("scripts/aae-export-linux-x86_64/generate.sh").as_posix()], check=True)
-        subprocess.run([Path("scripts/aae-export-mac/generate.sh").as_posix()], check=True)
 
 
     if dependency_control:
@@ -312,6 +307,16 @@ if __name__ == "__main__":
                 case _:
                     raise ValueError(str(diff_index))
 
+    
+    if aae_export:
+        if "scripts/aae-export/aae-export.py" in added or "scripts/aae-export/aae-export.py" in changed:
+            subprocess.run([Path("scripts/aae-export-linux-x86_64/generate.sh").as_posix()], check=True)
+            repo.index.add("scripts/aae-export-linux-x86_64/aae-export.py")
+            subprocess.run([Path("scripts/aae-export-mac/generate.sh").as_posix()], check=True)
+            repo.index.add("scripts/aae-export-mac/aae-export.py")
+
+
+    if dependency_control:
         changedModules = {}
         for p in added + changed:
             if p.is_relative_to("macros"):
