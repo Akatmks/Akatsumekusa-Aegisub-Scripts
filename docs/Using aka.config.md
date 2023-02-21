@@ -2,7 +2,99 @@
 
 aka.config is an Aegisub module to handle config.  
 
-### The basic of basic
+```lua
+local aconfig = require("aka.config")
+local outcome = require("aka.outcome")
+local ok, err, o = outcome.ok, outcome.err, outcome.o
+```
+
+### Loading and saving Dialog table
+
+Let's start with the most basic scenario, dealing with the dialog table. You read from the config to see if previous config is available, or you use the default setting if no previous config is found. This can be achieved using the following Lua and MoonScript code:    
+```lua
+config = aconfig.read_config("aka.MyMacro")
+    :unwrapOr({ index = "Value" })
+```
+```moon
+config = aconfig.read_config "aka.MyMacro"\unwrapOr
+  index: "Value"
+```
+This code calls `aconfig.read_config` with `aka.MyMacro`, which tells aka.config to look for a config in `?config/aka.MyMacro.json`. `aconfig.read_config` returns a [`Result` object](Understanding%20aka.outcome), containing either an Ok with the config data or an Err with an error message. We want to use the default settings if config is not available, so we use `unwrapOr` to unwrap the `Result` object with default config table `{ index = "Value" }`.  
+
+After you've displayed the dialog to the user, and you want to save the new dialog table to config:  
+```lua
+aconfig.save_config("aka.MyMacro", config):unwrap()
+```
+```moon
+aconfig.save_config("aka.MyMacro", config)\unwrap!
+```
+This code calls `aconfig.save_config` with `aka.MyMacro` and `config`, which tells aka.config to save the `config` table to `?config/aka.MyMacro.json`. `aconfig.write_config` also returns a `Result` table. We want to make sure the config is saved so we use `unwrap` to raise an error in case of Err.  
+
+### Loading and saving automation script settings
+
+Instead of separating the load and save call as in the case of dialog table, we want to perform this in one go—read the script setting from config, or use a default setting and save it to file if read fails—in case of script settings.  
+
+This can be achieved using the following Lua code:
+```lua
+config = aconfig.read_config("aka.MyMacro", "Settings")
+    :andThen(function(config)
+        if type(config[1]) == number then return
+            ok(config)
+        else return
+            err("Invalid config")
+        end end)
+    :orElseOther(function(_) return
+        aconfig.write_config("aka.MyMacro", "Settings", { 20 }) end)
+    :unwrap()
+```
+If you are using Akatsumekusa's lua transpiler, this can be shorten to:
+```lua
+config = aconfig.read_config("aka.MyMacro", "Settings")
+    :andThen(|config|
+        if type(config[1]) == number then
+            rtn ok(config)
+        else
+            rtn err("Invalid config")
+        end)
+    :orElseOther(||
+        aconfig.write_config("aka.MyMacro", "Settings", { 20 }))
+    :unwrap()
+```
+Or if you are using MoonScript:
+```moon
+config = with aconfig.read_config "aka.MyMacro", "Settings"
+    \andThen (config) ->
+        if type(config[1]) == number
+            ok config
+        else
+            err "Invalid config"
+    \orElseOther ->
+        aconfig.write_config "aka.MyMacro", "Settings", { 20 }
+    \unwrap!
+```
+This code will first calls `aconfig.read_config` with `aka.MyMacro` and `Settings`. When you call aka.config functions with two strings, aka.config will treat the first string as the folder name, so the config file in this case will be `?config/aka.MyMacro/Settings.json`.  
+And then if the config read successfully (literally `:andThen`), it will validate if the config is malformatted. `function(config) if type(config[1]) == number then return ok(config) else return err("Invalid config") end end` checks if the first item in the config table is a number and then return either an Ok with the config table, or an Err with the error message.  
+If any error occurs during the previous two steps, this `:orElseOther` will capture it, and call `aconfig.write_config` with `aka.MyMacro`, `Settings`, and the default setting which in this case is `{ 20 }` to save the default setting to file. `aconfig.write_config` will return Ok with the config written if it runs successfully, which conveniently is what we exatly want.  
+At last, we will `unwrap` the `Result` object either from the validation step or from the `aconfig.write_config` step, assigning the config table to `config`.  
+
+<hr />
+
+<hr />
+
+<hr />
+
+<hr />
+
+<hr />
+
+<hr />
+
+<hr />
+
+
+
+
+### The basic
 
 The basic of aka.config involves two simple functions, `read_config` and `write_config`.  
 ```lua

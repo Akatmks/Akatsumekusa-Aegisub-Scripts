@@ -22,6 +22,8 @@
 ------------------------------------------------------------------------------
 
 local json = require("aka.config2.json")
+local outcome = require("aka.outcome")
+local ok, err, o = outcome.ok, outcome.err, outcome.o
 local re = require("aegisub.re")
 local unicode = require("aegisub.unicode")
 local lfs = require("lfs")
@@ -31,15 +33,12 @@ local config_dir
 local read_config
 local write_config
 
-json.error = false
-json.error_table = {}
+json.error = nil
 json.onDecodeError = function(message, text, location, etc)
     local matches
     local i
 
     if not text or not location or not etc then return end
-    if json.error == false then json.error = 1
-    else json.error = json.error + 1 end
 
     location = "\n" .. location .. "\n"
     etc = etc + 1
@@ -47,106 +46,71 @@ json.onDecodeError = function(message, text, location, etc)
     i = 1
     while matches[i + 1] do
         if etc == 2 then
-            table.insert(json.error_table, text)
+            if not json.error then json.error =     text
+            else json.error = json.error .. "\n" .. text end
             return
         elseif etc > matches[i]["last"] and etc <= matches[i + 1]["first"] then
-            table.insert(json.error_table, text .. " in line " .. tostring(i) .. " column " .. tostring(unicode.len(string.sub(location, matches[i]["last"] + 1, etc - 1)) + 1))
-            json.error = json.error + 1
-            table.insert(json.error_table, "`" .. string.sub(location, matches[i]["last"] + 1, matches[i + 1]["first"] - 1) .. "`")
+            if not json.error then json.error =     text .. " in line " .. tostring(i) .. " column " .. tostring(unicode.len(string.sub(location, matches[i]["last"] + 1, etc - 1)) + 1) .. "\n" ..
+                                                    "`" .. string.sub(location, matches[i]["last"] + 1, matches[i + 1]["first"] - 1) .. "`"
+            else json.error = json.error .. "\n" .. text .. " in line " .. tostring(i) .. " column " .. tostring(unicode.len(string.sub(location, matches[i]["last"] + 1, etc - 1)) + 1) .. "\n" ..
+                                                    "`" .. string.sub(location, matches[i]["last"] + 1, matches[i + 1]["first"] - 1) .. "`" end
             return
         end
         i = i + 1
     end
     assert(false)
 end
-json.reset_error = function() json.error = false json.error_table = {} end
+json.reset_error = function() json.error = nil end
 json.decode2 = function(text, etc, options) json.reset_error() return json:decode(text, etc, options) end
 
 config_dir = aegisub.decode_path(hasDepCtrl and DepCtrl.config.c.configDir or "?user/config")
 
 ------------------------------------------------
 -- Read the specified config and return a table.
---
--- This function is overloaded, it accepts one of the following forms:
--- function(string config)
--- function(string config, string subfolder)
--- function(string config, function validation_func)
--- function(string config, string subfolder, function validation_func)
 -- 
--- @param string config: The name for the config file without the file extension
--- @param string subfolder [""]: The subfolder where the config is in; Set this to "" if the config are in the root config dir
--- @param function validation_func [function() return true end]: The function to validate the config before sending back;
---                                                               It should take the config data as param and return true if the validation is sucessful,
---                                                               Otherwise it should return an int as error message count and a table of string as error messages
+-- @param str config [nil]: The subfolder where the config is in
+-- @param str config_supp: The name for the config file without the file extension
 -- 
--- @returns boolean is_success: True if the config was successfully read
--- @returns table config_data: The table read from the config
-read_config = function(...)
-    local arg = table.pack(...)
-    
-    local config
-    local subfolder
-    local validation_func
-    assert(type(arg[1]) == "string") config = arg[1]
-    if type(arg[2]) == "string" then subfolder = arg[2]
-    elseif type(arg[2]) == "function" then validation_func = arg[2] end
-    if type(arg[3]) == "function" then validation_func = validation_func or arg[3] end
-    subfolder = subfolder or ""
-    validation_func = validation_func or function() return true end
-
-    local config_file
-    local config_data
-
-    config_file = io.open(config_dir .. "/" .. subfolder .. (subfolder ~= "" and "/" or "") .. config .. ".json", "r")
-    if config_file then
-        config_data = json.decode2(config_file:read("*all"))
-        assert(config_file:close())
-        if not json.error and validation_func(config_data) == true then
-            return true, config_data
-    end end
-    return false, config_data
+-- @returns outcome.result<table, string>
+read_config = function(config, config_supp) return
+    o(io.open(config_dir .. "/" .. (config and config .. "/" or "") .. config_supp .. ".json", "r"))
+        :andThen(function(file)
+            local config_data = json.decode2(file:read("*all"))
+            file:close()
+            if not json.error then return
+                ok(config_data)
+            else return
+                err(json.error)
+            end end)
 end
+
 -------------------------------------------------
 -- Overwrite the specified config with the table.
 --
--- This function is overloaded, it accepts one of the following forms:
--- function(string config)
--- function(string config, string subfolder)
--- function(string config, table config_data)
--- function(string config, string subfolder, table config_data)
+-- Optional arguments can be omitted in place as write_config(config, config_data)
 -- 
--- @param str config: The name for the config file without the file extension
--- @param str subfolder [""]: The subfolder where the config is in;
---                               Set this to "" if the config are in the root config directory
+-- @param str config [nil]: The subfolder where the config is in
+-- @param str config_supp: The name for the config file without the file extension
 -- @param table config_data: The table to save to the config
 -- 
 -- @returns bool is_success: True if the config was successfully saved
-write_config = function(...)
-    local arg = table.pack(...)
+write_config = function(config, config_supp, config_data)
+    if type(config_supp) == "table" then config_data = config_supp config_supp = config config = nil end
 
-    local config
-    local subfolder
-    local config_data
-    assert(type(arg[1]) == "string") config = arg[1]
-    if type(arg[2]) == "string" then subfolder = arg[2]
-    elseif type(arg[2]) == "table" then config_data = arg[2] end
-    if type(arg[3]) == "table" then config_data = config_data or arg[3] end
-    subfolder = subfolder or ""
-    assert(config_data)
-
-    local config_directory
-    local config_file
-    local is_success, err, code
-    
-    config_directory = config_dir .. (subfolder ~= "" and "/" or "") .. subfolder
-    if lfs.attributes(config_directory, "mode") == nil then
-        lfs.mkdir(config_directory)
-    end
-
-    config_file = assert(io.open(config_directory .. "/" .. config .. ".json", "w"))
-    config_file:write(json:encode_pretty(config_data))
-    assert(config_file:close())
-    return true
+    return
+    o(lfs.attributes(config_dir .. (config and "/" .. config or ""), "mode"))
+        :orElseOther(function(_) return
+            o(lfs.mkdir(config_dir .. (config and "/" .. config or ""))) end)
+        :andThen(function(_) return
+            o(io.open(config_dir .. (config and "/" .. config or "") .. "/" .. config_supp .. ".json", "w")) end)
+        :andThen(function(file)
+            file:write(json:encode_pretty(config_data))
+            file:close()
+            if not json.error then return
+                ok(config_data)
+            else return
+                err(json.error)
+            end end)
 end
 
 local functions = {}

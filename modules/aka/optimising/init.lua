@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.optimising"
 versioning.description = "Module aka.optimising"
-versioning.version = "0.1.8"
+versioning.version = "0.1.9"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.optimising"
 
@@ -72,7 +72,6 @@ functions.versioning = versioning
 functions.start = start
 functions.lap = lap
 
-functions.time = time
 functions.ssconfig = ssconfig
 
 return functions
