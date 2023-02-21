@@ -1,4 +1,4 @@
-name: dependency-control-on-merge
+name: nontomaticay-on-merge
 on:
   pull_request:
     types:
