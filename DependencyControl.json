@@ -472,17 +472,20 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
-                            "sha1": "0f7c0de67807a9113375298c4a4744ed25fbf738"
+                            "sha1": "051b36207a43c0eda39ec7ffc8ed40bd80db6b38"
                         }
                     ],
-                    "version": "0.1.6",
+                    "version": "0.1.7",
                     "default": true,
                     "requireModules": [
                         {
                             "moduleName": "aka.config2"
+                        },
+                        {
+                            "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-02-16"
+                    "released": "2023-02-24"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -532,12 +535,12 @@
                         {
                             "name": "/dialog.lua",
                             "url": "@{fileBaseUrl}/modules/aka/workflow/dialog.lua",
-                            "sha1": "b76c56595cf46221d43beecfb5bedce8c34c1ce4"
+                            "sha1": "c1bfac8709cd989299d6ceacc2b809f35c2655fd"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/workflow/init.lua",
-                            "sha1": "1ee3bab5c17f1dc93321ccf67b449db7a2794982"
+                            "sha1": "dd4677be91edfe6c0fc1a80b9ad566b437802610"
                         },
                         {
                             "name": "/run.lua",
@@ -555,7 +558,7 @@
                             "sha1": "4008cf66dfb678ff9fca7dbb4f10cf03ed068a8d"
                         }
                     ],
-                    "version": "0.1.12",
+                    "version": "0.1.13",
                     "default": true,
                     "requireModules": [
                         {

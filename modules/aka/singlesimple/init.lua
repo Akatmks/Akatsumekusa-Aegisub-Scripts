@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "0.1.6"
+versioning.version = "0.1.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aka.outcome\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -42,82 +42,56 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "aka.config2" }
+            { "aka.config2" },
+            { "aka.outcome" }
         }
     }):requireModules()
 end
 
 local aconfig = require("aka.config2")
+local outcome = require("aka.outcome")
+local ok, err, o = outcome.ok, outcome.err, outcome.o
 
 local make_config
 
 -------------------------------------------------
 -- Create the config
 -- 
--- @param str config: The name for the config file without the file extension
--- @param str subfolder: The subfolder where the config is in
---                       This parameter is optional. Omit in place if not needed
+-- @param str config [nil]: The subfolder where the config is in
+-- @param str config_supp: The name for the config file without the file extension
 -- @param table possible_values: All the possible values for the config
 -- @param table default_value: The default value for the config
 -- 
 -- @returns table Config: A initialised config object with Config.value and Config.setValue
-make_config = function(...)
-    local arg = table.pack(...)
+make_config = function(config, config_supp, possible_values, default_value)
+    if type(config_supp) == "table" then default_value = possible_values possible_values = config_supp config_supp = config config = nil end
 
-    local config
-    local subfolder
-    local possible_values
-    local default_value
-    assert(type(arg[1]) == "string") config = arg[1]
-    if type(arg[2]) == "string" then
-        subfolder = arg[2]
-        assert(type(arg[3]) == "table") possible_values = arg[3]
-        assert(type(arg[4]) == "table") default_value = arg[4]
-    else
-        assert(type(arg[2]) == "table") possible_values = arg[2]
-        assert(type(arg[3]) == "table") default_value = arg[3]
-    end
-
-    local Config
-    local validation_func
-
-    Config = {}
+    local Config = {}
     Config.__index = Config
-    
-    validation_func = function(config_data)
-        for _, value in ipairs(possible_values) do
-            if config_data[1] == value then
-                return true
-        end end
-        return false
-    end
-
-    setmetatable(Config, { __call = function(cls) return cls.new() end })
-    Config.new = function()
-        local self = setmetatable({}, Config)
-    
-        local is_success
-        local config_data
-    
-        is_success, config_data = aconfig.read_config(config, subfolder, validation_func)
-        if is_success then self._value = config_data[1]
-        else self._value = default_value aconfig.write_config(config, subfolder, { self._value }) end
-    
-        return self
-    end
     
     Config.value = function(self)
         return self._value
     end
     Config.setValue = function(self, value)
-        local config_data
-    
-        config_data = { value }
-        assert(validation_func(config_data))
-        self._value = value aconfig.write_config(config, subfolder, config_data)
+        self._value = value
+        return aconfig.write_config(config, config_supp, { value })
     end
 
-    return Config()
+    local self = setmetatable({}, Config)
+
+    self._value = aconfig.read_config(config, config_supp)
+        :andThen(function(config)
+            for _, v in ipairs(possible_values) do
+                if config[1] == possible_values then
+                    return ok(config[1])
+            end end
+            return err("[aka.singlesimple] Error") end)
+        :orElseOther(function()
+            aconfig.write_config(config, config_supp, { default_value })
+            return ok(default_value) end)
+        :unwrap()
+
+    return self
 end
 
 local functions = {}

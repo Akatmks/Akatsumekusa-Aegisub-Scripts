@@ -1,6 +1,8 @@
 ## Using aka.config
 
-aka.config is an Aegisub module to handle config.  
+aka.config is an Aegisub module to handle config. It is built around the `Result` table introduced in aka.outcome. You may be able to get around by just copying the code examples below but you are suggested to give a brief look at aka.outcome's [document](Using%20aka.outcome.md).  
+
+Also, if everything you need is storing a single value, and you want an interface that is as simple as possible. There is also [aka.singlesimple](Using%20aka.singlesimple.md) which aims to achieve that.  
 
 ```lua
 local aconfig = require("aka.config")
@@ -23,10 +25,10 @@ This code calls `aconfig.read_config` with `aka.MyMacro`, which tells aka.config
 
 After you've displayed the dialog to the user, and you want to save the new dialog table to config:  
 ```lua
-aconfig.save_config("aka.MyMacro", config):unwrap()
+aconfig.write_config("aka.MyMacro", config):unwrap()
 ```
 ```moon
-aconfig.save_config("aka.MyMacro", config)\unwrap!
+aconfig.write_config("aka.MyMacro", config)\unwrap!
 ```
 This code calls `aconfig.save_config` with `aka.MyMacro` and `config`, which tells aka.config to save the `config` table to `?config/aka.MyMacro.json`. `aconfig.write_config` also returns a `Result` table. We want to make sure the config is saved so we use `unwrap` to raise an error in case of Err.  
 

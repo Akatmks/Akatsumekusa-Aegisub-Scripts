@@ -103,8 +103,7 @@ Backend.spawn_subs = function(self, sel)
         lines = table.pack(...)
         table.insert(lines, 1, line)
 
-        if index < Frontend.data.start_pos or
-           index > Frontend.data.start_pos + #Frontend.data then
+        if index < Frontend.data.start_pos or index > Frontend.data.end_pos + 1 then
             error("[aka.workflow] Inserting subtitle lines outside provided line group is not supported when multithreading")
         end
 
@@ -169,7 +168,7 @@ Backend.join_frontend = function(self, Frontend)
     for i=1,Frontend.data.end_pos-Frontend.data.start_pos+1 do
         self.subs[Frontend.data.start_pos + i - 1] = Frontend.data[i]
     end
-    for i=Frontend.data.end_pos-Frontend.data.start_pos+1,Frontend.data.start_pos+#Frontend.data-1 do
+    for i=Frontend.data.end_pos-Frontend.data.start_pos+2,#Frontend.data do
         self.subs[-(Frontend.data.start_pos + i)] = Frontend.data[i]
     end
 end
