@@ -21,21 +21,19 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
--- DIALOG TABLE
-
 local effil = require("aka.effil")
 
 local Backend = {}
 Backend.__index = Backend
 
-setmetatable(MyClass, { __call = function(cls, ...) return cls.new(...) end })
+setmetatable(Backend, { __call = function(cls, ...) return cls.new(...) end })
 Backend.new = function(subs)
     local self = setmetatable({}, Backend)
     self.subs = subs
 
     self.remains_list = {}
     self.remains_channel = effil.channel()
-    self.remains_thread = effil.thread(function()
+    self.remains_thread = (effil.thread(function()
         local operation, data
         local poppable
 
@@ -47,10 +45,10 @@ Backend.new = function(subs)
                     table.insert(self.remains_list, data)
                 else
                     for i=1,#self.remains_list do
-                        if self.remains_list[i] > data then
+                        if type(self.remains_list[i]) == "number" and self.remains_list[i] > data or
+                           type(self.remains_list[i]) == "table" and self.remains_list[i].start_pos > data then
                             table.insert(self.remains_list, i, data)
-                        elseif self.remains_list[i] == data then
-                            assert(false)
+                            break
                 end end end
 
             elseif operation == "Complete" then
@@ -61,17 +59,17 @@ Backend.new = function(subs)
                         if type(self.remains_list[i]) == "number" then
                             poppable = false
                         end
-                    else
+                    else -- data.start_pos == self.remains_list[i] then
                         self.remains_list[i] = data
     
                         if poppable then
                             for j=#self.remains_list,i,-1 do
-                                table.remove(self.remains_list).join()
-                            break
+                                self:join_frontend(table.remove(self.remains_list))
+                                break
             end end end end end
 
         until #self.remains_list == 0 and
-              self.remains_channel:size() == 0 end)
+              self.remains_channel:size() == 0 end))()
     
     return self
 end
@@ -79,26 +77,7 @@ end
 Backend.spawn_subs = function(self, sel)
     self.remains_list:push("New", sel[1])
 
-    local Metatable = {}
-
-    Metatable.__index = function(cls, index)
-        return Frontend.read(index)
-    end
-    Metatable.__newindex = function(cls, index, value)
-        if index < 0 then
-            Frontend.insert(-index, value)
-        elseif index == 0 then
-            Frontend.append(value)
-        else -- index > 0 then
-            Frontend.replace(index, value)
-    end end
-    Metatable.__len = function(cls)
-        error(Frontend.n)
-    end
-
     local Frontend = {}
-
-    Frontend.n = "[aka.workflow] Retrieving the number of lines in the subtitle object is not supported when multithreading"
 
     Frontend.data = {}
     Frontend.data.start_pos = sel[1]
@@ -106,6 +85,8 @@ Backend.spawn_subs = function(self, sel)
     for i=1,#sel do
         Frontend.data[i] = self.subs[sel[i]]
     end
+
+    Frontend.n = "[aka.workflow] Retrieving the number of lines in the subtitle object is not supported when multithreading"
 
     Frontend.read = function(index)
         if Frontend.data[index - Frontend.data.start_pos + 1] == nil then
@@ -139,7 +120,7 @@ Backend.spawn_subs = function(self, sel)
             Frontend.data[index - Frontend.data.start_pos + 1] = line
         else
             table.remove(Frontend.data, index - Frontend.data.start_pos + 1)
-    end
+    end end
     Frontend.delete = function(index, ...)
         local indexes
         if type(index) == "table" then
@@ -158,6 +139,27 @@ Backend.spawn_subs = function(self, sel)
             Frontend.replace(i)
     end end
 
+    Frontend.join = function()
+        self.remains_list:push("Complete", Frontend.data)
+    end
+
+    local Metatable = {}
+
+    Metatable.__index = function(cls, index)
+        return Frontend.read(index)
+    end
+    Metatable.__newindex = function(cls, index, value)
+        if index < 0 then
+            Frontend.insert(-index, value)
+        elseif index == 0 then
+            Frontend.append(value)
+        else -- index > 0 then
+            Frontend.replace(index, value)
+    end end
+    Metatable.__len = function(cls)
+        error(Frontend.n)
+    end
+
     setmetatable(Frontend, Metatable)
     return Frontend
 end
@@ -173,5 +175,9 @@ Backend.join_frontend = function(self, Frontend)
 end
 
 Backend.join = function(self)
-    self.remains_thread:wait()
-end
+    local status, err, stacktrace
+
+    status, err, stacktrace = self.remains_thread:wait()
+    if status == "failed" then
+        error(err .. "\n\n" .. stacktrace)
+end end
