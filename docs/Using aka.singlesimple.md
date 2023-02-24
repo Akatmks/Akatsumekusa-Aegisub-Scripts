@@ -22,20 +22,4 @@ config:setValue("Effect")
 ```
 This will be automatically saved to disk.  
 
-There are some rare cases when the save fails so `Config.setValue` will actually return an `Result` for you to handle. It's probably okay 99% of the time not to worry about it, but if you want, you can at least make the user aware that something has gone wrong:  
-```lua
-config:setValue("Effect"):ifErr(function(error_message)
-    aegisub.debug.out("[aka.actor] Failed to save the set value to disk\n" .. error_message) end)
-```
-Or if you are using MoonScript since this is a little bit complicated:  
-```moon
-with config
-    \setValue "Effect"
-    \ifErr (error_message) ->
-        aegisub.debug.out("[aka.actor] Failed to save the set value to disk\n" .. error_message)
-```
-Or Akatsumekusa's Lua transpiler:  
-```lua
-config:setValue("Effect"):ifErr(|error_message|
-    aegisub.debug.out("[aka.actor] Failed to save the set value to disk\n" .. error_message))
-```
+Note that there are some rare cases when the save will fail, in which case the aka.singlesimple will print a message to `aegisub.debug.out`. If you want to handle it yourself, you can call `config:setValue2` instead which will then return a [`Result`](Using%20aka.outcome.md).  

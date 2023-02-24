@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "0.1.7"
+versioning.version = "0.1.8"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
@@ -72,9 +72,14 @@ make_config = function(config, config_supp, possible_values, default_value)
     Config.value = function(self)
         return self._value
     end
-    Config.setValue = function(self, value)
+    Config.setValue2 = function(self, value)
         self._value = value
         return aconfig.write_config(config, config_supp, { value })
+    end
+    Config.setValue = function(self, value)
+        self:setValue2(value)
+            :ifErr(function(err)
+                aegisub.debug.out(1, "[aka.singlesimple] Failed to save the value to file\n" .. err) end)
     end
 
     local self = setmetatable({}, Config)

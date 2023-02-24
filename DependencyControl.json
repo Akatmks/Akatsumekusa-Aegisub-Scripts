@@ -396,17 +396,12 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/outcome/init.lua",
-                            "sha1": "7e69ca81596ceecc9d1743c596bb33e41e5c1511"
-                        },
-                        {
-                            "name": "/outcome.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/outcome/outcome.lua",
-                            "sha1": "37a8d665f45169714eac823df3adf454edd3b02d"
+                            "sha1": "57733c9c36791b151ed3a7879b26f116fa7256fc"
                         }
                     ],
-                    "version": "0.1.1",
+                    "version": "0.1.2",
                     "default": true,
-                    "released": "2023-02-21"
+                    "released": "2023-02-24"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -472,10 +467,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
-                            "sha1": "051b36207a43c0eda39ec7ffc8ed40bd80db6b38"
+                            "sha1": "36d0ad85f02f52dabeeafbbf0bed46443847af5c"
                         }
                     ],
-                    "version": "0.1.7",
+                    "version": "0.1.8",
                     "default": true,
                     "requireModules": [
                         {
