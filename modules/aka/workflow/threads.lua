@@ -21,23 +21,27 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-local aconfig = require("aka.config2")
+local ss = require("aka.singlesimple").make_config("aka.workflow.threads", "number", -1)
 
-local _threads
-local threads
-local setThreads
+local threads = {}
+threads.__index = threads
 
-local is_success
-local config_data
+threads.threads = function(self)
+    return self._threads
+end
 
-is_success, config_data = aconfig.read_config("aka.workflow.threads", function(config_data)
-    return type(config_data[1]) == "number"
-end)
-if is_success then _threads = config_data[1] else setThreads(-1) end
-if _threads == -1 then
-    if jit.os == "Windows" then
-        local ffi           = require("ffi")
-        ffi.cdef[[
+threads.setThreads = function(self, threads)
+    assert(type(threads) == "number" and threads > 0, "[aka.workflow.threads] Error")
+    self._threads = threads ss:setValue(threads)
+end
+
+local self = setmetatable({}, threads) do
+    if ss:value() > 0 then
+        self._threads = ss:value()
+    else
+        if jit.os == "Windows" then
+            local ffi           = require("ffi")
+            ffi.cdef[[
 typedef struct {
     uint16_t  wProcessorArchitecture;
     uint16_t  wReserved;
@@ -52,41 +56,25 @@ typedef struct {
     uint16_t  wProcessorRevision;
 } SYSTEM_INFO, *LPSYSTEM_INFO;
 void GetSystemInfo(LPSYSTEM_INFO lpSystemInfo);
-        ]]
-        local kernel32      = ffi.load("kernel32.dll")
-        local lpSystemInfo  = ffi.new("SYSTEM_INFO[1]")
+            ]]
+            local kernel32      = ffi.load("kernel32.dll")
+            local lpSystemInfo  = ffi.new("SYSTEM_INFO[1]")
 
-        kernel32.GetSystemInfo(lpSystemInfo)
+            kernel32.GetSystemInfo(lpSystemInfo)
 
-        _threads = tonumber(lpSystemInfo[0].dwNumberOfProcessors)
-    elseif jit.os == "OSX" then
-        local f
+            self._threads = tonumber(lpSystemInfo[0].dwNumberOfProcessors)
+        elseif jit.os == "OSX" then
+            local f
 
-        f = assert(io.popen("sysctl -n hw.ncpu", "r"))
-        _threads = f:read("*number")
-        assert(f:close())
-    else
-        local f
+            f = assert(io.popen("sysctl -n hw.ncpu", "r"))
+            self._threads = f:read("*number")
+            assert(f:close())
+        else
+            local f
 
-        f = assert(io.popen("nproc", "r"))
-        _threads = f:read("*number")
-        assert(f:close())
-end end
+            f = assert(io.popen("nproc", "r"))
+            self._threads = f:read("*number")
+            assert(f:close())
+end end end
 
-threads = function()
-    return _threads
-end
-
-setThreads = function(threads)
-    assert(type(threads) == "number")
-    _threads = threads
-    return aconfig.write_config("aka.workflow.threads", { threads })
-end
-
-local functions = {}
-
-functions._threads = _threads
-functions.threads = threads
-functions.setThreads = setThreads
-
-return functions
+return self

@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "0.1.8"
+versioning.version = "0.1.9"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
@@ -50,7 +50,7 @@ end
 
 local aconfig = require("aka.config2")
 local outcome = require("aka.outcome")
-local ok, err, o = outcome.ok, outcome.err, outcome.o
+local ok, err, = outcome.ok, outcome.err
 
 local make_config
 
@@ -59,12 +59,16 @@ local make_config
 -- 
 -- @param str config [nil]: The subfolder where the config is in
 -- @param str config_supp: The name for the config file without the file extension
--- @param table possible_values: All the possible values for the config
+-- @param possible_values: Either a table for all the possible values for the config
+--                         or a type() string specifying the type of the value
 -- @param table default_value: The default value for the config
 -- 
 -- @returns table Config: A initialised config object with Config.value and Config.setValue
 make_config = function(config, config_supp, possible_values, default_value)
-    if type(config_supp) == "table" then default_value = possible_values possible_values = config_supp config_supp = config config = nil end
+    if type(config_supp) == "table" or
+       default_value == nil then
+        default_value = possible_values possible_values = config_supp config_supp = config config = nil
+    end
 
     local Config = {}
     Config.__index = Config
@@ -86,8 +90,13 @@ make_config = function(config, config_supp, possible_values, default_value)
 
     self._value = aconfig.read_config(config, config_supp)
         :andThen(function(config)
-            for _, v in ipairs(possible_values) do
-                if config[1] == possible_values then
+            if type(possible_values) == "table" then
+                for _, v in ipairs(possible_values) do
+                    if config[1] == possible_values then
+                        return ok(config[1])
+                end end
+            else -- type(possible_values) == "string" then
+                if type(config[1]) == possible_values then
                     return ok(config[1])
             end end
             return err("[aka.singlesimple] Error") end)

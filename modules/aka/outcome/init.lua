@@ -35,7 +35,7 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "0.1.2"
+versioning.version = "0.1.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.outcome"
 
@@ -62,7 +62,7 @@ local OPTION_CLASS, RESULT_CLASS = "outcome.Option", "outcome.Result"
 
 local function assertOption(value)
   if type(value) ~= "table" or value.class ~= OPTION_CLASS then
-    error("Value must be an `Option<T>`. Found " .. value)
+    error("[aka.outcome] Value must be an `Option<T>`. Found " .. value)
   end
   return value
 end
@@ -316,7 +316,7 @@ function None:unwrap()
 end
 
 function None:expect(message)
-  error(message or "Call to unwrap on a nil value")
+  error(message or "[aka.outcome] Call to unwrap on a nil value")
 end
 
 function None:unwrapOr(defaultValue)
@@ -503,7 +503,7 @@ local Result = {} -- luacheck: ignore
 
 local function assertResult(value)
   if type(value) ~= "table" or value.class ~= RESULT_CLASS then
-    error("Value must be a `Result<T, E>`. Found " .. type(value))
+    error("[aka.outcome] Value must be a `Result<T, E>`. Found " .. type(value))
   end
   return value
 end
@@ -511,18 +511,18 @@ end
 local function errorToString(value)
   local valueType = type(value)
   if valueType == "string" then
-    return value
+    return "[aka.outcome] " .. value
   elseif valueType == "table" then
     local mt = getmetatable(value)
-    return mt and mt.__tostring and string(value) or "table error"
+    return "[aka.outcome] " .. (mt and mt.__tostring and string(value) or "table error")
   elseif valueType == "nil" then
-    return "nil error"
+    return "[aka.outcome] nil error"
   elseif valueType == "boolean" then
-    return "boolean error (" .. value .. ")"
+    return "[aka.outcome] boolean error (" .. value .. ")"
   elseif valueType == "number" then
-    return "number error (" .. value .. ")"
+    return "[aka.outcome] number error (" .. value .. ")"
   else
-    return "error of type " .. valueType
+    return "[aka.outcome] error of type " .. valueType
   end
 end
 
@@ -897,7 +897,7 @@ end
 -- @treturn Option `Option<T>`
 -- @within Option functions
 function outcome.some(value)
-  if value == nil then error("A Some Option value may not be nil") end
+  if value == nil then error("[aka.outcome] A Some Option value may not be nil") end
   return setmetatable({_value = value, class = OPTION_CLASS}, SomeMetatable)
 end
 
