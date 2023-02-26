@@ -228,15 +228,15 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "24f63b4ab6e36f21e9c20267c14ee8f102acb305"
+                            "sha1": "069a04635d3c7c3fa08770c92b889b530dbb07ef"
                         },
                         {
                             "name": "/template.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/template.lua",
-                            "sha1": "7f6dbf4a2f422cb561d28875f785c29acac5aae0"
+                            "sha1": "9d7c1b6aa5bb29d93a59426aa6b77484b7358aed"
                         }
                     ],
-                    "version": "0.1.27",
+                    "version": "0.1.28",
                     "default": true,
                     "requireModules": [
                         {
@@ -246,7 +246,7 @@
                             "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-02-24"
+                    "released": "2023-02-26"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -471,10 +471,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
-                            "sha1": "fb452e1c062a13b37185deba1cbcccfd744b3b6b"
+                            "sha1": "d8529f9de2eb2761f0451b1b5453710c151d7756"
                         }
                     ],
-                    "version": "0.1.9",
+                    "version": "0.2.1",
                     "default": true,
                     "requireModules": [
                         {
@@ -484,7 +484,7 @@
                             "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-02-24"
+                    "released": "2023-02-26"
                 }
             },
             "author": "Akatsumekusa and contributors",

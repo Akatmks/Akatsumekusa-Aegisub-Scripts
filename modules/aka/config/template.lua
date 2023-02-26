@@ -26,7 +26,7 @@ local outcome = require("aka.outcome")
 local ok, err, = outcome.ok, outcome.err
 
 local selected_template_keys do
-    selected_template_keys = config2.read_config("aka.template")
+    selected_template_keys = config2.read_config("aka.config.template")
         :andThen(function(config)
             local it
 
@@ -60,7 +60,11 @@ log_template_key = function(template_key)
             it.next = it.next.next
         else
             it = it.next
-end end end
+    end end
+    config2.write_config("aka.config.template", selected_template_keys)
+        :ifErr(function(err)
+            aegisub.debug.out(1, "[aka.config.template] Failed to save template to file\n" .. err) end)
+end
 get_template_key_from_list = function(template_keys)
     local fake_table
 
@@ -86,9 +90,9 @@ get_template_from_table = function(templates)
             it = it.next
     end end
     
+    if templates[1] then return templates[templates[1]] end
     if templates["Default"] then return templates["Default"] end
     if templates["default"] then return templates["default"] end
-    if templates[1] then return templates[1] end
     for _, v in pairs(templates) do
         return v
 end end
