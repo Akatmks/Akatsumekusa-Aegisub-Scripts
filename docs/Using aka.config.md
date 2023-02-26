@@ -43,11 +43,11 @@ with aconfig\write_config "aka.TestScript", config
     \ifErr (err) ->
         aegisub.debug.out 1, "[aka.TestScript] Failed to save config to file\n" .. err
 ```
-This code calls `aconfig.save_config` with `aka.TestScript` and `config`, which tells aka.config to save the `config` table to `?config/aka.TestScript.json`. `aconfig.write_config` also returns a `Result` table. We want to make sure the config is saved so we use `unwrap` to raise an error in case of Err.  
+This code calls `aconfig.save_config` with `aka.TestScript` and `config`, which tells aka.config to save the `config` table to `?config/aka.TestScript.json`. `aconfig.write_config` also returns a `Result` table, and in this case, we use `aegisub.debug.out` to inform the user that the config fails to save with the error message from `aconfig.save_config`.  
 
 ### Loading and saving automation script settings
 
-Instead of separating the load and save calls as in the case of dialog table, we want to perform this in one go—read the script setting from config, or use a default setting and save it to file if read fails—in case of script settings.  
+Instead of separating the load and save calls as in the case of dialog table, this time we want to perform read and save in one go—read the script setting from config, or use a default setting and save it to file if read fails—for example when dealing with regular script configurations.  
 
 This can be achieved using the following Lua, al and MoonScript code:  
 ```lua
@@ -85,9 +85,9 @@ config = with aconfig.read_config "aka.TestScript", "Settings"
         aconfig.write_config "aka.TestScript", "Settings", { 20 }
     \unwrap!
 ```
-This code will first calls `aconfig.read_config` with `aka.TestScript` and `Settings`. When you call aka.config functions with two strings, aka.config will treat the first string as the folder name, so the config file in this case will be `?config/aka.TestScript/Settings.json`.  
-And then if the config read successfully (literally `:andThen`), it will validate if the config is malformatted. `function(config) if type(config[1]) == number then return ok(config) else return err("[aka.TestScript] Invalid config") end end` checks if the first item in the config table is a number and then return either an Ok with the config table, or an Err with the error message.  
-If any error occurs during the previous two steps, this `:orElseOther` will capture it, and call `aconfig.write_config` with `aka.TestScript`, `Settings`, and the default setting which in this case is `{ 20 }` to save the default setting to file. `aconfig.write_config` will return Ok with the config written if it runs successfully, which conveniently is what we exatly want.  
+This code will first calls `aconfig.read_config` with `aka.TestScript` and `Settings`. When aka.config functions is called with two strings, aka.config will treat the first string as the folder name and the second string as the config name, so the config file in this case will be `?config/aka.TestScript/Settings.json`.  
+And then (literally `:andThen`) if the config reads successfully, the inline function will validate if the config is malformed. `function(config) if type(config[1]) == number then return ok(config) else return err("[aka.TestScript] Invalid config") end end` checks if the first item in the config table is a number and then return either an Ok with the config table, or an Err with the error message `Invalid Config`.  
+If any error occurs during the previous two steps, this `:orElseOther` will capture it, and call `aconfig.write_config` with `aka.TestScript`, `Settings`, and the default setting which in this case is `{ 20 }` to save the default setting to file. `aconfig.write_config` will return Ok with the config written if it runs successfully, which conveniently is what we want to feed into the next step.  
 At last, we will `unwrap` the `Result` object either from the validation step or from the `aconfig.write_config` step, assigning the final config table to `config`.  
 
 ### Builtin JSON editor
