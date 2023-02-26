@@ -4,6 +4,7 @@ aka.config is an Aegisub module to handle config. It is built around the `Result
 
 Also, if everything you need is storing a single value, and you want an interface that is as simple as possible. There is also [aka.singlesimple](Using%20aka.singlesimple.md) which is designed to to achieve just that.  
 
+The following Lua and MoonScript code imports aka.config and aka.outcome into the scope:  
 ```lua
 local aconfig = require("aka.config")
 local outcome = require("aka.outcome")
@@ -113,7 +114,7 @@ aconfig = require("aka.config").make_editor
 
 ```lua
 local config = aconfig.read_and_validate_config_if_empty_then_default_or_else_edit("aka.TestScript", "Settings", validation_func)
-    :ifErr(|| aegisub.cancel())
+    :ifErr(aegisub.cancel)
     :unwrap()
 ```
 ```moon
@@ -124,7 +125,7 @@ config = with aconfig.read_and_validate_config_if_empty_then_default_or_else_edi
 
 ```lua
 local config = aconfig.read_and_validate_config_or_else_edit("aka.TestScript", "Settings", validation_func)
-    :ifErr(|| aegisub.cancel())
+    :ifErr(aegisub.cancel)
     :unwrap()
 ```
 ```moon
@@ -135,7 +136,7 @@ config = with aconfig.read_and_validate_config_or_else_edit "aka.TestScript", "S
 
 ```lua
 local config = aconfig.edit_and_validate_config(config, validation_func)
-    :ifErr(|| aegisub.cancel())
+    :ifErr(aegisub.cancel)
     :unwrap()
 ```
 ```moon
@@ -143,4 +144,3 @@ config = with aconfig.edit_and_validate_config "aka.TestScript", "Settings", val
     \ifErr -> aegisub.cancel!
     \unwrap!
 ```
-
