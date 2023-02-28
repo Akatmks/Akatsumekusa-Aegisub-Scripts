@@ -504,12 +504,12 @@
                         {
                             "name": "/dialog.lua",
                             "url": "@{fileBaseUrl}/modules/aka/workflow/dialog.lua",
-                            "sha1": "c1bfac8709cd989299d6ceacc2b809f35c2655fd"
+                            "sha1": "7f1261e67d0333c4c3fd15bdcaa2dd9b78426ee5"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/workflow/init.lua",
-                            "sha1": "3ef0f672b05ed78a11ccf1c39bb9b90bde9010b5"
+                            "sha1": "386d690e8c23d6d8aba500dea8a4f160a0636107"
                         },
                         {
                             "name": "/run.lua",
@@ -527,7 +527,7 @@
                             "sha1": "4008cf66dfb678ff9fca7dbb4f10cf03ed068a8d"
                         }
                     ],
-                    "version": "0.1.14",
+                    "version": "0.1.15",
                     "default": true,
                     "requireModules": [
                         {
@@ -537,7 +537,7 @@
                             "moduleName": "ffi"
                         }
                     ],
-                    "released": "2023-02-24"
+                    "released": "2023-02-28"
                 }
             },
             "author": "Akatsumekusa and contributors",

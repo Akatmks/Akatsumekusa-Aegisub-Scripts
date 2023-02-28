@@ -47,7 +47,6 @@ repo = Repo(".")
 dependency_control = True
 master_branch = "master"
 dev_branch = "dev"
-default_branch = "dev"
 DependencyControl = {
     "dependencyControlFeedFormatVersion": "0.3.0",
 
@@ -265,7 +264,7 @@ if __name__ == "__main__":
                 DependencyControl[mtype][namespace]["url"] = "@{baseUrl}"
 
                 DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["version"] = d["version"]
-                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["default"] = repo.active_branch.name == default_branch
+                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["default"] = True
                 if d["requireModules"]:
                     DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["requireModules"] = eval(d["requireModules"])
                 if previousDependencyControl and \

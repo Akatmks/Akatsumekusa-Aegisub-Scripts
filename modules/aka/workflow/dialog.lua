@@ -139,7 +139,7 @@ Backend.spawn_subs = function(self, sel)
     end end
 
     Frontend.join = function()
-        self.remains_list:push("Complete", Frontend.data)
+        self.remains_channel:push("Complete", Frontend.data)
     end
 
     local Metatable = {}
