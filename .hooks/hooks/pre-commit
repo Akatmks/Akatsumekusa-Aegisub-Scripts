@@ -1,0 +1,365 @@
+#!/usr/bin/env python3
+
+# nontomaticay
+# Copyright (c) Akatsumekusa and contributors
+
+# ---------------------------------------------------------------------
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ---------------------------------------------------------------------
+
+# ---------------------------------------------------------------------
+# If you want to use this DependencyControl generator for your own
+# repository, please ping Akatsumekusa and let them help you set up.
+# ---------------------------------------------------------------------
+
+from datetime import datetime, timezone
+from git import Repo
+import hashlib
+import json
+from pathlib import Path, PurePosixPath
+import re
+from semantic_version import Version
+import subprocess
+import sys
+
+
+repo = Repo(".")
+
+
+dependency_control = True
+master_branch = "master"
+dev_branch = "dev"
+DependencyControl = {
+    "dependencyControlFeedFormatVersion": "0.3.0",
+
+    "name": "Akatsumekusa's Aegisub Scripts",
+    "description": "Repository for Akatsumekusa's Aegisub Scripts",
+    "maintainer": "Akatsumekusa",
+    "baseUrl": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    "url": "@{baseUrl}",
+    "fileBaseUrl": "raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}",
+
+    "macros": {},
+    "modules": {}
+        # namespace: {
+        #     author
+        #     name
+        #     description
+        #     url
+        #     "channels": {
+        #         branch: {
+        #             version
+        #             released
+        #             default
+        #             "files": [], # name url sha1
+        #             "requireModules": [] # moduleName
+        #         }
+        #     }
+        # }
+}
+excluded_files = [
+    "modules/aka/optimising/time.lua"
+]
+platform_dependent_files = {
+    "modules/aka/request/luajit-request/libcurl.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/effil/effil.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/effil/effil.so": ["Linux-x64", "BSD-x64", "POSIX-x64"],
+    "modules/aka/effil/effil-osx.so": ["OSX-x64", "OSX-arm"],
+}
+previousDependencyControl = None
+
+
+aae_export = True
+
+
+lua_transpiler = False
+lua_transpiler_manifest = "tools/lua_transpiler/Cargo.toml"
+
+
+getSearchPattern = {
+    #                               ([^\.]\s*versioning\s*(?:\.|=\s*{[^}]*?|=\s*{(?:[^}]*?{(?:[^}]*?{(?:[^}]*?{[^}]*?})*?[^}]*?})*?[^}]*?})*?[^}]*?)\s*version\s*=\s*[\"\'])(.*?[^\\]|)([\"\'])
+    ".lua": lambda key: key.join((r"([^\.]\s*versioning\s*(?:\.|=\s*{[^}]*?|=\s*{(?:[^}]*?{(?:[^}]*?{(?:[^}]*?{[^}]*?})*?[^}]*?})*?[^}]*?})*?[^}]*?)\s*", r"\s*=\s*[\"\'])(.*?[^\\]|)([\"\'])")),
+    #                              ([^\.]\s*versioning\s*(?:\.|=\s*{[^}]*?|=\s*{(?:[^}]*?{(?:[^}]*?{(?:[^}]*?{[^}]*?})*?[^}]*?})*?[^}]*?})*?[^}]*?)\s*version\s*=\s*[\"\'])(.*?[^\\]|)([\"\'])
+    ".al": lambda key: key.join((r"([^\.]\s*versioning\s*(?:\.|=\s*{[^}]*?|=\s*{(?:[^}]*?{(?:[^}]*?{(?:[^}]*?{[^}]*?})*?[^}]*?})*?[^}]*?})*?[^}]*?)\s*", r"\s*=\s*[\"\'])(.*?[^\\]|)([\"\'])")),
+    #                                ([^\.]\s*versioning\s*(?:\.\s*version\s*=|=[^=]*?version\s*:)\s*[\"\'])(.*?[^\\]|)([\"\'])
+    ".moon": lambda key: key.join((r"([^\.]\s*versioning\s*(?:\.\s*", r"\s*=|=[^=]*?", r"\s*:)\s*[\"\'])(.*?[^\\]|)([\"\'])"))
+}
+
+def search(p):
+    d = {}
+    
+    if p.suffix not in getSearchPattern:
+        return None
+
+    with p.open("r", encoding="utf-8") as f:
+        s = f.read()
+        
+    for key in ["name", "description", "version", "author", "namespace", "requireModules"]:
+        match = re.search(getSearchPattern[p.suffix](key), s)
+        if match:
+            d[key] = re.sub("\\\\([\"\'])", "\\1", match.group(2))
+        else:
+            if key == "requireModules":
+                d[key] = None
+            else:
+                return None
+
+    return d
+
+def sha1sum(p):
+    with p.open("rb") as f:
+        return hashlib.sha1(f.read()).hexdigest()
+
+def getNamespace(p):
+    return ".".join((p.parts[1], p.parts[2])) if len(p.parts) > 3 else \
+           ".".join((p.parts[1], p.stem)) if len(p.parts) == 3 else \
+           p.stem
+
+def writeVersion(p, version):
+    if p.suffix == ".lua" and p.with_suffix(".al").exists():
+        p = p.with_suffix(".al")
+
+        if not lua_transpiler:
+            raise ValueError(str(p))
+
+        with p.open("r", encoding="utf-8") as f:
+            s = f.read()
+
+        s = re.sub(getSearchPattern[p.suffix]("version"),
+                lambda match: match.group(1) + str(version) + match.group(3),
+                s)
+        
+        with p.open("w", encoding="utf-8", newline="\n") as f:
+            f.write(s)
+
+        repo.index.add(str(p))
+
+        subprocess.run(["cargo", "run", "--manifest-path", lua_transpiler_manifest, "--release", "--", p.as_posix()], check=True)
+        repo.index.add(str(p.with_suffix(".lua")))
+    else:
+        with p.open("r", encoding="utf-8") as f:
+            s = f.read()
+
+        s = re.sub(getSearchPattern[p.suffix]("version"),
+                lambda match: match.group(1) + str(version) + match.group(3),
+                s)
+        
+        with p.open("w", encoding="utf-8", newline="\n") as f:
+            f.write(s)
+
+        repo.index.add(str(p))
+
+
+def getNameForFilesFile(p):
+    parts = p.parts
+    if len(p.parts) == 2 or len(p.parts) == 3:
+        return p.suffix
+    elif len(p.parts) > 3:
+        return PurePosixPath("/", *p.parts[3:]).as_posix()
+    else:
+        raise ValueError(str(p))
+
+
+if __name__ == "__main__":
+    if not repo.active_branch.name == dev_branch:
+        dependency_control = dependency_control and False
+
+    p = Path("DependencyControl.json")
+    if not p.exists():
+        dependency_control = dependency_control and False
+    else:
+        with p.open("r", encoding="utf-8") as f:
+            try:
+                previousDependencyControl = json.load(f)
+            except:
+                previousDependencyControl = None
+
+    if not Path(lua_transpiler_manifest).exists():
+        lua_transpiler = lua_transpiler and False
+
+    if not Path("scripts/aae-export/aae-export.py").exists():
+        aae_export = aae_export and False
+
+
+    if lua_transpiler:
+        for entry in repo.index.entries:
+            p = Path(entry[0])
+
+            if p.is_relative_to("macros") or p.is_relative_to("modules"):
+                if p.suffix == ".al":
+                    subprocess.run(["cargo", "run", "--manifest-path", lua_transpiler_manifest, "--release", "--", p.as_posix()], check=True)
+                    repo.index.add(str(p.with_suffix(".lua")))
+
+
+    if dependency_control:
+        moduleRegisterPathList = {}
+
+        for entry in repo.index.entries:
+            p = Path(entry[0])
+
+            if p.is_relative_to("macros"):
+                mtype = "macros"
+            elif p.is_relative_to("modules"):
+                mtype = "modules"
+            else:
+                continue
+            if p.suffix == ".al":
+                continue
+            if p.as_posix() in excluded_files:
+                continue
+            
+            # Create the file in the list
+            namespace = getNamespace(p)
+
+            if namespace not in DependencyControl[mtype]:
+                DependencyControl[mtype][namespace] = {}
+            if "channels" not in DependencyControl[mtype][namespace]:
+                DependencyControl[mtype][namespace]["channels"] = {}
+            if repo.active_branch.name not in DependencyControl[mtype][namespace]["channels"]:
+                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name] = {}
+            if "files" not in DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]:
+                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["files"] = []
+            if p.as_posix() in platform_dependent_files:
+                for platform in platform_dependent_files[p.as_posix()]:
+                    DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["files"].append({
+                        "name": getNameForFilesFile(p),
+                        "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
+                        "sha1": sha1sum(p),
+                        "platform": platform
+                    })
+            else:
+                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["files"].append({
+                    "name": getNameForFilesFile(p),
+                    "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
+                    "sha1": sha1sum(p)
+                })
+
+            # Check if the file is the registering file
+            d = search(p)
+
+            if d:
+                if namespace != d["namespace"]:
+                    raise ValueError(str(p))
+
+                DependencyControl[mtype][namespace]["author"] = d["author"]
+                DependencyControl[mtype][namespace]["name"] = d["name"]
+                DependencyControl[mtype][namespace]["description"] = d["description"]
+                DependencyControl[mtype][namespace]["url"] = "@{baseUrl}"
+
+                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["version"] = d["version"]
+                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["default"] = True
+                if d["requireModules"]:
+                    DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["requireModules"] = eval(d["requireModules"])
+                if previousDependencyControl and \
+                   namespace in previousDependencyControl[mtype] and \
+                   "channels" in previousDependencyControl[mtype][namespace] and \
+                   repo.active_branch.name in DependencyControl[mtype][namespace]["channels"]:
+                    previousVersion = Version(previousDependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["version"])
+                    currentVersion = Version(d["version"])
+                    if previousVersion == currentVersion:
+                        DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["released"] = previousDependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["released"]
+                    elif previousVersion < currentVersion:
+                        DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["released"] = datetime.now(timezone.utc).date().isoformat()
+                    else:
+                        raise ValueError(str(p))
+                else:
+                    DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["released"] = datetime.now(timezone.utc).date().isoformat()
+
+                moduleRegisterPathList[namespace] = p
+
+
+    added = []
+    removed = []
+    changed = []
+    diff_indexes = repo.head.commit.diff()
+    if not diff_indexes:
+        diff_indexes = repo.head.commit.diff("HEAD^")
+    for diff_index in diff_indexes:
+        match diff_index.change_type: # match requires Python 3.10
+            case "A":
+                added.append(Path(diff_index.b_path))
+            case "D":
+                removed.append(Path(diff_index.a_path))
+            case "R":
+                added.append(Path(diff_index.b_path))
+                removed.append(Path(diff_index.a_path))
+            case "M" | "T":
+                changed.append(Path(diff_index.a_path))
+            case _:
+                raise ValueError(str(diff_index))
+
+    
+    if aae_export:
+        if "scripts/aae-export/aae-export.py" in added or "scripts/aae-export/aae-export.py" in changed:
+            subprocess.run([Path("scripts/aae-export-linux-x86_64/generate.sh").as_posix()], check=True)
+            repo.index.add("scripts/aae-export-linux-x86_64/aae-export.py")
+            subprocess.run([Path("scripts/aae-export-mac/generate.sh").as_posix()], check=True)
+            repo.index.add("scripts/aae-export-mac/aae-export.py")
+
+
+    if dependency_control:
+        changedModules = {}
+        for p in added + changed:
+            if p.is_relative_to("macros"):
+                namespace = getNamespace(p)
+                currentVersion = Version(DependencyControl["macros"][namespace]["channels"][repo.active_branch.name]["version"])
+                currentVersion.patch += 1
+                writeVersion(p, currentVersion)
+                DependencyControl["macros"][namespace]["channels"][repo.active_branch.name]["files"][0]["sha1"] = sha1sum(p)
+
+                DependencyControl["macros"][namespace]["channels"][repo.active_branch.name]["version"] = str(currentVersion)
+                DependencyControl["macros"][namespace]["channels"][repo.active_branch.name]["released"] = datetime.now(timezone.utc).date().isoformat()
+            if p.is_relative_to("modules"):
+                namespace = getNamespace(p)
+                if namespace not in changedModules:
+                    changedModules[namespace] = True
+
+                    currentVersion = Version(DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["version"])
+                    currentVersion.patch += 1
+                    writeVersion(moduleRegisterPathList[namespace], currentVersion)
+                    for file in DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["files"]:
+                        if file["name"] == getNameForFilesFile(moduleRegisterPathList[namespace]):
+                            file["sha1"] = sha1sum(moduleRegisterPathList[namespace])
+
+                    DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["version"] = str(currentVersion)
+                    DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["released"] = datetime.now(timezone.utc).date().isoformat()
+        for p in removed:
+            if p.is_relative_to("macros"):
+                pass
+            if p.is_relative_to("modules"):
+                namespace = getNamespace(p)
+                if namespace in moduleRegisterPathList and namespace not in changedModules:
+                    changedModules[namespace] = True
+
+                    currentVersion = Version(DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["version"])
+                    currentVersion.patch += 1
+                    writeVersion(moduleRegisterPathList[namespace], currentVersion)
+                    for file in DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["files"]:
+                        if file["name"] == getNameForFilesFile(moduleRegisterPathList[namespace]):
+                            file["sha1"] = sha1sum(moduleRegisterPathList[namespace])
+
+                    DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["version"] = str(currentVersion)
+                    DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["released"] = datetime.now(timezone.utc).date().isoformat()
+
+        p = Path("DependencyControl.json")
+        with p.open("w", encoding="utf-8", newline="\n") as f:
+            json.dump(DependencyControl, f, indent=4)
+        repo.index.add(str(p))

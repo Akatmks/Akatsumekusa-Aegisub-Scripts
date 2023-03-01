@@ -47,7 +47,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 1, 5),
+    "version": (1, 1, 6),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -1315,11 +1315,13 @@ class AAEExportPlotGraph(bpy.types.Operator):
         clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
 
-        AAEExportExportAll._plot_graph(clip, context.selected_movieclip_tracks[0], settings)
-        for plane_track in context.edit_movieclip.tracking.plane_tracks:
-            if plane_track.select == True:
-                AAEExportExportAll._plot_graph(clip, plane_track, settings)
-                break
+        if len(context.selected_movieclip_tracks) == 1:
+            AAEExportExportAll._plot_graph(clip, context.selected_movieclip_tracks[0], settings)
+        else:
+            for plane_track in context.edit_movieclip.tracking.plane_tracks:
+                if plane_track.select == True:
+                    AAEExportExportAll._plot_graph(clip, plane_track, settings)
+                    break
 
         return { "FINISHED" }
     

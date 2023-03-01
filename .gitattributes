@@ -1,3 +1,8 @@
+# DependencyControl
+.hooks/hooks/pre-commit linguist-language=Python
+.hooks/hooks/post-merge linguist-language=Shell
+DependencyControl.json linguist-generated
+
 # aae-export
 scripts/aae-export-mac/aae-export.py linguist-generated
 scripts/aae-export-mac/aae-export-install-dependencies.base122 linguist-generated
