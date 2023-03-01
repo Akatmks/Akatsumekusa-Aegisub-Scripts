@@ -35,7 +35,7 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "0.1.3"
+versioning.version = "0.1.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.outcome"
 
@@ -989,6 +989,8 @@ function outcome.o(...)
   elseif (result[1] == false or result[1] == nil) then
     table.remove(result, 1)
     return outcome.err(result)
+  elseif #result == 1 then
+    return outcome.ok(result[1])
   else
     return outcome.ok(result)
   end
