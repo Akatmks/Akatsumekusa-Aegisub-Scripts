@@ -295,9 +295,9 @@ if __name__ == "__main__":
     for diff_index in diff_indexes:
         match diff_index.change_type: # match requires Python 3.10
             case "A":
-                added.append(Path(diff_index.b_path))
+                removed.append(Path(diff_index.b_path))
             case "D":
-                removed.append(Path(diff_index.a_path))
+                added.append(Path(diff_index.a_path))
             case "R":
                 added.append(Path(diff_index.b_path))
                 removed.append(Path(diff_index.a_path))
@@ -308,10 +308,10 @@ if __name__ == "__main__":
 
     
     if aae_export:
-        if "scripts/aae-export/aae-export.py" in added or "scripts/aae-export/aae-export.py" in changed:
-            subprocess.run([Path("scripts/aae-export-linux-x86_64/generate.sh").as_posix()], check=True)
+        if (p := Path("scripts/aae-export/aae-export.py")) in added or p in changed:
+            subprocess.run(["sh", Path("scripts/aae-export-linux-x86_64/generate.sh").as_posix()], check=True)
             repo.index.add("scripts/aae-export-linux-x86_64/aae-export.py")
-            subprocess.run([Path("scripts/aae-export-mac/generate.sh").as_posix()], check=True)
+            subprocess.run(["sh", Path("scripts/aae-export-mac/generate.sh").as_posix()], check=True)
             repo.index.add("scripts/aae-export-mac/aae-export.py")
 
 
