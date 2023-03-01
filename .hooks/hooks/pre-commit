@@ -185,11 +185,12 @@ if __name__ == "__main__":
     p = Path("DependencyControl.json")
     if not p.exists():
         dependency_control = dependency_control and False
-    with p.open("r", encoding="utf-8") as f:
-        try:
-            previousDependencyControl = json.load(f)
-        except:
-            previousDependencyControl = None
+    else:
+        with p.open("r", encoding="utf-8") as f:
+            try:
+                previousDependencyControl = json.load(f)
+            except:
+                previousDependencyControl = None
 
     if not Path(lua_transpiler_manifest).exists():
         lua_transpiler = lua_transpiler and False
@@ -285,33 +286,32 @@ if __name__ == "__main__":
                 moduleRegisterPathList[namespace] = p
 
 
-    if dependency_control:
-        added = []
-        removed = []
-        changed = []
-        diff_indexes = repo.head.commit.diff()
-        if not diff_indexes:
-            diff_indexes = repo.head.commit.diff("HEAD^")
-        for diff_index in diff_indexes:
-            match diff_index.change_type: # match requires Python 3.10
-                case "A":
-                    added.append(Path(diff_index.b_path))
-                case "D":
-                    removed.append(Path(diff_index.a_path))
-                case "R":
-                    added.append(Path(diff_index.b_path))
-                    removed.append(Path(diff_index.a_path))
-                case "M" | "T":
-                    changed.append(Path(diff_index.a_path))
-                case _:
-                    raise ValueError(str(diff_index))
+    added = []
+    removed = []
+    changed = []
+    diff_indexes = repo.head.commit.diff()
+    if not diff_indexes:
+        diff_indexes = repo.head.commit.diff("HEAD^")
+    for diff_index in diff_indexes:
+        match diff_index.change_type: # match requires Python 3.10
+            case "A":
+                removed.append(Path(diff_index.b_path))
+            case "D":
+                added.append(Path(diff_index.a_path))
+            case "R":
+                added.append(Path(diff_index.b_path))
+                removed.append(Path(diff_index.a_path))
+            case "M" | "T":
+                changed.append(Path(diff_index.a_path))
+            case _:
+                raise ValueError(str(diff_index))
 
     
     if aae_export:
-        if "scripts/aae-export/aae-export.py" in added or "scripts/aae-export/aae-export.py" in changed:
-            subprocess.run([Path("scripts/aae-export-linux-x86_64/generate.sh").as_posix()], check=True)
+        if (p := Path("scripts/aae-export/aae-export.py")) in added or p in changed:
+            subprocess.run(["sh", Path("scripts/aae-export-linux-x86_64/generate.sh").as_posix()], check=True)
             repo.index.add("scripts/aae-export-linux-x86_64/aae-export.py")
-            subprocess.run([Path("scripts/aae-export-mac/generate.sh").as_posix()], check=True)
+            subprocess.run(["sh", Path("scripts/aae-export-mac/generate.sh").as_posix()], check=True)
             repo.index.add("scripts/aae-export-mac/aae-export.py")
 
 
