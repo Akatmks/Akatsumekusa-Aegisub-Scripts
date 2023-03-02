@@ -509,7 +509,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/workflow/init.lua",
-                            "sha1": "05d860544bf3614eacf302ec822ed13d965b66b0"
+                            "sha1": "ef39896eef61e859f5f6faedf623ea193ab68d92"
                         },
                         {
                             "name": "/intrarun.lua",
@@ -524,7 +524,7 @@
                         {
                             "name": "/run.lua",
                             "url": "@{fileBaseUrl}/modules/aka/workflow/run.lua",
-                            "sha1": "731569d2ffa5492abc3264ec93b743d0f3e9c319"
+                            "sha1": "afbd9794b95598729818340b0123b0049973de05"
                         },
                         {
                             "name": "/threads.lua",
@@ -532,7 +532,7 @@
                             "sha1": "9be436bc7888fb015714a4350d9f08909d9a81bc"
                         }
                     ],
-                    "version": "0.1.16",
+                    "version": "0.1.17",
                     "default": true,
                     "requireModules": [
                         {
@@ -542,7 +542,7 @@
                             "moduleName": "ffi"
                         }
                     ],
-                    "released": "2023-03-01"
+                    "released": "2023-03-02"
                 }
             },
             "author": "Akatsumekusa and contributors",

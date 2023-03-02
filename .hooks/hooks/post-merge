@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# nontomaticay
 # Copyright (c) Akatsumekusa and contributors
 
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -23,4 +24,4 @@
 # SOFTWARE.
 
 .hooks/hooks/pre-commit
-git diff-index --cached --quiet HEAD || git commit -m "DepCtrl: Local post-merge update" --no-verify
+git diff-index --cached --quiet HEAD || git commit -m "nontomaticay local post-merge update" --no-verify

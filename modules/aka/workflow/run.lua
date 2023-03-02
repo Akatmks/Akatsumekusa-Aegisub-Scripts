@@ -26,8 +26,6 @@ local config
 
 local run
 
-run = 
-
 
 
 
