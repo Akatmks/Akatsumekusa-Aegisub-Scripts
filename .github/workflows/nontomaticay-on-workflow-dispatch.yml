@@ -25,5 +25,5 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git config core.hooksPath .hooks/hooks
-          git diff-index --cached --quiet HEAD || git commit -m "DepCtrl: GitHub Actions on workflow dispatch update" --no-verify
+          git diff-index --cached --quiet HEAD || git commit -m "nontomaticay GitHub Actions on workflow dispatch update" --no-verify
           git push
