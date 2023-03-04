@@ -43,6 +43,10 @@
 # Title font: Alligator by Simon Bradley
 # ---------------------------------------------------------------------
 
+changequote(`<<', `>>')
+changecom(<<APRVHNWIPOHVNIOPAWHNVOPIAWNHGPOWAINGHWAPOGNHWAIONPHBANOWUR>>)
+dnl)
+
 bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
@@ -92,72 +96,97 @@ class AAEExportSettings(bpy.types.PropertyGroup):
     do_includes_power_pin: bpy.props.BoolProperty(name="Includes Power Pin",
                                            description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is unable to recognise the data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
                                            default=True)
+                                           
+    do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
+                                                description="Generate unique files every time",
+                                                default=False)
+    do_also_export: bpy.props.BoolProperty(name="Auto export",
+                                           description="Automatically export the selected track to file while copying",
+                                           default=True)
+
     do_smoothing_fake: bpy.props.BoolProperty(name="Enable",
                                               description="Perform smoothing on tracking data.\nThis feature requires additional packages to be installed. Please head to „Edit > Preference > Add-ons > Video Tools: AAE Export > Preferences“ to install the dependencies",
                                               default=False)
     do_smoothing: bpy.props.BoolProperty(name="Enable",
                                          description="Perform smoothing on tracking data.\nThis uses position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks to fit polynomial regression models, and then uses the fit models to generate smoothed data.\n\nPlease note that this smoothing feature is very rudimentary and may cause more problems than it solves. Akatsumekusa recommends trying it only if the tracking is unbearably poor.\n\nAlso, Akatsumekusa is working on a new script that will provide this feature much better than it is right now. Please expect Non Carbonated AAE Export to come out sometime in the year",
                                          default=False)
-    smoothing_do_position: bpy.props.BoolProperty(name="Smooth",
-                                                  description="Perform smoothing on position data",
-                                                  default=True)
-    smoothing_position_degree: bpy.props.IntProperty(name="Max Degree",
-                                                     description="The maximal polynomial degree of position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                     default=2,
-                                                     min=1,
-                                                     soft_max=16)
-    smoothing_do_scale: bpy.props.BoolProperty(name="Smooth",
-                                               description="Perform smoothing on scale data",
-                                               default=True)
-    smoothing_scale_degree: bpy.props.IntProperty(name="Max Degree",
-                                                  description="The maximal polynomial degree of scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                  default=2,
-                                                  min=1,
-                                                  soft_max=16)
-    smoothing_do_rotation: bpy.props.BoolProperty(name="Smooth",
-                                               description="Perform smoothing on rotation data.\nPlease note that rotation calculation in AAE Export is very basic. Performing smoothing on rotations with high velocity may yield unexpected results",
-                                               default=True)
-    smoothing_rotation_degree: bpy.props.IntProperty(name="Max Degree",
-                                                     description="The maximal polynomial degree of rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                     default=1,
-                                                     min=1,
-                                                     soft_max=16)
-    smoothing_do_power_pin: bpy.props.BoolProperty(name="Smooth",
-                                                   description="Perform smoothing on Power Pin data",
-                                                   default=True)
-    smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Degree",
-                                                      description="The maximal polynomial degree of Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nPlease note that regression model is fit to Power Pin data relative to the position data instead of absolute.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                      default=2,
-                                                      min=1,
-                                                      soft_max=16)
-    smoothing_position_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                         name="Linear Model",
-                                                         default="LINEAR")
-    smoothing_position_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                              description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                              default=1.50,
-                                                              min=1.00,
-                                                              soft_max=10.00,
-                                                              step=1,
-                                                              precision=2)
-    smoothing_position_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                              description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                              default=0.10,
-                                                              min=0.00,
-                                                              soft_max=100.0,
-                                                              step=1,
-                                                              precision=2)
+
+class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
+    bl_label = "AAEExportSettingsSectionL"
+    bl_idname = "AAEExportSettingsSectionL"
+
+    section_start_frame: bpy.props.IntProperty(name="Start frame",
+                                               description="The first frame of the section",
+                                               default=-2147483648)
+    section_end_frame: bpy.props.IntProperty(name="End frame",
+                                             description="The last frame of the section",
+                                             default=2147483647)
+                                               
+    smoothing_use_different_x_y: bpy.props.BoolProperty(name="Split x/y",
+                                               description="Use different regression settings for x and y axis of each data",
+                                               default=False)
+    smoothing_use_different_model: bpy.props.BoolProperty(name="Split data",
+                                               description="Use different regression model for each data",
+                                               default=False)
+
+define(<<SMOOTHING_SETTINGS__BASE>>, <<dnl CODE_NAME, DISPLAY_NAME
+    smoothing_do_$1: bpy.props.BoolProperty(name="Smooth",
+                                            description="Perform smoothing on $2 data",
+                                            default=True)
+>>)
+
+define(<<SMOOTHING_SETTINGS__SEPARATE>>, <<dnl CODE_NAME, DISPLAY_NAME, XY_NAME, DEFAULT_DEGREE
+    smoothing_$1_<<>>ifelse(<<$3>>, <<>>, <<$3>>, <<$3_>>)degree: bpy.props.IntProperty(name="Max Degree",
+                                                                                        description="The maximal polynomial degree of $2 $3 data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                                                        default=$4,
+                                                                                        min=1,
+                                                                                        soft_max=16)
+    smoothing_$1_<<>>ifelse(<<$3>>, <<>>, <<$3>>, <<$3_>>)regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                                                                                            name="Linear Model",
+                                                                                            default="LINEAR")
+    smoothing_$1_<<>>ifelse(<<$3>>, <<>>, <<$3>>, <<$3_>>)huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
+                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                                                                                                 default=1.50,
+                                                                                                 min=1.00,
+                                                                                                 soft_max=10.00,
+                                                                                                 step=1,
+                                                                                                 precision=2)
+    smoothing_$1_<<>>ifelse(<<$3>>, <<>>, <<$3>>, <<$3_>>)lasso_alpha: bpy.props.FloatProperty(name="Alpha",
+                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                                                                                               default=0.10,
+                                                                                               min=0.00,
+                                                                                               soft_max=100.0,
+                                                                                               step=1,
+                                                                                               precision=2)
+>>)
+
+define(<<SMOOTHING_SETTINGS_XY>>, <<dnl CODE_NAME, DISPLAY_NAME, DEFAULT_DEGREE
+SMOOTHING_SETTINGS__BASE(<<$1>>, <<$2>>)
+SMOOTHING_SETTINGS__SEPARATE(<<$1>>, <<$2>>, <<>>, <<$3>>)
+SMOOTHING_SETTINGS__SEPARATE(<<$1>>, <<$2>>, <<x>>, <<$3>>)
+SMOOTHING_SETTINGS__SEPARATE(<<$1>>, <<$2>>, <<y>>, <<$3>>)
+>>)
+
+define(<<SMOOTHING_SETTINGS_UNI>>, <<dnl CODE_NAME, DISPLAY_NAME, DEFAULT_DEGREE
+SMOOTHING_SETTINGS__BASE(<<$1>>, <<$2>>)
+SMOOTHING_SETTINGS__SEPARATE(<<$1>>, <<$2>>, <<>>, <<$3>>)
+>>)
+
+SMOOTHING_SETTINGS_XY(<<position>>, <<position>>, <<2>>)
+SMOOTHING_SETTINGS_XY(<<scale>>, <<scale>>, <<2>>)
+SMOOTHING_SETTINGS_UNI(<<rotation>>, <<rotation>>, <<1>>)
+SMOOTHING_SETTINGS_XY(<<power_pin>>, <<Power Pin>>, <<2>>)
+
+undefine(<<SMOOTHING_SETTINGS__BASE>>)
+undefine(<<SMOOTHING_SETTINGS__SEPARATE>>)
+undefine(<<SMOOTHING_SETTINGS_XY>>)
+undefine(<<SMOOTHING_SETTINGS_UNI>>)
+
     smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
                                                               description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
                                                               default=False)
-    do_also_export: bpy.props.BoolProperty(name="Auto export",
-                                           description="Automatically export the selected track to file while copying",
-                                           default=True)
-    do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
-                                                description="Generate unique files every time",
-                                                default=False)
 
 class AAEExportExportAll(bpy.types.Operator):
     bl_label = "Export"
@@ -635,6 +664,7 @@ class AAEExportExportAll(bpy.types.Operator):
             return predicted_data
         
         elif data.ndim == 1:
+changequote(<<[[[>>, <<]]]>>)
             match (do_smoothing << 1) + do_predictive_smoothing: # match case requires Python 3.10 (Blender 3.1)
                 case 0b11:
                     predicted_data = AAEExportExportAll._smoothing_univariate(data, degree, regressor, huber_epsilon, lasso_alpha)
@@ -649,6 +679,7 @@ class AAEExportExportAll(bpy.types.Operator):
                     return data
                 case 0b00:
                     return data
+changequote([[[<<]]], [[[>>]]])
         else:
             raise ValueError("data.ndim must be either 1 or 2")
 
@@ -784,16 +815,16 @@ class AAEExportExportAll(bpy.types.Operator):
 
         for frame in range(position.shape[0]):
             if not np.isnan(position[frame][0]):
-                aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(frame + 1, *position[frame], 0.0))
+                aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".<<format>>(frame + 1, *position[frame], 0.0))
             if not np.isnan(scale[frame][0]):
-                aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(frame + 1, *scale[frame], 100.0))
+                aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".<<format>>(frame + 1, *scale[frame], 100.0))
             if not np.isnan(limited_rotation[frame]):
-                aae_rotation.append("\t{:d}\t{:.3f}".format(frame + 1, limited_rotation[frame]))
+                aae_rotation.append("\t{:d}\t{:.3f}".<<format>>(frame + 1, limited_rotation[frame]))
             if not np.isnan(power_pin[0][frame][0]):
-                aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[0][frame]))
-                aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[1][frame]))
-                aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[2][frame]))
-                aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[3][frame]))
+                aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(frame + 1, *power_pin[0][frame]))
+                aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(frame + 1, *power_pin[1][frame]))
+                aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(frame + 1, *power_pin[2][frame]))
+                aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(frame + 1, *power_pin[3][frame]))
 
         return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
         
@@ -1141,15 +1172,15 @@ class AAEExportExportAll(bpy.types.Operator):
         power_pin_0005 : tuple[float]
 
         """
-        aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(marker.frame, *position, 0.0))
-        aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(marker.frame, *scale, 100.0))
+        aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".<<format>>(marker.frame, *position, 0.0))
+        aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".<<format>>(marker.frame, *scale, 100.0))
         if rotation >= 359.9995:
             rotation = 0.0
-        aae_rotation.append("\t{:d}\t{:.3f}".format(marker.frame, rotation))
-        aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0002))
-        aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0003))
-        aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0004))
-        aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0005))
+        aae_rotation.append("\t{:d}\t{:.3f}".<<format>>(marker.frame, rotation))
+        aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(marker.frame, *power_pin_0002))
+        aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(marker.frame, *power_pin_0003))
+        aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(marker.frame, *power_pin_0004))
+        aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(marker.frame, *power_pin_0005))
 
     @staticmethod
     def _combine_aae(clip, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, do_includes_power_pin):
@@ -1175,11 +1206,11 @@ class AAEExportExportAll(bpy.types.Operator):
         aae = ""
 
         aae += "Adobe After Effects 6.0 Keyframe Data\n\n"
-        aae += "\tUnits Per Second\t{:.3f}\n".format(clip.fps)
-        aae += "\tSource Width\t{:d}\n".format(clip.size[0])
-        aae += "\tSource Height\t{:d}\n".format(clip.size[1])
-        aae += "\tSource Pixel Aspect Ratio\t{:d}\n".format(1)
-        aae += "\tComp Pixel Aspect Ratio\t{:d}\n\n".format(1)
+        aae += "\tUnits Per Second\t{:.3f}\n".<<format>>(clip.fps)
+        aae += "\tSource Width\t{:d}\n".<<format>>(clip.size[0])
+        aae += "\tSource Height\t{:d}\n".<<format>>(clip.size[1])
+        aae += "\tSource Pixel Aspect Ratio\t{:d}\n".<<format>>(1)
+        aae += "\tComp Pixel Aspect Ratio\t{:d}\n\n".<<format>>(1)
 
         aae += "Anchor Point\n"
         aae += "\tFrame\tX pixels\tY pixels\tZ pixels\n"
@@ -1416,10 +1447,41 @@ class AAEExportOptions(bpy.types.Panel):
     bl_options = { "DEFAULT_CLOSED" }
 
     def draw(self, context):
+        #   Smoothing [x] Enabled
+        # [      Plot Result      ]
+        # Detect para [           ]
+        # Detect para [           ]
+        # [    Detect Sections    ]
+        # Sections
+        # > Section 1 1..20   < [+]
+        # > Section 2 20..69  < [-]
+        # > Section 3 69..122 <
+        # Section 1
+        # Start Frame [     1     ]
+        #   End Frame [    20     ]
+        # [       Plot Graph      ]
+        #             [ ] Split...
+        #    Position [x] Apply...
+        #  Max Degree [     3     ]
+        #       Scale [x] Apply...
+        #  Max Degree [     2     ]
+        #    Rotation [x] Apply...
+        #  Max Degree [     1     ]
+        #   Power Pin [x] Apply...
+        #  Max Degree [     2     ]
+        # Linear M... [Huber Re...]
+        #     Epsilon [   1.50    ]
+        # Predicti... [ ] Apply
+
+        #             [x] Split...
+        #    Position [x] Apply...
+        #  Max Degree [  3  ][  2  ]
+
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
         
+        clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
         
         # box = layout.box()
@@ -1434,6 +1496,10 @@ class AAEExportOptions(bpy.types.Panel):
             column = box.column(heading="Smoothing")
             column.prop(settings, "do_smoothing")
             column.separator(factor=0.0)
+            
+            sub_column = column.column()
+            sub_column.template_list("SOLVE_PT_aae_export_section_list", "SOLVE_PT_aae_export_section_list", clip, "AAEExportSettingsSectionL", clip, "AAEExportSettingsSectionLI")
+
             selected_plane_tracks = 0
             for plane_track in context.edit_movieclip.tracking.plane_tracks:
                 if plane_track.select == True:
@@ -1477,6 +1543,17 @@ class AAEExportOptions(bpy.types.Panel):
     def poll(cls, context):
         return context.edit_movieclip is not None
 
+class AAEExportSectionL(bpy.types.UIList):
+    bl_label = "Export Section List"
+    bl_idname = "SOLVE_PT_aae_export_section_list"
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        if self.layout_type in { "Default", "Compact" }:
+            layout.label(text="Section " + str(item.section_start_frame) + "‥" + str(item.section_end_frame))
+        elif self.layout_type in { "GRID" }:
+            layout.alignment = "CENTER"
+            layout.label(text=str(item.section_start_frame))
+
 class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     """Export motion tracking markers to Adobe After Effects 6.0 compatible files"""
     bl_label = "Export to Adobe After Effects 6.0 Keyframe Data"
@@ -1502,6 +1579,7 @@ class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return { "FINISHED" }
 
 classes = (AAEExportSettings,
+           AAEExportSettingsSectionL,
            AAEExportExportAll,
            AAEExportCopySingleTrack,
            AAEExportCopyPlaneTrack,
@@ -1552,7 +1630,7 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
                 
             if module[2]:
                 exec("import " + module[0])
-                module_version = eval(module[0] + ".__version__")
+                module_version = <<eval>>(module[0] + ".__version__")
                 if "packaging" in locals():
                     if packaging.version.parse(module_version) < packaging.version.parse(module[2]):
                         return { "FINISHED" }
@@ -1748,7 +1826,7 @@ def register():
 
         if module[2]:
             exec("import " + module[0])
-            module_version = eval(module[0] + ".__version__")
+            module_version = <<eval>>(module[0] + ".__version__")
             if "packaging" in locals():
                 if packaging.version.parse(module_version) < packaging.version.parse(module[2]):
                     register_register_classes()
@@ -1776,6 +1854,8 @@ def register_main_classes():
         bpy.utils.register_class(class_)
         
     bpy.types.Screen.AAEExportSettings = bpy.props.PointerProperty(type=AAEExportSettings)
+    bpy.types.MovieClip.AAEExportSettingsSectionL = bpy.props.CollectionProperty(type=AAEExportSettingsSectionL)
+    bpy.types.MovieClip.AAEExportSettingsSectionLI = bpy.props.IntProperty(name="AAEExportSettingsSectionLI")
         
     bpy.types.TOPBAR_MT_file_export.append(register_export_legacy)
 
@@ -1797,6 +1877,8 @@ def unregister_main_class():
     bpy.types.TOPBAR_MT_file_export.remove(register_export_legacy)
     
     del bpy.types.Screen.AAEExportSettings
+    del bpy.types.MovieClip.AAEExportSettingsSectionL
+    del bpy.types.MovieClip.AAEExportSettingsSectionLI
     
     for class_ in classes:
         bpy.utils.unregister_class(class_)

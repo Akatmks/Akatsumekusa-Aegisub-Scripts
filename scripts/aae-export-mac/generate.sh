@@ -21,7 +21,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cat "${0%/*}/../aae-export/aae-export.py" \
+m4 "${0%/*}/../aae-export/aae-export.py" | \
+cat - \
     <(echo) \
     <(echo -n "aae_export_b_mac = \"") \
     "${0%/*}/libbase122.base64" \

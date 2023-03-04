@@ -4,9 +4,9 @@
 
 AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisub-Motion](https://github.com/TypesettingTools/Aegisub-Motion/) and [Aegisub-Perspective-Motion](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts/tree/daily_stream) compatible AAE data.  
 
-–　[Download (Windows)](scripts/aae-export/aae-export.py)  
+–　[Download (Windows)](scripts/aae-export-windows/aae-export.py)  
 –　[Download (Linux x86_64)](scripts/aae-export-linux-x86_64/aae-export.py)  
-–　[Download (Linux aarch64)](scripts/aae-export/aae-export.py)  
+–　[Download (Linux aarch64)](scripts/aae-export-windows/aae-export.py)  
 –　[Download (Mac)](scripts/aae-export-mac/aae-export.py)  
 –　[Tutorial 1: Install AAE Export](docs/aae-export-tutorial.md#tutorial-1-install-aae-export)  
 –　[Tutorial 2: Track a simple pan using tracking marker](docs/aae-export-tutorial.md#tutorial-2-track-a-simple-pan-using-tracking-marker)  
