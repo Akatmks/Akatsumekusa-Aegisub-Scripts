@@ -10,6 +10,7 @@ scripts/aae-export-mac/libbase122.base64 linguist-generated
 scripts/aae-export-linux-x86_64/aae-export.py linguist-generated
 scripts/aae-export-linux-x86_64/aae-export-install-dependencies.base122 linguist-generated
 scripts/aae-export-linux-x86_64/libbase122.base64 linguist-generated
+scripts/aae-export-windows/aae-export.py linguist-generated
 
 # aae-export-base122
 tools/aae-export-base122/base122.c linguist-vendored

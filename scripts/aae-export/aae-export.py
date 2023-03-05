@@ -104,30 +104,49 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                            description="Automatically export the selected track to file while copying",
                                            default=True)
 
+class AAEExportSettingsClip(bpy.types.PropertyGroup):
+    bl_label = "AAEExportSettingsClip"
+    bl_idname = "AAEExportSettingsClip"
+
+    def _init_section(self, context):
+        if context.edit_movieclip.AAEExportSettingsSectionLL == 0:
+            item = context.edit_movieclip.AAEExportSettingsSectionL.add()
+            context.edit_movieclip.AAEExportSettingsSectionLL += 1
+            context.edit_movieclip.AAEExportSettingsSectionLI = 0
+
+            item.start_frame = context.edit_movieclip.frame_start
+            item.end_frame = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration
+            item.name = "Section " + str(item.start_frame) + "‥" + str(item.end_frame)
+
     do_smoothing_fake: bpy.props.BoolProperty(name="Enable",
                                               description="Perform smoothing on tracking data.\nThis feature requires additional packages to be installed. Please head to „Edit > Preference > Add-ons > Video Tools: AAE Export > Preferences“ to install the dependencies",
                                               default=False)
     do_smoothing: bpy.props.BoolProperty(name="Enable",
                                          description="Perform smoothing on tracking data.\nThis uses position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks to fit polynomial regression models, and then uses the fit models to generate smoothed data.\n\nPlease note that this smoothing feature is very rudimentary and may cause more problems than it solves. Akatsumekusa recommends trying it only if the tracking is unbearably poor.\n\nAlso, Akatsumekusa is working on a new script that will provide this feature much better than it is right now. Please expect Non Carbonated AAE Export to come out sometime in the year",
-                                         default=False)
+                                         default=False,
+                                         update=_init_section)
 
 class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettingsSectionL"
     bl_idname = "AAEExportSettingsSectionL"
 
-    section_start_frame: bpy.props.IntProperty(name="Start frame",
-                                               description="The first frame of the section",
-                                               default=-2147483648)
-    section_end_frame: bpy.props.IntProperty(name="End frame",
-                                             description="The last frame of the section",
-                                             default=2147483647)
+    name: bpy.props.StringProperty(name="Section name",
+                                   description="Section name",
+                                   default="")
+
+    start_frame: bpy.props.IntProperty(name="Start frame",
+                                       description="The first frame of the section",
+                                       default=-2147483648)
+    end_frame: bpy.props.IntProperty(name="End frame",
+                                     description="The last frame of the section",
+                                     default=2147483647)
                                                
     smoothing_use_different_x_y: bpy.props.BoolProperty(name="Split x/y",
-                                               description="Use different regression settings for x and y axis of each data",
-                                               default=False)
+                                                        description="Use different regression settings for x and y axis of each data",
+                                                        default=False)
     smoothing_use_different_model: bpy.props.BoolProperty(name="Split data",
-                                               description="Use different regression model for each data",
-                                               default=False)
+                                                          description="Use different regression model for each data",
+                                                          default=False)
 
 define(<<SMOOTHING_SETTINGS__BASE>>, <<dnl CODE_NAME, DISPLAY_NAME
     smoothing_do_$1: bpy.props.BoolProperty(name="Smooth",
@@ -1384,8 +1403,6 @@ class AAEExportSelectedTrack(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
         
-        settings = context.screen.AAEExportSettings
-        
         column = layout.column()
         column.label(text="Selected track")
 
@@ -1424,8 +1441,6 @@ class AAEExportAllTracks(bpy.types.Panel):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
-        
-        settings = context.screen.AAEExportSettings
         
         column = layout.column()
         column.label(text="All tracks")
@@ -1481,63 +1496,96 @@ class AAEExportOptions(bpy.types.Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
         
-        clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
         
         # box = layout.box()
         # column = box.column(heading="Export")
         # column.prop(settings, "do_includes_power_pin")
+
+
         box = layout.box()
         column = box.column(heading="Preference")
         column.prop(settings, "do_also_export")
         column.prop(settings, "do_do_not_overwrite")
+
+
         box = layout.box()
         if is_smoothing_modules_available:
+            clip_settings = context.edit_movieclip.AAEExportSettingsClip
+
             column = box.column(heading="Smoothing")
-            column.prop(settings, "do_smoothing")
+            column.prop(clip_settings, "do_smoothing")
             column.separator(factor=0.0)
             
-            sub_column = column.column()
-            sub_column.template_list("SOLVE_PT_aae_export_section_list", "SOLVE_PT_aae_export_section_list", clip, "AAEExportSettingsSectionL", clip, "AAEExportSettingsSectionLI")
-
             selected_plane_tracks = 0
             for plane_track in context.edit_movieclip.tracking.plane_tracks:
                 if plane_track.select == True:
                     selected_plane_tracks += 1
+                    
             sub_column = column.column()
-            sub_column.enabled = settings.do_smoothing and \
+            sub_column.enabled = clip_settings.do_smoothing and \
                                  (selected_plane_tracks == 1) is not (len(context.selected_movieclip_tracks) == 1)
-            sub_column.operator("movieclip.aae_export_plot_graph")
-            sub_column = column.column(heading="Position")
-            sub_column.enabled = settings.do_smoothing
-            sub_column.prop(settings, "smoothing_do_position")
-            sub_column.prop(settings, "smoothing_position_degree")
-            sub_column = column.column(heading="Scale")
-            sub_column.enabled = settings.do_smoothing
-            sub_column.prop(settings, "smoothing_do_scale")
-            sub_column.prop(settings, "smoothing_scale_degree")
-            sub_column = column.column(heading="Rotation")
-            sub_column.enabled = settings.do_smoothing
-            sub_column.prop(settings, "smoothing_do_rotation")
-            sub_column.prop(settings, "smoothing_rotation_degree")
-            sub_column = column.column(heading="Power Pin")
-            sub_column.enabled = settings.do_smoothing
-            sub_column.prop(settings, "smoothing_do_power_pin")
-            sub_column.prop(settings, "smoothing_power_pin_degree")
+            # sub_column.operator("movieclip.aae_export_plot_result") # TODO
+            
             sub_column = column.column()
-            sub_column.enabled = settings.do_smoothing
-            sub_column.prop(settings, "smoothing_position_regressor")
-            if settings.smoothing_position_regressor == "HUBER":
-                sub_column.prop(settings, "smoothing_position_huber_epsilon")
-            elif settings.smoothing_position_regressor == "LASSO":
-                sub_column.prop(settings, "smoothing_position_lasso_alpha")
-            sub_column = column.column()
-            sub_column.enabled = settings.do_smoothing
-            sub_column.prop(settings, "smoothing_do_predictive_smoothing")
+            sub_column.enabled = clip_settings.do_smoothing
+            sub_column.template_list("SOLVE_PT_UL_aae_export_section_list", "SOLVE_PT_aae_export_section_vgourp",
+                                     context.edit_movieclip, "AAEExportSettingsSectionL",
+                                     context.edit_movieclip, "AAEExportSettingsSectionLI",
+                                     rows=2)
+
+            section_settings = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI]
+
+            row = column.row(align=True)
+            row.enabled = clip_settings.do_smoothing
+            row.label(text=clip_settings.name)
+            row.operator("movieclip.aae_export_section_add_section", text="", icon="ADD")
+            row.operator("movieclip.aae_export_section_remove_section", text="", icon="REMOVE")
+            
+            # sub_column = column.column()
+            # sub_column.enabled = clip_settings.do_smoothing and \
+            #                      (selected_plane_tracks == 1) is not (len(context.selected_movieclip_tracks) == 1)
+            # sub_column.operator("movieclip.aae_export_plot_graph")
+
+            # sub_column = column.column()
+            # sub_column.enabled = clip_settings.do_smoothing
+            # sub_column.prop(section_settings, "start_frame")
+            # sub_column.prop(section_settings, "end_frame")
+
+
+
+            # sub_column = column.column(heading="Position")
+            # sub_column.enabled = clip_settings.do_smoothing
+            # sub_column.prop(settings, "smoothing_do_position")
+            # sub_column.prop(settings, "smoothing_position_degree")
+            # sub_column = column.column(heading="Scale")
+            # sub_column.enabled = clip_settings.do_smoothing
+            # sub_column.prop(settings, "smoothing_do_scale")
+            # sub_column.prop(settings, "smoothing_scale_degree")
+            # sub_column = column.column(heading="Rotation")
+            # sub_column.enabled = clip_settings.do_smoothing
+            # sub_column.prop(settings, "smoothing_do_rotation")
+            # sub_column.prop(settings, "smoothing_rotation_degree")
+            # sub_column = column.column(heading="Power Pin")
+            # sub_column.enabled = clip_settings.do_smoothing
+            # sub_column.prop(settings, "smoothing_do_power_pin")
+            # sub_column.prop(settings, "smoothing_power_pin_degree")
+            # sub_column = column.column()
+            # sub_column.enabled = clip_settings.do_smoothing
+            # sub_column.prop(settings, "smoothing_position_regressor")
+            # if settings.smoothing_position_regressor == "HUBER":
+            #     sub_column.prop(settings, "smoothing_position_huber_epsilon")
+            # elif settings.smoothing_position_regressor == "LASSO":
+            #     sub_column.prop(settings, "smoothing_position_lasso_alpha")
+            # sub_column = column.column()
+            # sub_column.enabled = clip_settings.do_smoothing
+            # sub_column.prop(settings, "smoothing_do_predictive_smoothing")
         else:
+            clip_settings = context.edit_movieclip.AAEExportSettingsClip
+
             column = box.column(heading="Smoothing")
             column.enabled = False
-            column.prop(settings, "do_smoothing_fake")
+            column.prop(clip_settings, "do_smoothing_fake")
 
     @classmethod
     def poll(cls, context):
@@ -1545,14 +1593,34 @@ class AAEExportOptions(bpy.types.Panel):
 
 class AAEExportSectionL(bpy.types.UIList):
     bl_label = "Export Section List"
-    bl_idname = "SOLVE_PT_aae_export_section_list"
+    bl_idname = "SOLVE_PT_UL_aae_export_section_list"
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         if self.layout_type in { "Default", "Compact" }:
-            layout.label(text="Section " + str(item.section_start_frame) + "‥" + str(item.section_end_frame))
+            layout.label(text="Section " + str(item.start_frame) + "‥" + str(item.end_frame))
         elif self.layout_type in { "GRID" }:
             layout.alignment = "CENTER"
-            layout.label(text=str(item.section_start_frame))
+            layout.label(text=str(item.start_frame))
+
+class AAEExportSectionAddS(bpy.types.Operator):
+    bl_label = "Add Section"
+    bl_description = "Split the current section into two"
+    bl_idname = "movieclip.aae_export_section_add_section"
+
+    def execute(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+        section_list_len = context.edit_movieclip.AAEExportSettingsSectionLL
+
+        return { "FINISHED" }
+
+class AAEExportSectionRemoveS(bpy.types.Operator):
+    bl_label = "Remove Section"
+    bl_description = "Split the current section into two"
+    bl_idname = "movieclip.aae_export_section_remove_section"
+
+    def execute(self, context):
+        return { "FINISHED" }
 
 class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
     """Export motion tracking markers to Adobe After Effects 6.0 compatible files"""
@@ -1579,6 +1647,7 @@ class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
         return { "FINISHED" }
 
 classes = (AAEExportSettings,
+           AAEExportSettingsClip,
            AAEExportSettingsSectionL,
            AAEExportExportAll,
            AAEExportCopySingleTrack,
@@ -1588,6 +1657,9 @@ classes = (AAEExportSettings,
            AAEExportSelectedTrack,
            AAEExportAllTracks,
            AAEExportOptions,
+           AAEExportSectionL,
+           AAEExportSectionAddS,
+           AAEExportSectionRemoveS,
            AAEExportLegacy)
 
 class AAEExportRegisterSettings(bpy.types.PropertyGroup):
@@ -1854,8 +1926,10 @@ def register_main_classes():
         bpy.utils.register_class(class_)
         
     bpy.types.Screen.AAEExportSettings = bpy.props.PointerProperty(type=AAEExportSettings)
+    bpy.types.MovieClip.AAEExportSettingsClip = bpy.props.PointerProperty(type=AAEExportSettingsClip)
     bpy.types.MovieClip.AAEExportSettingsSectionL = bpy.props.CollectionProperty(type=AAEExportSettingsSectionL)
     bpy.types.MovieClip.AAEExportSettingsSectionLI = bpy.props.IntProperty(name="AAEExportSettingsSectionLI")
+    bpy.types.MovieClip.AAEExportSettingsSectionLL = bpy.props.IntProperty(name="AAEExportSettingsSectionLL", default=0)
         
     bpy.types.TOPBAR_MT_file_export.append(register_export_legacy)
 
@@ -1877,8 +1951,10 @@ def unregister_main_class():
     bpy.types.TOPBAR_MT_file_export.remove(register_export_legacy)
     
     del bpy.types.Screen.AAEExportSettings
+    del bpy.types.MovieClip.AAEExportSettingsClip
     del bpy.types.MovieClip.AAEExportSettingsSectionL
     del bpy.types.MovieClip.AAEExportSettingsSectionLI
+    del bpy.types.MovieClip.AAEExportSettingsSectionLL
     
     for class_ in classes:
         bpy.utils.unregister_class(class_)
