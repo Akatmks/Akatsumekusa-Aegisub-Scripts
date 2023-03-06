@@ -125,6 +125,10 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                          description="Perform smoothing on tracking data.\nThis uses position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks to fit polynomial regression models, and then uses the fit models to generate smoothed data.\n\nPlease note that this smoothing feature is very rudimentary and may cause more problems than it solves. Akatsumekusa recommends trying it only if the tracking is unbearably poor.\n\nAlso, Akatsumekusa is working on a new script that will provide this feature much better than it is right now. Please expect Non Carbonated AAE Export to come out sometime in the year",
                                          default=False,
                                          update=_do_smoothing_update)
+                                         
+    smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
+                                                              description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
+                                                              default=False)
 
 
 
@@ -133,436 +137,1566 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
 
-    
-    # fake settings before the first section is created  
+
+    # fake settings before the first section is created
     start_frame: bpy.props.IntProperty(name="Start Frame",
                                        description="The first frame of the section",
-                                       default=0)
+                                       default=0
+                                       )
     end_frame: bpy.props.IntProperty(name="End Frame",
                                      description="The last frame of the section",
-                                     default=0)
+                                     default=0
+                                     )
 
     smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
-    smoothing_use_different_model: bpy.props.BoolProperty(name="Types",
+    smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
                                                           description="Use different regression model for position, scale, rotation and Power Pin data",
                                                           default=False)
 
-    smoothing_do_position: bpy.props.BoolProperty(name="Smooth",
-                                            description="Perform smoothing on position data",
-                                            default=True)
-
-    smoothing_position_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of position  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_position_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_position_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_position_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-    smoothing_do_scale: bpy.props.BoolProperty(name="Smooth",
-                                            description="Perform smoothing on scale data",
-                                            default=True)
-
-    smoothing_scale_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of scale  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_scale_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_scale_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_scale_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-    smoothing_do_rotation: bpy.props.BoolProperty(name="Smooth",
-                                            description="Perform smoothing on rotation data",
-                                            default=True)
-
-    smoothing_rotation_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of rotation  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=1,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_rotation_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_rotation_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_rotation_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-    smoothing_do_power_pin: bpy.props.BoolProperty(name="Smooth",
-                                            description="Perform smoothing on power_pin data",
-                                            default=True)
-
-    smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of power_pin  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_power_pin_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_power_pin_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_power_pin_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
 
 
-    smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
-                                                              description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
-                                                              default=False)
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_regressor = section_list[sedtion_list_index].smoothing_regressor
+        section_list[sedtion_list_index].smoothing_scale_regressor = section_list[sedtion_list_index].smoothing_regressor
+        section_list[sedtion_list_index].smoothing_rotation_regressor = section_list[sedtion_list_index].smoothing_regressor
+        section_list[sedtion_list_index].smoothing_power_pin_regressor = section_list[sedtion_list_index].smoothing_regressor
+
+
+
+    smoothing_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_regressor_update)
+
+
+
+
+    def _smoothing_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+        section_list[sedtion_list_index].smoothing_scale_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+        section_list[sedtion_list_index].smoothing_rotation_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+        section_list[sedtion_list_index].smoothing_power_pin_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+
+
+
+    smoothing_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_huber_epsilon_update)
+
+
+
+
+    def _smoothing_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+        section_list[sedtion_list_index].smoothing_scale_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+        section_list[sedtion_list_index].smoothing_rotation_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+        section_list[sedtion_list_index].smoothing_power_pin_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+
+
+
+    smoothing_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_position_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_do_position: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on position data",
+                default=True,
+                update=_smoothing_do_position_update)
+
+
+
+
+    def _smoothing_position_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+
+    smoothing_position_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=0,
+                min=0,
+                soft_max=16,
+                update=_smoothing_position_degree_update)
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_scale_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_do_scale: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on scale data",
+                default=True,
+                update=_smoothing_do_scale_update)
+
+
+
+
+    def _smoothing_scale_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+
+    smoothing_scale_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=0,
+                min=0,
+                soft_max=16,
+                update=_smoothing_scale_degree_update)
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_rotation_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_do_rotation: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on rotation data",
+                default=True,
+                update=_smoothing_do_rotation_update)
+
+
+
+
+    def _smoothing_rotation_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+
+    smoothing_rotation_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=0,
+                min=0,
+                soft_max=16,
+                update=_smoothing_rotation_degree_update)
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_power_pin_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_do_power_pin: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on power_pin data",
+                default=True,
+                update=_smoothing_do_power_pin_update)
+
+
+
+
+    def _smoothing_power_pin_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+
+    smoothing_power_pin_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for power_pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=0,
+                min=0,
+                soft_max=16,
+                update=_smoothing_power_pin_degree_update)
+
+
+
+
+
 
 class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettingsSectionL"
     bl_idname = "AAEExportSettingsSectionL"
+
+    def _start_frame_update(self, context):
+        pass
+
+    def _end_frame_update(self, context):
+        pass
     
     start_frame: bpy.props.IntProperty(name="Start Frame",
                                        description="The first frame of the section",
-                                       default=0)
+                                       default=0,
+                                       update=_start_frame_update)
     end_frame: bpy.props.IntProperty(name="End Frame",
                                      description="The last frame of the section",
-                                     default=0)
+                                     default=0,
+                                     update=_end_frame_update)
 
     smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
-    smoothing_use_different_model: bpy.props.BoolProperty(name="Types",
+    smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
                                                           description="Use different regression model for position, scale, rotation and Power Pin data",
                                                           default=False)
 
-    smoothing_do_position: bpy.props.BoolProperty(name="Smooth",
-                                            description="Perform smoothing on position data",
-                                            default=True)
-
-    smoothing_position_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of position  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_position_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_position_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_position_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-    smoothing_position_x_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of position x data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_position_x_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_position_x_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_position_x_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-    smoothing_position_y_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of position y data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_position_y_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_position_y_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_position_y_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-
-    smoothing_do_scale: bpy.props.BoolProperty(name="Smooth",
-                                            description="Perform smoothing on scale data",
-                                            default=True)
-
-    smoothing_scale_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of scale  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_scale_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_scale_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_scale_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-    smoothing_scale_x_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of scale x data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_scale_x_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_scale_x_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_scale_x_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-    smoothing_scale_y_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of scale y data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_scale_y_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_scale_y_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_scale_y_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-
-    smoothing_do_rotation: bpy.props.BoolProperty(name="Smooth",
-                                            description="Perform smoothing on rotation data",
-                                            default=True)
-
-    smoothing_rotation_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of rotation  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=1,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_rotation_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_rotation_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_rotation_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-
-    smoothing_do_power_pin: bpy.props.BoolProperty(name="Smooth",
-                                            description="Perform smoothing on Power Pin data",
-                                            default=True)
-
-    smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of Power Pin  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_power_pin_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_power_pin_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_power_pin_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-    smoothing_power_pin_x_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of Power Pin x data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_power_pin_x_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_power_pin_x_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_power_pin_x_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
-
-    smoothing_power_pin_y_degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of Power Pin y data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=2,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_power_pin_y_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_power_pin_y_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_power_pin_y_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
 
 
 
-    smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
-                                                              description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
-                                                              default=False)
-                                                              
+
+
+
+
+
+
+
+
+
+    def _smoothing_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_regressor = section_list[sedtion_list_index].smoothing_regressor
+        section_list[sedtion_list_index].smoothing_scale_regressor = section_list[sedtion_list_index].smoothing_regressor
+        section_list[sedtion_list_index].smoothing_rotation_regressor = section_list[sedtion_list_index].smoothing_regressor
+        section_list[sedtion_list_index].smoothing_power_pin_regressor = section_list[sedtion_list_index].smoothing_regressor
+
+
+        section_list[sedtion_list_index].smoothing_x_regressor = section_list[sedtion_list_index].smoothing_regressor
+        section_list[sedtion_list_index].smoothing_y_regressor = section_list[sedtion_list_index].smoothing_regressor
+
+
+    smoothing_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_regressor_update)
+
+
+
+
+    def _smoothing_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+        section_list[sedtion_list_index].smoothing_scale_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+        section_list[sedtion_list_index].smoothing_rotation_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+        section_list[sedtion_list_index].smoothing_power_pin_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+
+
+        section_list[sedtion_list_index].smoothing_x_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+        section_list[sedtion_list_index].smoothing_y_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+
+
+    smoothing_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_huber_epsilon_update)
+
+
+
+
+    def _smoothing_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+        section_list[sedtion_list_index].smoothing_scale_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+        section_list[sedtion_list_index].smoothing_rotation_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+        section_list[sedtion_list_index].smoothing_power_pin_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+
+
+        section_list[sedtion_list_index].smoothing_x_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+        section_list[sedtion_list_index].smoothing_y_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+
+
+    smoothing_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_x_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_x_regressor = section_list[sedtion_list_index].smoothing_x_regressor
+        section_list[sedtion_list_index].smoothing_scale_x_regressor = section_list[sedtion_list_index].smoothing_x_regressor
+        section_list[sedtion_list_index].smoothing_rotation_x_regressor = section_list[sedtion_list_index].smoothing_x_regressor
+        section_list[sedtion_list_index].smoothing_power_pin_x_regressor = section_list[sedtion_list_index].smoothing_x_regressor
+
+
+    smoothing_x_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_x_regressor_update)
+
+
+
+
+    def _smoothing_x_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_x_huber_epsilon = section_list[sedtion_list_index].smoothing_x_huber_epsilon
+        section_list[sedtion_list_index].smoothing_scale_x_huber_epsilon = section_list[sedtion_list_index].smoothing_x_huber_epsilon
+        section_list[sedtion_list_index].smoothing_rotation_x_huber_epsilon = section_list[sedtion_list_index].smoothing_x_huber_epsilon
+        section_list[sedtion_list_index].smoothing_power_pin_x_huber_epsilon = section_list[sedtion_list_index].smoothing_x_huber_epsilon
+
+
+    smoothing_x_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_x_huber_epsilon_update)
+
+
+
+
+    def _smoothing_x_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_x_lasso_alpha = section_list[sedtion_list_index].smoothing_x_lasso_alpha
+        section_list[sedtion_list_index].smoothing_scale_x_lasso_alpha = section_list[sedtion_list_index].smoothing_x_lasso_alpha
+        section_list[sedtion_list_index].smoothing_rotation_x_lasso_alpha = section_list[sedtion_list_index].smoothing_x_lasso_alpha
+        section_list[sedtion_list_index].smoothing_power_pin_x_lasso_alpha = section_list[sedtion_list_index].smoothing_x_lasso_alpha
+
+
+    smoothing_x_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_x_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_y_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_y_regressor = section_list[sedtion_list_index].smoothing_y_regressor
+        section_list[sedtion_list_index].smoothing_scale_y_regressor = section_list[sedtion_list_index].smoothing_y_regressor
+        section_list[sedtion_list_index].smoothing_rotation_y_regressor = section_list[sedtion_list_index].smoothing_y_regressor
+        section_list[sedtion_list_index].smoothing_power_pin_y_regressor = section_list[sedtion_list_index].smoothing_y_regressor
+
+
+    smoothing_y_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_y_regressor_update)
+
+
+
+
+    def _smoothing_y_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_y_huber_epsilon = section_list[sedtion_list_index].smoothing_y_huber_epsilon
+        section_list[sedtion_list_index].smoothing_scale_y_huber_epsilon = section_list[sedtion_list_index].smoothing_y_huber_epsilon
+        section_list[sedtion_list_index].smoothing_rotation_y_huber_epsilon = section_list[sedtion_list_index].smoothing_y_huber_epsilon
+        section_list[sedtion_list_index].smoothing_power_pin_y_huber_epsilon = section_list[sedtion_list_index].smoothing_y_huber_epsilon
+
+
+    smoothing_y_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_y_huber_epsilon_update)
+
+
+
+
+    def _smoothing_y_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        section_list[sedtion_list_index].smoothing_position_y_lasso_alpha = section_list[sedtion_list_index].smoothing_y_lasso_alpha
+        section_list[sedtion_list_index].smoothing_scale_y_lasso_alpha = section_list[sedtion_list_index].smoothing_y_lasso_alpha
+        section_list[sedtion_list_index].smoothing_rotation_y_lasso_alpha = section_list[sedtion_list_index].smoothing_y_lasso_alpha
+        section_list[sedtion_list_index].smoothing_power_pin_y_lasso_alpha = section_list[sedtion_list_index].smoothing_y_lasso_alpha
+
+
+    smoothing_y_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_y_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_position_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+        section_list[sedtion_list_index].smoothing_do_position_x = section_list[sedtion_list_index].smoothing_do_position
+        section_list[sedtion_list_index].smoothing_do_position_y = section_list[sedtion_list_index].smoothing_do_position
+
+
+    smoothing_do_position: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on position data",
+                default=True,
+                update=_smoothing_do_position_update)
+
+
+
+
+    def _smoothing_position_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_position_x_degree = section_list[sedtion_list_index].smoothing_position_degree
+        section_list[sedtion_list_index].smoothing_position_y_degree = section_list[sedtion_list_index].smoothing_position_degree
+
+
+    smoothing_position_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for position data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_position_degree_update)
+
+
+
+
+
+    def _smoothing_position_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_position_x_regressor = section_list[sedtion_list_index].smoothing_position_regressor
+        section_list[sedtion_list_index].smoothing_position_y_regressor = section_list[sedtion_list_index].smoothing_position_regressor
+
+
+    smoothing_position_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_position_regressor_update)
+
+
+
+
+    def _smoothing_position_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_position_x_huber_epsilon = section_list[sedtion_list_index].smoothing_position_huber_epsilon
+        section_list[sedtion_list_index].smoothing_position_y_huber_epsilon = section_list[sedtion_list_index].smoothing_position_huber_epsilon
+
+
+    smoothing_position_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_position_huber_epsilon_update)
+
+
+
+
+    def _smoothing_position_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_position_x_lasso_alpha = section_list[sedtion_list_index].smoothing_position_lasso_alpha
+        section_list[sedtion_list_index].smoothing_position_y_lasso_alpha = section_list[sedtion_list_index].smoothing_position_lasso_alpha
+
+
+    smoothing_position_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_position_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_position_x_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+    smoothing_do_position_x: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on position x",
+                default=True,
+                update=_smoothing_do_position_x_update)
+
+
+
+
+    def _smoothing_position_x_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_position_x_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for position x.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_position_x_degree_update)
+
+
+
+
+
+    def _smoothing_position_x_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_position_x_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_position_x_regressor_update)
+
+
+
+
+    def _smoothing_position_x_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_position_x_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_position_x_huber_epsilon_update)
+
+
+
+
+    def _smoothing_position_x_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_position_x_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_position_x_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_position_y_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+    smoothing_do_position_y: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on position y",
+                default=True,
+                update=_smoothing_do_position_y_update)
+
+
+
+
+    def _smoothing_position_y_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_position_y_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for position y.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_position_y_degree_update)
+
+
+
+
+
+    def _smoothing_position_y_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_position_y_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_position_y_regressor_update)
+
+
+
+
+    def _smoothing_position_y_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_position_y_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_position_y_huber_epsilon_update)
+
+
+
+
+    def _smoothing_position_y_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_position_y_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_position_y_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_scale_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+        section_list[sedtion_list_index].smoothing_do_scale_x = section_list[sedtion_list_index].smoothing_do_scale
+        section_list[sedtion_list_index].smoothing_do_scale_y = section_list[sedtion_list_index].smoothing_do_scale
+
+
+    smoothing_do_scale: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on scale data",
+                default=True,
+                update=_smoothing_do_scale_update)
+
+
+
+
+    def _smoothing_scale_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_scale_x_degree = section_list[sedtion_list_index].smoothing_scale_degree
+        section_list[sedtion_list_index].smoothing_scale_y_degree = section_list[sedtion_list_index].smoothing_scale_degree
+
+
+    smoothing_scale_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for scale data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_scale_degree_update)
+
+
+
+
+
+    def _smoothing_scale_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_scale_x_regressor = section_list[sedtion_list_index].smoothing_scale_regressor
+        section_list[sedtion_list_index].smoothing_scale_y_regressor = section_list[sedtion_list_index].smoothing_scale_regressor
+
+
+    smoothing_scale_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_scale_regressor_update)
+
+
+
+
+    def _smoothing_scale_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_scale_x_huber_epsilon = section_list[sedtion_list_index].smoothing_scale_huber_epsilon
+        section_list[sedtion_list_index].smoothing_scale_y_huber_epsilon = section_list[sedtion_list_index].smoothing_scale_huber_epsilon
+
+
+    smoothing_scale_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_scale_huber_epsilon_update)
+
+
+
+
+    def _smoothing_scale_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_scale_x_lasso_alpha = section_list[sedtion_list_index].smoothing_scale_lasso_alpha
+        section_list[sedtion_list_index].smoothing_scale_y_lasso_alpha = section_list[sedtion_list_index].smoothing_scale_lasso_alpha
+
+
+    smoothing_scale_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_scale_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_scale_x_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+    smoothing_do_scale_x: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on scale x",
+                default=True,
+                update=_smoothing_do_scale_x_update)
+
+
+
+
+    def _smoothing_scale_x_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_scale_x_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for scale x.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_scale_x_degree_update)
+
+
+
+
+
+    def _smoothing_scale_x_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_scale_x_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_scale_x_regressor_update)
+
+
+
+
+    def _smoothing_scale_x_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_scale_x_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_scale_x_huber_epsilon_update)
+
+
+
+
+    def _smoothing_scale_x_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_scale_x_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_scale_x_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_scale_y_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+    smoothing_do_scale_y: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on scale y",
+                default=True,
+                update=_smoothing_do_scale_y_update)
+
+
+
+
+    def _smoothing_scale_y_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_scale_y_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for scale y.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_scale_y_degree_update)
+
+
+
+
+
+    def _smoothing_scale_y_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_scale_y_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_scale_y_regressor_update)
+
+
+
+
+    def _smoothing_scale_y_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_scale_y_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_scale_y_huber_epsilon_update)
+
+
+
+
+    def _smoothing_scale_y_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_scale_y_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_scale_y_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_rotation_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_do_rotation: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on rotation data",
+                default=True,
+                update=_smoothing_do_rotation_update)
+
+
+
+
+    def _smoothing_rotation_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+
+    smoothing_rotation_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for rotation data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=1,
+                min=0,
+                soft_max=16,
+                update=_smoothing_rotation_degree_update)
+
+
+
+
+
+    def _smoothing_rotation_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+
+    smoothing_rotation_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_rotation_regressor_update)
+
+
+
+
+    def _smoothing_rotation_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+
+    smoothing_rotation_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_rotation_huber_epsilon_update)
+
+
+
+
+    def _smoothing_rotation_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+
+    smoothing_rotation_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_rotation_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_power_pin_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+        section_list[sedtion_list_index].smoothing_do_power_pin_x = section_list[sedtion_list_index].smoothing_do_power_pin
+        section_list[sedtion_list_index].smoothing_do_power_pin_y = section_list[sedtion_list_index].smoothing_do_power_pin
+
+
+    smoothing_do_power_pin: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on Power Pin data",
+                default=True,
+                update=_smoothing_do_power_pin_update)
+
+
+
+
+    def _smoothing_power_pin_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_power_pin_x_degree = section_list[sedtion_list_index].smoothing_power_pin_degree
+        section_list[sedtion_list_index].smoothing_power_pin_y_degree = section_list[sedtion_list_index].smoothing_power_pin_degree
+
+
+    smoothing_power_pin_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for Power Pin data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_power_pin_degree_update)
+
+
+
+
+
+    def _smoothing_power_pin_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_power_pin_x_regressor = section_list[sedtion_list_index].smoothing_power_pin_regressor
+        section_list[sedtion_list_index].smoothing_power_pin_y_regressor = section_list[sedtion_list_index].smoothing_power_pin_regressor
+
+
+    smoothing_power_pin_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_power_pin_regressor_update)
+
+
+
+
+    def _smoothing_power_pin_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_power_pin_x_huber_epsilon = section_list[sedtion_list_index].smoothing_power_pin_huber_epsilon
+        section_list[sedtion_list_index].smoothing_power_pin_y_huber_epsilon = section_list[sedtion_list_index].smoothing_power_pin_huber_epsilon
+
+
+    smoothing_power_pin_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_power_pin_huber_epsilon_update)
+
+
+
+
+    def _smoothing_power_pin_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+        section_list[sedtion_list_index].smoothing_power_pin_x_lasso_alpha = section_list[sedtion_list_index].smoothing_power_pin_lasso_alpha
+        section_list[sedtion_list_index].smoothing_power_pin_y_lasso_alpha = section_list[sedtion_list_index].smoothing_power_pin_lasso_alpha
+
+
+    smoothing_power_pin_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_power_pin_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_power_pin_x_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+    smoothing_do_power_pin_x: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on Power Pin x",
+                default=True,
+                update=_smoothing_do_power_pin_x_update)
+
+
+
+
+    def _smoothing_power_pin_x_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_power_pin_x_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for Power Pin x.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_power_pin_x_degree_update)
+
+
+
+
+
+    def _smoothing_power_pin_x_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_power_pin_x_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_power_pin_x_regressor_update)
+
+
+
+
+    def _smoothing_power_pin_x_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_power_pin_x_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_power_pin_x_huber_epsilon_update)
+
+
+
+
+    def _smoothing_power_pin_x_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_power_pin_x_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_power_pin_x_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_power_pin_y_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+    smoothing_do_power_pin_y: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on Power Pin y",
+                default=True,
+                update=_smoothing_do_power_pin_y_update)
+
+
+
+
+    def _smoothing_power_pin_y_degree_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_power_pin_y_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for Power Pin y.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_power_pin_y_degree_update)
+
+
+
+
+
+    def _smoothing_power_pin_y_regressor_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_power_pin_y_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_power_pin_y_regressor_update)
+
+
+
+
+    def _smoothing_power_pin_y_huber_epsilon_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_power_pin_y_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_power_pin_y_huber_epsilon_update)
+
+
+
+
+    def _smoothing_power_pin_y_lasso_alpha_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+
+
+    smoothing_power_pin_y_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_power_pin_y_lasso_alpha_update)
+
+
+
+
+
+
+
+
 
 
 
@@ -1893,6 +3027,7 @@ class AAEExportOptions(bpy.types.Panel):
         if is_smoothing_modules_available:
 
 
+
             clip_settings = context.edit_movieclip.AAEExportSettingsClip
             
             selected_plane_tracks = 0
@@ -1902,6 +3037,11 @@ class AAEExportOptions(bpy.types.Panel):
 
             column = box.column(heading="Smoothing")
             column.prop(clip_settings, "do_smoothing")
+            column.separator(factor=0.0)
+
+            sub_column = column.column()
+            sub_column.enabled = clip_settings.do_smoothing
+            sub_column.prop(clip_settings, "smoothing_do_predictive_smoothing")
             column.separator(factor=0.0)
                     
             sub_column = column.column()
@@ -1982,19 +3122,15 @@ class AAEExportOptions(bpy.types.Panel):
                 sub_column.enabled = clip_settings.do_smoothing
                 sub_column.prop(section_settings, "smoothing_do_power_pin")
                 sub_column.prop(section_settings, "smoothing_power_pin_degree")
-                column.separator(factor=0.25)
+                column.separator(factor=0.0)
 
                 sub_column = column.column()
                 sub_column.enabled = clip_settings.do_smoothing
-                sub_column.prop(section_settings, "smoothing_position_regressor")
-                if section_settings.smoothing_position_regressor == "HUBER":
-                    sub_column.prop(section_settings, "smoothing_position_huber_epsilon")
-                elif section_settings.smoothing_position_regressor == "LASSO":
-                    sub_column.prop(section_settings, "smoothing_position_lasso_alpha")
-
-                sub_column = column.column()
-                sub_column.enabled = clip_settings.do_smoothing
-                sub_column.prop(section_settings, "smoothing_do_predictive_smoothing")
+                sub_column.prop(section_settings, "smoothing_regressor")
+                if section_settings.smoothing_regressor == "HUBER":
+                    sub_column.prop(section_settings, "smoothing_huber_epsilon")
+                elif section_settings.smoothing_regressor == "LASSO":
+                    sub_column.prop(section_settings, "smoothing_lasso_alpha")
 
 
             else:
@@ -2053,19 +3189,16 @@ class AAEExportOptions(bpy.types.Panel):
                 sub_column.enabled = False
                 sub_column.prop(clip_settings, "smoothing_do_power_pin")
                 sub_column.prop(clip_settings, "smoothing_power_pin_degree")
-                column.separator(factor=0.25)
+                column.separator(factor=0.0)
 
                 sub_column = column.column()
                 sub_column.enabled = False
-                sub_column.prop(clip_settings, "smoothing_position_regressor")
-                if clip_settings.smoothing_position_regressor == "HUBER":
-                    sub_column.prop(clip_settings, "smoothing_position_huber_epsilon")
-                elif clip_settings.smoothing_position_regressor == "LASSO":
-                    sub_column.prop(clip_settings, "smoothing_position_lasso_alpha")
+                sub_column.prop(clip_settings, "smoothing_regressor")
+                if clip_settings.smoothing_regressor == "HUBER":
+                    sub_column.prop(clip_settings, "smoothing_huber_epsilon")
+                elif clip_settings.smoothing_regressor == "LASSO":
+                    sub_column.prop(clip_settings, "smoothing_lasso_alpha")
 
-                sub_column = column.column()
-                sub_column.enabled = False
-                sub_column.prop(clip_settings, "smoothing_do_predictive_smoothing")
 
 
 

@@ -126,109 +126,173 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                          description="Perform smoothing on tracking data.\nThis uses position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks to fit polynomial regression models, and then uses the fit models to generate smoothed data.\n\nPlease note that this smoothing feature is very rudimentary and may cause more problems than it solves. Akatsumekusa recommends trying it only if the tracking is unbearably poor.\n\nAlso, Akatsumekusa is working on a new script that will provide this feature much better than it is right now. Please expect Non Carbonated AAE Export to come out sometime in the year",
                                          default=False,
                                          update=_do_smoothing_update)
-
-define(<<SMOOTHING_SETTINGS__BASE>>, <<dnl CODE_NAME, DISPLAY_NAME
-    smoothing_do_$1: bpy.props.BoolProperty(name="Smooth",
-                                            description="Perform smoothing on $2 data",
-                                            default=True)
->>)
-
-define(<<SMOOTHING_SETTINGS__SEPARATE>>, <<dnl CODE_NAME, DISPLAY_NAME, XY_NAME, DEFAULT_DEGREE
-    smoothing_$1_<<>>ifelse(<<$3>>, <<>>, <<$3>>, <<$3_>>)degree: bpy.props.IntProperty(name="Max Degree",
-                                                                                        description="The maximal polynomial degree of $2 $3 data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                                                                                        default=$4,
-                                                                                        min=1,
-                                                                                        soft_max=16)
-    smoothing_$1_<<>>ifelse(<<$3>>, <<>>, <<$3>>, <<$3_>>)regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                                                                                            name="Linear Model",
-                                                                                            default="LINEAR")
-    smoothing_$1_<<>>ifelse(<<$3>>, <<>>, <<$3>>, <<$3_>>)huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
-                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                                                                                                 default=1.50,
-                                                                                                 min=1.00,
-                                                                                                 soft_max=10.00,
-                                                                                                 step=1,
-                                                                                                 precision=2)
-    smoothing_$1_<<>>ifelse(<<$3>>, <<>>, <<$3>>, <<$3_>>)lasso_alpha: bpy.props.FloatProperty(name="Alpha",
-                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                                                                                               default=0.10,
-                                                                                               min=0.00,
-                                                                                               soft_max=100.0,
-                                                                                               step=1,
-                                                                                               precision=2)
->>)
-
-define(<<SMOOTHING_SETTINGS_XY>>, <<dnl CODE_NAME, DISPLAY_NAME, DEFAULT_DEGREE
-SMOOTHING_SETTINGS__BASE(<<$1>>, <<$2>>)
-SMOOTHING_SETTINGS__SEPARATE(<<$1>>, <<$2>>, <<>>, <<$3>>)
-SMOOTHING_SETTINGS__SEPARATE(<<$1>>, <<$2>>, <<x>>, <<$3>>)
-SMOOTHING_SETTINGS__SEPARATE(<<$1>>, <<$2>>, <<y>>, <<$3>>)
->>)
-
-define(<<SMOOTHING_SETTINGS_UNI>>, <<dnl CODE_NAME, DISPLAY_NAME, DEFAULT_DEGREE
-SMOOTHING_SETTINGS__BASE(<<$1>>, <<$2>>)
-SMOOTHING_SETTINGS__SEPARATE(<<$1>>, <<$2>>, <<>>, <<$3>>)
->>)
-    
-    # fake settings before the first section is created  
-    start_frame: bpy.props.IntProperty(name="Start Frame",
-                                       description="The first frame of the section",
-                                       default=0)
-    end_frame: bpy.props.IntProperty(name="End Frame",
-                                     description="The last frame of the section",
-                                     default=0)
-
-    smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
-                                                        description="Use different regression settings for x and y axes of position, scale and Power Pin data",
-                                                        default=False)
-    smoothing_use_different_model: bpy.props.BoolProperty(name="Types",
-                                                          description="Use different regression model for position, scale, rotation and Power Pin data",
-                                                          default=False)
-
-SMOOTHING_SETTINGS__BASE(<<position>>, <<position>>)
-SMOOTHING_SETTINGS__SEPARATE(<<position>>, <<position>>, <<>>, <<2>>)
-SMOOTHING_SETTINGS__BASE(<<scale>>, <<scale>>)
-SMOOTHING_SETTINGS__SEPARATE(<<scale>>, <<scale>>, <<>>, <<2>>)
-SMOOTHING_SETTINGS__BASE(<<rotation>>, <<rotation>>)
-SMOOTHING_SETTINGS__SEPARATE(<<rotation>>, <<rotation>>, <<>>, <<1>>)
-SMOOTHING_SETTINGS__BASE(<<power_pin>>, <<power_pin>>)
-SMOOTHING_SETTINGS__SEPARATE(<<power_pin>>, <<power_pin>>, <<>>, <<2>>)
-
+                                         
     smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
                                                               description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
                                                               default=False)
 
-class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
-    bl_label = "AAEExportSettingsSectionL"
-    bl_idname = "AAEExportSettingsSectionL"
-    
+define(<<SMOOTHING_SETTINGS_BASE>>, <<dnl START_FRAME_UPDATE <<OPTIONAL>>, END_FRAME_UPDATE <<OPTIONAL>>
     start_frame: bpy.props.IntProperty(name="Start Frame",
                                        description="The first frame of the section",
-                                       default=0)
+                                       default=0<<>>ifelse(<<$1>>, <<>>, <<>>, <<,>>)
+                                       ifelse(<<$1>>, <<>>, <<>>, <<update=$1>>))
     end_frame: bpy.props.IntProperty(name="End Frame",
                                      description="The last frame of the section",
-                                     default=0)
+                                     default=0<<>>ifelse(<<$2>>, <<>>, <<>>, <<,>>)
+                                     ifelse(<<$2>>, <<>>, <<>>, <<update=$2>>))
 
     smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
-    smoothing_use_different_model: bpy.props.BoolProperty(name="Types",
+    smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
                                                           description="Use different regression model for position, scale, rotation and Power Pin data",
                                                           default=False)
+>>)
 
+define(<<SMOOTHING_SETTINGS_SETTINGS>>, <<dnl CODE_NAME, DISPLAY_NAME, XY_NAME <<OPTIONAL>>, DEFAULT_DEGREE
+
+define(<<ONETHREE>>, <<<<>>ifelse(<<$1>>, <<>>, <<>>, <<_$1>>)<<>>ifelse(<<$3>>, <<>>, <<>>, <<_$3>>)>>)
+define(<<NAME>>, <<NAME NOT INITIALISED>>)
+
+define(<<UPDATE>>, <<
+    def _smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+ifelse(<<$1>>, <<>>, <<dnl $1 CODE_NAME IS EMPTY
+        section_list[sedtion_list_index].smoothing_position<<>>ONETHREE<<>>_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+        section_list[sedtion_list_index].smoothing_scale<<>>ONETHREE<<>>_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+        section_list[sedtion_list_index].smoothing_rotation<<>>ONETHREE<<>>_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+        section_list[sedtion_list_index].smoothing_power_pin<<>>ONETHREE<<>>_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+>>, <<>>)dnl $1 CODE_NAME IS EMPTY
+
+ifelse(<<$3>>, <<>>, <<dnl $3 XY_NAME IS EMPTY
+ifdef(<<UNI>>, <<>>, <<
+        section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_x_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+        section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_y_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+>>)
+>>, <<>>)dnl $3 XY_NAME IS EMPTY
+>>)
+
+ifelse(<<$1>>, <<>>, <<>>, <<dnl $1 CODE_NAME IS NOT EMPTY
+    def _smoothing_do<<>>ONETHREE<<>>_update(self, context):
+        section_list = context.edit_movieclip.AAEExportSettingsSectionL
+        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+
+ifelse(<<$3>>, <<>>, <<dnl $3 XY_NAME IS EMPTY
+ifdef(<<UNI>>, <<>>, <<
+        section_list[sedtion_list_index].smoothing_do<<>>ONETHREE<<>>_x = section_list[sedtion_list_index].smoothing_do<<>>ONETHREE<<>>
+        section_list[sedtion_list_index].smoothing_do<<>>ONETHREE<<>>_y = section_list[sedtion_list_index].smoothing_do<<>>ONETHREE<<>>
+>>)
+>>, <<>>)dnl $3 XY_NAME IS EMPTY
+
+    smoothing_do<<>>ONETHREE<<>>: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on $2 ifelse(<<$3>>, <<>>, <<data>>, <<$3>>)",
+                default=True,
+                update=_smoothing_do<<>>ONETHREE<<>>_update)
+
+
+define(<<NAME>>, <<degree>>)
+UPDATE()
+    smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for $2 ifelse(<<$3>>, <<>>, <<data>>, <<$3>>).\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=$4,
+                min=0,
+                soft_max=16,
+                update=_smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>_update)
+>>)dnl $1 CODE_NAME IS NOT EMPTY
+
+
+ifdef(<<SMALL>>, <<>>, <<
+define(<<NAME>>, <<regressor>>)
+UPDATE()
+    smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>_update)
+
+
+define(<<NAME>>, <<huber_epsilon>>)
+UPDATE()
+    smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>_update)
+
+
+define(<<NAME>>, <<lasso_alpha>>)
+UPDATE()
+    smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>_update)
+
+
+undefine(<<ONETHREE>>)
+undefine(<<NAME>>)
+undefine(<<UPDATE>>)
+>>)dnl SMALL
+>>)
+
+define(<<SMOOTHING_SETTINGS_XY>>, <<dnl CODE_NAME, DISPLAY_NAME, DEFAULT_DEGREE
+SMOOTHING_SETTINGS_SETTINGS(<<$1>>, <<$2>>, <<>>, <<$3>>)
+SMOOTHING_SETTINGS_SETTINGS(<<$1>>, <<$2>>, <<x>>, <<$3>>)
+SMOOTHING_SETTINGS_SETTINGS(<<$1>>, <<$2>>, <<y>>, <<$3>>)
+>>)
+
+define(<<SMOOTHING_SETTINGS_UNI>>, <<dnl CODE_NAME, DISPLAY_NAME, DEFAULT_DEGREE
+define(<<UNI>>)
+SMOOTHING_SETTINGS_SETTINGS(<<$1>>, <<$2>>, <<>>, <<$3>>)
+undefine(<<UNI>>)
+>>)
+
+    # fake settings before the first section is created
+SMOOTHING_SETTINGS_BASE()
+define(<<UNI>>)
+SMOOTHING_SETTINGS_SETTINGS(<<>>, <<>>, <<>>, <<0>>)
+define(<<SMALL>>)
+SMOOTHING_SETTINGS_SETTINGS(<<position>>, <<position>>, <<>>, <<0>>)
+SMOOTHING_SETTINGS_SETTINGS(<<scale>>, <<scale>>, <<>>, <<0>>)
+SMOOTHING_SETTINGS_SETTINGS(<<rotation>>, <<rotation>>, <<>>, <<0>>)
+SMOOTHING_SETTINGS_SETTINGS(<<power_pin>>, <<power_pin>>, <<>>, <<0>>)
+undefine(<<UNI>>)
+undefine(<<SMALL>>)
+
+class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
+    bl_label = "AAEExportSettingsSectionL"
+    bl_idname = "AAEExportSettingsSectionL"
+
+    def _start_frame_update(self, context):
+        pass
+
+    def _end_frame_update(self, context):
+        pass
+    
+SMOOTHING_SETTINGS_BASE(<<_start_frame_update>>, <<_end_frame_update>>)
+
+SMOOTHING_SETTINGS_XY(<<>>, <<>>, <<0>>)
 SMOOTHING_SETTINGS_XY(<<position>>, <<position>>, <<2>>)
 SMOOTHING_SETTINGS_XY(<<scale>>, <<scale>>, <<2>>)
 SMOOTHING_SETTINGS_UNI(<<rotation>>, <<rotation>>, <<1>>)
 SMOOTHING_SETTINGS_XY(<<power_pin>>, <<Power Pin>>, <<2>>)
 
-    smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
-                                                              description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
-                                                              default=False)
-                                                              
-undefine(<<SMOOTHING_SETTINGS__BASE>>)
-undefine(<<SMOOTHING_SETTINGS__SEPARATE>>)
+undefine(<<SMOOTHING_SETTINGS_BASE>>)
+undefine(<<SMOOTHING_SETTINGS_SETTINGS>>)
 undefine(<<SMOOTHING_SETTINGS_XY>>)
 undefine(<<SMOOTHING_SETTINGS_UNI>>)
 
@@ -1555,7 +1619,8 @@ class AAEExportOptions(bpy.types.Panel):
 
         box = layout.box()
         if is_smoothing_modules_available:
-define(<<DRAW_SMOOTHING__SRPARATOR_FACTOR>>, <<0.25>>)
+define(<<DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR>>, <<0.25>>)
+define(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>, <<0.0>>)
 
             clip_settings = context.edit_movieclip.AAEExportSettingsClip
             
@@ -1566,19 +1631,24 @@ define(<<DRAW_SMOOTHING__SRPARATOR_FACTOR>>, <<0.25>>)
 
             column = box.column(heading="Smoothing")
             column.prop(clip_settings, "do_smoothing")
-            column.separator(factor=0.0)
+            column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
+
+            sub_column = column.column()
+            sub_column.enabled = clip_settings.do_smoothing
+            sub_column.prop(clip_settings, "smoothing_do_predictive_smoothing")
+            column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
                     
             sub_column = column.column()
             sub_column.enabled = clip_settings.do_smoothing and \
                                  (selected_plane_tracks == 1) is not (len(context.selected_movieclip_tracks) == 1)
             sub_column.operator("movieclip.aae_export_plot_result")
-            column.separator(factor=DRAW_SMOOTHING__SRPARATOR_FACTOR)
+            column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
             
             row = column.row(align=True)
             row.enabled = clip_settings.do_smoothing
             row.alignment = "CENTER"
             row.label(text="Sections")
-            column.separator(factor=DRAW_SMOOTHING__SRPARATOR_FACTOR)
+            column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
 
             sub_column = column.column()
             sub_column.enabled = clip_settings.do_smoothing
@@ -1593,37 +1663,37 @@ define(<<DRAW_SMOOTHING>>, <<dnl SETTINGS, ENABLED
                 row.enabled = $2
                 row.operator("movieclip.aae_export_section_add_section")
                 row.operator("movieclip.aae_export_section_remove_section")
-                column.separator(factor=DRAW_SMOOTHING__SRPARATOR_FACTOR)
+                column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
 
                 row = column.row()
                 row.enabled = $2
                 row.alignment = "CENTER"
                 row.label(text="Section Settings")
-                column.separator(factor=DRAW_SMOOTHING__SRPARATOR_FACTOR)
+                column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
 
                 sub_column = column.column()
                 sub_column.enabled = $2
                 sub_column.prop($1, "start_frame")
                 sub_column.prop($1, "end_frame")
-                column.separator(factor=DRAW_SMOOTHING__SRPARATOR_FACTOR)
+                column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
                 
                 row = column.row(align=True)
                 row.enabled = $2
                 row.alignment = "CENTER"
                 row.label(text="Section Smoothing")
-                column.separator(factor=DRAW_SMOOTHING__SRPARATOR_FACTOR)
+                column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
                 
                 row = column.row(heading="Split Settings for", align=True)
                 row.enabled = $2
                 row.prop($1, "smoothing_use_different_x_y")
                 row.prop($1, "smoothing_use_different_model")
-                column.separator(factor=0.0)
+                column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
             
                 sub_column = column.column()
                 sub_column.enabled = $2 and \
                                      (selected_plane_tracks == 1) is not (len(context.selected_movieclip_tracks) == 1)
                 sub_column.operator("movieclip.aae_export_plot_graph")
-                column.separator(factor=0.0)
+                column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
 
                 sub_column = column.column(heading="Position")
                 sub_column.enabled = $2
@@ -1644,19 +1714,15 @@ define(<<DRAW_SMOOTHING>>, <<dnl SETTINGS, ENABLED
                 sub_column.enabled = $2
                 sub_column.prop($1, "smoothing_do_power_pin")
                 sub_column.prop($1, "smoothing_power_pin_degree")
-                column.separator(factor=DRAW_SMOOTHING__SRPARATOR_FACTOR)
+                column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
 
                 sub_column = column.column()
                 sub_column.enabled = $2
-                sub_column.prop($1, "smoothing_position_regressor")
-                if $1.smoothing_position_regressor == "HUBER":
-                    sub_column.prop($1, "smoothing_position_huber_epsilon")
-                elif $1.smoothing_position_regressor == "LASSO":
-                    sub_column.prop($1, "smoothing_position_lasso_alpha")
-
-                sub_column = column.column()
-                sub_column.enabled = $2
-                sub_column.prop($1, "smoothing_do_predictive_smoothing")
+                sub_column.prop($1, "smoothing_regressor")
+                if $1.smoothing_regressor == "HUBER":
+                    sub_column.prop($1, "smoothing_huber_epsilon")
+                elif $1.smoothing_regressor == "LASSO":
+                    sub_column.prop($1, "smoothing_lasso_alpha")
 >>)
 
                 section_settings = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI]
@@ -1665,8 +1731,9 @@ DRAW_SMOOTHING(<<section_settings>>, <<clip_settings.do_smoothing>>)
             else:
 DRAW_SMOOTHING(<<clip_settings>>, <<False>>)
 
-undefine(<<DRAW_SMOOTHING__SRPARATOR_FACTOR>>)
 undefine(<<DRAW_SMOOTHING>>)
+undefine(<<DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR>>)
+undefine(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>)
 
         else:
             clip_settings = context.edit_movieclip.AAEExportSettingsClip
