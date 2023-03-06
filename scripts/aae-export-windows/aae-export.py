@@ -107,7 +107,8 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettingsClip"
     bl_idname = "AAEExportSettingsClip"
 
-    def _init_section(self, context):
+    def _do_smoothing_update(self, context):
+        # Create the first section if there aren't
         if context.edit_movieclip.AAEExportSettingsSectionLL == 0:
             item = context.edit_movieclip.AAEExportSettingsSectionL.add()
             context.edit_movieclip.AAEExportSettingsSectionLL += 1
@@ -123,37 +124,169 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
     do_smoothing: bpy.props.BoolProperty(name="Enable",
                                          description="Perform smoothing on tracking data.\nThis uses position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks to fit polynomial regression models, and then uses the fit models to generate smoothed data.\n\nPlease note that this smoothing feature is very rudimentary and may cause more problems than it solves. Akatsumekusa recommends trying it only if the tracking is unbearably poor.\n\nAlso, Akatsumekusa is working on a new script that will provide this feature much better than it is right now. Please expect Non Carbonated AAE Export to come out sometime in the year",
                                          default=False,
-                                         update=_init_section)
+                                         update=_do_smoothing_update)
+
+
+
+
+
+
+
+
+    
+    # fake settings before the first section is created  
+    start_frame: bpy.props.IntProperty(name="Start Frame",
+                                       description="The first frame of the section",
+                                       default=0)
+    end_frame: bpy.props.IntProperty(name="End Frame",
+                                     description="The last frame of the section",
+                                     default=0)
+
+    smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
+                                                        description="Use different regression settings for x and y axes of position, scale and Power Pin data",
+                                                        default=False)
+    smoothing_use_different_model: bpy.props.BoolProperty(name="Types",
+                                                          description="Use different regression model for position, scale, rotation and Power Pin data",
+                                                          default=False)
+
+    smoothing_do_position: bpy.props.BoolProperty(name="Smooth",
+                                            description="Perform smoothing on position data",
+                                            default=True)
+
+    smoothing_position_degree: bpy.props.IntProperty(name="Max Degree",
+                                                                                        description="The maximal polynomial degree of position  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                                                        default=2,
+                                                                                        min=1,
+                                                                                        soft_max=16)
+    smoothing_position_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                                                                                            name="Linear Model",
+                                                                                            default="LINEAR")
+    smoothing_position_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
+                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                                                                                                 default=1.50,
+                                                                                                 min=1.00,
+                                                                                                 soft_max=10.00,
+                                                                                                 step=1,
+                                                                                                 precision=2)
+    smoothing_position_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
+                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                                                                                               default=0.10,
+                                                                                               min=0.00,
+                                                                                               soft_max=100.0,
+                                                                                               step=1,
+                                                                                               precision=2)
+
+    smoothing_do_scale: bpy.props.BoolProperty(name="Smooth",
+                                            description="Perform smoothing on scale data",
+                                            default=True)
+
+    smoothing_scale_degree: bpy.props.IntProperty(name="Max Degree",
+                                                                                        description="The maximal polynomial degree of scale  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                                                        default=2,
+                                                                                        min=1,
+                                                                                        soft_max=16)
+    smoothing_scale_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                                                                                            name="Linear Model",
+                                                                                            default="LINEAR")
+    smoothing_scale_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
+                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                                                                                                 default=1.50,
+                                                                                                 min=1.00,
+                                                                                                 soft_max=10.00,
+                                                                                                 step=1,
+                                                                                                 precision=2)
+    smoothing_scale_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
+                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                                                                                               default=0.10,
+                                                                                               min=0.00,
+                                                                                               soft_max=100.0,
+                                                                                               step=1,
+                                                                                               precision=2)
+
+    smoothing_do_rotation: bpy.props.BoolProperty(name="Smooth",
+                                            description="Perform smoothing on rotation data",
+                                            default=True)
+
+    smoothing_rotation_degree: bpy.props.IntProperty(name="Max Degree",
+                                                                                        description="The maximal polynomial degree of rotation  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                                                        default=1,
+                                                                                        min=1,
+                                                                                        soft_max=16)
+    smoothing_rotation_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                                                                                            name="Linear Model",
+                                                                                            default="LINEAR")
+    smoothing_rotation_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
+                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                                                                                                 default=1.50,
+                                                                                                 min=1.00,
+                                                                                                 soft_max=10.00,
+                                                                                                 step=1,
+                                                                                                 precision=2)
+    smoothing_rotation_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
+                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                                                                                               default=0.10,
+                                                                                               min=0.00,
+                                                                                               soft_max=100.0,
+                                                                                               step=1,
+                                                                                               precision=2)
+
+    smoothing_do_power_pin: bpy.props.BoolProperty(name="Smooth",
+                                            description="Perform smoothing on power_pin data",
+                                            default=True)
+
+    smoothing_power_pin_degree: bpy.props.IntProperty(name="Max Degree",
+                                                                                        description="The maximal polynomial degree of power_pin  data.\nA degree of 1 means the data scales linearly.\nA degree of 2 means the data scales quadratically.\nA degree of 3 means the data scales cubically.\n\nAkatsumekusa recommends setting this value to the exact polynomial degree of the data, as setting it too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                                                                                        default=2,
+                                                                                        min=1,
+                                                                                        soft_max=16)
+    smoothing_power_pin_regressor: bpy.props.EnumProperty(items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                                                                                                   ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                                                                                                   ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                                                                                            name="Linear Model",
+                                                                                            default="LINEAR")
+    smoothing_power_pin_huber_epsilon: bpy.props.FloatProperty(name="Epsilon",
+                                                                                                 description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                                                                                                 default=1.50,
+                                                                                                 min=1.00,
+                                                                                                 soft_max=10.00,
+                                                                                                 step=1,
+                                                                                                 precision=2)
+    smoothing_power_pin_lasso_alpha: bpy.props.FloatProperty(name="Alpha",
+                                                                                               description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                                                                                               default=0.10,
+                                                                                               min=0.00,
+                                                                                               soft_max=100.0,
+                                                                                               step=1,
+                                                                                               precision=2)
+
+
+    smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
+                                                              description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
+                                                              default=False)
 
 class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettingsSectionL"
     bl_idname = "AAEExportSettingsSectionL"
-
-    name: bpy.props.StringProperty(name="Section name",
-                                   description="Section name",
-                                   default="")
-
-    start_frame: bpy.props.IntProperty(name="Start frame",
+    
+    start_frame: bpy.props.IntProperty(name="Start Frame",
                                        description="The first frame of the section",
-                                       default=-2147483648)
-    end_frame: bpy.props.IntProperty(name="End frame",
+                                       default=0)
+    end_frame: bpy.props.IntProperty(name="End Frame",
                                      description="The last frame of the section",
-                                     default=2147483647)
-                                               
-    smoothing_use_different_x_y: bpy.props.BoolProperty(name="Split x/y",
-                                                        description="Use different regression settings for x and y axis of each data",
+                                     default=0)
+
+    smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
+                                                        description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
-    smoothing_use_different_model: bpy.props.BoolProperty(name="Split data",
-                                                          description="Use different regression model for each data",
+    smoothing_use_different_model: bpy.props.BoolProperty(name="Types",
+                                                          description="Use different regression model for position, scale, rotation and Power Pin data",
                                                           default=False)
-
-
-
-
-
-
-
-
 
     smoothing_do_position: bpy.props.BoolProperty(name="Smooth",
                                             description="Perform smoothing on position data",
@@ -426,14 +559,14 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
-
-
-
-
     smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
                                                               description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled.\n\nAkatsumekusa recommends enabling this option only if the subtitle line covers the whole length of the trimmed clip",
                                                               default=False)
+                                                              
+
+
+
+
 
 class AAEExportExportAll(bpy.types.Operator):
     bl_label = "Export"
@@ -1585,9 +1718,28 @@ class AAEExportCopyPlaneTrack(bpy.types.Operator):
         return { "FINISHED" }
 
 class AAEExportPlotGraph(bpy.types.Operator):
-    bl_label = "Plot Graph"
-    bl_description = "Plot the data and the smoothed data on graph"
+    bl_label = "Plot Section"
+    bl_description = "Plot the data and the smoothed data for the section on graph"
     bl_idname = "movieclip.aae_export_plot_graph"
+
+    def execute(self, context):
+        clip = context.edit_movieclip
+        settings = context.screen.AAEExportSettings
+
+        if 33 == 1:
+            AAEExportExportAll._plot_graph(clip, context.selected_movieclip_tracks[0], settings)
+        else:
+            for plane_track in context.edit_movieclip.tracking.plane_tracks:
+                if plane_track.select == True:
+                    AAEExportExportAll._plot_graph(clip, plane_track, settings)
+                    break
+
+        return { "FINISHED" }
+
+class AAEExportPlotResult(bpy.types.Operator):
+    bl_label = "Plot Result"
+    bl_description = "Plot the result data on graph"
+    bl_idname = "movieclip.aae_export_plot_result"
 
     def execute(self, context):
         clip = context.edit_movieclip
@@ -1739,22 +1891,31 @@ class AAEExportOptions(bpy.types.Panel):
 
         box = layout.box()
         if is_smoothing_modules_available:
-            clip_settings = context.edit_movieclip.AAEExportSettingsClip
 
-            column = box.column(heading="Smoothing")
-            column.prop(clip_settings, "do_smoothing")
-            column.separator(factor=0.0)
+
+            clip_settings = context.edit_movieclip.AAEExportSettingsClip
             
             selected_plane_tracks = 0
             for plane_track in context.edit_movieclip.tracking.plane_tracks:
                 if plane_track.select == True:
                     selected_plane_tracks += 1
+
+            column = box.column(heading="Smoothing")
+            column.prop(clip_settings, "do_smoothing")
+            column.separator(factor=0.0)
                     
             sub_column = column.column()
             sub_column.enabled = clip_settings.do_smoothing and \
                                  (selected_plane_tracks == 1) is not (33 == 1)
-            # sub_column.operator("movieclip.aae_export_plot_result") # TODO
+            sub_column.operator("movieclip.aae_export_plot_result")
+            column.separator(factor=0.25)
             
+            row = column.row(align=True)
+            row.enabled = clip_settings.do_smoothing
+            row.alignment = "CENTER"
+            row.label(text="Sections")
+            column.separator(factor=0.25)
+
             sub_column = column.column()
             sub_column.enabled = clip_settings.do_smoothing
             sub_column.template_list("SOLVE_PT_UL_aae_export_section_list", "SOLVE_PT_aae_export_section_vgourp",
@@ -1762,52 +1923,154 @@ class AAEExportOptions(bpy.types.Panel):
                                      context.edit_movieclip, "AAEExportSettingsSectionLI",
                                      rows=2)
 
-            section_settings = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI]
+            if context.edit_movieclip.AAEExportSettingsSectionLL != 0:
 
-            row = column.row(align=True)
-            row.enabled = clip_settings.do_smoothing
-            row.label(text=clip_settings.name)
-            row.operator("movieclip.aae_export_section_add_section", text="", icon="ADD")
-            row.operator("movieclip.aae_export_section_remove_section", text="", icon="REMOVE")
+
+                section_settings = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI]
+                row = column.row(align=True)
+                row.enabled = clip_settings.do_smoothing
+                row.operator("movieclip.aae_export_section_add_section")
+                row.operator("movieclip.aae_export_section_remove_section")
+                column.separator(factor=0.25)
+
+                row = column.row()
+                row.enabled = clip_settings.do_smoothing
+                row.alignment = "CENTER"
+                row.label(text="Section Settings")
+                column.separator(factor=0.25)
+
+                sub_column = column.column()
+                sub_column.enabled = clip_settings.do_smoothing
+                sub_column.prop(section_settings, "start_frame")
+                sub_column.prop(section_settings, "end_frame")
+                column.separator(factor=0.25)
+                
+                row = column.row(align=True)
+                row.enabled = clip_settings.do_smoothing
+                row.alignment = "CENTER"
+                row.label(text="Section Smoothing")
+                column.separator(factor=0.25)
+                
+                row = column.row(heading="Split Settings for", align=True)
+                row.enabled = clip_settings.do_smoothing
+                row.prop(section_settings, "smoothing_use_different_x_y")
+                row.prop(section_settings, "smoothing_use_different_model")
+                column.separator(factor=0.0)
             
-            # sub_column = column.column()
-            # sub_column.enabled = clip_settings.do_smoothing and \
-            #                      (selected_plane_tracks == 1) is not (33 == 1)
-            # sub_column.operator("movieclip.aae_export_plot_graph")
+                sub_column = column.column()
+                sub_column.enabled = clip_settings.do_smoothing and \
+                                     (selected_plane_tracks == 1) is not (33 == 1)
+                sub_column.operator("movieclip.aae_export_plot_graph")
+                column.separator(factor=0.0)
 
-            # sub_column = column.column()
-            # sub_column.enabled = clip_settings.do_smoothing
-            # sub_column.prop(section_settings, "start_frame")
-            # sub_column.prop(section_settings, "end_frame")
+                sub_column = column.column(heading="Position")
+                sub_column.enabled = clip_settings.do_smoothing
+                sub_column.prop(section_settings, "smoothing_do_position")
+                sub_column.prop(section_settings, "smoothing_position_degree")
+
+                sub_column = column.column(heading="Scale")
+                sub_column.enabled = clip_settings.do_smoothing
+                sub_column.prop(section_settings, "smoothing_do_scale")
+                sub_column.prop(section_settings, "smoothing_scale_degree")
+
+                sub_column = column.column(heading="Rotation")
+                sub_column.enabled = clip_settings.do_smoothing
+                sub_column.prop(section_settings, "smoothing_do_rotation")
+                sub_column.prop(section_settings, "smoothing_rotation_degree")
+
+                sub_column = column.column(heading="Power Pin")
+                sub_column.enabled = clip_settings.do_smoothing
+                sub_column.prop(section_settings, "smoothing_do_power_pin")
+                sub_column.prop(section_settings, "smoothing_power_pin_degree")
+                column.separator(factor=0.25)
+
+                sub_column = column.column()
+                sub_column.enabled = clip_settings.do_smoothing
+                sub_column.prop(section_settings, "smoothing_position_regressor")
+                if section_settings.smoothing_position_regressor == "HUBER":
+                    sub_column.prop(section_settings, "smoothing_position_huber_epsilon")
+                elif section_settings.smoothing_position_regressor == "LASSO":
+                    sub_column.prop(section_settings, "smoothing_position_lasso_alpha")
+
+                sub_column = column.column()
+                sub_column.enabled = clip_settings.do_smoothing
+                sub_column.prop(section_settings, "smoothing_do_predictive_smoothing")
+
+
+            else:
+                row = column.row(align=True)
+                row.enabled = False
+                row.operator("movieclip.aae_export_section_add_section")
+                row.operator("movieclip.aae_export_section_remove_section")
+                column.separator(factor=0.25)
+
+                row = column.row()
+                row.enabled = False
+                row.alignment = "CENTER"
+                row.label(text="Section Settings")
+                column.separator(factor=0.25)
+
+                sub_column = column.column()
+                sub_column.enabled = False
+                sub_column.prop(clip_settings, "start_frame")
+                sub_column.prop(clip_settings, "end_frame")
+                column.separator(factor=0.25)
+                
+                row = column.row(align=True)
+                row.enabled = False
+                row.alignment = "CENTER"
+                row.label(text="Section Smoothing")
+                column.separator(factor=0.25)
+                
+                row = column.row(heading="Split Settings for", align=True)
+                row.enabled = False
+                row.prop(clip_settings, "smoothing_use_different_x_y")
+                row.prop(clip_settings, "smoothing_use_different_model")
+                column.separator(factor=0.0)
+            
+                sub_column = column.column()
+                sub_column.enabled = False and \
+                                     (selected_plane_tracks == 1) is not (33 == 1)
+                sub_column.operator("movieclip.aae_export_plot_graph")
+                column.separator(factor=0.0)
+
+                sub_column = column.column(heading="Position")
+                sub_column.enabled = False
+                sub_column.prop(clip_settings, "smoothing_do_position")
+                sub_column.prop(clip_settings, "smoothing_position_degree")
+
+                sub_column = column.column(heading="Scale")
+                sub_column.enabled = False
+                sub_column.prop(clip_settings, "smoothing_do_scale")
+                sub_column.prop(clip_settings, "smoothing_scale_degree")
+
+                sub_column = column.column(heading="Rotation")
+                sub_column.enabled = False
+                sub_column.prop(clip_settings, "smoothing_do_rotation")
+                sub_column.prop(clip_settings, "smoothing_rotation_degree")
+
+                sub_column = column.column(heading="Power Pin")
+                sub_column.enabled = False
+                sub_column.prop(clip_settings, "smoothing_do_power_pin")
+                sub_column.prop(clip_settings, "smoothing_power_pin_degree")
+                column.separator(factor=0.25)
+
+                sub_column = column.column()
+                sub_column.enabled = False
+                sub_column.prop(clip_settings, "smoothing_position_regressor")
+                if clip_settings.smoothing_position_regressor == "HUBER":
+                    sub_column.prop(clip_settings, "smoothing_position_huber_epsilon")
+                elif clip_settings.smoothing_position_regressor == "LASSO":
+                    sub_column.prop(clip_settings, "smoothing_position_lasso_alpha")
+
+                sub_column = column.column()
+                sub_column.enabled = False
+                sub_column.prop(clip_settings, "smoothing_do_predictive_smoothing")
 
 
 
-            # sub_column = column.column(heading="Position")
-            # sub_column.enabled = clip_settings.do_smoothing
-            # sub_column.prop(settings, "smoothing_do_position")
-            # sub_column.prop(settings, "smoothing_position_degree")
-            # sub_column = column.column(heading="Scale")
-            # sub_column.enabled = clip_settings.do_smoothing
-            # sub_column.prop(settings, "smoothing_do_scale")
-            # sub_column.prop(settings, "smoothing_scale_degree")
-            # sub_column = column.column(heading="Rotation")
-            # sub_column.enabled = clip_settings.do_smoothing
-            # sub_column.prop(settings, "smoothing_do_rotation")
-            # sub_column.prop(settings, "smoothing_rotation_degree")
-            # sub_column = column.column(heading="Power Pin")
-            # sub_column.enabled = clip_settings.do_smoothing
-            # sub_column.prop(settings, "smoothing_do_power_pin")
-            # sub_column.prop(settings, "smoothing_power_pin_degree")
-            # sub_column = column.column()
-            # sub_column.enabled = clip_settings.do_smoothing
-            # sub_column.prop(settings, "smoothing_position_regressor")
-            # if settings.smoothing_position_regressor == "HUBER":
-            #     sub_column.prop(settings, "smoothing_position_huber_epsilon")
-            # elif settings.smoothing_position_regressor == "LASSO":
-            #     sub_column.prop(settings, "smoothing_position_lasso_alpha")
-            # sub_column = column.column()
-            # sub_column.enabled = clip_settings.do_smoothing
-            # sub_column.prop(settings, "smoothing_do_predictive_smoothing")
+
+
         else:
             clip_settings = context.edit_movieclip.AAEExportSettingsClip
 
@@ -1823,16 +2086,20 @@ class AAEExportSectionL(bpy.types.UIList):
     bl_label = "Export Section List"
     bl_idname = "SOLVE_PT_UL_aae_export_section_list"
 
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        if self.layout_type in { "Default", "Compact" }:
-            layout.label(text="Section " + str(item.start_frame) + "‥" + str(item.end_frame))
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        if self.layout_type in { "DEFAULT", "COMPACT" }:
+            split = layout.split(factor=0.4)
+            row = split.row()
+            row.alignment = "RIGHT"
+            row.label(text="Section")
+            split.label(text=str(item.start_frame) + "‥" + str(item.end_frame))
         elif self.layout_type in { "GRID" }:
             layout.alignment = "CENTER"
             layout.label(text=str(item.start_frame))
 
 class AAEExportSectionAddS(bpy.types.Operator):
     bl_label = "Add Section"
-    bl_description = "Split the current section into two"
+    bl_description = "Split the selected section"
     bl_idname = "movieclip.aae_export_section_add_section"
 
     def execute(self, context):
@@ -1844,7 +2111,7 @@ class AAEExportSectionAddS(bpy.types.Operator):
 
 class AAEExportSectionRemoveS(bpy.types.Operator):
     bl_label = "Remove Section"
-    bl_description = "Split the current section into two"
+    bl_description = "Remove the selected section"
     bl_idname = "movieclip.aae_export_section_remove_section"
 
     def execute(self, context):
@@ -1881,6 +2148,7 @@ classes = (AAEExportSettings,
            AAEExportCopySingleTrack,
            AAEExportCopyPlaneTrack,
            AAEExportPlotGraph,
+           AAEExportPlotResult,
            AAEExport,
            AAEExportSelectedTrack,
            AAEExportAllTracks,
