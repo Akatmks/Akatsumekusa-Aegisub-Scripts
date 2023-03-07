@@ -93,15 +93,23 @@ class AAEExportSettings(bpy.types.PropertyGroup):
     bl_idname = "AAEExportSettings"
     
     do_includes_power_pin: bpy.props.BoolProperty(name="Includes Power Pin",
-                                           description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is unable to recognise the data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
-                                           default=True)
-                                           
+                                                  description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is unable to recognise the data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
+                                                  default=True)
+
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
                                                 description="Generate unique files every time",
                                                 default=False)
     do_also_export: bpy.props.BoolProperty(name="Auto export",
                                            description="Automatically export the selected track to file while copying",
                                            default=True)
+
+    def _null_property_update(self, context):
+        if self.null_property != "":
+            self.null_property = ""
+    null_property: bpy.props.StringProperty(name="",
+                                            description="An empty field; Nothing to see here",
+                                            default="",
+                                            update=_null_property_update)
 
 class AAEExportSettingsClip(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettingsClip"
@@ -168,15 +176,13 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
-        section_list[sedtion_list_index].smoothing_position_regressor = section_list[sedtion_list_index].smoothing_regressor
-        section_list[sedtion_list_index].smoothing_scale_regressor = section_list[sedtion_list_index].smoothing_regressor
-        section_list[sedtion_list_index].smoothing_rotation_regressor = section_list[sedtion_list_index].smoothing_regressor
-        section_list[sedtion_list_index].smoothing_power_pin_regressor = section_list[sedtion_list_index].smoothing_regressor
+        self.smoothing_position_regressor = self.smoothing_regressor
+        self.smoothing_scale_regressor = self.smoothing_regressor
+        self.smoothing_rotation_regressor = self.smoothing_regressor
+        self.smoothing_power_pin_regressor = self.smoothing_regressor
 
 
+        pass
 
     smoothing_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -190,15 +196,13 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
-        section_list[sedtion_list_index].smoothing_position_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
-        section_list[sedtion_list_index].smoothing_scale_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
-        section_list[sedtion_list_index].smoothing_rotation_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
-        section_list[sedtion_list_index].smoothing_power_pin_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+        self.smoothing_position_huber_epsilon = self.smoothing_huber_epsilon
+        self.smoothing_scale_huber_epsilon = self.smoothing_huber_epsilon
+        self.smoothing_rotation_huber_epsilon = self.smoothing_huber_epsilon
+        self.smoothing_power_pin_huber_epsilon = self.smoothing_huber_epsilon
 
 
+        pass
 
     smoothing_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -214,15 +218,13 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
-        section_list[sedtion_list_index].smoothing_position_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
-        section_list[sedtion_list_index].smoothing_scale_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
-        section_list[sedtion_list_index].smoothing_rotation_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
-        section_list[sedtion_list_index].smoothing_power_pin_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+        self.smoothing_position_lasso_alpha = self.smoothing_lasso_alpha
+        self.smoothing_scale_lasso_alpha = self.smoothing_lasso_alpha
+        self.smoothing_rotation_lasso_alpha = self.smoothing_lasso_alpha
+        self.smoothing_power_pin_lasso_alpha = self.smoothing_lasso_alpha
 
 
+        pass
 
     smoothing_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -247,10 +249,8 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_position_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_do_position: bpy.props.BoolProperty(
                 name="Smooth",
@@ -262,11 +262,9 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
-
+        pass
 
     smoothing_position_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -285,10 +283,8 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_scale_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_do_scale: bpy.props.BoolProperty(
                 name="Smooth",
@@ -300,11 +296,9 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
-
+        pass
 
     smoothing_scale_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -323,10 +317,8 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_rotation_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_do_rotation: bpy.props.BoolProperty(
                 name="Smooth",
@@ -338,11 +330,9 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_rotation_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
-
+        pass
 
     smoothing_rotation_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -361,10 +351,8 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_power_pin_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_do_power_pin: bpy.props.BoolProperty(
                 name="Smooth",
@@ -376,11 +364,9 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
-
+        pass
 
     smoothing_power_pin_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -399,11 +385,115 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettingsSectionL"
     bl_idname = "AAEExportSettingsSectionL"
 
+    aa_frame_update_suppress: bpy.props.BoolProperty(default=True)
+
     def _start_frame_update(self, context):
-        pass
+        if not self.aa_frame_update_suppress:
+            if context.edit_movieclip.AAEExportSettingsSectionLI == 0:
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    = True
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame \
+                    = context.edit_movieclip.frame_start
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    = False
+            else:
+                if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame < context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI:
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame \
+                        = context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = False
+                if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame > context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI:
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame \
+                        = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = False
+                for i in range(context.edit_movieclip.AAEExportSettingsSectionLI - 1, -1, -1):
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame \
+                        = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].start_frame
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        = False
+                    if context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame >= context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame:
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = True
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame - 1
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = False
+                    else:
+                        break
+                for i in range(context.edit_movieclip.AAEExportSettingsSectionLI, context.edit_movieclip.AAEExportSettingsSectionLL - 1):
+                    if context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame <= context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame:
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].aa_frame_update_suppress \
+                            = True
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].start_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame + 1
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].aa_frame_update_suppress \
+                            = False
+                    else:
+                        break
 
     def _end_frame_update(self, context):
-        pass
+        if not self.aa_frame_update_suppress:
+            if context.edit_movieclip.AAEExportSettingsSectionLI == context.edit_movieclip.AAEExportSettingsSectionLL:
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    = True
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
+                    = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    = False
+            else:
+                if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame > context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI + 1:
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
+                        = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI + 1
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = False
+                if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame < context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI + 1:
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
+                        = context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI + 1
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = False
+                for i in range(context.edit_movieclip.AAEExportSettingsSectionLI + 1, context.edit_movieclip.AAEExportSettingsSectionLL):
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame \
+                        = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].end_frame
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        = False
+                    if context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame <= context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame:
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = True
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame + 1
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = False
+                    else:
+                        break
+                for i in range(context.edit_movieclip.AAEExportSettingsSectionLI, 0, -1):
+                    if context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame >= context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame:
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].aa_frame_update_suppress \
+                            = True
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].end_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame - 1
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].aa_frame_update_suppress \
+                            = False
+                    else:
+                        break
     
     start_frame: bpy.props.IntProperty(name="Start Frame",
                                        description="The first frame of the section",
@@ -434,18 +524,16 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
-        section_list[sedtion_list_index].smoothing_position_regressor = section_list[sedtion_list_index].smoothing_regressor
-        section_list[sedtion_list_index].smoothing_scale_regressor = section_list[sedtion_list_index].smoothing_regressor
-        section_list[sedtion_list_index].smoothing_rotation_regressor = section_list[sedtion_list_index].smoothing_regressor
-        section_list[sedtion_list_index].smoothing_power_pin_regressor = section_list[sedtion_list_index].smoothing_regressor
+        self.smoothing_position_regressor = self.smoothing_regressor
+        self.smoothing_scale_regressor = self.smoothing_regressor
+        self.smoothing_rotation_regressor = self.smoothing_regressor
+        self.smoothing_power_pin_regressor = self.smoothing_regressor
 
 
-        section_list[sedtion_list_index].smoothing_x_regressor = section_list[sedtion_list_index].smoothing_regressor
-        section_list[sedtion_list_index].smoothing_y_regressor = section_list[sedtion_list_index].smoothing_regressor
+        self.smoothing_x_regressor = self.smoothing_regressor
+        self.smoothing_y_regressor = self.smoothing_regressor
 
+        pass
 
     smoothing_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -459,18 +547,16 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
-        section_list[sedtion_list_index].smoothing_position_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
-        section_list[sedtion_list_index].smoothing_scale_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
-        section_list[sedtion_list_index].smoothing_rotation_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
-        section_list[sedtion_list_index].smoothing_power_pin_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+        self.smoothing_position_huber_epsilon = self.smoothing_huber_epsilon
+        self.smoothing_scale_huber_epsilon = self.smoothing_huber_epsilon
+        self.smoothing_rotation_huber_epsilon = self.smoothing_huber_epsilon
+        self.smoothing_power_pin_huber_epsilon = self.smoothing_huber_epsilon
 
 
-        section_list[sedtion_list_index].smoothing_x_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
-        section_list[sedtion_list_index].smoothing_y_huber_epsilon = section_list[sedtion_list_index].smoothing_huber_epsilon
+        self.smoothing_x_huber_epsilon = self.smoothing_huber_epsilon
+        self.smoothing_y_huber_epsilon = self.smoothing_huber_epsilon
 
+        pass
 
     smoothing_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -486,18 +572,16 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
-        section_list[sedtion_list_index].smoothing_position_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
-        section_list[sedtion_list_index].smoothing_scale_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
-        section_list[sedtion_list_index].smoothing_rotation_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
-        section_list[sedtion_list_index].smoothing_power_pin_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+        self.smoothing_position_lasso_alpha = self.smoothing_lasso_alpha
+        self.smoothing_scale_lasso_alpha = self.smoothing_lasso_alpha
+        self.smoothing_rotation_lasso_alpha = self.smoothing_lasso_alpha
+        self.smoothing_power_pin_lasso_alpha = self.smoothing_lasso_alpha
 
 
-        section_list[sedtion_list_index].smoothing_x_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
-        section_list[sedtion_list_index].smoothing_y_lasso_alpha = section_list[sedtion_list_index].smoothing_lasso_alpha
+        self.smoothing_x_lasso_alpha = self.smoothing_lasso_alpha
+        self.smoothing_y_lasso_alpha = self.smoothing_lasso_alpha
 
+        pass
 
     smoothing_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -526,14 +610,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_x_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+        self.smoothing_position_x_regressor = self.smoothing_x_regressor
+        self.smoothing_scale_x_regressor = self.smoothing_x_regressor
+        self.smoothing_rotation_x_regressor = self.smoothing_x_regressor
+        self.smoothing_power_pin_x_regressor = self.smoothing_x_regressor
 
-        section_list[sedtion_list_index].smoothing_position_x_regressor = section_list[sedtion_list_index].smoothing_x_regressor
-        section_list[sedtion_list_index].smoothing_scale_x_regressor = section_list[sedtion_list_index].smoothing_x_regressor
-        section_list[sedtion_list_index].smoothing_rotation_x_regressor = section_list[sedtion_list_index].smoothing_x_regressor
-        section_list[sedtion_list_index].smoothing_power_pin_x_regressor = section_list[sedtion_list_index].smoothing_x_regressor
-
+        pass
 
     smoothing_x_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -547,14 +629,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_x_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+        self.smoothing_position_x_huber_epsilon = self.smoothing_x_huber_epsilon
+        self.smoothing_scale_x_huber_epsilon = self.smoothing_x_huber_epsilon
+        self.smoothing_rotation_x_huber_epsilon = self.smoothing_x_huber_epsilon
+        self.smoothing_power_pin_x_huber_epsilon = self.smoothing_x_huber_epsilon
 
-        section_list[sedtion_list_index].smoothing_position_x_huber_epsilon = section_list[sedtion_list_index].smoothing_x_huber_epsilon
-        section_list[sedtion_list_index].smoothing_scale_x_huber_epsilon = section_list[sedtion_list_index].smoothing_x_huber_epsilon
-        section_list[sedtion_list_index].smoothing_rotation_x_huber_epsilon = section_list[sedtion_list_index].smoothing_x_huber_epsilon
-        section_list[sedtion_list_index].smoothing_power_pin_x_huber_epsilon = section_list[sedtion_list_index].smoothing_x_huber_epsilon
-
+        pass
 
     smoothing_x_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -570,14 +650,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_x_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+        self.smoothing_position_x_lasso_alpha = self.smoothing_x_lasso_alpha
+        self.smoothing_scale_x_lasso_alpha = self.smoothing_x_lasso_alpha
+        self.smoothing_rotation_x_lasso_alpha = self.smoothing_x_lasso_alpha
+        self.smoothing_power_pin_x_lasso_alpha = self.smoothing_x_lasso_alpha
 
-        section_list[sedtion_list_index].smoothing_position_x_lasso_alpha = section_list[sedtion_list_index].smoothing_x_lasso_alpha
-        section_list[sedtion_list_index].smoothing_scale_x_lasso_alpha = section_list[sedtion_list_index].smoothing_x_lasso_alpha
-        section_list[sedtion_list_index].smoothing_rotation_x_lasso_alpha = section_list[sedtion_list_index].smoothing_x_lasso_alpha
-        section_list[sedtion_list_index].smoothing_power_pin_x_lasso_alpha = section_list[sedtion_list_index].smoothing_x_lasso_alpha
-
+        pass
 
     smoothing_x_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -606,14 +684,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_y_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+        self.smoothing_position_y_regressor = self.smoothing_y_regressor
+        self.smoothing_scale_y_regressor = self.smoothing_y_regressor
+        self.smoothing_rotation_y_regressor = self.smoothing_y_regressor
+        self.smoothing_power_pin_y_regressor = self.smoothing_y_regressor
 
-        section_list[sedtion_list_index].smoothing_position_y_regressor = section_list[sedtion_list_index].smoothing_y_regressor
-        section_list[sedtion_list_index].smoothing_scale_y_regressor = section_list[sedtion_list_index].smoothing_y_regressor
-        section_list[sedtion_list_index].smoothing_rotation_y_regressor = section_list[sedtion_list_index].smoothing_y_regressor
-        section_list[sedtion_list_index].smoothing_power_pin_y_regressor = section_list[sedtion_list_index].smoothing_y_regressor
-
+        pass
 
     smoothing_y_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -627,14 +703,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_y_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+        self.smoothing_position_y_huber_epsilon = self.smoothing_y_huber_epsilon
+        self.smoothing_scale_y_huber_epsilon = self.smoothing_y_huber_epsilon
+        self.smoothing_rotation_y_huber_epsilon = self.smoothing_y_huber_epsilon
+        self.smoothing_power_pin_y_huber_epsilon = self.smoothing_y_huber_epsilon
 
-        section_list[sedtion_list_index].smoothing_position_y_huber_epsilon = section_list[sedtion_list_index].smoothing_y_huber_epsilon
-        section_list[sedtion_list_index].smoothing_scale_y_huber_epsilon = section_list[sedtion_list_index].smoothing_y_huber_epsilon
-        section_list[sedtion_list_index].smoothing_rotation_y_huber_epsilon = section_list[sedtion_list_index].smoothing_y_huber_epsilon
-        section_list[sedtion_list_index].smoothing_power_pin_y_huber_epsilon = section_list[sedtion_list_index].smoothing_y_huber_epsilon
-
+        pass
 
     smoothing_y_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -650,14 +724,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_y_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
+        self.smoothing_position_y_lasso_alpha = self.smoothing_y_lasso_alpha
+        self.smoothing_scale_y_lasso_alpha = self.smoothing_y_lasso_alpha
+        self.smoothing_rotation_y_lasso_alpha = self.smoothing_y_lasso_alpha
+        self.smoothing_power_pin_y_lasso_alpha = self.smoothing_y_lasso_alpha
 
-        section_list[sedtion_list_index].smoothing_position_y_lasso_alpha = section_list[sedtion_list_index].smoothing_y_lasso_alpha
-        section_list[sedtion_list_index].smoothing_scale_y_lasso_alpha = section_list[sedtion_list_index].smoothing_y_lasso_alpha
-        section_list[sedtion_list_index].smoothing_rotation_y_lasso_alpha = section_list[sedtion_list_index].smoothing_y_lasso_alpha
-        section_list[sedtion_list_index].smoothing_power_pin_y_lasso_alpha = section_list[sedtion_list_index].smoothing_y_lasso_alpha
-
+        pass
 
     smoothing_y_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -682,13 +754,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_position_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
+        self.smoothing_do_position_x = self.smoothing_do_position
+        self.smoothing_do_position_y = self.smoothing_do_position
 
-        section_list[sedtion_list_index].smoothing_do_position_x = section_list[sedtion_list_index].smoothing_do_position
-        section_list[sedtion_list_index].smoothing_do_position_y = section_list[sedtion_list_index].smoothing_do_position
-
+        pass
 
     smoothing_do_position: bpy.props.BoolProperty(
                 name="Smooth",
@@ -700,14 +770,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_position_x_degree = self.smoothing_position_degree
+        self.smoothing_position_y_degree = self.smoothing_position_degree
 
-        section_list[sedtion_list_index].smoothing_position_x_degree = section_list[sedtion_list_index].smoothing_position_degree
-        section_list[sedtion_list_index].smoothing_position_y_degree = section_list[sedtion_list_index].smoothing_position_degree
-
+        pass
 
     smoothing_position_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -722,14 +790,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_position_x_regressor = self.smoothing_position_regressor
+        self.smoothing_position_y_regressor = self.smoothing_position_regressor
 
-        section_list[sedtion_list_index].smoothing_position_x_regressor = section_list[sedtion_list_index].smoothing_position_regressor
-        section_list[sedtion_list_index].smoothing_position_y_regressor = section_list[sedtion_list_index].smoothing_position_regressor
-
+        pass
 
     smoothing_position_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -743,14 +809,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_position_x_huber_epsilon = self.smoothing_position_huber_epsilon
+        self.smoothing_position_y_huber_epsilon = self.smoothing_position_huber_epsilon
 
-        section_list[sedtion_list_index].smoothing_position_x_huber_epsilon = section_list[sedtion_list_index].smoothing_position_huber_epsilon
-        section_list[sedtion_list_index].smoothing_position_y_huber_epsilon = section_list[sedtion_list_index].smoothing_position_huber_epsilon
-
+        pass
 
     smoothing_position_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -766,14 +830,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_position_x_lasso_alpha = self.smoothing_position_lasso_alpha
+        self.smoothing_position_y_lasso_alpha = self.smoothing_position_lasso_alpha
 
-        section_list[sedtion_list_index].smoothing_position_x_lasso_alpha = section_list[sedtion_list_index].smoothing_position_lasso_alpha
-        section_list[sedtion_list_index].smoothing_position_y_lasso_alpha = section_list[sedtion_list_index].smoothing_position_lasso_alpha
-
+        pass
 
     smoothing_position_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -797,9 +859,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_position_x_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
+        pass
 
     smoothing_do_position_x: bpy.props.BoolProperty(
                 name="Smooth",
@@ -811,10 +871,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_x_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_position_x_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -829,10 +887,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_x_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_position_x_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -846,10 +902,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_x_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_position_x_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -865,10 +919,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_x_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_position_x_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -892,9 +944,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_position_y_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
+        pass
 
     smoothing_do_position_y: bpy.props.BoolProperty(
                 name="Smooth",
@@ -906,10 +956,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_y_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_position_y_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -924,10 +972,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_y_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_position_y_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -941,10 +987,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_y_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_position_y_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -960,10 +1004,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_position_y_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_position_y_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -988,13 +1030,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_scale_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
+        self.smoothing_do_scale_x = self.smoothing_do_scale
+        self.smoothing_do_scale_y = self.smoothing_do_scale
 
-        section_list[sedtion_list_index].smoothing_do_scale_x = section_list[sedtion_list_index].smoothing_do_scale
-        section_list[sedtion_list_index].smoothing_do_scale_y = section_list[sedtion_list_index].smoothing_do_scale
-
+        pass
 
     smoothing_do_scale: bpy.props.BoolProperty(
                 name="Smooth",
@@ -1006,14 +1046,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_scale_x_degree = self.smoothing_scale_degree
+        self.smoothing_scale_y_degree = self.smoothing_scale_degree
 
-        section_list[sedtion_list_index].smoothing_scale_x_degree = section_list[sedtion_list_index].smoothing_scale_degree
-        section_list[sedtion_list_index].smoothing_scale_y_degree = section_list[sedtion_list_index].smoothing_scale_degree
-
+        pass
 
     smoothing_scale_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -1028,14 +1066,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_scale_x_regressor = self.smoothing_scale_regressor
+        self.smoothing_scale_y_regressor = self.smoothing_scale_regressor
 
-        section_list[sedtion_list_index].smoothing_scale_x_regressor = section_list[sedtion_list_index].smoothing_scale_regressor
-        section_list[sedtion_list_index].smoothing_scale_y_regressor = section_list[sedtion_list_index].smoothing_scale_regressor
-
+        pass
 
     smoothing_scale_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -1049,14 +1085,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_scale_x_huber_epsilon = self.smoothing_scale_huber_epsilon
+        self.smoothing_scale_y_huber_epsilon = self.smoothing_scale_huber_epsilon
 
-        section_list[sedtion_list_index].smoothing_scale_x_huber_epsilon = section_list[sedtion_list_index].smoothing_scale_huber_epsilon
-        section_list[sedtion_list_index].smoothing_scale_y_huber_epsilon = section_list[sedtion_list_index].smoothing_scale_huber_epsilon
-
+        pass
 
     smoothing_scale_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -1072,14 +1106,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_scale_x_lasso_alpha = self.smoothing_scale_lasso_alpha
+        self.smoothing_scale_y_lasso_alpha = self.smoothing_scale_lasso_alpha
 
-        section_list[sedtion_list_index].smoothing_scale_x_lasso_alpha = section_list[sedtion_list_index].smoothing_scale_lasso_alpha
-        section_list[sedtion_list_index].smoothing_scale_y_lasso_alpha = section_list[sedtion_list_index].smoothing_scale_lasso_alpha
-
+        pass
 
     smoothing_scale_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -1103,9 +1135,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_scale_x_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
+        pass
 
     smoothing_do_scale_x: bpy.props.BoolProperty(
                 name="Smooth",
@@ -1117,10 +1147,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_x_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_scale_x_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -1135,10 +1163,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_x_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_scale_x_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -1152,10 +1178,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_x_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_scale_x_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -1171,10 +1195,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_x_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_scale_x_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -1198,9 +1220,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_scale_y_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
+        pass
 
     smoothing_do_scale_y: bpy.props.BoolProperty(
                 name="Smooth",
@@ -1212,10 +1232,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_y_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_scale_y_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -1230,10 +1248,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_y_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_scale_y_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -1247,10 +1263,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_y_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_scale_y_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -1266,10 +1280,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_scale_y_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_scale_y_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -1295,10 +1307,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_rotation_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_do_rotation: bpy.props.BoolProperty(
                 name="Smooth",
@@ -1310,11 +1320,9 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_rotation_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
-
+        pass
 
     smoothing_rotation_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -1329,11 +1337,9 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_rotation_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
-
+        pass
 
     smoothing_rotation_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -1347,11 +1353,9 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_rotation_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
-
+        pass
 
     smoothing_rotation_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -1367,11 +1371,9 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_rotation_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
-
+        pass
 
     smoothing_rotation_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -1397,13 +1399,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_power_pin_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
+        self.smoothing_do_power_pin_x = self.smoothing_do_power_pin
+        self.smoothing_do_power_pin_y = self.smoothing_do_power_pin
 
-        section_list[sedtion_list_index].smoothing_do_power_pin_x = section_list[sedtion_list_index].smoothing_do_power_pin
-        section_list[sedtion_list_index].smoothing_do_power_pin_y = section_list[sedtion_list_index].smoothing_do_power_pin
-
+        pass
 
     smoothing_do_power_pin: bpy.props.BoolProperty(
                 name="Smooth",
@@ -1415,14 +1415,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_power_pin_x_degree = self.smoothing_power_pin_degree
+        self.smoothing_power_pin_y_degree = self.smoothing_power_pin_degree
 
-        section_list[sedtion_list_index].smoothing_power_pin_x_degree = section_list[sedtion_list_index].smoothing_power_pin_degree
-        section_list[sedtion_list_index].smoothing_power_pin_y_degree = section_list[sedtion_list_index].smoothing_power_pin_degree
-
+        pass
 
     smoothing_power_pin_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -1437,14 +1435,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_power_pin_x_regressor = self.smoothing_power_pin_regressor
+        self.smoothing_power_pin_y_regressor = self.smoothing_power_pin_regressor
 
-        section_list[sedtion_list_index].smoothing_power_pin_x_regressor = section_list[sedtion_list_index].smoothing_power_pin_regressor
-        section_list[sedtion_list_index].smoothing_power_pin_y_regressor = section_list[sedtion_list_index].smoothing_power_pin_regressor
-
+        pass
 
     smoothing_power_pin_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -1458,14 +1454,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_power_pin_x_huber_epsilon = self.smoothing_power_pin_huber_epsilon
+        self.smoothing_power_pin_y_huber_epsilon = self.smoothing_power_pin_huber_epsilon
 
-        section_list[sedtion_list_index].smoothing_power_pin_x_huber_epsilon = section_list[sedtion_list_index].smoothing_power_pin_huber_epsilon
-        section_list[sedtion_list_index].smoothing_power_pin_y_huber_epsilon = section_list[sedtion_list_index].smoothing_power_pin_huber_epsilon
-
+        pass
 
     smoothing_power_pin_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -1481,14 +1475,12 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
 
+        self.smoothing_power_pin_x_lasso_alpha = self.smoothing_power_pin_lasso_alpha
+        self.smoothing_power_pin_y_lasso_alpha = self.smoothing_power_pin_lasso_alpha
 
-        section_list[sedtion_list_index].smoothing_power_pin_x_lasso_alpha = section_list[sedtion_list_index].smoothing_power_pin_lasso_alpha
-        section_list[sedtion_list_index].smoothing_power_pin_y_lasso_alpha = section_list[sedtion_list_index].smoothing_power_pin_lasso_alpha
-
+        pass
 
     smoothing_power_pin_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -1512,9 +1504,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_power_pin_x_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
+        pass
 
     smoothing_do_power_pin_x: bpy.props.BoolProperty(
                 name="Smooth",
@@ -1526,10 +1516,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_x_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_power_pin_x_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -1544,10 +1532,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_x_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_power_pin_x_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -1561,10 +1547,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_x_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_power_pin_x_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -1580,10 +1564,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_x_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_power_pin_x_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -1607,9 +1589,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_do_power_pin_y_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
+        pass
 
     smoothing_do_power_pin_y: bpy.props.BoolProperty(
                 name="Smooth",
@@ -1621,10 +1601,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_y_degree_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_power_pin_y_degree: bpy.props.IntProperty(
                 name="Max Degree",
@@ -1639,10 +1617,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_y_regressor_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_power_pin_y_regressor: bpy.props.EnumProperty(
                 items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
@@ -1656,10 +1632,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_y_huber_epsilon_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_power_pin_y_huber_epsilon: bpy.props.FloatProperty(
                 name="Epsilon",
@@ -1675,10 +1649,8 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
     def _smoothing_power_pin_y_lasso_alpha_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
 
-
+        pass
 
     smoothing_power_pin_y_lasso_alpha: bpy.props.FloatProperty(
                 name="Alpha",
@@ -3028,6 +3000,7 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
+
             clip_settings = context.edit_movieclip.AAEExportSettingsClip
             
             selected_plane_tracks = 0
@@ -3048,13 +3021,13 @@ class AAEExportOptions(bpy.types.Panel):
             sub_column.enabled = clip_settings.do_smoothing and \
                                  (selected_plane_tracks == 1) is not (33 == 1)
             sub_column.operator("movieclip.aae_export_plot_result")
-            column.separator(factor=0.25)
+            column.separator(factor=0.44)
             
             row = column.row(align=True)
             row.enabled = clip_settings.do_smoothing
             row.alignment = "CENTER"
             row.label(text="Sections")
-            column.separator(factor=0.25)
+            column.separator(factor=0.40)
 
             sub_column = column.column()
             sub_column.enabled = clip_settings.do_smoothing
@@ -3067,29 +3040,40 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                 section_settings = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI]
+
                 row = column.row(align=True)
                 row.enabled = clip_settings.do_smoothing
-                row.operator("movieclip.aae_export_section_add_section")
-                row.operator("movieclip.aae_export_section_remove_section")
-                column.separator(factor=0.25)
+                sub_row = row.row(align=True)
+                sub_row.enabled = clip_settings.do_smoothing and \
+                                  context.edit_movieclip.AAEExportSettingsSectionLL > 0 and \
+                                  ((context.edit_movieclip.AAEExportSettingsSectionLI == context.edit_movieclip.AAEExportSettingsSectionLL - 1 and \
+                                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame >= 2) or \
+                                   (context.edit_movieclip.AAEExportSettingsSectionLI < context.edit_movieclip.AAEExportSettingsSectionLL - 1 and \
+                                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame >= 2))
+                sub_row.operator("movieclip.aae_export_section_add_section")
+                sub_row = row.row(align=True)
+                sub_row.enabled = clip_settings.do_smoothing and \
+                                  context.edit_movieclip.AAEExportSettingsSectionLL >= 2
+                sub_row.operator("movieclip.aae_export_section_remove_section")
+                column.separator(factor=0.44)
 
                 row = column.row()
                 row.enabled = clip_settings.do_smoothing
                 row.alignment = "CENTER"
                 row.label(text="Section Settings")
-                column.separator(factor=0.25)
+                column.separator(factor=0.40)
 
                 sub_column = column.column()
                 sub_column.enabled = clip_settings.do_smoothing
                 sub_column.prop(section_settings, "start_frame")
                 sub_column.prop(section_settings, "end_frame")
-                column.separator(factor=0.25)
+                column.separator(factor=0.44)
                 
                 row = column.row(align=True)
                 row.enabled = clip_settings.do_smoothing
                 row.alignment = "CENTER"
                 row.label(text="Section Smoothing")
-                column.separator(factor=0.25)
+                column.separator(factor=0.40)
                 
                 row = column.row(heading="Split Settings for", align=True)
                 row.enabled = clip_settings.do_smoothing
@@ -3103,60 +3087,504 @@ class AAEExportOptions(bpy.types.Panel):
                 sub_column.operator("movieclip.aae_export_plot_graph")
                 column.separator(factor=0.0)
 
+
+
+
+
+
+
+
+
+
                 sub_column = column.column(heading="Position")
                 sub_column.enabled = clip_settings.do_smoothing
-                sub_column.prop(section_settings, "smoothing_do_position")
-                sub_column.prop(section_settings, "smoothing_position_degree")
+
+                if section_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(section_settings, "smoothing_do_position_x")
+                    row.prop(section_settings, "smoothing_do_position_y")
+                    if section_settings.smoothing_do_position_x == section_settings.smoothing_do_position_y == True:
+                        row = sub_column.row(align=True)
+                        row.prop(section_settings, "smoothing_position_x_degree")
+                        row.prop(section_settings, "smoothing_position_y_degree", text="")
+                    elif section_settings.smoothing_do_position_x:
+                        row = sub_column.row(align=True)
+                        row.prop(section_settings, "smoothing_position_x_degree")
+                        row.prop(settings, "null_property")
+                    elif section_settings.smoothing_do_position_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(section_settings, "smoothing_position_x_degree", text="")
+                else:
+                    sub_column.prop(section_settings, "smoothing_do_position")
+                    if section_settings.smoothing_do_position:
+                        sub_column.prop(section_settings, "smoothing_position_degree")
+                if section_settings.smoothing_use_different_model:
+
+
+
+                    if section_settings.smoothing_use_different_x_y:
+                        row = sub_column.row(align=True)
+
+
+                        if \
+                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0) \
+                                or \
+                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0) \
+                               :
+                            if \
+                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0) \
+                               :
+                                row.prop(section_settings, "smoothing_position_x_regressor")
+                            else:
+                                row.prop(settings, "null_property", text="Linear Model")
+                            if \
+                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0) \
+                               :
+                                row.prop(section_settings, "smoothing_position_y_regressor", text="")
+                            else:
+                                row.prop(settings, "null_property")
+
+                            if section_settings.smoothing_position_x_regressor == section_settings.smoothing_position_y_regressor and \
+                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0) \
+                                and \
+                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0) \
+                               :
+                                if section_settings.smoothing_position_x_regressor == "HUBER":
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_position_x_huber_epsilon")
+                                    row.prop(section_settings, "smoothing_position_y_huber_epsilon", text="")
+                                elif section_settings.smoothing_position_x_regressor == "LASSO":
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_position_x_lasso_alpha")
+                                    row.prop(section_settings, "smoothing_position_y_lasso_alpha", text="")
+                            else:
+                                if section_settings.smoothing_position_x_regressor == "HUBER" and \
+                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_position_x_huber_epsilon")
+                                    row.prop(settings, "null_property")
+                                elif section_settings.smoothing_position_x_regressor == "LASSO" and \
+                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_position_x_lasso_alpha")
+                                    row.prop(settings, "null_property")
+                                if section_settings.smoothing_position_y_regressor == "HUBER" and \
+                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Epsilon")
+                                    row.prop(section_settings, "smoothing_position_y_huber_epsilon", text="")
+                                elif section_settings.smoothing_position_y_regressor == "LASSO" and \
+                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Alpha")
+                                    row.prop(section_settings, "smoothing_position_y_lasso_alpha", text="")
+
+
+                    else:
+
+                        if section_settings.smoothing_position_degree != 0:
+
+                            sub_column.prop(section_settings, "smoothing_position_regressor")
+                            if section_settings.smoothing_position_regressor == "HUBER":
+                                sub_column.prop(section_settings, "smoothing_position_huber_epsilon")
+                            elif section_settings.smoothing_position_regressor == "LASSO":
+                                sub_column.prop(section_settings, "smoothing_position_lasso_alpha")
+
+
+
+
+
+
 
                 sub_column = column.column(heading="Scale")
                 sub_column.enabled = clip_settings.do_smoothing
-                sub_column.prop(section_settings, "smoothing_do_scale")
-                sub_column.prop(section_settings, "smoothing_scale_degree")
+
+                if section_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(section_settings, "smoothing_do_scale_x")
+                    row.prop(section_settings, "smoothing_do_scale_y")
+                    if section_settings.smoothing_do_scale_x == section_settings.smoothing_do_scale_y == True:
+                        row = sub_column.row(align=True)
+                        row.prop(section_settings, "smoothing_scale_x_degree")
+                        row.prop(section_settings, "smoothing_scale_y_degree", text="")
+                    elif section_settings.smoothing_do_scale_x:
+                        row = sub_column.row(align=True)
+                        row.prop(section_settings, "smoothing_scale_x_degree")
+                        row.prop(settings, "null_property")
+                    elif section_settings.smoothing_do_scale_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(section_settings, "smoothing_scale_x_degree", text="")
+                else:
+                    sub_column.prop(section_settings, "smoothing_do_scale")
+                    if section_settings.smoothing_do_scale:
+                        sub_column.prop(section_settings, "smoothing_scale_degree")
+                if section_settings.smoothing_use_different_model:
+
+
+
+                    if section_settings.smoothing_use_different_x_y:
+                        row = sub_column.row(align=True)
+
+
+                        if \
+                               (section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0) \
+                                or \
+                               (section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0) \
+                               :
+                            if \
+                               (section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0) \
+                               :
+                                row.prop(section_settings, "smoothing_scale_x_regressor")
+                            else:
+                                row.prop(settings, "null_property", text="Linear Model")
+                            if \
+                               (section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0) \
+                               :
+                                row.prop(section_settings, "smoothing_scale_y_regressor", text="")
+                            else:
+                                row.prop(settings, "null_property")
+
+                            if section_settings.smoothing_scale_x_regressor == section_settings.smoothing_scale_y_regressor and \
+                               (section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0) \
+                                and \
+                               (section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0) \
+                               :
+                                if section_settings.smoothing_scale_x_regressor == "HUBER":
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_scale_x_huber_epsilon")
+                                    row.prop(section_settings, "smoothing_scale_y_huber_epsilon", text="")
+                                elif section_settings.smoothing_scale_x_regressor == "LASSO":
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_scale_x_lasso_alpha")
+                                    row.prop(section_settings, "smoothing_scale_y_lasso_alpha", text="")
+                            else:
+                                if section_settings.smoothing_scale_x_regressor == "HUBER" and \
+                               (section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_scale_x_huber_epsilon")
+                                    row.prop(settings, "null_property")
+                                elif section_settings.smoothing_scale_x_regressor == "LASSO" and \
+                               (section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_scale_x_lasso_alpha")
+                                    row.prop(settings, "null_property")
+                                if section_settings.smoothing_scale_y_regressor == "HUBER" and \
+                               (section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Epsilon")
+                                    row.prop(section_settings, "smoothing_scale_y_huber_epsilon", text="")
+                                elif section_settings.smoothing_scale_y_regressor == "LASSO" and \
+                               (section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Alpha")
+                                    row.prop(section_settings, "smoothing_scale_y_lasso_alpha", text="")
+
+
+                    else:
+
+                        if section_settings.smoothing_scale_degree != 0:
+
+                            sub_column.prop(section_settings, "smoothing_scale_regressor")
+                            if section_settings.smoothing_scale_regressor == "HUBER":
+                                sub_column.prop(section_settings, "smoothing_scale_huber_epsilon")
+                            elif section_settings.smoothing_scale_regressor == "LASSO":
+                                sub_column.prop(section_settings, "smoothing_scale_lasso_alpha")
+
+
+
+
+
+
+
 
                 sub_column = column.column(heading="Rotation")
                 sub_column.enabled = clip_settings.do_smoothing
+
                 sub_column.prop(section_settings, "smoothing_do_rotation")
-                sub_column.prop(section_settings, "smoothing_rotation_degree")
+                if section_settings.smoothing_do_rotation:
+                    if section_settings.smoothing_use_different_x_y and not section_settings.smoothing_use_different_model:
+                        row = sub_column.row(align=True)
+                        row.prop(section_settings, "smoothing_rotation_degree")
+                        row.prop(settings, "null_property")
+                    else:
+                        sub_column.prop(section_settings, "smoothing_rotation_degree")
+                if section_settings.smoothing_use_different_model:
+
+
+
+                    if section_settings.smoothing_rotation_degree != 0:
+                        sub_column.prop(section_settings, "smoothing_rotation_regressor")
+                        if section_settings.smoothing_rotation_regressor == "HUBER":
+                            sub_column.prop(section_settings, "smoothing_rotation_huber_epsilon")
+                        elif section_settings.smoothing_rotation_regressor == "LASSO":
+                            sub_column.prop(section_settings, "smoothing_rotation_lasso_alpha")
+
+
+
+
+
+
+
 
                 sub_column = column.column(heading="Power Pin")
                 sub_column.enabled = clip_settings.do_smoothing
-                sub_column.prop(section_settings, "smoothing_do_power_pin")
-                sub_column.prop(section_settings, "smoothing_power_pin_degree")
-                column.separator(factor=0.0)
 
-                sub_column = column.column()
-                sub_column.enabled = clip_settings.do_smoothing
-                sub_column.prop(section_settings, "smoothing_regressor")
-                if section_settings.smoothing_regressor == "HUBER":
-                    sub_column.prop(section_settings, "smoothing_huber_epsilon")
-                elif section_settings.smoothing_regressor == "LASSO":
-                    sub_column.prop(section_settings, "smoothing_lasso_alpha")
+                if section_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(section_settings, "smoothing_do_power_pin_x")
+                    row.prop(section_settings, "smoothing_do_power_pin_y")
+                    if section_settings.smoothing_do_power_pin_x == section_settings.smoothing_do_power_pin_y == True:
+                        row = sub_column.row(align=True)
+                        row.prop(section_settings, "smoothing_power_pin_x_degree")
+                        row.prop(section_settings, "smoothing_power_pin_y_degree", text="")
+                    elif section_settings.smoothing_do_power_pin_x:
+                        row = sub_column.row(align=True)
+                        row.prop(section_settings, "smoothing_power_pin_x_degree")
+                        row.prop(settings, "null_property")
+                    elif section_settings.smoothing_do_power_pin_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(section_settings, "smoothing_power_pin_x_degree", text="")
+                else:
+                    sub_column.prop(section_settings, "smoothing_do_power_pin")
+                    if section_settings.smoothing_do_power_pin:
+                        sub_column.prop(section_settings, "smoothing_power_pin_degree")
+                if section_settings.smoothing_use_different_model:
+
+
+
+                    if section_settings.smoothing_use_different_x_y:
+                        row = sub_column.row(align=True)
+
+
+                        if \
+                               (section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                                or \
+                               (section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                            if \
+                               (section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                row.prop(section_settings, "smoothing_power_pin_x_regressor")
+                            else:
+                                row.prop(settings, "null_property", text="Linear Model")
+                            if \
+                               (section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                row.prop(section_settings, "smoothing_power_pin_y_regressor", text="")
+                            else:
+                                row.prop(settings, "null_property")
+
+                            if section_settings.smoothing_power_pin_x_regressor == section_settings.smoothing_power_pin_y_regressor and \
+                               (section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                                and \
+                               (section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                if section_settings.smoothing_power_pin_x_regressor == "HUBER":
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_power_pin_x_huber_epsilon")
+                                    row.prop(section_settings, "smoothing_power_pin_y_huber_epsilon", text="")
+                                elif section_settings.smoothing_power_pin_x_regressor == "LASSO":
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_power_pin_x_lasso_alpha")
+                                    row.prop(section_settings, "smoothing_power_pin_y_lasso_alpha", text="")
+                            else:
+                                if section_settings.smoothing_power_pin_x_regressor == "HUBER" and \
+                               (section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_power_pin_x_huber_epsilon")
+                                    row.prop(settings, "null_property")
+                                elif section_settings.smoothing_power_pin_x_regressor == "LASSO" and \
+                               (section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_power_pin_x_lasso_alpha")
+                                    row.prop(settings, "null_property")
+                                if section_settings.smoothing_power_pin_y_regressor == "HUBER" and \
+                               (section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Epsilon")
+                                    row.prop(section_settings, "smoothing_power_pin_y_huber_epsilon", text="")
+                                elif section_settings.smoothing_power_pin_y_regressor == "LASSO" and \
+                               (section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Alpha")
+                                    row.prop(section_settings, "smoothing_power_pin_y_lasso_alpha", text="")
+
+
+                    else:
+
+                        if section_settings.smoothing_power_pin_degree != 0:
+
+                            sub_column.prop(section_settings, "smoothing_power_pin_regressor")
+                            if section_settings.smoothing_power_pin_regressor == "HUBER":
+                                sub_column.prop(section_settings, "smoothing_power_pin_huber_epsilon")
+                            elif section_settings.smoothing_power_pin_regressor == "LASSO":
+                                sub_column.prop(section_settings, "smoothing_power_pin_lasso_alpha")
+
+
+
+
+                if not section_settings.smoothing_use_different_model:
+
+
+
+
+
+                    if section_settings.smoothing_use_different_x_y:
+                        row = sub_column.row(align=True)
+
+
+                        if \
+                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0 or \
+                                section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0 or \
+                                section_settings.smoothing_do_rotation and section_settings.smoothing_rotation_degree != 0 or \
+                                section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                                or \
+                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0 or \
+                                section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0 or \
+                                section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                            if \
+                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0 or \
+                                section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0 or \
+                                section_settings.smoothing_do_rotation and section_settings.smoothing_rotation_degree != 0 or \
+                                section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                row.prop(section_settings, "smoothing_x_regressor")
+                            else:
+                                row.prop(settings, "null_property", text="Linear Model")
+                            if \
+                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0 or \
+                                section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0 or \
+                                section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                row.prop(section_settings, "smoothing_y_regressor", text="")
+                            else:
+                                row.prop(settings, "null_property")
+
+                            if section_settings.smoothing_x_regressor == section_settings.smoothing_y_regressor and \
+                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0 or \
+                                section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0 or \
+                                section_settings.smoothing_do_rotation and section_settings.smoothing_rotation_degree != 0 or \
+                                section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                                and \
+                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0 or \
+                                section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0 or \
+                                section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                if section_settings.smoothing_x_regressor == "HUBER":
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_x_huber_epsilon")
+                                    row.prop(section_settings, "smoothing_y_huber_epsilon", text="")
+                                elif section_settings.smoothing_x_regressor == "LASSO":
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_x_lasso_alpha")
+                                    row.prop(section_settings, "smoothing_y_lasso_alpha", text="")
+                            else:
+                                if section_settings.smoothing_x_regressor == "HUBER" and \
+                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0 or \
+                                section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0 or \
+                                section_settings.smoothing_do_rotation and section_settings.smoothing_rotation_degree != 0 or \
+                                section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_x_huber_epsilon")
+                                    row.prop(settings, "null_property")
+                                elif section_settings.smoothing_x_regressor == "LASSO" and \
+                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0 or \
+                                section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0 or \
+                                section_settings.smoothing_do_rotation and section_settings.smoothing_rotation_degree != 0 or \
+                                section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(section_settings, "smoothing_x_lasso_alpha")
+                                    row.prop(settings, "null_property")
+                                if section_settings.smoothing_y_regressor == "HUBER" and \
+                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0 or \
+                                section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0 or \
+                                section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Epsilon")
+                                    row.prop(section_settings, "smoothing_y_huber_epsilon", text="")
+                                elif section_settings.smoothing_y_regressor == "LASSO" and \
+                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0 or \
+                                section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0 or \
+                                section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Alpha")
+                                    row.prop(section_settings, "smoothing_y_lasso_alpha", text="")
+
+
+                    else:
+
+                        if section_settings.smoothing_position_degree != 0 or \
+                           section_settings.smoothing_scale_degree != 0 or \
+                           section_settings.smoothing_rotation_degree != 0 or \
+                           section_settings.smoothing_power_pin_degree != 0:
+
+                            sub_column.prop(section_settings, "smoothing_regressor")
+                            if section_settings.smoothing_regressor == "HUBER":
+                                sub_column.prop(section_settings, "smoothing_huber_epsilon")
+                            elif section_settings.smoothing_regressor == "LASSO":
+                                sub_column.prop(section_settings, "smoothing_lasso_alpha")
+
+
+
+
+
+
 
 
             else:
                 row = column.row(align=True)
                 row.enabled = False
-                row.operator("movieclip.aae_export_section_add_section")
-                row.operator("movieclip.aae_export_section_remove_section")
-                column.separator(factor=0.25)
+                sub_row = row.row(align=True)
+                sub_row.enabled = False and \
+                                  context.edit_movieclip.AAEExportSettingsSectionLL > 0 and \
+                                  ((context.edit_movieclip.AAEExportSettingsSectionLI == context.edit_movieclip.AAEExportSettingsSectionLL - 1 and \
+                                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame >= 2) or \
+                                   (context.edit_movieclip.AAEExportSettingsSectionLI < context.edit_movieclip.AAEExportSettingsSectionLL - 1 and \
+                                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame >= 2))
+                sub_row.operator("movieclip.aae_export_section_add_section")
+                sub_row = row.row(align=True)
+                sub_row.enabled = False and \
+                                  context.edit_movieclip.AAEExportSettingsSectionLL >= 2
+                sub_row.operator("movieclip.aae_export_section_remove_section")
+                column.separator(factor=0.44)
 
                 row = column.row()
                 row.enabled = False
                 row.alignment = "CENTER"
                 row.label(text="Section Settings")
-                column.separator(factor=0.25)
+                column.separator(factor=0.40)
 
                 sub_column = column.column()
                 sub_column.enabled = False
                 sub_column.prop(clip_settings, "start_frame")
                 sub_column.prop(clip_settings, "end_frame")
-                column.separator(factor=0.25)
+                column.separator(factor=0.44)
                 
                 row = column.row(align=True)
                 row.enabled = False
                 row.alignment = "CENTER"
                 row.label(text="Section Smoothing")
-                column.separator(factor=0.25)
+                column.separator(factor=0.40)
                 
                 row = column.row(heading="Split Settings for", align=True)
                 row.enabled = False
@@ -3170,34 +3598,470 @@ class AAEExportOptions(bpy.types.Panel):
                 sub_column.operator("movieclip.aae_export_plot_graph")
                 column.separator(factor=0.0)
 
+
+
+
+
+
+
+
+
+
                 sub_column = column.column(heading="Position")
                 sub_column.enabled = False
-                sub_column.prop(clip_settings, "smoothing_do_position")
-                sub_column.prop(clip_settings, "smoothing_position_degree")
+
+                if clip_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(clip_settings, "smoothing_do_position_x")
+                    row.prop(clip_settings, "smoothing_do_position_y")
+                    if clip_settings.smoothing_do_position_x == clip_settings.smoothing_do_position_y == True:
+                        row = sub_column.row(align=True)
+                        row.prop(clip_settings, "smoothing_position_x_degree")
+                        row.prop(clip_settings, "smoothing_position_y_degree", text="")
+                    elif clip_settings.smoothing_do_position_x:
+                        row = sub_column.row(align=True)
+                        row.prop(clip_settings, "smoothing_position_x_degree")
+                        row.prop(settings, "null_property")
+                    elif clip_settings.smoothing_do_position_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(clip_settings, "smoothing_position_x_degree", text="")
+                else:
+                    sub_column.prop(clip_settings, "smoothing_do_position")
+                    if clip_settings.smoothing_do_position:
+                        sub_column.prop(clip_settings, "smoothing_position_degree")
+                if clip_settings.smoothing_use_different_model:
+
+
+
+                    if clip_settings.smoothing_use_different_x_y:
+                        row = sub_column.row(align=True)
+
+
+                        if \
+                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0) \
+                                or \
+                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0) \
+                               :
+                            if \
+                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0) \
+                               :
+                                row.prop(clip_settings, "smoothing_position_x_regressor")
+                            else:
+                                row.prop(settings, "null_property", text="Linear Model")
+                            if \
+                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0) \
+                               :
+                                row.prop(clip_settings, "smoothing_position_y_regressor", text="")
+                            else:
+                                row.prop(settings, "null_property")
+
+                            if clip_settings.smoothing_position_x_regressor == clip_settings.smoothing_position_y_regressor and \
+                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0) \
+                                and \
+                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0) \
+                               :
+                                if clip_settings.smoothing_position_x_regressor == "HUBER":
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_position_x_huber_epsilon")
+                                    row.prop(clip_settings, "smoothing_position_y_huber_epsilon", text="")
+                                elif clip_settings.smoothing_position_x_regressor == "LASSO":
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_position_x_lasso_alpha")
+                                    row.prop(clip_settings, "smoothing_position_y_lasso_alpha", text="")
+                            else:
+                                if clip_settings.smoothing_position_x_regressor == "HUBER" and \
+                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_position_x_huber_epsilon")
+                                    row.prop(settings, "null_property")
+                                elif clip_settings.smoothing_position_x_regressor == "LASSO" and \
+                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_position_x_lasso_alpha")
+                                    row.prop(settings, "null_property")
+                                if clip_settings.smoothing_position_y_regressor == "HUBER" and \
+                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Epsilon")
+                                    row.prop(clip_settings, "smoothing_position_y_huber_epsilon", text="")
+                                elif clip_settings.smoothing_position_y_regressor == "LASSO" and \
+                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Alpha")
+                                    row.prop(clip_settings, "smoothing_position_y_lasso_alpha", text="")
+
+
+                    else:
+
+                        if clip_settings.smoothing_position_degree != 0:
+
+                            sub_column.prop(clip_settings, "smoothing_position_regressor")
+                            if clip_settings.smoothing_position_regressor == "HUBER":
+                                sub_column.prop(clip_settings, "smoothing_position_huber_epsilon")
+                            elif clip_settings.smoothing_position_regressor == "LASSO":
+                                sub_column.prop(clip_settings, "smoothing_position_lasso_alpha")
+
+
+
+
+
+
 
                 sub_column = column.column(heading="Scale")
                 sub_column.enabled = False
-                sub_column.prop(clip_settings, "smoothing_do_scale")
-                sub_column.prop(clip_settings, "smoothing_scale_degree")
+
+                if clip_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(clip_settings, "smoothing_do_scale_x")
+                    row.prop(clip_settings, "smoothing_do_scale_y")
+                    if clip_settings.smoothing_do_scale_x == clip_settings.smoothing_do_scale_y == True:
+                        row = sub_column.row(align=True)
+                        row.prop(clip_settings, "smoothing_scale_x_degree")
+                        row.prop(clip_settings, "smoothing_scale_y_degree", text="")
+                    elif clip_settings.smoothing_do_scale_x:
+                        row = sub_column.row(align=True)
+                        row.prop(clip_settings, "smoothing_scale_x_degree")
+                        row.prop(settings, "null_property")
+                    elif clip_settings.smoothing_do_scale_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(clip_settings, "smoothing_scale_x_degree", text="")
+                else:
+                    sub_column.prop(clip_settings, "smoothing_do_scale")
+                    if clip_settings.smoothing_do_scale:
+                        sub_column.prop(clip_settings, "smoothing_scale_degree")
+                if clip_settings.smoothing_use_different_model:
+
+
+
+                    if clip_settings.smoothing_use_different_x_y:
+                        row = sub_column.row(align=True)
+
+
+                        if \
+                               (clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0) \
+                                or \
+                               (clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0) \
+                               :
+                            if \
+                               (clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0) \
+                               :
+                                row.prop(clip_settings, "smoothing_scale_x_regressor")
+                            else:
+                                row.prop(settings, "null_property", text="Linear Model")
+                            if \
+                               (clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0) \
+                               :
+                                row.prop(clip_settings, "smoothing_scale_y_regressor", text="")
+                            else:
+                                row.prop(settings, "null_property")
+
+                            if clip_settings.smoothing_scale_x_regressor == clip_settings.smoothing_scale_y_regressor and \
+                               (clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0) \
+                                and \
+                               (clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0) \
+                               :
+                                if clip_settings.smoothing_scale_x_regressor == "HUBER":
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_scale_x_huber_epsilon")
+                                    row.prop(clip_settings, "smoothing_scale_y_huber_epsilon", text="")
+                                elif clip_settings.smoothing_scale_x_regressor == "LASSO":
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_scale_x_lasso_alpha")
+                                    row.prop(clip_settings, "smoothing_scale_y_lasso_alpha", text="")
+                            else:
+                                if clip_settings.smoothing_scale_x_regressor == "HUBER" and \
+                               (clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_scale_x_huber_epsilon")
+                                    row.prop(settings, "null_property")
+                                elif clip_settings.smoothing_scale_x_regressor == "LASSO" and \
+                               (clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_scale_x_lasso_alpha")
+                                    row.prop(settings, "null_property")
+                                if clip_settings.smoothing_scale_y_regressor == "HUBER" and \
+                               (clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Epsilon")
+                                    row.prop(clip_settings, "smoothing_scale_y_huber_epsilon", text="")
+                                elif clip_settings.smoothing_scale_y_regressor == "LASSO" and \
+                               (clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Alpha")
+                                    row.prop(clip_settings, "smoothing_scale_y_lasso_alpha", text="")
+
+
+                    else:
+
+                        if clip_settings.smoothing_scale_degree != 0:
+
+                            sub_column.prop(clip_settings, "smoothing_scale_regressor")
+                            if clip_settings.smoothing_scale_regressor == "HUBER":
+                                sub_column.prop(clip_settings, "smoothing_scale_huber_epsilon")
+                            elif clip_settings.smoothing_scale_regressor == "LASSO":
+                                sub_column.prop(clip_settings, "smoothing_scale_lasso_alpha")
+
+
+
+
+
+
+
 
                 sub_column = column.column(heading="Rotation")
                 sub_column.enabled = False
+
                 sub_column.prop(clip_settings, "smoothing_do_rotation")
-                sub_column.prop(clip_settings, "smoothing_rotation_degree")
+                if clip_settings.smoothing_do_rotation:
+                    if clip_settings.smoothing_use_different_x_y and not clip_settings.smoothing_use_different_model:
+                        row = sub_column.row(align=True)
+                        row.prop(clip_settings, "smoothing_rotation_degree")
+                        row.prop(settings, "null_property")
+                    else:
+                        sub_column.prop(clip_settings, "smoothing_rotation_degree")
+                if clip_settings.smoothing_use_different_model:
+
+
+
+                    if clip_settings.smoothing_rotation_degree != 0:
+                        sub_column.prop(clip_settings, "smoothing_rotation_regressor")
+                        if clip_settings.smoothing_rotation_regressor == "HUBER":
+                            sub_column.prop(clip_settings, "smoothing_rotation_huber_epsilon")
+                        elif clip_settings.smoothing_rotation_regressor == "LASSO":
+                            sub_column.prop(clip_settings, "smoothing_rotation_lasso_alpha")
+
+
+
+
+
+
+
 
                 sub_column = column.column(heading="Power Pin")
                 sub_column.enabled = False
-                sub_column.prop(clip_settings, "smoothing_do_power_pin")
-                sub_column.prop(clip_settings, "smoothing_power_pin_degree")
-                column.separator(factor=0.0)
 
-                sub_column = column.column()
-                sub_column.enabled = False
-                sub_column.prop(clip_settings, "smoothing_regressor")
-                if clip_settings.smoothing_regressor == "HUBER":
-                    sub_column.prop(clip_settings, "smoothing_huber_epsilon")
-                elif clip_settings.smoothing_regressor == "LASSO":
-                    sub_column.prop(clip_settings, "smoothing_lasso_alpha")
+                if clip_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(clip_settings, "smoothing_do_power_pin_x")
+                    row.prop(clip_settings, "smoothing_do_power_pin_y")
+                    if clip_settings.smoothing_do_power_pin_x == clip_settings.smoothing_do_power_pin_y == True:
+                        row = sub_column.row(align=True)
+                        row.prop(clip_settings, "smoothing_power_pin_x_degree")
+                        row.prop(clip_settings, "smoothing_power_pin_y_degree", text="")
+                    elif clip_settings.smoothing_do_power_pin_x:
+                        row = sub_column.row(align=True)
+                        row.prop(clip_settings, "smoothing_power_pin_x_degree")
+                        row.prop(settings, "null_property")
+                    elif clip_settings.smoothing_do_power_pin_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(clip_settings, "smoothing_power_pin_x_degree", text="")
+                else:
+                    sub_column.prop(clip_settings, "smoothing_do_power_pin")
+                    if clip_settings.smoothing_do_power_pin:
+                        sub_column.prop(clip_settings, "smoothing_power_pin_degree")
+                if clip_settings.smoothing_use_different_model:
+
+
+
+                    if clip_settings.smoothing_use_different_x_y:
+                        row = sub_column.row(align=True)
+
+
+                        if \
+                               (clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                                or \
+                               (clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                            if \
+                               (clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                row.prop(clip_settings, "smoothing_power_pin_x_regressor")
+                            else:
+                                row.prop(settings, "null_property", text="Linear Model")
+                            if \
+                               (clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                row.prop(clip_settings, "smoothing_power_pin_y_regressor", text="")
+                            else:
+                                row.prop(settings, "null_property")
+
+                            if clip_settings.smoothing_power_pin_x_regressor == clip_settings.smoothing_power_pin_y_regressor and \
+                               (clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                                and \
+                               (clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                if clip_settings.smoothing_power_pin_x_regressor == "HUBER":
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_power_pin_x_huber_epsilon")
+                                    row.prop(clip_settings, "smoothing_power_pin_y_huber_epsilon", text="")
+                                elif clip_settings.smoothing_power_pin_x_regressor == "LASSO":
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_power_pin_x_lasso_alpha")
+                                    row.prop(clip_settings, "smoothing_power_pin_y_lasso_alpha", text="")
+                            else:
+                                if clip_settings.smoothing_power_pin_x_regressor == "HUBER" and \
+                               (clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_power_pin_x_huber_epsilon")
+                                    row.prop(settings, "null_property")
+                                elif clip_settings.smoothing_power_pin_x_regressor == "LASSO" and \
+                               (clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_power_pin_x_lasso_alpha")
+                                    row.prop(settings, "null_property")
+                                if clip_settings.smoothing_power_pin_y_regressor == "HUBER" and \
+                               (clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Epsilon")
+                                    row.prop(clip_settings, "smoothing_power_pin_y_huber_epsilon", text="")
+                                elif clip_settings.smoothing_power_pin_y_regressor == "LASSO" and \
+                               (clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Alpha")
+                                    row.prop(clip_settings, "smoothing_power_pin_y_lasso_alpha", text="")
+
+
+                    else:
+
+                        if clip_settings.smoothing_power_pin_degree != 0:
+
+                            sub_column.prop(clip_settings, "smoothing_power_pin_regressor")
+                            if clip_settings.smoothing_power_pin_regressor == "HUBER":
+                                sub_column.prop(clip_settings, "smoothing_power_pin_huber_epsilon")
+                            elif clip_settings.smoothing_power_pin_regressor == "LASSO":
+                                sub_column.prop(clip_settings, "smoothing_power_pin_lasso_alpha")
+
+
+
+
+                if not clip_settings.smoothing_use_different_model:
+
+
+
+
+
+                    if clip_settings.smoothing_use_different_x_y:
+                        row = sub_column.row(align=True)
+
+
+                        if \
+                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0 or \
+                                clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0 or \
+                                clip_settings.smoothing_do_rotation and clip_settings.smoothing_rotation_degree != 0 or \
+                                clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                                or \
+                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0 or \
+                                clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0 or \
+                                clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                            if \
+                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0 or \
+                                clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0 or \
+                                clip_settings.smoothing_do_rotation and clip_settings.smoothing_rotation_degree != 0 or \
+                                clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                row.prop(clip_settings, "smoothing_x_regressor")
+                            else:
+                                row.prop(settings, "null_property", text="Linear Model")
+                            if \
+                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0 or \
+                                clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0 or \
+                                clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                row.prop(clip_settings, "smoothing_y_regressor", text="")
+                            else:
+                                row.prop(settings, "null_property")
+
+                            if clip_settings.smoothing_x_regressor == clip_settings.smoothing_y_regressor and \
+                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0 or \
+                                clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0 or \
+                                clip_settings.smoothing_do_rotation and clip_settings.smoothing_rotation_degree != 0 or \
+                                clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                                and \
+                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0 or \
+                                clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0 or \
+                                clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                if clip_settings.smoothing_x_regressor == "HUBER":
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_x_huber_epsilon")
+                                    row.prop(clip_settings, "smoothing_y_huber_epsilon", text="")
+                                elif clip_settings.smoothing_x_regressor == "LASSO":
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_x_lasso_alpha")
+                                    row.prop(clip_settings, "smoothing_y_lasso_alpha", text="")
+                            else:
+                                if clip_settings.smoothing_x_regressor == "HUBER" and \
+                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0 or \
+                                clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0 or \
+                                clip_settings.smoothing_do_rotation and clip_settings.smoothing_rotation_degree != 0 or \
+                                clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_x_huber_epsilon")
+                                    row.prop(settings, "null_property")
+                                elif clip_settings.smoothing_x_regressor == "LASSO" and \
+                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0 or \
+                                clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0 or \
+                                clip_settings.smoothing_do_rotation and clip_settings.smoothing_rotation_degree != 0 or \
+                                clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(clip_settings, "smoothing_x_lasso_alpha")
+                                    row.prop(settings, "null_property")
+                                if clip_settings.smoothing_y_regressor == "HUBER" and \
+                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0 or \
+                                clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0 or \
+                                clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Epsilon")
+                                    row.prop(clip_settings, "smoothing_y_huber_epsilon", text="")
+                                elif clip_settings.smoothing_y_regressor == "LASSO" and \
+                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0 or \
+                                clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0 or \
+                                clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               :
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Alpha")
+                                    row.prop(clip_settings, "smoothing_y_lasso_alpha", text="")
+
+
+                    else:
+
+                        if clip_settings.smoothing_position_degree != 0 or \
+                           clip_settings.smoothing_scale_degree != 0 or \
+                           clip_settings.smoothing_rotation_degree != 0 or \
+                           clip_settings.smoothing_power_pin_degree != 0:
+
+                            sub_column.prop(clip_settings, "smoothing_regressor")
+                            if clip_settings.smoothing_regressor == "HUBER":
+                                sub_column.prop(clip_settings, "smoothing_huber_epsilon")
+                            elif clip_settings.smoothing_regressor == "LASSO":
+                                sub_column.prop(clip_settings, "smoothing_lasso_alpha")
+
+
+
+
+
+
+
+
 
 
 
@@ -3236,11 +4100,64 @@ class AAEExportSectionAddS(bpy.types.Operator):
     bl_idname = "movieclip.aae_export_section_add_section"
 
     def execute(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-        section_list_len = context.edit_movieclip.AAEExportSettingsSectionLL
+        from math import ceil
+
+        context.edit_movieclip.AAEExportSettingsSectionL.add()
+        context.edit_movieclip.AAEExportSettingsSectionLL += 1
+        AAEExportSectionAddS._copy(context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI], context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL])
+
+        if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame >= 2:
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                = True
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL].start_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame + ceil((context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame) / 2)
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                = False
+        else:
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+                = True
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL].start_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL].end_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame + 1
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+                = False
+
+        context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL].aa_frame_update_suppress \
+            = False
+        context.edit_movieclip.AAEExportSettingsSectionLI += 1
+        context.edit_movieclip.AAEExportSettingsSectionL.move(context.edit_movieclip.AAEExportSettingsSectionLL, context.edit_movieclip.AAEExportSettingsSectionLI + 1)
 
         return { "FINISHED" }
+
+    @staticmethod
+    def _copy(source, target):
+        late = []
+        later = []
+        for name in dir(source):
+            if name.startswith("_") or \
+               name.startswith("bl") or name.startswith("rna") or \
+               name.startswith("aa_") or \
+               name == "name":
+                continue
+
+            match (("position" in name or "scale" in name or "rotation" in name or "power_pin" in name) << 1) + \
+                  ("_x_" in name or name.endswith("_x") or "_y_" in name or name.endswith("_y")):
+                case 0b00:
+                    setattr(target, name, getattr(source, name))
+                case 0b10 | 0b01:
+                    late.append(name)
+                case 0b11:
+                    later.append(name)
+
+        for name in late:
+            setattr(target, name, getattr(source, name))
+        for name in later:
+            setattr(target, name, getattr(source, name))
 
 class AAEExportSectionRemoveS(bpy.types.Operator):
     bl_label = "Remove Section"
@@ -3248,6 +4165,28 @@ class AAEExportSectionRemoveS(bpy.types.Operator):
     bl_idname = "movieclip.aae_export_section_remove_section"
 
     def execute(self, context):
+        if context.edit_movieclip.AAEExportSettingsSectionLI != 0:
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].aa_frame_update_suppress \
+                = True
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].end_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].aa_frame_update_suppress \
+                = False
+
+            context.edit_movieclip.AAEExportSettingsSectionL.remove(context.edit_movieclip.AAEExportSettingsSectionLI)
+            context.edit_movieclip.AAEExportSettingsSectionLL -= 1
+            context.edit_movieclip.AAEExportSettingsSectionLI -= 1
+        else:
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+                = True
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+                = False
+
+            context.edit_movieclip.AAEExportSettingsSectionL.remove(context.edit_movieclip.AAEExportSettingsSectionLI)
+            context.edit_movieclip.AAEExportSettingsSectionLL -= 1
+
         return { "FINISHED" }
 
 class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):

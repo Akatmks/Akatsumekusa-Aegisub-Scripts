@@ -45,7 +45,6 @@
 
 changequote(`<<', `>>')
 changecom(<<APRVHNWIPOHVNIOPAWHNVOPIAWNHGPOWAINGHWAPOGNHWAIONPHBANOWUR>>)
-dnl)
 
 bl_info = {
     "name": "AAE Export",
@@ -94,15 +93,23 @@ class AAEExportSettings(bpy.types.PropertyGroup):
     bl_idname = "AAEExportSettings"
     
     do_includes_power_pin: bpy.props.BoolProperty(name="Includes Power Pin",
-                                           description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is unable to recognise the data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
-                                           default=True)
-                                           
+                                                  description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is unable to recognise the data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
+                                                  default=True)
+
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
                                                 description="Generate unique files every time",
                                                 default=False)
     do_also_export: bpy.props.BoolProperty(name="Auto export",
                                            description="Automatically export the selected track to file while copying",
                                            default=True)
+
+    def _null_property_update(self, context):
+        if self.null_property != "":
+            self.null_property = ""
+    null_property: bpy.props.StringProperty(name="",
+                                            description="An empty field; Nothing to see here",
+                                            default="",
+                                            update=_null_property_update)
 
 class AAEExportSettingsClip(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettingsClip"
@@ -156,35 +163,31 @@ define(<<NAME>>, <<NAME NOT INITIALISED>>)
 
 define(<<UPDATE>>, <<
     def _smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
 ifelse(<<$1>>, <<>>, <<dnl $1 CODE_NAME IS EMPTY
-        section_list[sedtion_list_index].smoothing_position<<>>ONETHREE<<>>_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
-        section_list[sedtion_list_index].smoothing_scale<<>>ONETHREE<<>>_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
-        section_list[sedtion_list_index].smoothing_rotation<<>>ONETHREE<<>>_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
-        section_list[sedtion_list_index].smoothing_power_pin<<>>ONETHREE<<>>_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+        self.smoothing_position<<>>ONETHREE<<>>_<<>>NAME<<>> = self.smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+        self.smoothing_scale<<>>ONETHREE<<>>_<<>>NAME<<>> = self.smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+        self.smoothing_rotation<<>>ONETHREE<<>>_<<>>NAME<<>> = self.smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+        self.smoothing_power_pin<<>>ONETHREE<<>>_<<>>NAME<<>> = self.smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
 >>, <<>>)dnl $1 CODE_NAME IS EMPTY
 
 ifelse(<<$3>>, <<>>, <<dnl $3 XY_NAME IS EMPTY
 ifdef(<<UNI>>, <<>>, <<
-        section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_x_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
-        section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_y_<<>>NAME<<>> = section_list[sedtion_list_index].smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+        self.smoothing<<>>ONETHREE<<>>_x_<<>>NAME<<>> = self.smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
+        self.smoothing<<>>ONETHREE<<>>_y_<<>>NAME<<>> = self.smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
 >>)
 >>, <<>>)dnl $3 XY_NAME IS EMPTY
+        pass
 >>)
 
 ifelse(<<$1>>, <<>>, <<>>, <<dnl $1 CODE_NAME IS NOT EMPTY
     def _smoothing_do<<>>ONETHREE<<>>_update(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-
 ifelse(<<$3>>, <<>>, <<dnl $3 XY_NAME IS EMPTY
 ifdef(<<UNI>>, <<>>, <<
-        section_list[sedtion_list_index].smoothing_do<<>>ONETHREE<<>>_x = section_list[sedtion_list_index].smoothing_do<<>>ONETHREE<<>>
-        section_list[sedtion_list_index].smoothing_do<<>>ONETHREE<<>>_y = section_list[sedtion_list_index].smoothing_do<<>>ONETHREE<<>>
+        self.smoothing_do<<>>ONETHREE<<>>_x = self.smoothing_do<<>>ONETHREE<<>>
+        self.smoothing_do<<>>ONETHREE<<>>_y = self.smoothing_do<<>>ONETHREE<<>>
 >>)
 >>, <<>>)dnl $3 XY_NAME IS EMPTY
+        pass
 
     smoothing_do<<>>ONETHREE<<>>: bpy.props.BoolProperty(
                 name="Smooth",
@@ -277,11 +280,115 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettingsSectionL"
     bl_idname = "AAEExportSettingsSectionL"
 
+    aa_frame_update_suppress: bpy.props.BoolProperty(default=True)
+
     def _start_frame_update(self, context):
-        pass
+        if not self.aa_frame_update_suppress:
+            if context.edit_movieclip.AAEExportSettingsSectionLI == 0:
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    = True
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame \
+                    = context.edit_movieclip.frame_start
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    = False
+            else:
+                if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame < context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI:
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame \
+                        = context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = False
+                if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame > context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI:
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame \
+                        = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = False
+                for i in range(context.edit_movieclip.AAEExportSettingsSectionLI - 1, -1, -1):
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame \
+                        = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].start_frame
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        = False
+                    if context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame >= context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame:
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = True
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame - 1
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = False
+                    else:
+                        break
+                for i in range(context.edit_movieclip.AAEExportSettingsSectionLI, context.edit_movieclip.AAEExportSettingsSectionLL - 1):
+                    if context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame <= context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame:
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].aa_frame_update_suppress \
+                            = True
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].start_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame + 1
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].aa_frame_update_suppress \
+                            = False
+                    else:
+                        break
 
     def _end_frame_update(self, context):
-        pass
+        if not self.aa_frame_update_suppress:
+            if context.edit_movieclip.AAEExportSettingsSectionLI == context.edit_movieclip.AAEExportSettingsSectionLL:
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    = True
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
+                    = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    = False
+            else:
+                if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame > context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI + 1:
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
+                        = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI + 1
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = False
+                if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame < context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI + 1:
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
+                        = context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI + 1
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                        = False
+                for i in range(context.edit_movieclip.AAEExportSettingsSectionLI + 1, context.edit_movieclip.AAEExportSettingsSectionLL):
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        = True
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame \
+                        = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].end_frame
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        = False
+                    if context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame <= context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame:
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = True
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame + 1
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = False
+                    else:
+                        break
+                for i in range(context.edit_movieclip.AAEExportSettingsSectionLI, 0, -1):
+                    if context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame >= context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame:
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].aa_frame_update_suppress \
+                            = True
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].end_frame \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame - 1
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].aa_frame_update_suppress \
+                            = False
+                    else:
+                        break
     
 SMOOTHING_SETTINGS_BASE(<<_start_frame_update>>, <<_end_frame_update>>)
 
@@ -1619,7 +1726,8 @@ class AAEExportOptions(bpy.types.Panel):
 
         box = layout.box()
         if is_smoothing_modules_available:
-define(<<DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR>>, <<0.25>>)
+define(<<DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR>>, <<0.44>>)
+define(<<DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR>>, <<0.40>>)
 define(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>, <<0.0>>)
 
             clip_settings = context.edit_movieclip.AAEExportSettingsClip
@@ -1642,13 +1750,13 @@ define(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>, <<0.0>>)
             sub_column.enabled = clip_settings.do_smoothing and \
                                  (selected_plane_tracks == 1) is not (len(context.selected_movieclip_tracks) == 1)
             sub_column.operator("movieclip.aae_export_plot_result")
-            column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
+            column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
             
             row = column.row(align=True)
             row.enabled = clip_settings.do_smoothing
             row.alignment = "CENTER"
             row.label(text="Sections")
-            column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
+            column.separator(factor=DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR)
 
             sub_column = column.column()
             sub_column.enabled = clip_settings.do_smoothing
@@ -1661,27 +1769,37 @@ define(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>, <<0.0>>)
 define(<<DRAW_SMOOTHING>>, <<dnl SETTINGS, ENABLED
                 row = column.row(align=True)
                 row.enabled = $2
-                row.operator("movieclip.aae_export_section_add_section")
-                row.operator("movieclip.aae_export_section_remove_section")
-                column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
+                sub_row = row.row(align=True)
+                sub_row.enabled = $2 and \
+                                  context.edit_movieclip.AAEExportSettingsSectionLL > 0 and \
+                                  ((context.edit_movieclip.AAEExportSettingsSectionLI == context.edit_movieclip.AAEExportSettingsSectionLL - 1 and \
+                                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame >= 2) or \
+                                   (context.edit_movieclip.AAEExportSettingsSectionLI < context.edit_movieclip.AAEExportSettingsSectionLL - 1 and \
+                                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame >= 2))
+                sub_row.operator("movieclip.aae_export_section_add_section")
+                sub_row = row.row(align=True)
+                sub_row.enabled = $2 and \
+                                  context.edit_movieclip.AAEExportSettingsSectionLL >= 2
+                sub_row.operator("movieclip.aae_export_section_remove_section")
+                column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
 
                 row = column.row()
                 row.enabled = $2
                 row.alignment = "CENTER"
                 row.label(text="Section Settings")
-                column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
+                column.separator(factor=DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR)
 
                 sub_column = column.column()
                 sub_column.enabled = $2
                 sub_column.prop($1, "start_frame")
                 sub_column.prop($1, "end_frame")
-                column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
+                column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
                 
                 row = column.row(align=True)
                 row.enabled = $2
                 row.alignment = "CENTER"
                 row.label(text="Section Smoothing")
-                column.separator(factor=DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR)
+                column.separator(factor=DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR)
                 
                 row = column.row(heading="Split Settings for", align=True)
                 row.enabled = $2
@@ -1695,44 +1813,171 @@ define(<<DRAW_SMOOTHING>>, <<dnl SETTINGS, ENABLED
                 sub_column.operator("movieclip.aae_export_plot_graph")
                 column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
 
-                sub_column = column.column(heading="Position")
-                sub_column.enabled = $2
-                sub_column.prop($1, "smoothing_do_position")
-                sub_column.prop($1, "smoothing_position_degree")
+define(<<DATA>>, <<DATA NOT INITIALISED>>)
+define(<<DISPLAY_NAME>>, <<DISPLAY_NAME NOT INITIALISED>>)
 
-                sub_column = column.column(heading="Scale")
-                sub_column.enabled = $2
-                sub_column.prop($1, "smoothing_do_scale")
-                sub_column.prop($1, "smoothing_scale_degree")
+define(<<DRAW_SMOOTHING__DATA_REGRESSION>>, <<
+define(<<UNDERSCORE_DATA>>, <<<<>>ifelse(DATA, <<>>, <<>>, <<_<<>>DATA>>)>>)
+ifdef(<<UNI>>, <<
+                    if $1.smoothing<<>>UNDERSCORE_DATA<<>>_degree != 0:
+                        sub_column.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_regressor")
+                        if $1.smoothing<<>>UNDERSCORE_DATA<<>>_regressor == "HUBER":
+                            sub_column.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_huber_epsilon")
+                        elif $1.smoothing<<>>UNDERSCORE_DATA<<>>_regressor == "LASSO":
+                            sub_column.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_lasso_alpha")
+>>, <<
+                    if $1.smoothing_use_different_x_y:
+                        row = sub_column.row(align=True)
+define(<<X_YES>>, <<\
+ifelse(DATA, <<>>, <<dnl
+                               ($1.smoothing_do_position_x and $1.smoothing_position_x_degree != 0 or \
+                                $1.smoothing_do_scale_x and $1.smoothing_scale_x_degree != 0 or \
+                                $1.smoothing_do_rotation and $1.smoothing_rotation_degree != 0 or \
+                                $1.smoothing_do_power_pin_x and $1.smoothing_power_pin_x_degree != 0) \
+>>, <<dnl
+                               ($1.smoothing_do<<>>UNDERSCORE_DATA<<>>_x and $1.smoothing<<>>UNDERSCORE_DATA<<>>_x_degree != 0) \
+>>)                               dnl
+>>)
+define(<<Y_YES>>, <<\
+ifelse(DATA, <<>>, <<dnl
+                               ($1.smoothing_do_position_y and $1.smoothing_position_y_degree != 0 or \
+                                $1.smoothing_do_scale_y and $1.smoothing_scale_y_degree != 0 or \
+                                $1.smoothing_do_power_pin_y and $1.smoothing_power_pin_y_degree != 0) \
+>>, <<dnl
+                               ($1.smoothing_do<<>>UNDERSCORE_DATA<<>>_y and $1.smoothing<<>>UNDERSCORE_DATA<<>>_y_degree != 0) \
+>>)                               dnl
+>>)
+                        if X_YES or Y_YES:
+                            if X_YES:
+                                row.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_x_regressor")
+                            else:
+                                row.prop(settings, "null_property", text="Linear Model")
+                            if Y_YES:
+                                row.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_y_regressor", text="")
+                            else:
+                                row.prop(settings, "null_property")
 
-                sub_column = column.column(heading="Rotation")
+                            if $1.smoothing<<>>UNDERSCORE_DATA<<>>_x_regressor == $1.smoothing<<>>UNDERSCORE_DATA<<>>_y_regressor and X_YES and Y_YES:
+                                if $1.smoothing<<>>UNDERSCORE_DATA<<>>_x_regressor == "HUBER":
+                                    row = sub_column.row(align=True)
+                                    row.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_x_huber_epsilon")
+                                    row.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_y_huber_epsilon", text="")
+                                elif $1.smoothing<<>>UNDERSCORE_DATA<<>>_x_regressor == "LASSO":
+                                    row = sub_column.row(align=True)
+                                    row.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_x_lasso_alpha")
+                                    row.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_y_lasso_alpha", text="")
+                            else:
+                                if $1.smoothing<<>>UNDERSCORE_DATA<<>>_x_regressor == "HUBER" and X_YES:
+                                    row = sub_column.row(align=True)
+                                    row.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_x_huber_epsilon")
+                                    row.prop(settings, "null_property")
+                                elif $1.smoothing<<>>UNDERSCORE_DATA<<>>_x_regressor == "LASSO" and X_YES:
+                                    row = sub_column.row(align=True)
+                                    row.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_x_lasso_alpha")
+                                    row.prop(settings, "null_property")
+                                if $1.smoothing<<>>UNDERSCORE_DATA<<>>_y_regressor == "HUBER" and Y_YES:
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Epsilon")
+                                    row.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_y_huber_epsilon", text="")
+                                elif $1.smoothing<<>>UNDERSCORE_DATA<<>>_y_regressor == "LASSO" and Y_YES:
+                                    row = sub_column.row(align=True)
+                                    row.prop(settings, "null_property", text="Alpha")
+                                    row.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_y_lasso_alpha", text="")
+undefine(<<X_YES>>)
+undefine(<<Y_YES>>)
+                    else:
+ifelse(DATA, <<>>, <<
+                        if $1.smoothing_position_degree != 0 or \
+                           $1.smoothing_scale_degree != 0 or \
+                           $1.smoothing_rotation_degree != 0 or \
+                           $1.smoothing_power_pin_degree != 0:
+>>, <<
+                        if $1.smoothing<<>>UNDERSCORE_DATA<<>>_degree != 0:
+>>)
+                            sub_column.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_regressor")
+                            if $1.smoothing<<>>UNDERSCORE_DATA<<>>_regressor == "HUBER":
+                                sub_column.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_huber_epsilon")
+                            elif $1.smoothing<<>>UNDERSCORE_DATA<<>>_regressor == "LASSO":
+                                sub_column.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_lasso_alpha")
+>>)dnl UNI
+undefine(<<UNDERSCORE_DATA>>)
+>>)
+define(<<DRAW_SMOOTHING__DATA>>, <<
+                sub_column = column.column(heading="DISPLAY_NAME")
                 sub_column.enabled = $2
-                sub_column.prop($1, "smoothing_do_rotation")
-                sub_column.prop($1, "smoothing_rotation_degree")
+ifdef(<<UNI>>, <<
+                sub_column.prop($1, "smoothing_do_<<>>DATA<<>>")
+                if $1.smoothing_do_<<>>DATA<<>>:
+                    if $1.smoothing_use_different_x_y and not $1.smoothing_use_different_model:
+                        row = sub_column.row(align=True)
+                        row.prop($1, "smoothing_<<>>DATA<<>>_degree")
+                        row.prop(settings, "null_property")
+                    else:
+                        sub_column.prop($1, "smoothing_<<>>DATA<<>>_degree")
+>>, <<
+                if $1.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop($1, "smoothing_do_<<>>DATA<<>>_x")
+                    row.prop($1, "smoothing_do_<<>>DATA<<>>_y")
+                    if $1.smoothing_do_<<>>DATA<<>>_x == $1.smoothing_do_<<>>DATA<<>>_y == True:
+                        row = sub_column.row(align=True)
+                        row.prop($1, "smoothing_<<>>DATA<<>>_x_degree")
+                        row.prop($1, "smoothing_<<>>DATA<<>>_y_degree", text="")
+                    elif $1.smoothing_do_<<>>DATA<<>>_x:
+                        row = sub_column.row(align=True)
+                        row.prop($1, "smoothing_<<>>DATA<<>>_x_degree")
+                        row.prop(settings, "null_property")
+                    elif $1.smoothing_do_<<>>DATA<<>>_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop($1, "smoothing_<<>>DATA<<>>_x_degree", text="")
+                else:
+                    sub_column.prop($1, "smoothing_do_<<>>DATA<<>>")
+                    if $1.smoothing_do_<<>>DATA<<>>:
+                        sub_column.prop($1, "smoothing_<<>>DATA<<>>_degree")
+>>)dnl UNI
+                if $1.smoothing_use_different_model:
+DRAW_SMOOTHING__DATA_REGRESSION()
+>>)
 
-                sub_column = column.column(heading="Power Pin")
-                sub_column.enabled = $2
-                sub_column.prop($1, "smoothing_do_power_pin")
-                sub_column.prop($1, "smoothing_power_pin_degree")
-                column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
+define(<<DATA>>, <<position>>)
+define(<<DISPLAY_NAME>>, <<Position>>)
+DRAW_SMOOTHING__DATA()
 
-                sub_column = column.column()
-                sub_column.enabled = $2
-                sub_column.prop($1, "smoothing_regressor")
-                if $1.smoothing_regressor == "HUBER":
-                    sub_column.prop($1, "smoothing_huber_epsilon")
-                elif $1.smoothing_regressor == "LASSO":
-                    sub_column.prop($1, "smoothing_lasso_alpha")
+define(<<DATA>>, <<scale>>)
+define(<<DISPLAY_NAME>>, <<Scale>>)
+DRAW_SMOOTHING__DATA()
+
+define(<<UNI>>)
+define(<<DATA>>, <<rotation>>)
+define(<<DISPLAY_NAME>>, <<Rotation>>)
+DRAW_SMOOTHING__DATA()
+undefine(<<UNI>>)
+
+define(<<DATA>>, <<power_pin>>)
+define(<<DISPLAY_NAME>>, <<Power Pin>>)
+DRAW_SMOOTHING__DATA()
+
+                if not $1.smoothing_use_different_model:
+define(<<DATA>>, <<>>)
+define(<<DISPLAY_NAME>>, <<>>)
+DRAW_SMOOTHING__DATA_REGRESSION()
+
+undefine(<<DATA>>)
+undefine(<<DISPLAY_NAME>>)
+undefine(<<DRAW_SMOOTHING__DATA_REGRESSION>>)
+undefine(<<DRAW_SMOOTHING__DATA>>)
 >>)
 
                 section_settings = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI]
-DRAW_SMOOTHING(<<section_settings>>, <<clip_settings.do_smoothing>>)
 
+DRAW_SMOOTHING(<<section_settings>>, <<clip_settings.do_smoothing>>)
             else:
 DRAW_SMOOTHING(<<clip_settings>>, <<False>>)
 
 undefine(<<DRAW_SMOOTHING>>)
-undefine(<<DRAW_SMOOTHING__HEADER_SRPARATOR_FACTOR>>)
+undefine(<<DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR>>)
+undefine(<<DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR>>)
 undefine(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>)
 
         else:
@@ -1767,11 +2012,64 @@ class AAEExportSectionAddS(bpy.types.Operator):
     bl_idname = "movieclip.aae_export_section_add_section"
 
     def execute(self, context):
-        section_list = context.edit_movieclip.AAEExportSettingsSectionL
-        sedtion_list_index = context.edit_movieclip.AAEExportSettingsSectionLI
-        section_list_len = context.edit_movieclip.AAEExportSettingsSectionLL
+        from math import ceil
+
+        context.edit_movieclip.AAEExportSettingsSectionL.add()
+        context.edit_movieclip.AAEExportSettingsSectionLL += 1
+        AAEExportSectionAddS._copy(context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI], context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL])
+
+        if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame >= 2:
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                = True
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL].start_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame + ceil((context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame) / 2)
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                = False
+        else:
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+                = True
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL].start_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL].end_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame + 1
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+                = False
+
+        context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL].aa_frame_update_suppress \
+            = False
+        context.edit_movieclip.AAEExportSettingsSectionLI += 1
+        context.edit_movieclip.AAEExportSettingsSectionL.move(context.edit_movieclip.AAEExportSettingsSectionLL, context.edit_movieclip.AAEExportSettingsSectionLI + 1)
 
         return { "FINISHED" }
+
+    @staticmethod
+    def _copy(source, target):
+        late = []
+        later = []
+        for name in dir(source):
+            if name.startswith("_") or \
+               name.startswith("bl") or name.startswith("rna") or \
+               name.startswith("aa_") or \
+               name == "name":
+                continue
+changequote(<<[[[>>, <<]]]>>)
+            match (("position" in name or "scale" in name or "rotation" in name or "power_pin" in name) << 1) + \
+                  ("_x_" in name or name.endswith("_x") or "_y_" in name or name.endswith("_y")):
+                case 0b00:
+                    setattr(target, name, getattr(source, name))
+                case 0b10 | 0b01:
+                    late.append(name)
+                case 0b11:
+                    later.append(name)
+changequote([[[<<]]], [[[>>]]])
+        for name in late:
+            setattr(target, name, getattr(source, name))
+        for name in later:
+            setattr(target, name, getattr(source, name))
 
 class AAEExportSectionRemoveS(bpy.types.Operator):
     bl_label = "Remove Section"
@@ -1779,6 +2077,28 @@ class AAEExportSectionRemoveS(bpy.types.Operator):
     bl_idname = "movieclip.aae_export_section_remove_section"
 
     def execute(self, context):
+        if context.edit_movieclip.AAEExportSettingsSectionLI != 0:
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].aa_frame_update_suppress \
+                = True
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].end_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].aa_frame_update_suppress \
+                = False
+
+            context.edit_movieclip.AAEExportSettingsSectionL.remove(context.edit_movieclip.AAEExportSettingsSectionLI)
+            context.edit_movieclip.AAEExportSettingsSectionLL -= 1
+            context.edit_movieclip.AAEExportSettingsSectionLI -= 1
+        else:
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+                = True
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+                = False
+
+            context.edit_movieclip.AAEExportSettingsSectionL.remove(context.edit_movieclip.AAEExportSettingsSectionLI)
+            context.edit_movieclip.AAEExportSettingsSectionLL -= 1
+
         return { "FINISHED" }
 
 class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
