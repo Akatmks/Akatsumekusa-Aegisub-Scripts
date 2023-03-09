@@ -137,6 +137,12 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
     smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
                                                               description="Generates position data, scale data, rotation data and Power Pin data over the whole length of each section, even if the track or plane track is not enabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the track is not enabled.\n\nIf you don't want AAE Export to generate any data over a section, you can check the „Null section“ option below to disable a section.\nIf every frame in a section, including the start and the end frame shared with neighbouring sections is empty, no data will be generated from the section as well",
                                                               default=False)
+    smoothing_section_blending: bpy.props.EnumProperty(name="Section Blending",
+                                                       items=(("SHIFT", "Shift", "Shift the whole section until sections match up at the boundary.\nThe amount each section is shifted is proportional to the number of frames in each section"),
+                                                              ("LINEAR", "Rolling Average", "bucket3432's rolling average method ease the transition at boundaries near linearly"),
+                                                              ("LANCZOS", "Lanczos", ""),
+                                                              ("SPLINE..", "Spline", "")))
+    # TODO Learn encoding and come back; bucket3432's idea is correct
 
 define(<<SMOOTHING_SETTINGS_BASE>>, <<dnl START_FRAME_UPDATE <<OPTIONAL>>, END_FRAME_UPDATE <<OPTIONAL>>
     start_frame: bpy.props.IntProperty(name="Start Frame",
