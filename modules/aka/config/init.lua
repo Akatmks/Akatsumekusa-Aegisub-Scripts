@@ -38,11 +38,11 @@ local versioning = {}
 --                 ‎aka.config
 versioning.name = "aka.config"
 versioning.description = "Module aka.config"
-versioning.version = "0.1.28"
+versioning.version = "0.1.29"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aka.outcome\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.re\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -56,7 +56,9 @@ if hasDepCtrl then
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
             { "aka.config2" },
-            { "aka.outcome" }
+            { "aka.outcome" },
+            { "aka.unicode" },
+            { "aegisub.re" }
         }
     }):requireModules()
 end

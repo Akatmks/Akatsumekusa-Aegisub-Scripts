@@ -98,6 +98,38 @@
             "description": "Backup selected lines",
             "url": "@{baseUrl}"
         },
+        "aka.Colourtisalogue": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".moon",
+                            "url": "@{fileBaseUrl}/macros/aka.Colourtisalogue.moon",
+                            "sha1": "b0ede0a47306b3df88b2ac32002dbeb68a6e37ca"
+                        }
+                    ],
+                    "version": "0.0.1",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.config"
+                        },
+                        {
+                            "moduleName": "aegisub.CIELab"
+                        },
+                        {
+                            "moduleName": "aka.optimising",
+                            "optional": true
+                        }
+                    ],
+                    "released": "2023-03-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "Colourtisalogue",
+            "description": "Colourise the dialogue",
+            "url": "@{baseUrl}"
+        },
         "aka.Cycles": {
             "channels": {
                 "dev": {
@@ -188,6 +220,41 @@
             "description": "Module NN.CJSpacing",
             "url": "@{baseUrl}"
         },
+        "aka.CIELab": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/colours.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/CIELab/colours.lua",
+                            "sha1": "c142bb1962e5535b0d3d3ce81cc1187cbe7e1e9b"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/CIELab/init.lua",
+                            "sha1": "1080c240e59412d1946b46de6bbba546181dee38"
+                        },
+                        {
+                            "name": "/interface.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/CIELab/interface.lua",
+                            "sha1": "7d6e87a4ec6cb4522391024b48f58ee3bd884989"
+                        }
+                    ],
+                    "version": "0.0.2",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ffi"
+                        }
+                    ],
+                    "released": "2023-03-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.CIELab",
+            "description": "Module aka.CIELab",
+            "url": "@{baseUrl}"
+        },
         "aka.actor": {
             "channels": {
                 "dev": {
@@ -223,20 +290,15 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "b8bfab194aafb15b3cc64ce62551ccd66686be8e"
+                            "sha1": "6f4159e6fbcc342283de9b8133cfef9968732dbe"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "069a04635d3c7c3fa08770c92b889b530dbb07ef"
-                        },
-                        {
-                            "name": "/template.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/config/template.lua",
-                            "sha1": "9d7c1b6aa5bb29d93a59426aa6b77484b7358aed"
+                            "sha1": "88af0f7ce16991556a22b6da50b801cd52270309"
                         }
                     ],
-                    "version": "0.1.28",
+                    "version": "0.1.29",
                     "default": true,
                     "requireModules": [
                         {
@@ -244,9 +306,15 @@
                         },
                         {
                             "moduleName": "aka.outcome"
+                        },
+                        {
+                            "moduleName": "aka.unicode"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-02-26"
+                    "released": "2023-03-30"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -261,12 +329,12 @@
                         {
                             "name": "/config2.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config2/config2.lua",
-                            "sha1": "380d3099408e756df57333242a969d69aa009f12"
+                            "sha1": "554906f5f3bc3ad9cd8d707bab1de313f2f94578"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config2/init.lua",
-                            "sha1": "874557564a1ddc4a302805a2fafa925d4a651dbb"
+                            "sha1": "84ead8b4d0198efdc7a704e7a17caa1fe73eaa88"
                         },
                         {
                             "name": "/json.lua",
@@ -274,7 +342,7 @@
                             "sha1": "66004f9373847d877fe0aae5ad8a02bf7e161fef"
                         }
                     ],
-                    "version": "0.2.1",
+                    "version": "0.2.2",
                     "default": true,
                     "requireModules": [
                         {
@@ -290,7 +358,7 @@
                             "moduleName": "lfs"
                         }
                     ],
-                    "released": "2023-02-21"
+                    "released": "2023-03-30"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -471,10 +539,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
-                            "sha1": "d8529f9de2eb2761f0451b1b5453710c151d7756"
+                            "sha1": "951bf4dbb3efa03f4faa592d320f86422985f791"
                         }
                     ],
-                    "version": "0.2.1",
+                    "version": "0.2.2",
                     "default": true,
                     "requireModules": [
                         {
@@ -484,12 +552,40 @@
                             "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-02-26"
+                    "released": "2023-03-30"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.singlesimple",
             "description": "Module aka.singlesimple",
+            "url": "@{baseUrl}"
+        },
+        "aka.unicode": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/unicode/init.lua",
+                            "sha1": "0502eee5be97595c7882bd984953d0a5c6435fe4"
+                        }
+                    ],
+                    "version": "0.0.2",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aegisub.unicode"
+                        },
+                        {
+                            "moduleName": "bit"
+                        }
+                    ],
+                    "released": "2023-03-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.unicode",
+            "description": "Module aka.unicode",
             "url": "@{baseUrl}"
         },
         "aka.workflow": {

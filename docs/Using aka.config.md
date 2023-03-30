@@ -98,9 +98,9 @@ local aconfig = require("aka.config").make_editor({
     display_name = "TestScript",
     presets = {
         ["Twenty"] = { 20 },
-        ["Thirty"] = { 30 },
-        "Twenty"
+        ["Thirty"] = { 30 }
     }
+    default = "Twenty"
 })
 ```
 ```moon
@@ -109,38 +109,38 @@ aconfig = require("aka.config").make_editor
     presets:
         Twenty: { 20 }
         Thirty: { 30 }
-        [1]: "Twenty"
+    default: "Twenty"
 ```
 
 ```lua
-local config = aconfig.read_and_validate_config_if_empty_then_default_or_else_edit("aka.TestScript", "Settings", validation_func)
+local config = aconfig:read_and_validate_config_if_empty_then_default_or_else_edit_and_save("aka.TestScript", "Settings", validation_func)
     :ifErr(aegisub.cancel)
     :unwrap()
 ```
 ```moon
-config = with aconfig.read_and_validate_config_if_empty_then_default_or_else_edit "aka.TestScript", "Settings", validation_func
+config = with aconfig.read_and_validate_config_if_empty_then_default_or_else_edit_and_save "aka.TestScript", "Settings", validation_func
     \ifErr -> aegisub.cancel!
     \unwrap!
 ```
 
 ```lua
-local config = aconfig.read_and_validate_config_or_else_edit("aka.TestScript", "Settings", validation_func)
+local config = aconfig:read_and_validate_config_or_else_edit_and_save("aka.TestScript", "Settings", validation_func)
     :ifErr(aegisub.cancel)
     :unwrap()
 ```
 ```moon
-config = with aconfig.read_and_validate_config_or_else_edit "aka.TestScript", "Settings", validation_func
+config = with aconfig.read_and_validate_config_or_else_edit_and_save "aka.TestScript", "Settings", validation_func
     \ifErr -> aegisub.cancel!
     \unwrap!
 ```
 
 ```lua
-local config = aconfig.edit_and_validate_config(config, validation_func)
+local config = aconfig:read_edit_validate_and_save_config("aka.TestScript", "Settings", validation_func)
     :ifErr(aegisub.cancel)
     :unwrap()
 ```
 ```moon
-config = with aconfig.edit_and_validate_config "aka.TestScript", "Settings", validation_func
+config = with aconfig.read_edit_validate_and_save_config "aka.TestScript", "Settings", validation_func
     \ifErr -> aegisub.cancel!
     \unwrap!
 ```

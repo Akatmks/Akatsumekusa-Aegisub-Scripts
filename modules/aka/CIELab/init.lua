@@ -1,4 +1,4 @@
--- aka.config2
+-- aka.CIELab
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -21,19 +21,15 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-------------------------------------------------------------------------------
--- Tutorials are available at „docs/Using aka.config.md“.
-------------------------------------------------------------------------------
-
 local versioning = {}
 
-versioning.name = "aka.config2"
-versioning.description = "Module aka.config2"
-versioning.version = "0.2.2"
+versioning.name = "aka.CIELab"
+versioning.description = "Module aka.CIELab"
+versioning.version = "0.0.2"
 versioning.author = "Akatsumekusa and contributors"
-versioning.namespace = "aka.config2"
+versioning.namespace = "aka.CIELab"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"lfs\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"ffi\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -46,24 +42,13 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "aka.outcome" },
-            { "aegisub.re" },
-            { "aegisub.unicode" },
-            { "lfs" }
+            { "ffi" }
         }
     }):requireModules()
 end
 
-local config2 = require("aka.config2.config2")
-
-local functions = {}
+local functions = require("aka.CIELab.interface")
 
 functions.versioning = versioning
-
-functions.read_config = config2.read_config
-functions.write_config = config2.write_config
-
-functions.json = config2.json
-functions.config_dir = config2.config_dir
 
 return functions

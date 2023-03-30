@@ -1,4 +1,4 @@
--- aka.config2
+-- aka.config
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -21,19 +21,15 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-------------------------------------------------------------------------------
--- Tutorials are available at „docs/Using aka.config.md“.
-------------------------------------------------------------------------------
-
 local versioning = {}
 
-versioning.name = "aka.config2"
-versioning.description = "Module aka.config2"
-versioning.version = "0.2.2"
+versioning.name = "aka.unicode"
+versioning.description = "Module aka.unicode"
+versioning.version = "0.0.2"
 versioning.author = "Akatsumekusa and contributors"
-versioning.namespace = "aka.config2"
+versioning.namespace = "aka.unicode"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"lfs\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"bit\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -46,24 +42,42 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "aka.outcome" },
-            { "aegisub.re" },
             { "aegisub.unicode" },
-            { "lfs" }
+            { "bit" }
         }
     }):requireModules()
 end
 
-local config2 = require("aka.config2.config2")
+local unicode = require("aegisub.unicode")
+local bit = require("bit")
 
-local functions = {}
+unicode.char = function(codepoint)
+    local byte1
+    local byte2
+    local byte3
+    local byte4
 
-functions.versioning = versioning
+    if codepoint < 0 then
+        error("[aka.unicode] Invalid UTF-8 codepoint")
+    elseif codepoint <= 0x7F then
+        return string.char(codepoint)
+    elseif codepoint <= 0x7FF then
+        byte1 = 0xC0 + bit.rshift(codepoint, 6)
+        byte2 = 0x80 + bit.band(codepoint, 0x3F)
+        return string.char(byte1, byte2)
+    elseif codepoint <= 0xFFFF then
+        byte1 = 0xE0 + bit.rshift(codepoint, 12)
+        byte2 = 0x80 + bit.band(bit.rshift(codepoint, 6), 0x3F)
+        byte3 = 0x80 + bit.band(codepoint, 0x3F)
+        return string.char(byte1, byte2, byte3)
+    elseif codepoint <= 0x10FFFF then
+        byte1 = 0xF0 + bit.rshift(codepoint, 18)
+        byte2 = 0x80 + bit.band(bit.rshift(codepoint, 12), 0x3F)
+        byte3 = 0x80 + bit.band(bit.rshift(codepoint, 6), 0x3F)
+        byte4 = 0x80 + bit.band(codepoint, 0x3F)
+        return string.char(byte1, byte2, byte3, byte4)
+    else
+        error("[aka.unicode] Invalid UTF-8 codepoint")
+end end
 
-functions.read_config = config2.read_config
-functions.write_config = config2.write_config
-
-functions.json = config2.json
-functions.config_dir = config2.config_dir
-
-return functions
+return unicode
