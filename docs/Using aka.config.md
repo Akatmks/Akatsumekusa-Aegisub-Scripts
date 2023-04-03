@@ -97,8 +97,8 @@ At last, we will `unwrap` the `Result` object either from the validation step or
 local aconfig = require("aka.config").make_editor({
     display_name = "TestScript",
     presets = {
-        ["Twenty"] = { 20 },
-        ["Thirty"] = { 30 }
+        ["Twenty"] = "[20]",
+        ["Thirty"] = "[30]"
     }
     default = "Twenty"
 })
@@ -107,8 +107,8 @@ local aconfig = require("aka.config").make_editor({
 aconfig = require("aka.config").make_editor
     display_name: "TestScript"
     presets:
-        Twenty: { 20 }
-        Thirty: { 30 }
+        Twenty: "[20]"
+        Thirty: "[30]"
     default: "Twenty"
 ```
 

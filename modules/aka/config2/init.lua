@@ -29,7 +29,7 @@ local versioning = {}
 
 versioning.name = "aka.config2"
 versioning.description = "Module aka.config2"
-versioning.version = "0.2.2"
+versioning.version = "0.2.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config2"
 
@@ -56,14 +56,6 @@ end
 
 local config2 = require("aka.config2.config2")
 
-local functions = {}
+config2.versioning = versioning
 
-functions.versioning = versioning
-
-functions.read_config = config2.read_config
-functions.write_config = config2.write_config
-
-functions.json = config2.json
-functions.config_dir = config2.config_dir
-
-return functions
+return config2

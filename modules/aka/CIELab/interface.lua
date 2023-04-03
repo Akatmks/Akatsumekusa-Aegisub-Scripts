@@ -37,6 +37,15 @@ Colour.fromBT709RGB = function(R, G, B)
     self.colour[2] = B
     return self
 end
+Colour.fromPixel = function(colour)
+    local self = setmetatable({}, Colour)
+    self.type = ColourType.BT709RGB
+    self.colour = ffi.new("Colour")
+    self.colour[0] = bit.band(bit.rshift(colour, 16), 0xFF)
+    self.colour[1] = bit.band(bit.rshift(colour, 8), 0xFF)
+    self.colour[2] = bit.band(colour, 0xFF)
+    return self
+end
 Colour.fromXYZ = function(X, Y, Z)
     local self = setmetatable({}, Colour)
     self.type = ColourType.XYZ
@@ -65,6 +74,14 @@ Colour.fromCIELCh = function(L, C, h)
     return self
 end
 
+Colour.toBT709RGB = function(self)
+    local colour
+
+    if self.type == ColourType.BT709RGB then
+        return self.colour[0], self.colour[1], self.colour[2]
+    else
+        error("[aka.CIELab] Unsupported conversion")
+end end
 Colour.toXYZ = function(self)
     local colour
 

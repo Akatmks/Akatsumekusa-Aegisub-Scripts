@@ -149,7 +149,9 @@ end
 local functions = {}
 
 functions.read_config = read_config
+functions.read_config_string = read_config_string
 functions.write_config = write_config
+functions.write_config_string = write_config_string
 
 functions.json = json
 functions.config_dir = config_dir

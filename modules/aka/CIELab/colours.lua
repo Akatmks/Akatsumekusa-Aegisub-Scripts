@@ -21,6 +21,8 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
+local ffi = require("ffi")
+
 ffi.cdef[[
 typedef double Colour[3];
 ]]
@@ -74,7 +76,7 @@ local CIELChtoCIELab = function(CIELCh)
     return CIELab
 end
 
-local functions
+local functions = {}
 
 functions.BT709RGBtoXYZ = BT709RGBtoXYZ
 functions.XYZtoCIELab = XYZtoCIELab

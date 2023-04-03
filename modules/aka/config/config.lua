@@ -28,7 +28,8 @@ local unicode = require("aka.unicode")
 local re = require("aegisub.re")
 
 local config_methods = {}
-config_methods.__index = config
+config_methods.__index = config_methods
+setmetatable(config_methods, { __index = config })
 
 -------------------------------------------------
 -- Create config GUI.
@@ -38,7 +39,7 @@ config_methods.__index = config
 -- @param table param:
 --     display_name: The display name of your script / config
 --     width [32]: The width for a column (two columns in total)
---     height [32]: The height of a column
+--     height [20]: The height of a column
 --     presets: Every presets in a key-value table
 --     default: THe name (key) of the default preset
 -- 
@@ -51,9 +52,9 @@ config.make_editor = function(param)
     self.display_name_b = ""
     for char in unicode.chars(param.display_name) do
         codepoint = unicode.codepoint(char)
-        if 0x0041 <= char and char <= 0x005A then
+        if 0x0041 <= codepoint and codepoint <= 0x005A then
             codepoint = codepoint + 0x1D593
-        elseif 0x0061 <= char and char <= 0x007A then
+        elseif 0x0061 <= codepoint and codepoint <= 0x007A then
             codepoint = codepoint + 0x1D58D
         end
         self.display_name_b = self.display_name_b .. unicode.char(codepoint)
@@ -66,6 +67,8 @@ config.make_editor = function(param)
         table.insert(self.preset_names, k)
     end
     self.default = param.default
+
+    return self
 end
 
 -------------------------------------------------
@@ -76,7 +79,7 @@ end
 -- @param outcome.Option<string, string> config_string: config JSON
 -- @param outcome.Option<string, string> error: Errors probably coming from validation function
 -- 
--- @returns outcome.result<table, string>: Return the same config table back if success
+-- @returns outcome.result<string, string>: Return the new config_string
 config_methods.edit_config = function(self, config_string, error)
     local dialog
     local buttons
@@ -100,7 +103,7 @@ config_methods.edit_config = function(self, config_string, error)
                    { class = "label",                           x = self.width, y = #error > 0 and #error + 1 or 0, width = self.width,
                                                                 label = "𝗣𝗿𝗲𝘀𝗲𝘁:" },
                    { class = "textbox", name = "preset_text",   x = self.width, y = 1 + (#error > 0 and #error + 1 or 0), width = self.width, height = self.height - 2 - (#error > 0 and #error + 1 or 0),
-                                                                text = self.presets[preset_name] },
+                                                                text = type(self.presets[preset_name]) == "string" and self.presets[preset_name] or self.json:encode_pretty(self.presets[preset_name]) },
                    { class = "label",                           x = self.width, y = self.height - 1, width = 8,
                                                                 label = "Select Preset:" },
                    { class = "dropdown", name = "preset",       x = self.width + 8, y = self.height - 1, width = 24,
@@ -112,7 +115,7 @@ config_methods.edit_config = function(self, config_string, error)
                 table.insert(dialog, { class = "label",         x = self.width, y = i, width = self.width,
                                                                 label = v })
         end end
-        buttons = { "&Apply", "&Beautify", "&View Preset", "Diminish" }
+        buttons = { "&Apply", "&Beautify", "&View Preset", "Apply &Preset", "Diminish" }
         button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Diminish", no = "Diminish", cancel = "Diminish" }
 
         button, result_table = aegisub.dialog.display(dialog, buttons, button_ids)
@@ -131,16 +134,22 @@ config_methods.edit_config = function(self, config_string, error)
             config_text = result_table["config_text"]
 
             config_data = self.json:decode2(config_text)
+            error = self.json.error
             if self.json.error:isNone() then
                 config_text = self.json:encode_pretty(config_data)
-            else
-                error = self.json.error
             end
-        elseif button == "View &Preset" then
+        elseif button == "&View Preset" then
             config_text = result_table["config_text"]
             preset_name = result_table["preset"]
+            error = none()
+        elseif button == "Apply &Preset" then
+            return ok(type(self.presets[result_table["preset"]]) == "string" and
+                      self.presets[result_table["preset"]] or
+                      self.json:encode_pretty(self.presets[result_table["preset"]]))
         elseif button == "Diminish" then
-            return err()
+            return err("[aka.config] Operation cancelled by user")
+        else
+            error("[aka.config] Unspecified error")
 end end end
 
 -------------------------------------------------
@@ -157,8 +166,10 @@ config_methods.read_edit_validate_and_save_config = function(self, config, confi
     local config_string
     local error
     local config_data
+    local to_return
     
     if type(config_supp) ~= "string" then validation_func = config_supp config_supp = config config = nil end
+    if type(validation_func) ~= "function" then validation_func = function(config_data) return ok(config_data) end end
     
     config_string = self.read_config_string(config, config_supp)
     error = config_string
@@ -171,8 +182,8 @@ config_methods.read_edit_validate_and_save_config = function(self, config, confi
 
     while true do
         config_string = self:edit_config(config_string, error)
-            :mapErr(function() return
-                err("[aka.config] Operation cancelled by user") end)
+            :mapErr(function(error)
+                to_return = err(error) return error end) if to_return then return to_return end
         config_data = config_string
             :andThen(function(config_string) return
                 self.json:decode3(config_string) end)
@@ -181,11 +192,14 @@ config_methods.read_edit_validate_and_save_config = function(self, config, confi
             :errOption()
         
         if error:isNone() then
-            self.write_config_string(config, config_supp, config_string)
-                :mapErr(function(config_string) return
+            self.write_config_string(config, config_supp, config_string:unwrap())
+                :mapErr(function(error) return
                     aegisub.debug.out(1, error) end)
             return ok(config_data)
-end end end
+        end
+        config_string = config_string
+            :okOption()
+end end
 
 -------------------------------------------------
 -- Read and validate config. If anything happens, edit, validate and save config
@@ -201,8 +215,10 @@ config_methods.read_and_validate_config_or_else_edit_and_save = function(self, c
     local config_string
     local error
     local config_data
+    local to_return
     
     if type(config_supp) ~= "string" then validation_func = config_supp config_supp = config config = nil end
+    if type(validation_func) ~= "function" then validation_func = function(config_data) return ok(config_data) end end
     
     config_string = self.read_config_string(config, config_supp)
     while true do
@@ -215,14 +231,16 @@ config_methods.read_and_validate_config_or_else_edit_and_save = function(self, c
         
         if error:isNone() then
             self.write_config_string(config, config_supp, config_string)
-                :mapErr(function(config_string) return
+                :mapErr(function(error) return
                     aegisub.debug.out(1, error) end)
             return ok(config_data)
         end
-        
+        config_string = config_string
+            :okOption()
+            
         config_string = self:edit_config(config_string, error)
-            :mapErr(function() return
-                err("[aka.config] Operation cancelled by user") end)
+            :mapErr(function(error)
+                to_return = err(error) return error end) if to_return then return to_return end
 end end
 
 -------------------------------------------------
@@ -240,18 +258,22 @@ config_methods.read_and_validate_config_if_empty_then_default_or_else_edit_and_s
     local error
     local config_data
     
-    local config_string
-    local error
-    local config_data
-    
     if type(config_supp) ~= "string" then validation_func = config_supp config_supp = config config = nil end
+    if type(validation_func) ~= "function" then validation_func = function(config_data) return ok(config_data) end end
     
     config_string = self.read_config_string(config, config_supp)
     if config_string:isErr() then
-        self.write_config_string(config, config_supp, self.presets[self.default])
-            :mapErr(function(config_string) return
-                aegisub.debug.out(1, error) end)
-        return self.json:decode3(self.presets[self.default])
+        if type(self.presets[self.default]) == "string" then
+            self.write_config_string(config, config_supp, self.presets[self.default])
+                :mapErr(function(error) return
+                    aegisub.debug.out(1, error) end)
+            return self.json:decode3(self.presets[self.default]):unwrap()
+        else
+            self.write_config(config, config_supp, self.presets[self.default])
+                :mapErr(function(error) return
+                    aegisub.debug.out(1, error) end)
+            return self.presets[self.default]
+        end
     end
     while true do
         config_data = config_string
@@ -267,10 +289,12 @@ config_methods.read_and_validate_config_if_empty_then_default_or_else_edit_and_s
                     aegisub.debug.out(1, error) end)
             return ok(config_data)
         end
+        config_string = config_string
+            :okOption()
         
         config_string = self:edit_config(config_string, error)
-            :mapErr(function() return
-                err("[aka.config] Operation cancelled by user") end)
+            :mapErr(function(error) return
+                err(error) end)
 end end
 
 return config

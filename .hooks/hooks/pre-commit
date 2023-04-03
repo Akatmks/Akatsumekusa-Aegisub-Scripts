@@ -295,9 +295,9 @@ if __name__ == "__main__":
     for diff_index in diff_indexes:
         match diff_index.change_type: # match requires Python 3.10
             case "A":
-                removed.append(Path(diff_index.b_path))
+                added.append(Path(diff_index.b_path))
             case "D":
-                added.append(Path(diff_index.a_path))
+                removed.append(Path(diff_index.a_path))
             case "R":
                 added.append(Path(diff_index.b_path))
                 removed.append(Path(diff_index.a_path))

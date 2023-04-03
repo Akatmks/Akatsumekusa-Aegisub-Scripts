@@ -38,7 +38,7 @@ local versioning = {}
 --                 ‎aka.config
 versioning.name = "aka.config"
 versioning.description = "Module aka.config"
-versioning.version = "0.1.29"
+versioning.version = "0.1.30"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config"
 
@@ -65,21 +65,6 @@ end
 
 local config = require("aka.config.config")
 
-local functions = {}
+config.versioning = versioning
 
-functions.versioning = versioning
-
-functions.read_config = config.read_config
-functions.write_config = config.write_config
-functions.edit_config_gui = config.edit_config_gui
-
-functions.json = config.json
-functions.config_dir = config.config_dir
-functions.validate = config.validate
-functions.config_gui2 = config.config_gui2
-functions.config_gui3 = config.config_gui3
-functions.config_gui = config.config_gui
-functions.get_template_key = config.get_template_key
-functions.select_template_key = config.select_template_key
-
-return functions
+return config
