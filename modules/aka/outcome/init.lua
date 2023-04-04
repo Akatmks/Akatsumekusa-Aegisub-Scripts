@@ -35,7 +35,7 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "0.1.4"
+versioning.version = "0.1.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.outcome"
 
@@ -974,7 +974,7 @@ end
 function outcome.o(...)
   local result
 
-  result = table.pack(pcall(...))
+  result = table.pack(...)
   if result[1] == true and #result == 1 then
     return outcome.ok(result[1])
   elseif result[1] == true and #result == 2 then

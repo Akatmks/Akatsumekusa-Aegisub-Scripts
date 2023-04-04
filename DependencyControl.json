@@ -289,15 +289,15 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "96697173753ad5ce6d0ee6838681c55110931a5c"
+                            "sha1": "20ee97b4efc9bc066752dc91a814638bb5ca7a98"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "77f364297ed1d865d4b000c9cd9165229d5832f8"
+                            "sha1": "44c7391d30879d7f99219b06ba6fd174e1f1d767"
                         }
                     ],
-                    "version": "0.1.30",
+                    "version": "0.1.31",
                     "default": true,
                     "requireModules": [
                         {
@@ -313,7 +313,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-04-03"
+                    "released": "2023-04-04"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -467,12 +467,12 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/outcome/init.lua",
-                            "sha1": "c7e96b3f73f3a1b90c926d381db87ffefcdc1945"
+                            "sha1": "a7af7f8bbfa70265f6ebc389cbf83e2c3a796952"
                         }
                     ],
-                    "version": "0.1.4",
+                    "version": "0.1.5",
                     "default": true,
-                    "released": "2023-03-01"
+                    "released": "2023-04-04"
                 }
             },
             "author": "Akatsumekusa and contributors",
