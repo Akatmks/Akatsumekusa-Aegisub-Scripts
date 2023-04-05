@@ -24,6 +24,7 @@
 local ILL = require("ILL.ILL")
 local Table, Util = ILL.Table, ILL.Util
 local acolours = require("aka.CIELab")
+local Colour = acolours.Colour
 
 local prepare
 local prepare__point
@@ -97,7 +98,7 @@ prepare__point = function(frame, x, y, samples_table)
     swap_table = {}
     for i=x-1,x+1 do
         for j=y-1,y+1 do
-        table.insert(swap_table, table.pack(acolours.fromPixel(frame:getPixel(i, j)):toCIELCh()))
+        table.insert(swap_table, table.pack(Colour.fromPixel(frame:getPixel(i, j)):toCIELCh()))
     end end
 
     sort_table = {}
@@ -135,6 +136,7 @@ end end
 prepare__average = function(processed_table)
     local sum
 
+    sum = 0
     for i=1,#processed_table do
         sum = sum + processed_table[i]
     end
@@ -225,3 +227,12 @@ end
 set_colour__eval = function(param, wd_eval)
     return wd_eval()
 end
+
+local functions = {}
+
+functions.prepare = prepare
+functions.do_nothing = do_nothing
+functions.iter_scenecut = iter_scenecut
+functions.set_colour = set_colour
+
+return functions

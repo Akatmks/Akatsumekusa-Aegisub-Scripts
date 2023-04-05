@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.unwhite_dialogue"
 versioning.description = "Module aka.unwhite_dialogue"
-versioning.version = "0.0.2"
+versioning.version = "0.0.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.unwhite_dialogue"
 
@@ -69,7 +69,7 @@ workflow.run = function(sub, sel, act, config, extra_data)
 
     if not extra_data or type(extra_data) ~= "table" then extra_data = {} end
     if not extra_data.wd_ass then error("[aka.unwhite_dialogue] Unspecified Error") end
-    line = sub[sel[0]]
+    line = sub[sel[1]]
     line.isShape = Util.isShape(line.text)
     line.text = Text(line.text, line.isShape)
     line = Line.process(extra_data.wd_ass, line)
@@ -80,7 +80,7 @@ workflow.run = function(sub, sel, act, config, extra_data)
         extra_data.wd_parsed_config = {}
         if config.scenecut then
             extra_data.wd_parsed_config[config.scenecut.exec] = loadstring(config.scenecut.exec)
-            extra_data.wd_parsed_config[config.eval.exec] = loadstring(config.eval.exec)
+            extra_data.wd_parsed_config[config.scenecut.eval] = loadstring(config.scenecut.eval)
         end
         extra_data.wd_parsed_config[config.colours.exec] = loadstring(config.colours.exec)
         for _, t in ipairs(config.colours) do

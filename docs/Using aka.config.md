@@ -12,8 +12,7 @@ local ok, err = outcome.ok, outcome.err
 ```
 ```moon
 aconfig = require "aka.config"
-outcome = require "aka.outcome"
-ok, err = outcome.ok, outcome.err
+import ok, err from require "aka.outcome"
 ```
 
 ### Loading and saving Dialog table
@@ -24,8 +23,10 @@ local config = aconfig.read_config("aka.TestScript")
     :unwrapOr({ index = "Value" })
 ```
 ```moon
-config = aconfig.read_config "aka.TestScript"\unwrapOr
-    index: "Value"
+local config
+with aconfig.read_config "aka.TestScript"
+    config = \unwrapOr
+            index: "Value"
 ```
 This code calls `aconfig.read_config` with `aka.TestScript`, which tells aka.config to look for a config in `?config/aka.TestScript.json`. `aconfig.read_config` returns a [`Result` object](Understanding%20aka.outcome), containing either an Ok with the config data or an Err with an error message. We want to use the default settings if config is not available, so we use `unwrapOr` to unwrap the `Result` object with default config table `{ index = "Value" }`.  
 
@@ -76,15 +77,16 @@ local config = aconfig.read_config("aka.TestScript", "Settings")
     :unwrap()
 ```
 ```moon
-config = with aconfig.read_config "aka.TestScript", "Settings"
-    \andThen (config) ->
-        if type(config[1]) == number
-            ok config
-        else
-            err "[aka.TestScript] Invalid config"
-    \orElseOther ->
-        aconfig.write_config "aka.TestScript", "Settings", { 20 }
-    \unwrap!
+local config
+with aconfig.read_config "aka.TestScript", "Settings"
+    with \andThen (config) ->
+            if type(config[1]) == number
+                ok config
+            else
+                err "[aka.TestScript] Invalid config"
+        with \orElseOther ->
+                aconfig.write_config "aka.TestScript", "Settings", { 20 }
+            config = \unwrap!
 ```
 This code will first calls `aconfig.read_config` with `aka.TestScript` and `Settings`. When aka.config functions is called with two strings, aka.config will treat the first string as the folder name and the second string as the config name, so the config file in this case will be `?config/aka.TestScript/Settings.json`.  
 And then (literally `:andThen`) if the config reads successfully, the inline function will validate if the config is malformed. `function(config) if type(config[1]) == number then return ok(config) else return err("[aka.TestScript] Invalid config") end end` checks if the first item in the config table is a number and then return either an Ok with the config table, or an Err with the error message `Invalid Config`.  
@@ -97,19 +99,20 @@ At last, we will `unwrap` the `Result` object either from the validation step or
 local aconfig = require("aka.config").make_editor({
     display_name = "TestScript",
     presets = {
-        ["Twenty"] = "[20]",
-        ["Thirty"] = "[30]"
+        ["Twenty"] = { 20 },
+        ["Thirty"] = { 30 }
     }
     default = "Twenty"
 })
 ```
 ```moon
-aconfig = require("aka.config").make_editor
-    display_name: "TestScript"
-    presets:
-        Twenty: "[20]"
-        Thirty: "[30]"
-    default: "Twenty"
+with require "aka.config"
+    aconfig = .make_editor
+        display_name: "TestScript"
+        presets:
+            Twenty: "[20]"
+            Thirty: "[30]"
+        default: "Twenty"
 ```
 
 ```lua
@@ -118,9 +121,9 @@ local config = aconfig:read_and_validate_config_if_empty_then_default_or_else_ed
     :unwrap()
 ```
 ```moon
-config = with aconfig.read_and_validate_config_if_empty_then_default_or_else_edit_and_save "aka.TestScript", "Settings", validation_func
-    \ifErr -> aegisub.cancel!
-    \unwrap!
+with aconfig\read_and_validate_config_if_empty_then_default_or_else_edit_and_save "aka.TestScript", "Settings", validation_func
+    with \ifErr aegisub.cancel
+        config = \unwrap!
 ```
 
 ```lua
@@ -129,9 +132,9 @@ local config = aconfig:read_and_validate_config_or_else_edit_and_save("aka.TestS
     :unwrap()
 ```
 ```moon
-config = with aconfig.read_and_validate_config_or_else_edit_and_save "aka.TestScript", "Settings", validation_func
-    \ifErr -> aegisub.cancel!
-    \unwrap!
+with aconfig\read_and_validate_config_or_else_edit_and_save "aka.TestScript", "Settings", validation_func
+    with \ifErr aegisub.cancel
+        config = \unwrap!
 ```
 
 ```lua
@@ -140,7 +143,7 @@ local config = aconfig:read_edit_validate_and_save_config("aka.TestScript", "Set
     :unwrap()
 ```
 ```moon
-config = with aconfig.read_edit_validate_and_save_config "aka.TestScript", "Settings", validation_func
-    \ifErr -> aegisub.cancel!
-    \unwrap!
+with aconfig\read_edit_validate_and_save_config "aka.TestScript", "Settings", validation_func
+    with \ifErr aegisub.cancel
+        config = \unwrap!
 ```

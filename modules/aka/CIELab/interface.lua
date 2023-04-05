@@ -21,6 +21,7 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
+local ffi = require("ffi")
 local colours = require("aka.CIELab.colours")
 
 local Colour = {}

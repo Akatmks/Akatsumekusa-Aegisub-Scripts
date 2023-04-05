@@ -24,10 +24,16 @@
 versioning =
     name: "UnwhiteDialogue"
     description: "Automatically select shade and unwhite the dialogues"
-    version: "0.0.3"
+    version: "0.0.4"
     author: "Akatsumekusa and contributors"
     namespace: "aka.UnwhiteDialogue"
     requireModules: "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.unwhite_dialogue\" }]"
+
+export script_name = versioning.name
+export script_description = versioning.description
+export script_author = versioning.author
+export script_version = versioning.version
+export script_namespace = versioning.namespace
 
 if hasDepCtrl
     DepCtrl = DepCtrl {
@@ -47,39 +53,40 @@ if hasDepCtrl
     }
     DepCtrl\requireModules!
 
-config = with require "aka.config"
-    .make_editor
-        display_name: "UnwhiteDialogue"
-        width: 48
-        height: 30
-        presets:
-            "Experimental":
-                scenecut:
-                    exec: "return L"
-                    eval: "return diff > 60"
-                colours:
-                    exec: "return L + C * 0.08"
-                    [1]:
-                        eval: "return param <= 55"
-                        style: "Default"
-                    [2]:
-                        exec: "return param > 55"
-                        style: "Default - Dark"
-        default:
-            "Experimental"
-with require "aka.outcome"
-    ok, err = .ok, .err
+local aconfig
+with require "aka.config"
+    aconfig = .make_editor
+            display_name: "UnwhiteDialogue"
+            width: 36
+            height: 24
+            presets:
+                "Experimental":
+                    scenecut:
+                        exec: "return L"
+                        eval: "return diff > 60"
+                    colours:
+                        exec: "return L + C * 0.08"
+                        [1]:
+                            eval: "return param <= 55"
+                            style: "Default"
+                        [2]:
+                            exec: "return param > 55"
+                            style: "Default - Dark"
+            default:
+                "Experimental"
+import ok, err from require "aka.outcome"
 import Ass from require "ILL.ILL"
-unwhite_dialogue = with require "aka.unwhite_dialogue"
-    .workflow
+local unwhite_dialogue
+with require "aka.unwhite_dialogue"
+    unwhite_dialogue = .workflow
 
-config = nil
+local config
 
 main = (sub, sel, act) ->
     unless config
-        config = with config\read_and_validate_config_or_else_edit_and_save "aka.UnwhiteDialogue"
-            \ifErr -> aegisub.cancel
-            \unwrap!
+        with aconfig\read_and_validate_config_or_else_edit_and_save "aka.UnwhiteDialogue"
+            with \ifErr aegisub.cancel
+                config = \unwrap!
 
     extra_data =
         wd_ass: Ass sub, sel, act
@@ -101,12 +108,15 @@ main = (sub, sel, act) ->
     return return_sel, return_act
 
 edit_config = ->
-    config = with config\read_edit_validate_and_save_config "aka.UnwhiteDialogue"
-        \ifErr -> aegisub.cancel
-        \unwrap!
+    with aconfig\read_edit_validate_and_save_config "aka.UnwhiteDialogue"
+        with \ifErr aegisub.cancel
+            config = \unwrap!
 
 if hasDepCtrl
     DepCtrl\registerMacros {
         { "UnwhiteDialogue", "Unwhite the selected dialogues", main },
         { "Edit Config", "Edit UnwhiteDialogue config", edit_config }
     }
+else
+    aegisub.register_macro("UnwhiteDialogue/UnwhiteDialogue", "Unwhite the selected dialogues", main)
+    aegisub.register_macro("UnwhiteDialogue/Edit Config", "Edit UnwhiteDialogue config", edit_config)

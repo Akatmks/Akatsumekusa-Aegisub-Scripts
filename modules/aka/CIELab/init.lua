@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.CIELab"
 versioning.description = "Module aka.CIELab"
-versioning.version = "0.0.3"
+versioning.version = "0.0.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.CIELab"
 
