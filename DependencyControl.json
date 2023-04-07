@@ -140,10 +140,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}/macros/aka.UnwhiteDialogue.moon",
-                            "sha1": "7492bfbffd20d57818cd0219eed54ed7160feded"
+                            "sha1": "5dd2d37087070bc1036ffdeee5ae474448be72a7"
                         }
                     ],
-                    "version": "0.0.4",
+                    "version": "0.0.5",
                     "default": true,
                     "requireModules": [
                         {
@@ -156,7 +156,7 @@
                             "moduleName": "aka.unwhite_dialogue"
                         }
                     ],
-                    "released": "2023-04-05"
+                    "released": "2023-04-07"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -289,15 +289,15 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "20ee97b4efc9bc066752dc91a814638bb5ca7a98"
+                            "sha1": "b52d0177dc87a93ca1e8d81e3cda52ef09cf4dc4"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "44c7391d30879d7f99219b06ba6fd174e1f1d767"
+                            "sha1": "a6f9606102c1866a53bf23e59afe2168c2872d81"
                         }
                     ],
-                    "version": "0.1.31",
+                    "version": "0.1.32",
                     "default": true,
                     "requireModules": [
                         {
@@ -313,7 +313,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-04-04"
+                    "released": "2023-04-07"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -467,12 +467,12 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/outcome/init.lua",
-                            "sha1": "a7af7f8bbfa70265f6ebc389cbf83e2c3a796952"
+                            "sha1": "e814d38e008f7996c01354f6c97b3c1d7c608448"
                         }
                     ],
-                    "version": "0.1.5",
+                    "version": "0.1.6",
                     "default": true,
-                    "released": "2023-04-04"
+                    "released": "2023-04-07"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -594,15 +594,15 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/unwhite_dialogue/init.lua",
-                            "sha1": "b7328ca420e5ddad8ccaa1dca1c41542c93152cf"
+                            "sha1": "39dcb91efda9e8b027b300dd9dd982307fb8008b"
                         },
                         {
                             "name": "/samples.lua",
                             "url": "@{fileBaseUrl}/modules/aka/unwhite_dialogue/samples.lua",
-                            "sha1": "b30632cebeea0409a223f62c9f2e24a727f09a64"
+                            "sha1": "fb89bf777e32689ecfb1b491afa6de00fda0beeb"
                         }
                     ],
-                    "version": "0.0.3",
+                    "version": "0.0.4",
                     "default": true,
                     "requireModules": [
                         {
@@ -615,7 +615,7 @@
                             "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-04-05"
+                    "released": "2023-04-07"
                 }
             },
             "author": "Akatsumekusa and contributors",

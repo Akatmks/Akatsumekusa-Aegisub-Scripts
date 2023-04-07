@@ -50,42 +50,42 @@ prepare = function(line, config, parsed_config)
     background_scenecut = {}
     subtitle_colours = {}
     background_colours = {}
-    for frame=aegisub.frame_from_ms(line.start_time),aegisub.frame_from_ms(line.end_time) do
-        frame = aegisub.get_frame(frame)
+    for i=1,aegisub.frame_from_ms(line.end_time)-aegisub.frame_from_ms(line.start_time)+1 do
+        frame = aegisub.get_frame(i + aegisub.frame_from_ms(line.start_time) - 1)
 
-        subtitle_samples[frame] = {}
-        subtitle_scenecut[frame] = {}
-        subtitle_colours[frame] = {}
-        prepare__point(frame,   line.left + 5,          line.top + 5,           subtitle_samples[frame])
-        prepare__point(frame,   line.center,            line.top + 5,           subtitle_samples[frame])
-        prepare__point(frame,   line.right - 5,         line.top + 5,           subtitle_samples[frame])
-        prepare__point(frame,   line.left + 5,          line.bottom - 5,        subtitle_samples[frame])
-        prepare__point(frame,   line.center,            line.bottom - 5,        subtitle_samples[frame])
-        prepare__point(frame,   line.right - 5,         line.bottom - 5,        subtitle_samples[frame])
+        subtitle_samples[i] = {}
+        subtitle_scenecut[i] = {}
+        subtitle_colours[i] = {}
+        prepare__point(frame,   line.left + 5,          line.top + 5,           subtitle_samples[i])
+        prepare__point(frame,   line.center,            line.top + 5,           subtitle_samples[i])
+        prepare__point(frame,   line.right - 5,         line.top + 5,           subtitle_samples[i])
+        prepare__point(frame,   line.left + 5,          line.bottom - 5,        subtitle_samples[i])
+        prepare__point(frame,   line.center,            line.bottom - 5,        subtitle_samples[i])
+        prepare__point(frame,   line.right - 5,         line.bottom - 5,        subtitle_samples[i])
         if config.scenecut then
-            prepare__exec(subtitle_samples[frame], subtitle_scenecut[frame], parsed_config[config.scenecut.exec])
-            subtitle_scenecut[frame] = prepare__average(subtitle_scenecut[frame])
+            prepare__exec(subtitle_samples[i], subtitle_scenecut[i], parsed_config[config.scenecut.exec])
+            subtitle_scenecut[i] = prepare__average(subtitle_scenecut[i])
         end
-        prepare__exec(subtitle_samples[frame], subtitle_colours[frame], parsed_config[config.colours.exec])
-        subtitle_colours[frame] = prepare__average(subtitle_colours[frame])
+        prepare__exec(subtitle_samples[i], subtitle_colours[i], parsed_config[config.style.exec])
+        subtitle_colours[i] = prepare__average(subtitle_colours[i])
 
-        background_samples[frame] = {}
-        background_scenecut[frame] = {}
-        background_colours[frame] = {}
-        prepare__point(frame,   50,                     50,                     background_samples[frame])
-        prepare__point(frame,   frame:width() - 50,     50,                     background_samples[frame])
-        prepare__point(frame,   50,                     frame:height() - 50,    background_samples[frame])
-        prepare__point(frame,   frame:width() - 50,     frame:height() - 50,    background_samples[frame])
-        prepare__point(frame,   120,                    120,                    background_samples[frame])
-        prepare__point(frame,   frame:width() - 120,    120,                    background_samples[frame])
-        prepare__point(frame,   120,                    frame:height() - 120,   background_samples[frame])
-        prepare__point(frame,   frame:width() - 120,    frame:height() - 120,   background_samples[frame])
+        background_samples[i] = {}
+        background_scenecut[i] = {}
+        background_colours[i] = {}
+        prepare__point(frame,   50,                     50,                     background_samples[i])
+        prepare__point(frame,   frame:width() - 50,     50,                     background_samples[i])
+        prepare__point(frame,   50,                     frame:height() - 50,    background_samples[i])
+        prepare__point(frame,   frame:width() - 50,     frame:height() - 50,    background_samples[i])
+        prepare__point(frame,   120,                    120,                    background_samples[i])
+        prepare__point(frame,   frame:width() - 120,    120,                    background_samples[i])
+        prepare__point(frame,   120,                    frame:height() - 120,   background_samples[i])
+        prepare__point(frame,   frame:width() - 120,    frame:height() - 120,   background_samples[i])
         if config.scenecut then
-            prepare__exec(background_samples[frame], background_scenecut[frame], parsed_config[config.scenecut.exec])
-            background_scenecut[frame] = prepare__average(background_scenecut[frame])
+            prepare__exec(background_samples[i], background_scenecut[i], parsed_config[config.scenecut.exec])
+            background_scenecut[i] = prepare__average(background_scenecut[i])
         end
-        prepare__exec(background_samples[frame], background_colours[frame], parsed_config[config.colours.exec])
-        background_colours[frame] = prepare__average(background_colours[frame])
+        prepare__exec(background_samples[i], background_colours[i], parsed_config[config.style.exec])
+        background_colours[i] = prepare__average(background_colours[i])
     end
 
     return subtitle_scenecut, background_scenecut, subtitle_colours, background_colours
@@ -124,12 +124,10 @@ prepare__point = function(frame, x, y, samples_table)
 end end
 
 prepare__exec = function(wd_samples_table, wd_target_table, wd_exec)
-    local Y
-    local C
-    local h
-
+    local newgt = setmetatable({}, { __index = _G })
+    setfenv(wd_exec, newgt)
     for wd_i=1,#wd_samples_table do
-        Y, C, h = table.unpack(wd_samples_table[wd_i])
+        newgt.Y, newgt.C, newgt.h = table.unpack(wd_samples_table[wd_i])
         table.insert(wd_target_table, wd_exec())
 end end
 
@@ -164,12 +162,14 @@ iter_scenecut = function(line, subtitle_scenecut, background_scenecut, subtitle_
             if i == #subtitle_scenecut - 1 then
                 return line, subtitle_colours, background_colours
             else
-                if config.scenecut and 
+                if config.scenecut and
                    iter_scenecut__eval(math.abs(background_scenecut[i] * 0.7 + subtitle_scenecut[i] * 0.3 -
                                                 background_scenecut[i + 1] * 0.7 - subtitle_scenecut[i + 1] * 0.3), parsed_config[config.scenecut.eval]) then
                     return_line = Table.deepcopy(line)
-                    return_line.end_time = aegisub.ms_from_frame(aegisub.frame_from_ms(line.start_time) + i - 1)
+                    return_line.end_time = aegisub.ms_from_frame(aegisub.frame_from_ms(line.start_time) + i)
                     line.start_time = aegisub.ms_from_frame(aegisub.frame_from_ms(line.start_time) + i)
+                    return_subtitle_colours = {}
+                    return_background_colours = {}
                     for j=1,i do
                         table.remove(subtitle_scenecut, 1)
                         table.insert(return_subtitle_colours, table.remove(subtitle_colours, 1))
@@ -180,6 +180,7 @@ iter_scenecut = function(line, subtitle_scenecut, background_scenecut, subtitle_
 end end end end end
 
 iter_scenecut__eval = function(diff, wd_eval)
+    setfenv(wd_eval, setmetatable({ diff = diff }, { __index = _G })) 
     return wd_eval()
 end
 
@@ -216,7 +217,7 @@ set_colour = function(line, subtitle_colours, background_colours, config, parsed
         error("[aka.unwhite_dialogue] param for colours is neither a number or a table")
     end
 
-    for i,v in ipairs(config.colours) do
+    for i,v in ipairs(config.style.options) do
         if set_colour__eval(param, parsed_config[v.eval]) then
             line.style = v.style
             return
@@ -225,6 +226,7 @@ set_colour = function(line, subtitle_colours, background_colours, config, parsed
 end
 
 set_colour__eval = function(param, wd_eval)
+    setfenv(wd_eval, setmetatable({ param = param }, { __index = _G }))
     return wd_eval()
 end
 

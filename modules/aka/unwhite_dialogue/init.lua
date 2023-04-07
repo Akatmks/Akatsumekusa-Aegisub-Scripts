@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.unwhite_dialogue"
 versioning.description = "Module aka.unwhite_dialogue"
-versioning.version = "0.0.3"
+versioning.version = "0.0.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.unwhite_dialogue"
 
@@ -82,8 +82,8 @@ workflow.run = function(sub, sel, act, config, extra_data)
             extra_data.wd_parsed_config[config.scenecut.exec] = loadstring(config.scenecut.exec)
             extra_data.wd_parsed_config[config.scenecut.eval] = loadstring(config.scenecut.eval)
         end
-        extra_data.wd_parsed_config[config.colours.exec] = loadstring(config.colours.exec)
-        for _, t in ipairs(config.colours) do
+        extra_data.wd_parsed_config[config.style.exec] = loadstring(config.style.exec)
+        for _, t in ipairs(config.style.options) do
             extra_data.wd_parsed_config[t.eval] = loadstring(t.eval)
     end end
 
@@ -98,7 +98,9 @@ workflow.run = function(sub, sel, act, config, extra_data)
         else
             sub.insert(sel[1] + i - 1, line)
             table.insert(sel, sel[1] + i - 1)
-    end end
+        end
+        i = i + 1
+    end
     return sel, act, extra_data
 end
 

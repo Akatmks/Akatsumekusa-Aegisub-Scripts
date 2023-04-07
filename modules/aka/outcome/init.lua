@@ -35,7 +35,7 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "0.1.5"
+versioning.version = "0.1.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.outcome"
 
@@ -332,7 +332,7 @@ function None:ifSome(_)
 end
 
 function None:ifNone(consumer)
-  consumer()
+  consumer(self._value)
   return self
 end
 

@@ -24,7 +24,7 @@
 versioning =
     name: "UnwhiteDialogue"
     description: "Automatically select shade and unwhite the dialogues"
-    version: "0.0.4"
+    version: "0.0.5"
     author: "Akatsumekusa and contributors"
     namespace: "aka.UnwhiteDialogue"
     requireModules: "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.unwhite_dialogue\" }]"
@@ -60,18 +60,24 @@ with require "aka.config"
             width: 36
             height: 24
             presets:
-                "Experimental":
-                    scenecut:
-                        exec: "return L"
-                        eval: "return diff > 60"
-                    colours:
-                        exec: "return L + C * 0.08"
-                        [1]:
-                            eval: "return param <= 55"
-                            style: "Default"
-                        [2]:
-                            exec: "return param > 55"
-                            style: "Default - Dark"
+                "Experimental": "{
+  \"scenecut\": {
+    \"exec\": \"return Y\",
+    \"eval\": \"return diff > 60\"
+  },
+  \"style\": {
+    \"exec\": \"return Y + C * 0.08\",
+    \"options\": [
+      {
+        \"eval\": \"return param <= 55\",
+        \"style\": \"Default\"
+      }, {
+        \"eval\": \"return param > 55\",
+        \"style\": \"Default - Dark\"
+      }
+    ]
+  }
+}"
             default:
                 "Experimental"
 import ok, err from require "aka.outcome"
@@ -95,10 +101,11 @@ main = (sub, sel, act) ->
     for i = #sel,1,-1
         aegisub.progress.task "Unwhitening Dialogue #{#sel - i + 1}/#{#sel}"
         aegisub.progress.set (#sel - i + 1) / #sel
+        if aegisub.progress.is_cancelled! then aegisub.cancel!
         new_sel, new_act, extra_data = unwhite_dialogue.run sub, { sel[i] }, act, config, extra_data
         for j = 1,#return_sel
             return_sel[j] = return_sel[j] + #new_sel - 1
-        for j in 1,#new_sel
+        for j = 1,#new_sel
             table.insert return_sel, new_sel[j]
         if return_act
             return_act = return_act + #new_sel - 1

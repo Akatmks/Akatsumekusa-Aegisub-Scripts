@@ -96,6 +96,7 @@ config_methods.edit_config = function(self, config_string, error)
         error = error
             :mapOr({}, function(error) return
                 re.split(error, "\n") end)
+            :unwrap()
         dialog = { { class = "label",                           x = 0, y = 0, width = self.width,
                                                                 label = (config_string:isSome() and "𝗘𝗱𝗶𝘁" or "𝗖𝗿𝗲𝗮𝘁𝗲") .. " 𝗖𝗼𝗻𝗳𝗶𝗴 𝗳𝗼𝗿 " .. self.display_name_b .. ":" },
                    { class = "textbox", name = "config_text",   x = 0, y = 1, width = self.width, height = self.height - 1,
