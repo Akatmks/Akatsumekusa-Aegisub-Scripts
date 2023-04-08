@@ -24,7 +24,7 @@
 versioning =
     name: "UnwhiteDialogue"
     description: "Automatically select shade and unwhite the dialogues"
-    version: "0.0.6"
+    version: "0.0.7"
     author: "Akatsumekusa and contributors"
     namespace: "aka.UnwhiteDialogue"
     requireModules: "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.unwhite_dialogue\" }]"
@@ -35,6 +35,7 @@ export script_author = versioning.author
 export script_version = versioning.version
 export script_namespace = versioning.namespace
 
+hasDepCtrl, DepCtrl = pcall require, "l0.DependencyControl"
 if hasDepCtrl
     DepCtrl = DepCtrl {
         name: versioning.name,

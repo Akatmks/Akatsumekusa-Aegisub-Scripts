@@ -24,7 +24,7 @@
 versioning =
     name: "BoundingBox"
     description: "Create a clip of the bounding box of the subtitle line"
-    version: "0.0.3"
+    version: "0.0.4"
     author: "Akatsumekusa and contributors"
     namespace: "aka.BoundingBox"
     requireModules: "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"SubInspector.Inspector\" }, { \"moduleName\": \"aka.outcome\" }]"
@@ -35,6 +35,7 @@ export script_author = versioning.author
 export script_version = versioning.version
 export script_namespace = versioning.namespace
 
+hasDepCtrl, DepCtrl = pcall require, "l0.DependencyControl"
 if hasDepCtrl
     DepCtrl = DepCtrl {
         name: versioning.name,

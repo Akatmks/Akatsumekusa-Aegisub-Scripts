@@ -105,10 +105,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}/macros/aka.BoundingBox.moon",
-                            "sha1": "a5a4571e551cf1daeabf90a3fa6a144285811426"
+                            "sha1": "c1faa16cf4c1e0d86f5cfd9dd0c44e5bc5169460"
                         }
                     ],
-                    "version": "0.0.3",
+                    "version": "0.0.4",
                     "default": true,
                     "requireModules": [
                         {
@@ -171,10 +171,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}/macros/aka.UnwhiteDialogue.moon",
-                            "sha1": "264e1e6c04cbd0583aa20d61030d3ef6a240f04b"
+                            "sha1": "cb845cf4c90d56a84023cd89f5ecfa233b3cc4f1"
                         }
                     ],
-                    "version": "0.0.6",
+                    "version": "0.0.7",
                     "default": true,
                     "requireModules": [
                         {
