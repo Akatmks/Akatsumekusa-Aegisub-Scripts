@@ -538,10 +538,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
-                            "sha1": "951bf4dbb3efa03f4faa592d320f86422985f791"
+                            "sha1": "3803a4ee9e7da94b3c924f0ce2911e6b5491d554"
                         }
                     ],
-                    "version": "0.2.2",
+                    "version": "0.2.3",
                     "default": true,
                     "requireModules": [
                         {
@@ -551,7 +551,7 @@
                             "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-03-30"
+                    "released": "2023-04-08"
                 }
             },
             "author": "Akatsumekusa and contributors",

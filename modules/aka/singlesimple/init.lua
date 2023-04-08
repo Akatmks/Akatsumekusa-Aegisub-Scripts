@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "0.2.2"
+versioning.version = "0.2.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
@@ -92,7 +92,7 @@ make_config = function(config, config_supp, possible_values, default_value)
         :andThen(function(config)
             if type(possible_values) == "table" then
                 for _, v in ipairs(possible_values) do
-                    if config[1] == possible_values then
+                    if config[1] == v then
                         return ok(config[1])
                 end end
             else -- type(possible_values) == "string" then
