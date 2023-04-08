@@ -1,4 +1,4 @@
--- aka.UnwhiteDialogue.lua
+-- aka.UnwhiteDialogue.moon
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -24,7 +24,7 @@
 versioning =
     name: "UnwhiteDialogue"
     description: "Automatically select shade and unwhite the dialogues"
-    version: "0.0.5"
+    version: "0.0.6"
     author: "Akatsumekusa and contributors"
     namespace: "aka.UnwhiteDialogue"
     requireModules: "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.unwhite_dialogue\" }]"

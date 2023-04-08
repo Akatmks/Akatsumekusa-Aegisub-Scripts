@@ -98,6 +98,37 @@
             "description": "Backup selected lines",
             "url": "@{baseUrl}"
         },
+        "aka.BoundingBox": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".moon",
+                            "url": "@{fileBaseUrl}/macros/aka.BoundingBox.moon",
+                            "sha1": "f25ade5427957afc353dc96e54a382228d97cabc"
+                        }
+                    ],
+                    "version": "0.0.2",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ILL.ILL"
+                        },
+                        {
+                            "moduleName": "SubInspector.Inspector"
+                        },
+                        {
+                            "moduleName": "ala.outcome"
+                        }
+                    ],
+                    "released": "2023-04-08"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "BoundingBox",
+            "description": "Create a clip of the bounding box of the subtitle line",
+            "url": "@{baseUrl}"
+        },
         "aka.Cycles": {
             "channels": {
                 "dev": {
@@ -140,10 +171,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}/macros/aka.UnwhiteDialogue.moon",
-                            "sha1": "5dd2d37087070bc1036ffdeee5ae474448be72a7"
+                            "sha1": "264e1e6c04cbd0583aa20d61030d3ef6a240f04b"
                         }
                     ],
-                    "version": "0.0.5",
+                    "version": "0.0.6",
                     "default": true,
                     "requireModules": [
                         {
@@ -156,7 +187,7 @@
                             "moduleName": "aka.unwhite_dialogue"
                         }
                     ],
-                    "released": "2023-04-07"
+                    "released": "2023-04-08"
                 }
             },
             "author": "Akatsumekusa and contributors",
