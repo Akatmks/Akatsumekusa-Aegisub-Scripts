@@ -24,7 +24,7 @@
 versioning =
     name: "BoundingBox"
     description: "Create a clip of the bounding box of the subtitle line"
-    version: "0.0.4"
+    version: "0.0.5"
     author: "Akatsumekusa and contributors"
     namespace: "aka.BoundingBox"
     requireModules: "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"SubInspector.Inspector\" }, { \"moduleName\": \"aka.outcome\" }]"
@@ -60,7 +60,7 @@ import o from require "aka.outcome"
 text_extents_main = (sub, sel, act) ->
     ass = Ass sub, sel, activeLine
 
-    for l, line, s, i, n in ass\iterSel!
+    for l, line, s, i, n in ass\iterSel true
         ass\progressLine s, i, n
         Line.process ass, line
         with line

@@ -105,10 +105,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}/macros/aka.BoundingBox.moon",
-                            "sha1": "c1faa16cf4c1e0d86f5cfd9dd0c44e5bc5169460"
+                            "sha1": "0667a3a33280cd28a72802aadbe908ea504cc0cb"
                         }
                     ],
-                    "version": "0.0.4",
+                    "version": "0.0.5",
                     "default": true,
                     "requireModules": [
                         {
