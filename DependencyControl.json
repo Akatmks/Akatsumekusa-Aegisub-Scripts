@@ -105,10 +105,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}/macros/aka.BoundingBox.moon",
-                            "sha1": "f25ade5427957afc353dc96e54a382228d97cabc"
+                            "sha1": "a5a4571e551cf1daeabf90a3fa6a144285811426"
                         }
                     ],
-                    "version": "0.0.2",
+                    "version": "0.0.3",
                     "default": true,
                     "requireModules": [
                         {
@@ -118,7 +118,7 @@
                             "moduleName": "SubInspector.Inspector"
                         },
                         {
-                            "moduleName": "ala.outcome"
+                            "moduleName": "aka.outcome"
                         }
                     ],
                     "released": "2023-04-08"

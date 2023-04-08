@@ -24,10 +24,10 @@
 versioning =
     name: "BoundingBox"
     description: "Create a clip of the bounding box of the subtitle line"
-    version: "0.0.2"
+    version: "0.0.3"
     author: "Akatsumekusa and contributors"
     namespace: "aka.BoundingBox"
-    requireModules: "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"SubInspector.Inspector\" }, { \"moduleName\": \"ala.outcome\" }]"
+    requireModules: "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"SubInspector.Inspector\" }, { \"moduleName\": \"aka.outcome\" }]"
 
 export script_name = versioning.name
 export script_description = versioning.description
