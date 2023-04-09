@@ -24,7 +24,7 @@
 versioning =
     name: "BoundingBox"
     description: "Create a clip of the bounding box of the subtitle line"
-    version: "0.0.5"
+    version: "0.0.6"
     author: "Akatsumekusa and contributors"
     namespace: "aka.BoundingBox"
     requireModules: "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"SubInspector.Inspector\" }, { \"moduleName\": \"aka.outcome\" }]"
@@ -62,18 +62,18 @@ text_extents_main = (sub, sel, act) ->
 
     for l, line, s, i, n in ass\iterSel true
         ass\progressLine s, i, n
-        Line.process ass, line
+        Line.extend ass, line, i
         with line
             { px, py } = .data.pos
             ox = switch .data.an
                 when 1, 4, 7 then px
-                when 2, 5, 8 then px - .width / 2
-                when 3, 6, 9 then px - .width
+                when 2, 5, 8 then px - .lines.width / 2
+                when 3, 6, 9 then px - .lines.width
             oy = switch .data.an
                 when 7, 8, 9 then py
-                when 4, 5, 6 then py - .height / 2
-                when 1, 2, 3 then py - .height
-            .tags\insert { { "clip", { ox, oy, ox + .width, oy + .height } } }
+                when 4, 5, 6 then py - .lines.height / 2
+                when 1, 2, 3 then py - .lines.height
+            .tags\insert { { "clip", { ox, oy, ox + .lines.width, oy + .lines.height } } }
         ass\setLine line, s, true
 
     return ass\getNewSelection!
@@ -82,7 +82,7 @@ inspector_main = (sub, sel, act) ->
     ass = Ass sub, sel, activeLine
     inspector = o(Inspector sub)\unwrap!
 
-    for l, line, s, i, n in ass\iterSel!
+    for l, line, s, i, n in ass\iterSel! true
         ass\progressLine s, i, n
         Line.process ass, line
         bounds = o(inspector\getBounds { l })\unwrap![1][1]

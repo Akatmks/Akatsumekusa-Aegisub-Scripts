@@ -105,10 +105,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}/macros/aka.BoundingBox.moon",
-                            "sha1": "0667a3a33280cd28a72802aadbe908ea504cc0cb"
+                            "sha1": "d81c05a372d3be1403ce2a3ca357708e216d8638"
                         }
                     ],
-                    "version": "0.0.5",
+                    "version": "0.0.6",
                     "default": true,
                     "requireModules": [
                         {
@@ -121,7 +121,7 @@
                             "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-04-08"
+                    "released": "2023-04-09"
                 }
             },
             "author": "Akatsumekusa and contributors",
