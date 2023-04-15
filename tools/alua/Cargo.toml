@@ -11,5 +11,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["ansi_color_code"]
+ansi_color_code = []
+
 [dependencies]
 clap = { version = "4.2.1", features = ["derive"] }
