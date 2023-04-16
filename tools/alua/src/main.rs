@@ -25,6 +25,7 @@ use std::ffi::OsStr;
 use std::fs;
 use std::path::PathBuf;
 use std::process;
+use shellexpand;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -38,8 +39,25 @@ struct Cli {
 
 fn main() {
     let mut cli = Cli::parse();
+    cli.file = match shellexpand::path::full(&cli.file) {
+        Ok(path) => path.into_owned(),
+        Err(msg) => {
+            eprintln!("\x1b[31;1m[alua]\x1b[0m Failed to expand the input file '\x1b[33m{}\x1b[0m':", cli.file.to_string_lossy());
+            eprintln!("\x1b[31;1m[alua]\x1b[0m {}.", msg);
+            process::exit(1);
+        }
+    };
     cli.output = match cli.output {
-        Some(path) => Some(path),
+        Some(path) => {
+            match shellexpand::path::full(&path) {
+                Ok(expand) => Some(expand.into_owned()),
+                Err(msg) => {
+                    eprintln!("\x1b[31;1m[alua]\x1b[0m Failed to expand the input file '\x1b[33m{}\x1b[0m':", cli.file.to_string_lossy());
+                    eprintln!("\x1b[31;1m[alua]\x1b[0m {}.", msg);
+                    process::exit(1);
+                }
+            }
+        },
         None => {
             let mut p = cli.file.clone();
             if let Some("lua") = p.extension().and_then(OsStr::to_str) {

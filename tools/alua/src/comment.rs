@@ -19,6 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#[derive(Debug)]
 pub enum State {
     Regular,
     Commented,
@@ -27,6 +28,7 @@ pub enum State {
     Bracketed
 }
 
+#[derive(Debug)]
 pub enum CharOfInterest {
     NotInterested,
     Hyphen,
