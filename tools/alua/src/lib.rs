@@ -19,80 +19,74 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use std::borrow::Cow;
-
+use lazy_static::lazy_static;
+use regex::Regex;
 mod comment;
 
+lazy_static! {
+    static ref RE_RETURN: Regex = Regex::new(r"(?:^|[\W])return(?:$|[\W])").unwrap();
+}
+
 /// Process the alua string into vanilla lua string.
-pub fn process<'a>(content: &'a str) -> Result<Cow<'a, str>, Vec<String>> {
-    if let Some(first) = find_closure(&content, &0)? {
-        let mut output = String::with_capacity(content.len() * 6 / 5);
-        Ok(Cow::Owned(output))
-    } else {
-        Ok(Cow::Borrowed(content))
+pub fn process(content: &str) -> Result<String, Vec<String>> {
+    let mut output = String::with_capacity(content.len() * 5 / 4);
+    let mut head: usize = 0;
+
+    while head < content.len() {
+        head = process_closure(&content, &head, &mut output)?;
     }
+    Ok(output)
 }
 
-struct Closure {
-    start_braket: usize,
-    first_pipe: usize,
-    second_pipe: usize,
-    end_bracket: usize
-}
+/// Find the first closure starting from start.
+fn process_closure(content: &str, start: &usize, output: &mut String) -> Result<usize, Vec<String>> {
+    let mut comment_state = comment::State::Regular;
+    let mut previous_char = comment::CharOfInterest::NotInterested;
 
-/// Find closure starting from position.
-fn find_closure(content: &str, start: &usize) -> Result<Option<Vec<Closure>>, Vec<String>> {
-    let mut state = comment::State::Regular;
-    let mut last_interested_char = comment::CharOfInterest::NotInterested;
-
-    // last_left_bracket logged whether there is a left parenthesis immediately before the current
-    // char. '(' section sets it to true, while all other sections except ' ' | '\n' | '\r' | '\t'
-    // section set it to false.
-    let mut last_left_bracket: Option<usize> = None;
-    // dashed is a special situation for the last_left_bracket. A comment shouldn't set
-    // last_left_bracket to false, and there needs to be a way to differentiate the first dash of a
-    // comment and a regular subtraction operator. The first time we encounter a dash in
-    // State::Regular, we set dashed to true. If we encounter a pipe immediately afterwards, this
-    // will set last_left_bracket to false. If we instead encounter other characters or a Commented
-    // section immediately afterwards, this will set dashed to false.
-    let mut dashed = false;
-
-    let mut start_braket: Option<usize> = None;
+    let mut last_left_parenthesis: Option<usize> = None;
+    let mut since_last_left_parenthesis = String::new();
+    let mut start_parenthesis: Option<usize> = None;
     let mut first_pipe: Option<usize> = None;
-    let mut second_pipe: Option<usize> = None;
-    let mut end_bracket: Option<usize> = None;
-
     let mut level: Option<usize> = None;
+    let mut second_pipe: Option<usize> = None;
+    let mut return_position: Option<usize> = None;
+    let mut since_return_position = String::new();
+    let mut end_parenthesis: Option<usize> = None;
 
-    let mut return_vec: Vec<Closure> = Vec::new();
-
-    let mut it = content.char_indices();
+    let mut it = content.char_indices().peekable();
     while let Some((i, c)) = it.next() {
         if i < *start {
             continue;
         }
 
-        comment::check_comment(&c, &mut state, &mut last_interested_char);
-        match state {
+        comment::check_comment(&mut it, &c, &mut comment_state, &mut previous_char)?;
+        match comment_state {
             comment::State::Regular => {
                 match c {
                     '(' => {
-                        last_left_bracket = Some(i);
+                        if let Some(_) = last_left_parenthesis {
+                            output.push_str(&since_last_left_parenthesis);
+                            since_last_left_parenthesis.clear();
+                        }
+                        last_left_parenthesis = Some(i);
+                        since_last_left_parenthesis.push(c);
+                        if let Some(_) = return_position { since_return_position.push_str(&since_last_left_parenthesis); }
+
                         level = match level {
                             Some(l) => Some(l + 1),
                             None => None
                         };
-                        dashed = false;
                     },
                     '|' => {
                         if let None = first_pipe {
-                            if dashed {
-                                last_left_bracket = None;
-                            }
-                            if let Some(l) = last_left_bracket {
-                                start_braket = Some(l);
+                            if let Some(l) = last_left_parenthesis {
+                                start_parenthesis = Some(l);
                                 first_pipe = Some(i);
                                 level = Some(0);
+
+                                output.push_str(&since_last_left_parenthesis);
+                                last_left_parenthesis = None; since_last_left_parenthesis.clear();
+                                output.push_str("function(");
                             } else {
                                 return Err(vec![format!("A pipe character '{orange}|{reset}' is found on line {linen}, but there is no parenthesis '{green}({reset}' immediately before the pipe character.",
                                                         linen = content[..i+1].lines().count(), // Because we know it is a pipe character at that position, it's safe to do +1
@@ -104,18 +98,36 @@ fn find_closure(content: &str, start: &usize) -> Result<Option<Vec<Closure>>, Ve
                         } else if let None = second_pipe {
                             if let Some(0) = level {
                                 second_pipe = Some(i);
+
+                                if let Some(_) = last_left_parenthesis {
+                                    output.push_str(&since_last_left_parenthesis);
+                                    last_left_parenthesis = None; since_last_left_parenthesis.clear();
+                                }
+                                output.push(')');
+
+                                return_position = Some(output.len());
                             } else {
-                                match find_closure(&content, last_left_bracket.as_ref().unwrap_or(&i)) {
-                                    Ok(result) => {
-                                        let result = result.unwrap();
-                                        while { let (j, _) = it.next().unwrap(); j < result[0].end_bracket } {}
+                                match process_closure(content, last_left_parenthesis.as_ref().unwrap_or(&i), output) {
+                                    Ok(end) => {
+                                        while {
+                                            it.next();
+                                            if let Some((j, _)) = it.peek() {
+                                               *j < end
+                                            } else {
+                                                false
+                                            }
+                                        } {}
+
+                                        if let Some(_) = last_left_parenthesis {
+                                            last_left_parenthesis = None; since_last_left_parenthesis.clear();
+                                        }
+
                                         level = match level {
                                             Some(l) => Some(l - 1),
                                             None => {
                                                 panic!();
                                             }
                                         };
-                                        return_vec.extend(result);
                                     },
                                     Err(mut msg) => {
                                         msg.push(format!("{grey}Traceback: closure starting from line {linen} is a nested closure inside closure starting from line {prev_linen}.{reset}",
@@ -137,17 +149,27 @@ fn find_closure(content: &str, start: &usize) -> Result<Option<Vec<Closure>>, Ve
                                                         reset = if cfg!(feature = "ansi_color_code") { "\x1b[0m" } else { "" }),
                                                 "A pair of parenthesis is required around the alua closure to mark where it starts and ends.".to_string()]);
                             } else {
-                                match find_closure(&content, last_left_bracket.as_ref().unwrap_or(&i)) {
-                                    Ok(result) => {
-                                        let result = result.unwrap();
-                                        while { let (j, _) = it.next().unwrap(); j < result[0].end_bracket } {}
+                                match process_closure(content, last_left_parenthesis.as_ref().unwrap_or(&i), output) {
+                                    Ok(end) => {
+                                        while {
+                                            it.next();
+                                            if let Some((j, _)) = it.peek() {
+                                                *j < end
+                                            } else {
+                                                false
+                                            }
+                                        } {}
+
+                                        if let Some(_) = last_left_parenthesis {
+                                            last_left_parenthesis = None; since_last_left_parenthesis.clear();
+                                        }
+
                                         level = match level {
                                             Some(l) => Some(l - 1),
                                             None => {
                                                 panic!();
                                             }
                                         };
-                                        return_vec.extend(result);
                                     },
                                     Err(mut msg) => {
                                         msg.push(format!("{grey}Traceback: closure starting from line {linen} is a nested closure inside closure starting from line {prev_linen}.{reset}",
@@ -160,55 +182,103 @@ fn find_closure(content: &str, start: &usize) -> Result<Option<Vec<Closure>>, Ve
                                 }
                             }
                         }
-                        dashed = false;
-                        last_left_bracket = None;
                     },
                     ')' => {
                         if let Some(0) = level {
                             if let None = second_pipe {
-                                return Err(vec![format!("Between the left parenthesis '{orange}({reset}' on line {start_braket_linen} and the pairing right parenthesis '{orange}){reset}' on line {linen}, a pipe character '{orange}|{reset}' is found on line {first_pipe_linen} immediately after the left parenthesis, indicating the start of the closure's parameter list, but a second pipe character could not be found before the end of the closure to mark the end of the closure's parameter list.",
+                                return Err(vec![format!("Between the left parenthesis '{orange}({reset}' on line {start_parenthesis_linen} and the pairing right parenthesis '{orange}){reset}' on line {linen}, a pipe character '{orange}|{reset}' is found on line {first_pipe_linen} immediately after the left parenthesis, indicating the start of the closure's parameter list, but a second pipe character could not be found before the end of the closure to mark the end of the closure's parameter list.",
                                                         linen = content[..i+1].lines().count(),
                                                         first_pipe_linen = content[..first_pipe.unwrap()+1].lines().count(),
-                                                        start_braket_linen = content[..start_braket.unwrap()+1].lines().count(),
+                                                        start_parenthesis_linen = content[..start_parenthesis.unwrap()+1].lines().count(),
                                                         orange = if cfg!(feature = "ansi_color_code") { "\x1b[33m" } else { "" },
                                                         reset = if cfg!(feature = "ansi_color_code") { "\x1b[0m" } else { "" })]);
                             } else {
-                                end_bracket = Some(i);
-                                return_vec.push(Closure {
-                                    start_braket: start_braket.unwrap(),
-                                    first_pipe: first_pipe.unwrap(),
-                                    second_pipe: second_pipe.unwrap(),
-                                    end_bracket: end_bracket.unwrap()
-                                });
-                                return Ok(Some(return_vec));
+                                end_parenthesis = Some(i);
+
+                                if let Some(_) = last_left_parenthesis {
+                                    output.push_str(&since_last_left_parenthesis);
+                                    last_left_parenthesis = None; since_last_left_parenthesis.clear();
+                                }
+                                output.push_str(" end)");
+                                since_return_position.push_str(" end)");
+                                if !RE_RETURN.is_match(&since_return_position) {
+                                    output.insert_str(return_position.unwrap(), " return");
+                                }
                             }
                         } else {
+                            if let Some(_) = last_left_parenthesis {
+                                output.push_str(&since_last_left_parenthesis);
+                                last_left_parenthesis = None; since_last_left_parenthesis.clear();
+                            }
+                            output.push(')');
+                            if let Some(_) = return_position { since_return_position.push(')'); }
+
                             level = match level {
                                 Some(l) => Some(l - 1),
                                 None => None
                             }
                         }
-                        dashed = false;
-                        last_left_bracket = None;
                     },
-                    ' ' | '\n' | '\r' | '\t' => (),
-                    '-' => {
-                        dashed = true;
+                    ' ' | '\n' | '\r' | '\t' => {
+                        if let Some(_) = last_left_parenthesis {
+                            since_last_left_parenthesis.push(c);
+                        } else {
+                            output.push(c);
+                        }
+                        if let Some(_) = return_position { since_return_position.push(c) };
                     },
                     _ => {
-                        dashed = false;
-                        last_left_bracket = None;
+                        if let Some(_) = last_left_parenthesis {
+                            output.push_str(&since_last_left_parenthesis);
+                            last_left_parenthesis = None; since_last_left_parenthesis.clear();
+                        }
+                        output.push(c);
+                        if let Some(_) = return_position { since_return_position.push(c) };
                     }
                 }
             },
-            comment::State::Commented => {
-                if dashed {
-                    dashed = false;
+            comment::State::Commented | comment::State::BracketCommented => {
+                if let Some(_) = last_left_parenthesis {
+                    since_last_left_parenthesis.push(c);
+                } else {
+                    output.push(c);
                 }
-            },
-            _ => ()
+            }
+            _ => {
+                if let Some(_) = last_left_parenthesis {
+                    output.push_str(&since_last_left_parenthesis);
+                    last_left_parenthesis = None; since_last_left_parenthesis.clear();
+                }
+;                output.push(c);
+            }
         }
-    }
-    Ok(None)
-}
 
+        if let Some(_) = end_parenthesis {
+            if let Some((j, _)) = it.peek() {
+                return Ok(*j);
+            }
+        }
+
+    }
+    
+    if let Some(_) = end_parenthesis {
+        Ok(content.len())
+    } else if let Some(_) = second_pipe {
+        Err(vec![format!("A pipe character '{orange}|{reset}' is found on line {first_pipe_linen} immediately after a left parenthesis '{orange}({reset}' on line {start_parenthesis_linen}, indicating the start of a closure. The pairing pipe character is found on line {second_pipe_linen}, but the pairing right parenthesis '{green}){reset}' could not be found before end of file.",
+                         start_parenthesis_linen = content[..start_parenthesis.unwrap()+1].lines().count(),
+                         first_pipe_linen = content[..first_pipe.unwrap()+1].lines().count(),
+                         second_pipe_linen = content[..second_pipe.unwrap()+1].lines().count(),
+                         orange = if cfg!(feature = "ansi_color_code") { "\x1b[33m" } else { "" },
+                         green = if cfg!(feature = "ansi_color_code") { "\x1b[32m" } else { "" },
+                         reset = if cfg!(feature = "ansi_color_code") { "\x1b[0m" } else { "" })])
+    } else if let Some(_) = first_pipe {
+        Err(vec![format!("A pipe character '{orange}|{reset}' is found on line {first_pipe_linen} immediately after a left parenthesis '{orange}({reset}' on line {start_parenthesis_linen}, indicating the start of a closure, but the pairing pipe character and right parenthesis '{green}){reset}' could not be found before end of file.",
+                         start_parenthesis_linen = content[..start_parenthesis.unwrap()+1].lines().count(), // Because we know it is a pipe character at that position, it's safe to do +1
+                         first_pipe_linen = content[..first_pipe.unwrap()+1].lines().count(),
+                         orange = if cfg!(feature = "ansi_color_code") { "\x1b[33m" } else { "" },
+                         green = if cfg!(feature = "ansi_color_code") { "\x1b[32m" } else { "" },
+                         reset = if cfg!(feature = "ansi_color_code") { "\x1b[0m" } else { "" })])
+    } else {
+        Ok(content.len())
+    }
+}

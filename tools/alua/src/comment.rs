@@ -19,95 +19,96 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#[derive(Debug)]
+use std::iter::Peekable;
+use std::str::CharIndices;
+
 pub enum State {
     Regular,
     Commented,
     SingleQuoted,
     DoubleQuoted,
-    Bracketed
+    Bracketed,
+    BracketCommented
 }
 
-#[derive(Debug)]
 pub enum CharOfInterest {
     NotInterested,
-    Hyphen,
-    LeftSquareBracket,
+    FirstHyphen,
+    SecondHyphen,
     RightSquareBracket,
     Escape
 }
 
 #[inline]
-pub fn check_comment(c: &char, state: &mut State, last_interested_char: &mut CharOfInterest) {
+pub fn check_comment(it: &mut Peekable<CharIndices>, c: &char, state: &mut State, previous_char: &mut CharOfInterest) -> Result<(), Vec<String>> {
     match c {
         '-' => {
             match state {
                 State::Regular => {
-                    match last_interested_char {
-                        CharOfInterest::Hyphen => {
-                            *state = State::Commented;
+                    if let Some((_, '-')) = it.peek() {
+                        *state = State::Commented;
+                        *previous_char = CharOfInterest::FirstHyphen;
+                    } else {
+                        *previous_char = CharOfInterest::NotInterested;
+                    }
+                },
+                State::Commented => {
+                    *previous_char = match previous_char {
+                        CharOfInterest::FirstHyphen => {
+                            CharOfInterest::SecondHyphen
                         },
                         _ => {
-                            *last_interested_char = CharOfInterest::Hyphen
+                            CharOfInterest::NotInterested
                         }
                     }
                 },
                 _ => {
-                    *last_interested_char = CharOfInterest::NotInterested;
+                    *previous_char = CharOfInterest::NotInterested;
                 }
             }
         },
         '[' => {
             match state {
                 State::Regular => {
-                    match last_interested_char {
-                        CharOfInterest::LeftSquareBracket => {
-                            *state = State::Bracketed;
-                        },
-                        _ => {
-                            *last_interested_char = CharOfInterest::LeftSquareBracket;
-                        }
+                    if let Some((_, '[')) = it.peek() {
+                        *state = State::Bracketed;
                     }
                 },
                 State::Commented => {
-                    match last_interested_char {
-                        CharOfInterest::Hyphen => {
-                            *last_interested_char = CharOfInterest::LeftSquareBracket;
-                        },
-                        CharOfInterest::LeftSquareBracket => {
-                            *state = State::Bracketed;
-                        },
-                        _ => {
-                            *last_interested_char = CharOfInterest::NotInterested;
-                        }
+                    if matches!(previous_char, CharOfInterest::SecondHyphen) {
+                        *state = State::BracketCommented;
                     }
                 },
-                _ => {
-                    *last_interested_char = CharOfInterest::NotInterested;
-                }
+                _ => ()
             }
+            *previous_char = CharOfInterest::NotInterested;
         },
         ']' => {
             match state {
-                State::Bracketed => {
-                    match last_interested_char {
+                State::Bracketed | State::BracketCommented => {
+                    match previous_char {
                         CharOfInterest::RightSquareBracket => {
                             *state = State::Regular;
+                            *previous_char = CharOfInterest::NotInterested;
                         },
                         _ => {
-                            *last_interested_char = CharOfInterest::RightSquareBracket;
+                            if let Some((_, ']')) = it.peek() {
+                                *previous_char = CharOfInterest::RightSquareBracket;
+                            } else {
+                                *previous_char = CharOfInterest::NotInterested
+                            };
                         }
                     }
                 },
                 _ => {
-                    *last_interested_char = CharOfInterest::NotInterested;
+                    *previous_char = CharOfInterest::NotInterested;
                 }
             }
         },
         '\'' => {
             match state {
                 State::SingleQuoted => {
-                    match last_interested_char {
+                    match previous_char {
                         CharOfInterest::Escape => (),
                         _ => {
                             *state = State::Regular;
@@ -119,12 +120,12 @@ pub fn check_comment(c: &char, state: &mut State, last_interested_char: &mut Cha
                 },
                 _ => ()
             }
-            *last_interested_char = CharOfInterest::NotInterested;
+            *previous_char = CharOfInterest::NotInterested;
         },
         '"' => {
             match state {
                 State::DoubleQuoted => {
-                    match last_interested_char {
+                    match previous_char {
                         CharOfInterest::Escape => (),
                         _ => {
                             *state = State::Regular;
@@ -136,22 +137,22 @@ pub fn check_comment(c: &char, state: &mut State, last_interested_char: &mut Cha
                 },
                 _ => ()
             }
-            *last_interested_char = CharOfInterest::NotInterested;
+            *previous_char = CharOfInterest::NotInterested;
         }
         '\\' => {
             match state {
                 State::SingleQuoted | State::DoubleQuoted => {
-                    match last_interested_char {
+                    *previous_char = match previous_char {
                         CharOfInterest::Escape => {
-                            *last_interested_char = CharOfInterest::NotInterested;
+                            CharOfInterest::NotInterested
                         },
                         _ => {
-                            *last_interested_char = CharOfInterest::Escape;
+                            CharOfInterest::Escape
                         }
                     }
                 },
                 _ => {
-                    *last_interested_char = CharOfInterest::NotInterested;
+                    *previous_char = CharOfInterest::NotInterested;
                 }
             }
         }
@@ -162,10 +163,12 @@ pub fn check_comment(c: &char, state: &mut State, last_interested_char: &mut Cha
                 },
                 _ => ()
             }
-            *last_interested_char = CharOfInterest::NotInterested;
+            *previous_char = CharOfInterest::NotInterested;
         },
         _ => {
-            *last_interested_char = CharOfInterest::NotInterested;
+            *previous_char = CharOfInterest::NotInterested;
         }
     }
+
+    Ok(())
 }

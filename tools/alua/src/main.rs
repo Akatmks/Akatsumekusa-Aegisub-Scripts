@@ -89,7 +89,7 @@ fn main() {
         }
     };
 
-    if let Err(msg) = fs::write(&cli.output.as_ref().unwrap(), content.as_ref()) {
+    if let Err(msg) = fs::write(&cli.output.as_ref().unwrap(), content) {
         eprintln!("\x1b[31;1m[alua]\x1b[0m Failed to write to the output file '\x1b[33m{}\x1b[0m':", cli.output.as_ref().unwrap().to_string_lossy());
         eprintln!("\x1b[31;1m[alua]\x1b[0m {}.", msg);
         process::exit(1);
