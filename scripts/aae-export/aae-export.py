@@ -134,9 +134,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                          default=False,
                                          update=_do_smoothing_update)
                                          
-    smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
-                                                              description="Generates position data, scale data, rotation data and Power Pin data over the whole length of each section, even if the track or plane track is not enabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the track is not enabled.\n\nIf you don't want AAE Export to generate any data over a section, you can check the „Null section“ option below to disable a section.\nIf every frame in a section, including the start and the end frame shared with neighbouring sections is empty, no data will be generated from the section as well",
-                                                              default=False)
     smoothing_section_blending: bpy.props.EnumProperty(name="Section Blending",
                                                        items=(("SHIFT", "Shift", "Shift the whole section until sections match up at the boundary.\nThe amount each section is shifted is proportional to the number of frames in each section"),
                                                               ("LINEAR", "Rolling Average", "bucket3432's rolling average method ease the transition at boundaries near linearly"),
@@ -154,9 +151,9 @@ define(<<SMOOTHING_SETTINGS_BASE>>, <<dnl START_FRAME_UPDATE <<OPTIONAL>>, END_F
                                      default=0<<>>ifelse(<<$2>>, <<>>, <<>>, <<,>>)
                                      ifelse(<<$2>>, <<>>, <<>>, <<update=$2>>))
 
-    null_section: bpy.props.BoolProperty(name="Null section",
-                                         description="Ignore the section and don't export anything from the section",
-                                         default=False)
+    disable_section: bpy.props.BoolProperty(name="Disable section",
+                                            description="Ignore the section and don't export anything for the section",
+                                            default=False)
 
     smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
@@ -164,6 +161,10 @@ define(<<SMOOTHING_SETTINGS_BASE>>, <<dnl START_FRAME_UPDATE <<OPTIONAL>>, END_F
     smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
                                                           description="Use different regression model for position, scale, rotation and Power Pin data",
                                                           default=False)
+                                                          
+    smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
+                                                  description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the section, even if the track or plane track is not enabled on some of the frames.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the track is not enabled.\n\nIf you don't want AAE Export to generate any data over a section, you can check the „Disable section“ option in the „Section Settings“ frame above to disable a section",
+                                                  default=False)
 >>)
 
 define(<<SMOOTHING_SETTINGS_SETTINGS>>, <<dnl CODE_NAME, DISPLAY_NAME, XY_NAME <<OPTIONAL>>, DEFAULT_DEGREE
@@ -421,24 +422,30 @@ class AAEExportExportAll(bpy.types.Operator):
     def execute(self, context):
         clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings = context.edit_movieclip.AAEExportSettingsSectionL
 
         for track in clip.tracking.tracks:
-            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, settings), None, settings.do_do_not_overwrite)
+            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, settings, clip_settings, section_settings), None, settings.do_do_not_overwrite)
 
         for plane_track in clip.tracking.plane_tracks:
-            AAEExportExportAll._export_to_file(clip, plane_track, AAEExportExportAll._generate(clip, plane_track, settings), None, settings.do_do_not_overwrite)
+            AAEExportExportAll._export_to_file(clip, plane_track, AAEExportExportAll._generate(clip, plane_track, settings, clip_settings, section_settings), None, settings.do_do_not_overwrite)
         
         return { "FINISHED" }
 
     @staticmethod
-    def _generate(clip, track, settings):
+    def _generate(clip, track, settings, clip_settings, section_settings):
         """
         Parameters
         ----------
         clip : bpy.types.MovieClip
         track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        settings : AAEExportSettings or None
+        settings : AAEExportSettings
             AAEExportSettings.
+        clip_settings : AAEExportSettingsClip
+            AAEExportSettingsClip.
+        section_settings : AAEExportSettingsSectionL
+            AAEExportSettingsSectionL.
 
         Returns
         -------
@@ -454,44 +461,19 @@ class AAEExportExportAll(bpy.types.Operator):
                 = AAEExportExportAll._prepare_data( \
                       clip, track, ratio)
 
-            if settings.do_smoothing:
-                position \
-                    = AAEExportExportAll._smoothing( \
-                          position, \
-                          settings.smoothing_do_position, settings.smoothing_do_predictive_smoothing, \
-                          settings.smoothing_position_degree, \
-                          settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
-
-                scale \
-                    = AAEExportExportAll._smoothing( \
-                          scale, \
-                          settings.smoothing_do_scale, settings.smoothing_do_predictive_smoothing, \
-                          settings.smoothing_scale_degree, \
-                          settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
-
+            if clip_settings.do_smoothing:
                 rotation \
                     = AAEExportExportAll._unlimit_rotation( \
                           semilimited_rotation)
-                
-                rotation \
-                    = AAEExportExportAll._smoothing( \
-                          rotation, \
-                          settings.smoothing_do_rotation, settings.smoothing_do_predictive_smoothing, \
-                          settings.smoothing_rotation_degree, \
-                          settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+                position, scale, rotation, power_pin \
+                    = AAEExportExportAll._smoothing_main( \
+                          position, scale, rotation, power_pin, \
+                          settings, clip_settings, section_settings)
 
                 limited_rotation \
                     = AAEExportExportAll._limit_rotation( \
                           rotation)
-
-                for i in range(4):
-                    power_pin[i] \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[i], \
-                              settings.smoothing_do_power_pin, settings.smoothing_do_predictive_smoothing, \
-                              settings.smoothing_power_pin_degree, \
-                              settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
-
             else:
                 limited_rotation \
                     = AAEExportExportAll._limit_rotation( \
@@ -855,6 +837,60 @@ class AAEExportExportAll(bpy.types.Operator):
         import numpy as np
 
         return np.swapaxes(misshapen_power_pin.reshape((-1, 4, 2)), 0, 1)
+
+    @staticmethod
+    def _smoothing_main(position, scale, rotation, power_pin, settings, clip_settings, section_settings):
+        """
+        The main logic for smoothing.
+
+        Parameters
+        ----------
+        position : npt.NDArray[float64]
+        scale : npt.NDArray[float64]
+        rotation : npt.NDArray[float64]
+            unlimited rotation
+        power_pin : npt.NDArray[float64]
+        settings : bool
+        clip_settings : bool
+        section_settings : int
+
+        Returns
+        -------
+        position : npt.NDArray[float64]
+        scale : npt.NDArray[float64]
+        rotation : npt.NDArray[float64]
+            unlimited rotation
+        power_pin : npt.NDArray[float64]
+
+        """
+        position \
+            = AAEExportExportAll._smoothing( \
+                  position, \
+                  settings.smoothing_do_position, settings.smoothing_do_predictive_smoothing, \
+                  settings.smoothing_position_degree, \
+                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+        scale \
+            = AAEExportExportAll._smoothing( \
+                  scale, \
+                  settings.smoothing_do_scale, settings.smoothing_do_predictive_smoothing, \
+                  settings.smoothing_scale_degree, \
+                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+        rotation \
+            = AAEExportExportAll._smoothing( \
+                  rotation, \
+                  settings.smoothing_do_rotation, settings.smoothing_do_predictive_smoothing, \
+                  settings.smoothing_rotation_degree, \
+                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+        for i in range(4):
+            power_pin[i] \
+                = AAEExportExportAll._smoothing( \
+                      power_pin[i], \
+                      settings.smoothing_do_power_pin, settings.smoothing_do_predictive_smoothing, \
+                      settings.smoothing_power_pin_degree, \
+                      settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
 
     @staticmethod
     def _smoothing(data, do_smoothing, do_predictive_smoothing, degree, regressor, huber_epsilon, lasso_alpha):
@@ -1532,8 +1568,10 @@ class AAEExportCopySingleTrack(bpy.types.Operator):
     def execute(self, context):
         clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings = context.edit_movieclip.AAEExportSettingsSectionL
 
-        aae = AAEExportExportAll._generate(clip, context.selected_movieclip_tracks[0], settings)
+        aae = AAEExportExportAll._generate(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings)
         
         AAEExportExportAll._copy_to_clipboard(context, aae)
         if settings.do_also_export:
@@ -1549,11 +1587,13 @@ class AAEExportCopyPlaneTrack(bpy.types.Operator):
     def execute(self, context):
         clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings = context.edit_movieclip.AAEExportSettingsSectionL
 
         aae = None
         for plane_track in context.edit_movieclip.tracking.plane_tracks:
             if plane_track.select == True:
-                aae = AAEExportExportAll._generate(clip, plane_track, settings)
+                aae = AAEExportExportAll._generate(clip, plane_track, settings, clip_settings, section_settings)
                 break
 
         AAEExportExportAll._copy_to_clipboard(context, aae)
@@ -1697,7 +1737,6 @@ class AAEExportOptions(bpy.types.Panel):
         # column = box.column(heading="Export")
         # column.prop(settings, "do_includes_power_pin")
 
-
         box = layout.box()
         column = box.column(heading="Preference")
         column.prop(settings, "do_also_export")
@@ -1719,11 +1758,6 @@ define(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>, <<0.0>>)
 
             column = box.column(heading="Smoothing")
             column.prop(clip_settings, "do_smoothing")
-            column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
-
-            sub_column = column.column()
-            sub_column.enabled = clip_settings.do_smoothing
-            sub_column.prop(clip_settings, "smoothing_do_predictive_smoothing")
             column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
                     
             sub_column = column.column()
@@ -1774,23 +1808,28 @@ define(<<DRAW_SMOOTHING>>, <<dnl SETTINGS, ENABLED
                 sub_column.enabled = $2
                 sub_column.prop($1, "start_frame")
                 sub_column.prop($1, "end_frame")
-                sub_column.prop($1, "null_section")
+                column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
+
+                sub_column = column.column(align=True)
+                sub_column.enabled = $2
+                sub_column.prop($1, "disable_section")
+                sub_column.prop($1, "smoothing_extrapolate", text="Extrapolate section")
                 column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
                 
                 row = column.row(align=True)
-                row.enabled = $2 and not section_settings.null_section
+                row.enabled = $2 and not $1.disable_section
                 row.alignment = "CENTER"
                 row.label(text="Section Smoothing")
                 column.separator(factor=DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR)
                 
                 row = column.row(heading="Split Settings for", align=True)
-                row.enabled = $2 and not section_settings.null_section
+                row.enabled = $2 and not $1.disable_section
                 row.prop($1, "smoothing_use_different_x_y")
                 row.prop($1, "smoothing_use_different_model")
                 column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
             
                 sub_column = column.column()
-                sub_column.enabled = $2 and not section_settings.null_section and \
+                sub_column.enabled = $2 and not $1.disable_section and \
                                      (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
                 sub_column.operator("movieclip.aae_export_plot_graph")
                 column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
@@ -1801,7 +1840,8 @@ define(<<DISPLAY_NAME>>, <<DISPLAY_NAME NOT INITIALISED>>)
 define(<<DRAW_SMOOTHING__DATA_REGRESSION>>, <<
 define(<<UNDERSCORE_DATA>>, <<<<>>ifelse(DATA, <<>>, <<>>, <<_<<>>DATA>>)>>)
 ifdef(<<UNI>>, <<
-                    if $1.smoothing<<>>UNDERSCORE_DATA<<>>_degree != 0:
+                    if ($1.smoothing_do<<>>UNDERSCORE_DATA<<>> or $1.smoothing_extrapolate) and \
+                       $1.smoothing<<>>UNDERSCORE_DATA<<>>_degree != 0:
                         sub_column.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_regressor")
                         if $1.smoothing<<>>UNDERSCORE_DATA<<>>_regressor == "HUBER":
                             sub_column.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_huber_epsilon")
@@ -1812,21 +1852,21 @@ ifdef(<<UNI>>, <<
                         row = sub_column.row(align=True)
 define(<<X_YES>>, <<\
 ifelse(DATA, <<>>, <<dnl
-                               ($1.smoothing_do_position_x and $1.smoothing_position_x_degree != 0 or \
-                                $1.smoothing_do_scale_x and $1.smoothing_scale_x_degree != 0 or \
-                                $1.smoothing_do_rotation and $1.smoothing_rotation_degree != 0 or \
-                                $1.smoothing_do_power_pin_x and $1.smoothing_power_pin_x_degree != 0) \
+                               ((($1.smoothing_do_position_x or $1.smoothing_extrapolate) and $1.smoothing_position_x_degree != 0) or \
+                                (($1.smoothing_do_scale_x or $1.smoothing_extrapolate) and $1.smoothing_scale_x_degree != 0) or \
+                                (($1.smoothing_do_rotation or $1.smoothing_extrapolate) and $1.smoothing_rotation_degree != 0) or \
+                                (($1.smoothing_do_power_pin_x or $1.smoothing_extrapolate) and $1.smoothing_power_pin_x_degree != 0)) \
 >>, <<dnl
-                               ($1.smoothing_do<<>>UNDERSCORE_DATA<<>>_x and $1.smoothing<<>>UNDERSCORE_DATA<<>>_x_degree != 0) \
+                               (($1.smoothing_do<<>>UNDERSCORE_DATA<<>>_x or $1.smoothing_extrapolate) and $1.smoothing<<>>UNDERSCORE_DATA<<>>_x_degree != 0) \
 >>)                               dnl
 >>)
 define(<<Y_YES>>, <<\
 ifelse(DATA, <<>>, <<dnl
-                               ($1.smoothing_do_position_y and $1.smoothing_position_y_degree != 0 or \
-                                $1.smoothing_do_scale_y and $1.smoothing_scale_y_degree != 0 or \
-                                $1.smoothing_do_power_pin_y and $1.smoothing_power_pin_y_degree != 0) \
+                               ((($1.smoothing_do_position_y or $1.smoothing_extrapolate) and $1.smoothing_position_y_degree != 0) or \
+                                (($1.smoothing_do_scale_y or $1.smoothing_extrapolate) and $1.smoothing_scale_y_degree != 0) or \
+                                (($1.smoothing_do_power_pin_y or $1.smoothing_extrapolate) and $1.smoothing_power_pin_y_degree != 0)) \
 >>, <<dnl
-                               ($1.smoothing_do<<>>UNDERSCORE_DATA<<>>_y and $1.smoothing<<>>UNDERSCORE_DATA<<>>_y_degree != 0) \
+                               (($1.smoothing_do<<>>UNDERSCORE_DATA<<>>_y or $1.smoothing_extrapolate) and $1.smoothing<<>>UNDERSCORE_DATA<<>>_y_degree != 0) \
 >>)                               dnl
 >>)
                         if X_YES or Y_YES:
@@ -1869,12 +1909,12 @@ undefine(<<X_YES>>)
 undefine(<<Y_YES>>)
                     else:
 ifelse(DATA, <<>>, <<
-                        if $1.smoothing_position_degree != 0 or \
-                           $1.smoothing_scale_degree != 0 or \
-                           $1.smoothing_rotation_degree != 0 or \
-                           $1.smoothing_power_pin_degree != 0:
+                        if (($1.smoothing_do_position or $1.smoothing_extrapolate) and $1.smoothing_position_degree != 0) or \
+                           (($1.smoothing_do_scale or $1.smoothing_extrapolate) and $1.smoothing_scale_degree != 0) or \
+                           (($1.smoothing_do_rotation or $1.smoothing_extrapolate) and $1.smoothing_rotation_degree != 0) or \
+                           (($1.smoothing_do_power_pin or $1.smoothing_extrapolate) and $1.smoothing_power_pin_degree != 0):
 >>, <<
-                        if $1.smoothing<<>>UNDERSCORE_DATA<<>>_degree != 0:
+                        if ($1.smoothing_do<<>>UNDERSCORE_DATA<<>> or $1.smoothing_extrapolate) and $1.smoothing<<>>UNDERSCORE_DATA<<>>_degree != 0:
 >>)
                             sub_column.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_regressor")
                             if $1.smoothing<<>>UNDERSCORE_DATA<<>>_regressor == "HUBER":
@@ -1886,10 +1926,10 @@ undefine(<<UNDERSCORE_DATA>>)
 >>)
 define(<<DRAW_SMOOTHING__DATA>>, <<
                 sub_column = column.column(heading="DISPLAY_NAME")
-                sub_column.enabled = $2 and not section_settings.null_section
+                sub_column.enabled = $2 and not $1.disable_section
 ifdef(<<UNI>>, <<
                 sub_column.prop($1, "smoothing_do_<<>>DATA<<>>")
-                if $1.smoothing_do_<<>>DATA<<>>:
+                if $1.smoothing_do_<<>>DATA<<>> or $1.smoothing_extrapolate:
                     if $1.smoothing_use_different_x_y and not $1.smoothing_use_different_model:
                         row = sub_column.row(align=True)
                         row.prop($1, "smoothing_<<>>DATA<<>>_degree")
@@ -1901,7 +1941,7 @@ ifdef(<<UNI>>, <<
                     row = sub_column.row(align=True)
                     row.prop($1, "smoothing_do_<<>>DATA<<>>_x")
                     row.prop($1, "smoothing_do_<<>>DATA<<>>_y")
-                    if $1.smoothing_do_<<>>DATA<<>>_x == $1.smoothing_do_<<>>DATA<<>>_y == True:
+                    if $1.smoothing_do_<<>>DATA<<>>_x == $1.smoothing_do_<<>>DATA<<>>_y == True or $1.smoothing_extrapolate:
                         row = sub_column.row(align=True)
                         row.prop($1, "smoothing_<<>>DATA<<>>_x_degree")
                         row.prop($1, "smoothing_<<>>DATA<<>>_y_degree", text="")
@@ -1912,10 +1952,10 @@ ifdef(<<UNI>>, <<
                     elif $1.smoothing_do_<<>>DATA<<>>_y:
                         row = sub_column.row(align=True)
                         row.prop(settings, "null_property", text="Max Degree")
-                        row.prop($1, "smoothing_<<>>DATA<<>>_x_degree", text="")
+                        row.prop($1, "smoothing_<<>>DATA<<>>_y_degree", text="")
                 else:
                     sub_column.prop($1, "smoothing_do_<<>>DATA<<>>")
-                    if $1.smoothing_do_<<>>DATA<<>>:
+                    if $1.smoothing_do_<<>>DATA<<>> or $1.smoothing_extrapolate:
                         sub_column.prop($1, "smoothing_<<>>DATA<<>>_degree")
 >>)dnl UNI
                 if $1.smoothing_use_different_model:
@@ -1983,8 +2023,8 @@ class AAEExportSectionL(bpy.types.UIList):
             row = split.row()
             row.alignment = "RIGHT"
             row.label(text="Section")
-            if item.null_section:
-                split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (null)")
+            if item.disable_section:
+                split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (disabled)")
             elif (context.selected_movieclip_tracks.__len__() == 1) is not ((selected_plane_tracks := [plane_track for plane_track in context.edit_movieclip.tracking.plane_tracks if plane_track.select]).__len__() == 1) and \
                  ((context.selected_movieclip_tracks.__len__() == 1 and \
                    not any([(item.start_frame < marker.frame < item.end_frame or \
@@ -1997,6 +2037,17 @@ class AAEExportSectionL(bpy.types.UIList):
                              marker.frame == item.end_frame == context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration) and \
                             not marker.mute for marker in selected_plane_tracks[0]].markers))):
                 split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (empty)")
+            elif (context.selected_movieclip_tracks.__len__() == 1) is not ((selected_plane_tracks := [plane_track for plane_track in context.edit_movieclip.tracking.plane_tracks if plane_track.select]).__len__() == 1) and \
+                 ((context.selected_movieclip_tracks.__len__() == 1 and \
+                   any([item.start_frame <= marker.frame <= item.end_frame and \
+                        marker.mute for marker in context.selected_movieclip_tracks[0].markers])) or \
+                  (selected_plane_tracks.__len__ == 1 and \
+                   any([item.start_frame <= marker.frame <= item.end_frame and \
+                        marker.mute for marker in selected_plane_tracks[0]].markers))):
+                if item.smoothing_extrapolate:
+                    split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (extrapolated)")
+                else:
+                    split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (partial)")
             else:
                 split.label(text=str(item.start_frame) + "‥" + str(item.end_frame))
         elif self.layout_type in { "GRID" }:
@@ -2112,12 +2163,14 @@ class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
             raise ValueError("The legacy export method only allows one clip to be loaded into Blender at a time. You can either try the new export interface at „Clip Editor > Tools > Solve > AAE Export“ or use „File > New“ to create a new Blender file.")
         clip = bpy.data.movieclips[0]
         settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings = context.edit_movieclip.AAEExportSettingsSectionL
 
         for track in clip.tracking.tracks:
-            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, None), self.filepath, True)
+            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, settings, clip_settings, section_settings), self.filepath, True)
 
         for plane_track in clip.tracking.plane_tracks:
-            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, plane_track, None), self.filepath, True)
+            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, plane_track, settings, clip_settings, section_settings), self.filepath, True)
 
         return { "FINISHED" }
 

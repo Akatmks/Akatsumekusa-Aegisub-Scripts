@@ -134,9 +134,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                          default=False,
                                          update=_do_smoothing_update)
                                          
-    smoothing_do_predictive_smoothing: bpy.props.BoolProperty(name="Predictive Filling",
-                                                              description="Generates position data, scale data, rotation data and Power Pin data over the whole length of each section, even if the track or plane track is not enabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the track is not enabled.\n\nIf you don't want AAE Export to generate any data over a section, you can check the „Null section“ option below to disable a section.\nIf every frame in a section, including the start and the end frame shared with neighbouring sections is empty, no data will be generated from the section as well",
-                                                              default=False)
     smoothing_section_blending: bpy.props.EnumProperty(name="Section Blending",
                                                        items=(("SHIFT", "Shift", "Shift the whole section until sections match up at the boundary.\nThe amount each section is shifted is proportional to the number of frames in each section"),
                                                               ("LINEAR", "Rolling Average", "bucket3432's rolling average method ease the transition at boundaries near linearly"),
@@ -162,9 +159,9 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                      default=0
                                      )
 
-    null_section: bpy.props.BoolProperty(name="Null section",
-                                         description="Ignore the section and don't export anything from the section",
-                                         default=False)
+    disable_section: bpy.props.BoolProperty(name="Disable section",
+                                            description="Ignore the section and don't export anything for the section",
+                                            default=False)
 
     smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
@@ -172,6 +169,10 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
     smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
                                                           description="Use different regression model for position, scale, rotation and Power Pin data",
                                                           default=False)
+                                                          
+    smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
+                                                  description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the section, even if the track or plane track is not enabled on some of the frames.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the track is not enabled.\n\nIf you don't want AAE Export to generate any data over a section, you can check the „Disable section“ option in the „Section Settings“ frame above to disable a section",
+                                                  default=False)
 
 
 
@@ -514,9 +515,9 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                                      default=0,
                                      update=_end_frame_update)
 
-    null_section: bpy.props.BoolProperty(name="Null section",
-                                         description="Ignore the section and don't export anything from the section",
-                                         default=False)
+    disable_section: bpy.props.BoolProperty(name="Disable section",
+                                            description="Ignore the section and don't export anything for the section",
+                                            default=False)
 
     smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
@@ -524,6 +525,10 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
     smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
                                                           description="Use different regression model for position, scale, rotation and Power Pin data",
                                                           default=False)
+                                                          
+    smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
+                                                  description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the section, even if the track or plane track is not enabled on some of the frames.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the track is not enabled.\n\nIf you don't want AAE Export to generate any data over a section, you can check the „Disable section“ option in the „Section Settings“ frame above to disable a section",
+                                                  default=False)
 
 
 
@@ -1696,24 +1701,30 @@ class AAEExportExportAll(bpy.types.Operator):
     def execute(self, context):
         clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings = context.edit_movieclip.AAEExportSettingsSectionL
 
         for track in clip.tracking.tracks:
-            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, settings), None, settings.do_do_not_overwrite)
+            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, settings, clip_settings, section_settings), None, settings.do_do_not_overwrite)
 
         for plane_track in clip.tracking.plane_tracks:
-            AAEExportExportAll._export_to_file(clip, plane_track, AAEExportExportAll._generate(clip, plane_track, settings), None, settings.do_do_not_overwrite)
+            AAEExportExportAll._export_to_file(clip, plane_track, AAEExportExportAll._generate(clip, plane_track, settings, clip_settings, section_settings), None, settings.do_do_not_overwrite)
         
         return { "FINISHED" }
 
     @staticmethod
-    def _generate(clip, track, settings):
+    def _generate(clip, track, settings, clip_settings, section_settings):
         """
         Parameters
         ----------
         clip : bpy.types.MovieClip
         track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        settings : AAEExportSettings or None
+        settings : AAEExportSettings
             AAEExportSettings.
+        clip_settings : AAEExportSettingsClip
+            AAEExportSettingsClip.
+        section_settings : AAEExportSettingsSectionL
+            AAEExportSettingsSectionL.
 
         Returns
         -------
@@ -1729,44 +1740,19 @@ class AAEExportExportAll(bpy.types.Operator):
                 = AAEExportExportAll._prepare_data( \
                       clip, track, ratio)
 
-            if settings.do_smoothing:
-                position \
-                    = AAEExportExportAll._smoothing( \
-                          position, \
-                          settings.smoothing_do_position, settings.smoothing_do_predictive_smoothing, \
-                          settings.smoothing_position_degree, \
-                          settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
-
-                scale \
-                    = AAEExportExportAll._smoothing( \
-                          scale, \
-                          settings.smoothing_do_scale, settings.smoothing_do_predictive_smoothing, \
-                          settings.smoothing_scale_degree, \
-                          settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
-
+            if clip_settings.do_smoothing:
                 rotation \
                     = AAEExportExportAll._unlimit_rotation( \
                           semilimited_rotation)
-                
-                rotation \
-                    = AAEExportExportAll._smoothing( \
-                          rotation, \
-                          settings.smoothing_do_rotation, settings.smoothing_do_predictive_smoothing, \
-                          settings.smoothing_rotation_degree, \
-                          settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+                position, scale, rotation, power_pin \
+                    = AAEExportExportAll._smoothing_main( \
+                          position, scale, rotation, power_pin, \
+                          settings, clip_settings, section_settings)
 
                 limited_rotation \
                     = AAEExportExportAll._limit_rotation( \
                           rotation)
-
-                for i in range(4):
-                    power_pin[i] \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[i], \
-                              settings.smoothing_do_power_pin, settings.smoothing_do_predictive_smoothing, \
-                              settings.smoothing_power_pin_degree, \
-                              settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
-
             else:
                 limited_rotation \
                     = AAEExportExportAll._limit_rotation( \
@@ -2130,6 +2116,60 @@ class AAEExportExportAll(bpy.types.Operator):
         import numpy as np
 
         return np.swapaxes(misshapen_power_pin.reshape((-1, 4, 2)), 0, 1)
+
+    @staticmethod
+    def _smoothing_main(position, scale, rotation, power_pin, settings, clip_settings, section_settings):
+        """
+        The main logic for smoothing.
+
+        Parameters
+        ----------
+        position : npt.NDArray[float64]
+        scale : npt.NDArray[float64]
+        rotation : npt.NDArray[float64]
+            unlimited rotation
+        power_pin : npt.NDArray[float64]
+        settings : bool
+        clip_settings : bool
+        section_settings : int
+
+        Returns
+        -------
+        position : npt.NDArray[float64]
+        scale : npt.NDArray[float64]
+        rotation : npt.NDArray[float64]
+            unlimited rotation
+        power_pin : npt.NDArray[float64]
+
+        """
+        position \
+            = AAEExportExportAll._smoothing( \
+                  position, \
+                  settings.smoothing_do_position, settings.smoothing_do_predictive_smoothing, \
+                  settings.smoothing_position_degree, \
+                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+        scale \
+            = AAEExportExportAll._smoothing( \
+                  scale, \
+                  settings.smoothing_do_scale, settings.smoothing_do_predictive_smoothing, \
+                  settings.smoothing_scale_degree, \
+                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+        rotation \
+            = AAEExportExportAll._smoothing( \
+                  rotation, \
+                  settings.smoothing_do_rotation, settings.smoothing_do_predictive_smoothing, \
+                  settings.smoothing_rotation_degree, \
+                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+
+        for i in range(4):
+            power_pin[i] \
+                = AAEExportExportAll._smoothing( \
+                      power_pin[i], \
+                      settings.smoothing_do_power_pin, settings.smoothing_do_predictive_smoothing, \
+                      settings.smoothing_power_pin_degree, \
+                      settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
 
     @staticmethod
     def _smoothing(data, do_smoothing, do_predictive_smoothing, degree, regressor, huber_epsilon, lasso_alpha):
@@ -2807,8 +2847,10 @@ class AAEExportCopySingleTrack(bpy.types.Operator):
     def execute(self, context):
         clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings = context.edit_movieclip.AAEExportSettingsSectionL
 
-        aae = AAEExportExportAll._generate(clip, context.selected_movieclip_tracks[0], settings)
+        aae = AAEExportExportAll._generate(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings)
         
         AAEExportExportAll._copy_to_clipboard(context, aae)
         if settings.do_also_export:
@@ -2824,11 +2866,13 @@ class AAEExportCopyPlaneTrack(bpy.types.Operator):
     def execute(self, context):
         clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings = context.edit_movieclip.AAEExportSettingsSectionL
 
         aae = None
         for plane_track in context.edit_movieclip.tracking.plane_tracks:
             if plane_track.select == True:
-                aae = AAEExportExportAll._generate(clip, plane_track, settings)
+                aae = AAEExportExportAll._generate(clip, plane_track, settings, clip_settings, section_settings)
                 break
 
         AAEExportExportAll._copy_to_clipboard(context, aae)
@@ -2972,7 +3016,6 @@ class AAEExportOptions(bpy.types.Panel):
         # column = box.column(heading="Export")
         # column.prop(settings, "do_includes_power_pin")
 
-
         box = layout.box()
         column = box.column(heading="Preference")
         column.prop(settings, "do_also_export")
@@ -2994,11 +3037,6 @@ class AAEExportOptions(bpy.types.Panel):
 
             column = box.column(heading="Smoothing")
             column.prop(clip_settings, "do_smoothing")
-            column.separator(factor=0.0)
-
-            sub_column = column.column()
-            sub_column.enabled = clip_settings.do_smoothing
-            sub_column.prop(clip_settings, "smoothing_do_predictive_smoothing")
             column.separator(factor=0.0)
                     
             sub_column = column.column()
@@ -3052,23 +3090,28 @@ class AAEExportOptions(bpy.types.Panel):
                 sub_column.enabled = clip_settings.do_smoothing
                 sub_column.prop(section_settings, "start_frame")
                 sub_column.prop(section_settings, "end_frame")
-                sub_column.prop(section_settings, "null_section")
+                column.separator(factor=0.0)
+
+                sub_column = column.column(align=True)
+                sub_column.enabled = clip_settings.do_smoothing
+                sub_column.prop(section_settings, "disable_section")
+                sub_column.prop(section_settings, "smoothing_extrapolate", text="Extrapolate section")
                 column.separator(factor=0.44)
                 
                 row = column.row(align=True)
-                row.enabled = clip_settings.do_smoothing and not section_settings.null_section
+                row.enabled = clip_settings.do_smoothing and not section_settings.disable_section
                 row.alignment = "CENTER"
                 row.label(text="Section Smoothing")
                 column.separator(factor=0.40)
                 
                 row = column.row(heading="Split Settings for", align=True)
-                row.enabled = clip_settings.do_smoothing and not section_settings.null_section
+                row.enabled = clip_settings.do_smoothing and not section_settings.disable_section
                 row.prop(section_settings, "smoothing_use_different_x_y")
                 row.prop(section_settings, "smoothing_use_different_model")
                 column.separator(factor=0.0)
             
                 sub_column = column.column()
-                sub_column.enabled = clip_settings.do_smoothing and not section_settings.null_section and \
+                sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section and \
                                      (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
                 sub_column.operator("movieclip.aae_export_plot_graph")
                 column.separator(factor=0.0)
@@ -3083,13 +3126,13 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                 sub_column = column.column(heading="Position")
-                sub_column.enabled = clip_settings.do_smoothing and not section_settings.null_section
+                sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
 
                 if section_settings.smoothing_use_different_x_y:
                     row = sub_column.row(align=True)
                     row.prop(section_settings, "smoothing_do_position_x")
                     row.prop(section_settings, "smoothing_do_position_y")
-                    if section_settings.smoothing_do_position_x == section_settings.smoothing_do_position_y == True:
+                    if section_settings.smoothing_do_position_x == section_settings.smoothing_do_position_y == True or section_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
                         row.prop(section_settings, "smoothing_position_x_degree")
                         row.prop(section_settings, "smoothing_position_y_degree", text="")
@@ -3100,10 +3143,10 @@ class AAEExportOptions(bpy.types.Panel):
                     elif section_settings.smoothing_do_position_y:
                         row = sub_column.row(align=True)
                         row.prop(settings, "null_property", text="Max Degree")
-                        row.prop(section_settings, "smoothing_position_x_degree", text="")
+                        row.prop(section_settings, "smoothing_position_y_degree", text="")
                 else:
                     sub_column.prop(section_settings, "smoothing_do_position")
-                    if section_settings.smoothing_do_position:
+                    if section_settings.smoothing_do_position or section_settings.smoothing_extrapolate:
                         sub_column.prop(section_settings, "smoothing_position_degree")
                 if section_settings.smoothing_use_different_model:
 
@@ -3114,27 +3157,27 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                         if \
-                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0) \
+                               ((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) \
                                 or \
-                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0) \
+                               ((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) \
                                :
                             if \
-                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0) \
+                               ((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) \
                                :
                                 row.prop(section_settings, "smoothing_position_x_regressor")
                             else:
                                 row.prop(settings, "null_property", text="Linear Model")
                             if \
-                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0) \
+                               ((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) \
                                :
                                 row.prop(section_settings, "smoothing_position_y_regressor", text="")
                             else:
                                 row.prop(settings, "null_property")
 
                             if section_settings.smoothing_position_x_regressor == section_settings.smoothing_position_y_regressor and \
-                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0) \
+                               ((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) \
                                 and \
-                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0) \
+                               ((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) \
                                :
                                 if section_settings.smoothing_position_x_regressor == "HUBER":
                                     row = sub_column.row(align=True)
@@ -3146,25 +3189,25 @@ class AAEExportOptions(bpy.types.Panel):
                                     row.prop(section_settings, "smoothing_position_y_lasso_alpha", text="")
                             else:
                                 if section_settings.smoothing_position_x_regressor == "HUBER" and \
-                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0) \
+                               ((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(section_settings, "smoothing_position_x_huber_epsilon")
                                     row.prop(settings, "null_property")
                                 elif section_settings.smoothing_position_x_regressor == "LASSO" and \
-                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0) \
+                               ((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(section_settings, "smoothing_position_x_lasso_alpha")
                                     row.prop(settings, "null_property")
                                 if section_settings.smoothing_position_y_regressor == "HUBER" and \
-                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0) \
+                               ((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Epsilon")
                                     row.prop(section_settings, "smoothing_position_y_huber_epsilon", text="")
                                 elif section_settings.smoothing_position_y_regressor == "LASSO" and \
-                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0) \
+                               ((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Alpha")
@@ -3173,7 +3216,7 @@ class AAEExportOptions(bpy.types.Panel):
 
                     else:
 
-                        if section_settings.smoothing_position_degree != 0:
+                        if (section_settings.smoothing_do_position or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_degree != 0:
 
                             sub_column.prop(section_settings, "smoothing_position_regressor")
                             if section_settings.smoothing_position_regressor == "HUBER":
@@ -3188,13 +3231,13 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                 sub_column = column.column(heading="Scale")
-                sub_column.enabled = clip_settings.do_smoothing and not section_settings.null_section
+                sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
 
                 if section_settings.smoothing_use_different_x_y:
                     row = sub_column.row(align=True)
                     row.prop(section_settings, "smoothing_do_scale_x")
                     row.prop(section_settings, "smoothing_do_scale_y")
-                    if section_settings.smoothing_do_scale_x == section_settings.smoothing_do_scale_y == True:
+                    if section_settings.smoothing_do_scale_x == section_settings.smoothing_do_scale_y == True or section_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
                         row.prop(section_settings, "smoothing_scale_x_degree")
                         row.prop(section_settings, "smoothing_scale_y_degree", text="")
@@ -3205,10 +3248,10 @@ class AAEExportOptions(bpy.types.Panel):
                     elif section_settings.smoothing_do_scale_y:
                         row = sub_column.row(align=True)
                         row.prop(settings, "null_property", text="Max Degree")
-                        row.prop(section_settings, "smoothing_scale_x_degree", text="")
+                        row.prop(section_settings, "smoothing_scale_y_degree", text="")
                 else:
                     sub_column.prop(section_settings, "smoothing_do_scale")
-                    if section_settings.smoothing_do_scale:
+                    if section_settings.smoothing_do_scale or section_settings.smoothing_extrapolate:
                         sub_column.prop(section_settings, "smoothing_scale_degree")
                 if section_settings.smoothing_use_different_model:
 
@@ -3219,27 +3262,27 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                         if \
-                               (section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0) \
+                               ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) \
                                 or \
-                               (section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0) \
+                               ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) \
                                :
                             if \
-                               (section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0) \
+                               ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) \
                                :
                                 row.prop(section_settings, "smoothing_scale_x_regressor")
                             else:
                                 row.prop(settings, "null_property", text="Linear Model")
                             if \
-                               (section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0) \
+                               ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) \
                                :
                                 row.prop(section_settings, "smoothing_scale_y_regressor", text="")
                             else:
                                 row.prop(settings, "null_property")
 
                             if section_settings.smoothing_scale_x_regressor == section_settings.smoothing_scale_y_regressor and \
-                               (section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0) \
+                               ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) \
                                 and \
-                               (section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0) \
+                               ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) \
                                :
                                 if section_settings.smoothing_scale_x_regressor == "HUBER":
                                     row = sub_column.row(align=True)
@@ -3251,25 +3294,25 @@ class AAEExportOptions(bpy.types.Panel):
                                     row.prop(section_settings, "smoothing_scale_y_lasso_alpha", text="")
                             else:
                                 if section_settings.smoothing_scale_x_regressor == "HUBER" and \
-                               (section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0) \
+                               ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(section_settings, "smoothing_scale_x_huber_epsilon")
                                     row.prop(settings, "null_property")
                                 elif section_settings.smoothing_scale_x_regressor == "LASSO" and \
-                               (section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0) \
+                               ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(section_settings, "smoothing_scale_x_lasso_alpha")
                                     row.prop(settings, "null_property")
                                 if section_settings.smoothing_scale_y_regressor == "HUBER" and \
-                               (section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0) \
+                               ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Epsilon")
                                     row.prop(section_settings, "smoothing_scale_y_huber_epsilon", text="")
                                 elif section_settings.smoothing_scale_y_regressor == "LASSO" and \
-                               (section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0) \
+                               ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Alpha")
@@ -3278,7 +3321,7 @@ class AAEExportOptions(bpy.types.Panel):
 
                     else:
 
-                        if section_settings.smoothing_scale_degree != 0:
+                        if (section_settings.smoothing_do_scale or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_degree != 0:
 
                             sub_column.prop(section_settings, "smoothing_scale_regressor")
                             if section_settings.smoothing_scale_regressor == "HUBER":
@@ -3294,10 +3337,10 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                 sub_column = column.column(heading="Rotation")
-                sub_column.enabled = clip_settings.do_smoothing and not section_settings.null_section
+                sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
 
                 sub_column.prop(section_settings, "smoothing_do_rotation")
-                if section_settings.smoothing_do_rotation:
+                if section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate:
                     if section_settings.smoothing_use_different_x_y and not section_settings.smoothing_use_different_model:
                         row = sub_column.row(align=True)
                         row.prop(section_settings, "smoothing_rotation_degree")
@@ -3308,7 +3351,8 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
-                    if section_settings.smoothing_rotation_degree != 0:
+                    if (section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and \
+                       section_settings.smoothing_rotation_degree != 0:
                         sub_column.prop(section_settings, "smoothing_rotation_regressor")
                         if section_settings.smoothing_rotation_regressor == "HUBER":
                             sub_column.prop(section_settings, "smoothing_rotation_huber_epsilon")
@@ -3323,13 +3367,13 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                 sub_column = column.column(heading="Power Pin")
-                sub_column.enabled = clip_settings.do_smoothing and not section_settings.null_section
+                sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
 
                 if section_settings.smoothing_use_different_x_y:
                     row = sub_column.row(align=True)
                     row.prop(section_settings, "smoothing_do_power_pin_x")
                     row.prop(section_settings, "smoothing_do_power_pin_y")
-                    if section_settings.smoothing_do_power_pin_x == section_settings.smoothing_do_power_pin_y == True:
+                    if section_settings.smoothing_do_power_pin_x == section_settings.smoothing_do_power_pin_y == True or section_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
                         row.prop(section_settings, "smoothing_power_pin_x_degree")
                         row.prop(section_settings, "smoothing_power_pin_y_degree", text="")
@@ -3340,10 +3384,10 @@ class AAEExportOptions(bpy.types.Panel):
                     elif section_settings.smoothing_do_power_pin_y:
                         row = sub_column.row(align=True)
                         row.prop(settings, "null_property", text="Max Degree")
-                        row.prop(section_settings, "smoothing_power_pin_x_degree", text="")
+                        row.prop(section_settings, "smoothing_power_pin_y_degree", text="")
                 else:
                     sub_column.prop(section_settings, "smoothing_do_power_pin")
-                    if section_settings.smoothing_do_power_pin:
+                    if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
                         sub_column.prop(section_settings, "smoothing_power_pin_degree")
                 if section_settings.smoothing_use_different_model:
 
@@ -3354,27 +3398,27 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                         if \
-                               (section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0) \
                                 or \
-                               (section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0) \
                                :
                             if \
-                               (section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0) \
                                :
                                 row.prop(section_settings, "smoothing_power_pin_x_regressor")
                             else:
                                 row.prop(settings, "null_property", text="Linear Model")
                             if \
-                               (section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0) \
                                :
                                 row.prop(section_settings, "smoothing_power_pin_y_regressor", text="")
                             else:
                                 row.prop(settings, "null_property")
 
                             if section_settings.smoothing_power_pin_x_regressor == section_settings.smoothing_power_pin_y_regressor and \
-                               (section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0) \
                                 and \
-                               (section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0) \
                                :
                                 if section_settings.smoothing_power_pin_x_regressor == "HUBER":
                                     row = sub_column.row(align=True)
@@ -3386,25 +3430,25 @@ class AAEExportOptions(bpy.types.Panel):
                                     row.prop(section_settings, "smoothing_power_pin_y_lasso_alpha", text="")
                             else:
                                 if section_settings.smoothing_power_pin_x_regressor == "HUBER" and \
-                               (section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(section_settings, "smoothing_power_pin_x_huber_epsilon")
                                     row.prop(settings, "null_property")
                                 elif section_settings.smoothing_power_pin_x_regressor == "LASSO" and \
-                               (section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(section_settings, "smoothing_power_pin_x_lasso_alpha")
                                     row.prop(settings, "null_property")
                                 if section_settings.smoothing_power_pin_y_regressor == "HUBER" and \
-                               (section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Epsilon")
                                     row.prop(section_settings, "smoothing_power_pin_y_huber_epsilon", text="")
                                 elif section_settings.smoothing_power_pin_y_regressor == "LASSO" and \
-                               (section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Alpha")
@@ -3413,7 +3457,7 @@ class AAEExportOptions(bpy.types.Panel):
 
                     else:
 
-                        if section_settings.smoothing_power_pin_degree != 0:
+                        if (section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_degree != 0:
 
                             sub_column.prop(section_settings, "smoothing_power_pin_regressor")
                             if section_settings.smoothing_power_pin_regressor == "HUBER":
@@ -3435,42 +3479,42 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                         if \
-                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0 or \
-                                section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0 or \
-                                section_settings.smoothing_do_rotation and section_settings.smoothing_rotation_degree != 0 or \
-                                section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               (((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) or \
+                                ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) or \
+                                ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
+                                ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0)) \
                                 or \
-                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0 or \
-                                section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0 or \
-                                section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               (((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) or \
+                                ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) or \
+                                ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                             if \
-                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0 or \
-                                section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0 or \
-                                section_settings.smoothing_do_rotation and section_settings.smoothing_rotation_degree != 0 or \
-                                section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               (((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) or \
+                                ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) or \
+                                ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
+                                ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                 row.prop(section_settings, "smoothing_x_regressor")
                             else:
                                 row.prop(settings, "null_property", text="Linear Model")
                             if \
-                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0 or \
-                                section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0 or \
-                                section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               (((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) or \
+                                ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) or \
+                                ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                 row.prop(section_settings, "smoothing_y_regressor", text="")
                             else:
                                 row.prop(settings, "null_property")
 
                             if section_settings.smoothing_x_regressor == section_settings.smoothing_y_regressor and \
-                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0 or \
-                                section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0 or \
-                                section_settings.smoothing_do_rotation and section_settings.smoothing_rotation_degree != 0 or \
-                                section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               (((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) or \
+                                ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) or \
+                                ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
+                                ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0)) \
                                 and \
-                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0 or \
-                                section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0 or \
-                                section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               (((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) or \
+                                ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) or \
+                                ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                 if section_settings.smoothing_x_regressor == "HUBER":
                                     row = sub_column.row(align=True)
@@ -3482,35 +3526,35 @@ class AAEExportOptions(bpy.types.Panel):
                                     row.prop(section_settings, "smoothing_y_lasso_alpha", text="")
                             else:
                                 if section_settings.smoothing_x_regressor == "HUBER" and \
-                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0 or \
-                                section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0 or \
-                                section_settings.smoothing_do_rotation and section_settings.smoothing_rotation_degree != 0 or \
-                                section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               (((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) or \
+                                ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) or \
+                                ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
+                                ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(section_settings, "smoothing_x_huber_epsilon")
                                     row.prop(settings, "null_property")
                                 elif section_settings.smoothing_x_regressor == "LASSO" and \
-                               (section_settings.smoothing_do_position_x and section_settings.smoothing_position_x_degree != 0 or \
-                                section_settings.smoothing_do_scale_x and section_settings.smoothing_scale_x_degree != 0 or \
-                                section_settings.smoothing_do_rotation and section_settings.smoothing_rotation_degree != 0 or \
-                                section_settings.smoothing_do_power_pin_x and section_settings.smoothing_power_pin_x_degree != 0) \
+                               (((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) or \
+                                ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) or \
+                                ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
+                                ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(section_settings, "smoothing_x_lasso_alpha")
                                     row.prop(settings, "null_property")
                                 if section_settings.smoothing_y_regressor == "HUBER" and \
-                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0 or \
-                                section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0 or \
-                                section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               (((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) or \
+                                ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) or \
+                                ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Epsilon")
                                     row.prop(section_settings, "smoothing_y_huber_epsilon", text="")
                                 elif section_settings.smoothing_y_regressor == "LASSO" and \
-                               (section_settings.smoothing_do_position_y and section_settings.smoothing_position_y_degree != 0 or \
-                                section_settings.smoothing_do_scale_y and section_settings.smoothing_scale_y_degree != 0 or \
-                                section_settings.smoothing_do_power_pin_y and section_settings.smoothing_power_pin_y_degree != 0) \
+                               (((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) or \
+                                ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) or \
+                                ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Alpha")
@@ -3519,10 +3563,10 @@ class AAEExportOptions(bpy.types.Panel):
 
                     else:
 
-                        if section_settings.smoothing_position_degree != 0 or \
-                           section_settings.smoothing_scale_degree != 0 or \
-                           section_settings.smoothing_rotation_degree != 0 or \
-                           section_settings.smoothing_power_pin_degree != 0:
+                        if ((section_settings.smoothing_do_position or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_degree != 0) or \
+                           ((section_settings.smoothing_do_scale or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_degree != 0) or \
+                           ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
+                           ((section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_degree != 0):
 
                             sub_column.prop(section_settings, "smoothing_regressor")
                             if section_settings.smoothing_regressor == "HUBER":
@@ -3565,23 +3609,28 @@ class AAEExportOptions(bpy.types.Panel):
                 sub_column.enabled = False
                 sub_column.prop(clip_settings, "start_frame")
                 sub_column.prop(clip_settings, "end_frame")
-                sub_column.prop(clip_settings, "null_section")
+                column.separator(factor=0.0)
+
+                sub_column = column.column(align=True)
+                sub_column.enabled = False
+                sub_column.prop(clip_settings, "disable_section")
+                sub_column.prop(clip_settings, "smoothing_extrapolate", text="Extrapolate section")
                 column.separator(factor=0.44)
                 
                 row = column.row(align=True)
-                row.enabled = False and not section_settings.null_section
+                row.enabled = False and not clip_settings.disable_section
                 row.alignment = "CENTER"
                 row.label(text="Section Smoothing")
                 column.separator(factor=0.40)
                 
                 row = column.row(heading="Split Settings for", align=True)
-                row.enabled = False and not section_settings.null_section
+                row.enabled = False and not clip_settings.disable_section
                 row.prop(clip_settings, "smoothing_use_different_x_y")
                 row.prop(clip_settings, "smoothing_use_different_model")
                 column.separator(factor=0.0)
             
                 sub_column = column.column()
-                sub_column.enabled = False and not section_settings.null_section and \
+                sub_column.enabled = False and not clip_settings.disable_section and \
                                      (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
                 sub_column.operator("movieclip.aae_export_plot_graph")
                 column.separator(factor=0.0)
@@ -3596,13 +3645,13 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                 sub_column = column.column(heading="Position")
-                sub_column.enabled = False and not section_settings.null_section
+                sub_column.enabled = False and not clip_settings.disable_section
 
                 if clip_settings.smoothing_use_different_x_y:
                     row = sub_column.row(align=True)
                     row.prop(clip_settings, "smoothing_do_position_x")
                     row.prop(clip_settings, "smoothing_do_position_y")
-                    if clip_settings.smoothing_do_position_x == clip_settings.smoothing_do_position_y == True:
+                    if clip_settings.smoothing_do_position_x == clip_settings.smoothing_do_position_y == True or clip_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
                         row.prop(clip_settings, "smoothing_position_x_degree")
                         row.prop(clip_settings, "smoothing_position_y_degree", text="")
@@ -3613,10 +3662,10 @@ class AAEExportOptions(bpy.types.Panel):
                     elif clip_settings.smoothing_do_position_y:
                         row = sub_column.row(align=True)
                         row.prop(settings, "null_property", text="Max Degree")
-                        row.prop(clip_settings, "smoothing_position_x_degree", text="")
+                        row.prop(clip_settings, "smoothing_position_y_degree", text="")
                 else:
                     sub_column.prop(clip_settings, "smoothing_do_position")
-                    if clip_settings.smoothing_do_position:
+                    if clip_settings.smoothing_do_position or clip_settings.smoothing_extrapolate:
                         sub_column.prop(clip_settings, "smoothing_position_degree")
                 if clip_settings.smoothing_use_different_model:
 
@@ -3627,27 +3676,27 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                         if \
-                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0) \
+                               ((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) \
                                 or \
-                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0) \
+                               ((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) \
                                :
                             if \
-                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0) \
+                               ((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) \
                                :
                                 row.prop(clip_settings, "smoothing_position_x_regressor")
                             else:
                                 row.prop(settings, "null_property", text="Linear Model")
                             if \
-                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0) \
+                               ((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) \
                                :
                                 row.prop(clip_settings, "smoothing_position_y_regressor", text="")
                             else:
                                 row.prop(settings, "null_property")
 
                             if clip_settings.smoothing_position_x_regressor == clip_settings.smoothing_position_y_regressor and \
-                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0) \
+                               ((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) \
                                 and \
-                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0) \
+                               ((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) \
                                :
                                 if clip_settings.smoothing_position_x_regressor == "HUBER":
                                     row = sub_column.row(align=True)
@@ -3659,25 +3708,25 @@ class AAEExportOptions(bpy.types.Panel):
                                     row.prop(clip_settings, "smoothing_position_y_lasso_alpha", text="")
                             else:
                                 if clip_settings.smoothing_position_x_regressor == "HUBER" and \
-                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0) \
+                               ((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(clip_settings, "smoothing_position_x_huber_epsilon")
                                     row.prop(settings, "null_property")
                                 elif clip_settings.smoothing_position_x_regressor == "LASSO" and \
-                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0) \
+                               ((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(clip_settings, "smoothing_position_x_lasso_alpha")
                                     row.prop(settings, "null_property")
                                 if clip_settings.smoothing_position_y_regressor == "HUBER" and \
-                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0) \
+                               ((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Epsilon")
                                     row.prop(clip_settings, "smoothing_position_y_huber_epsilon", text="")
                                 elif clip_settings.smoothing_position_y_regressor == "LASSO" and \
-                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0) \
+                               ((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Alpha")
@@ -3686,7 +3735,7 @@ class AAEExportOptions(bpy.types.Panel):
 
                     else:
 
-                        if clip_settings.smoothing_position_degree != 0:
+                        if (clip_settings.smoothing_do_position or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_degree != 0:
 
                             sub_column.prop(clip_settings, "smoothing_position_regressor")
                             if clip_settings.smoothing_position_regressor == "HUBER":
@@ -3701,13 +3750,13 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                 sub_column = column.column(heading="Scale")
-                sub_column.enabled = False and not section_settings.null_section
+                sub_column.enabled = False and not clip_settings.disable_section
 
                 if clip_settings.smoothing_use_different_x_y:
                     row = sub_column.row(align=True)
                     row.prop(clip_settings, "smoothing_do_scale_x")
                     row.prop(clip_settings, "smoothing_do_scale_y")
-                    if clip_settings.smoothing_do_scale_x == clip_settings.smoothing_do_scale_y == True:
+                    if clip_settings.smoothing_do_scale_x == clip_settings.smoothing_do_scale_y == True or clip_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
                         row.prop(clip_settings, "smoothing_scale_x_degree")
                         row.prop(clip_settings, "smoothing_scale_y_degree", text="")
@@ -3718,10 +3767,10 @@ class AAEExportOptions(bpy.types.Panel):
                     elif clip_settings.smoothing_do_scale_y:
                         row = sub_column.row(align=True)
                         row.prop(settings, "null_property", text="Max Degree")
-                        row.prop(clip_settings, "smoothing_scale_x_degree", text="")
+                        row.prop(clip_settings, "smoothing_scale_y_degree", text="")
                 else:
                     sub_column.prop(clip_settings, "smoothing_do_scale")
-                    if clip_settings.smoothing_do_scale:
+                    if clip_settings.smoothing_do_scale or clip_settings.smoothing_extrapolate:
                         sub_column.prop(clip_settings, "smoothing_scale_degree")
                 if clip_settings.smoothing_use_different_model:
 
@@ -3732,27 +3781,27 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                         if \
-                               (clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0) \
+                               ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) \
                                 or \
-                               (clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0) \
+                               ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) \
                                :
                             if \
-                               (clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0) \
+                               ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) \
                                :
                                 row.prop(clip_settings, "smoothing_scale_x_regressor")
                             else:
                                 row.prop(settings, "null_property", text="Linear Model")
                             if \
-                               (clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0) \
+                               ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) \
                                :
                                 row.prop(clip_settings, "smoothing_scale_y_regressor", text="")
                             else:
                                 row.prop(settings, "null_property")
 
                             if clip_settings.smoothing_scale_x_regressor == clip_settings.smoothing_scale_y_regressor and \
-                               (clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0) \
+                               ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) \
                                 and \
-                               (clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0) \
+                               ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) \
                                :
                                 if clip_settings.smoothing_scale_x_regressor == "HUBER":
                                     row = sub_column.row(align=True)
@@ -3764,25 +3813,25 @@ class AAEExportOptions(bpy.types.Panel):
                                     row.prop(clip_settings, "smoothing_scale_y_lasso_alpha", text="")
                             else:
                                 if clip_settings.smoothing_scale_x_regressor == "HUBER" and \
-                               (clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0) \
+                               ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(clip_settings, "smoothing_scale_x_huber_epsilon")
                                     row.prop(settings, "null_property")
                                 elif clip_settings.smoothing_scale_x_regressor == "LASSO" and \
-                               (clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0) \
+                               ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(clip_settings, "smoothing_scale_x_lasso_alpha")
                                     row.prop(settings, "null_property")
                                 if clip_settings.smoothing_scale_y_regressor == "HUBER" and \
-                               (clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0) \
+                               ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Epsilon")
                                     row.prop(clip_settings, "smoothing_scale_y_huber_epsilon", text="")
                                 elif clip_settings.smoothing_scale_y_regressor == "LASSO" and \
-                               (clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0) \
+                               ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Alpha")
@@ -3791,7 +3840,7 @@ class AAEExportOptions(bpy.types.Panel):
 
                     else:
 
-                        if clip_settings.smoothing_scale_degree != 0:
+                        if (clip_settings.smoothing_do_scale or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_degree != 0:
 
                             sub_column.prop(clip_settings, "smoothing_scale_regressor")
                             if clip_settings.smoothing_scale_regressor == "HUBER":
@@ -3807,10 +3856,10 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                 sub_column = column.column(heading="Rotation")
-                sub_column.enabled = False and not section_settings.null_section
+                sub_column.enabled = False and not clip_settings.disable_section
 
                 sub_column.prop(clip_settings, "smoothing_do_rotation")
-                if clip_settings.smoothing_do_rotation:
+                if clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate:
                     if clip_settings.smoothing_use_different_x_y and not clip_settings.smoothing_use_different_model:
                         row = sub_column.row(align=True)
                         row.prop(clip_settings, "smoothing_rotation_degree")
@@ -3821,7 +3870,8 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
-                    if clip_settings.smoothing_rotation_degree != 0:
+                    if (clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and \
+                       clip_settings.smoothing_rotation_degree != 0:
                         sub_column.prop(clip_settings, "smoothing_rotation_regressor")
                         if clip_settings.smoothing_rotation_regressor == "HUBER":
                             sub_column.prop(clip_settings, "smoothing_rotation_huber_epsilon")
@@ -3836,13 +3886,13 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                 sub_column = column.column(heading="Power Pin")
-                sub_column.enabled = False and not section_settings.null_section
+                sub_column.enabled = False and not clip_settings.disable_section
 
                 if clip_settings.smoothing_use_different_x_y:
                     row = sub_column.row(align=True)
                     row.prop(clip_settings, "smoothing_do_power_pin_x")
                     row.prop(clip_settings, "smoothing_do_power_pin_y")
-                    if clip_settings.smoothing_do_power_pin_x == clip_settings.smoothing_do_power_pin_y == True:
+                    if clip_settings.smoothing_do_power_pin_x == clip_settings.smoothing_do_power_pin_y == True or clip_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
                         row.prop(clip_settings, "smoothing_power_pin_x_degree")
                         row.prop(clip_settings, "smoothing_power_pin_y_degree", text="")
@@ -3853,10 +3903,10 @@ class AAEExportOptions(bpy.types.Panel):
                     elif clip_settings.smoothing_do_power_pin_y:
                         row = sub_column.row(align=True)
                         row.prop(settings, "null_property", text="Max Degree")
-                        row.prop(clip_settings, "smoothing_power_pin_x_degree", text="")
+                        row.prop(clip_settings, "smoothing_power_pin_y_degree", text="")
                 else:
                     sub_column.prop(clip_settings, "smoothing_do_power_pin")
-                    if clip_settings.smoothing_do_power_pin:
+                    if clip_settings.smoothing_do_power_pin or clip_settings.smoothing_extrapolate:
                         sub_column.prop(clip_settings, "smoothing_power_pin_degree")
                 if clip_settings.smoothing_use_different_model:
 
@@ -3867,27 +3917,27 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                         if \
-                               (clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0) \
                                 or \
-                               (clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0) \
                                :
                             if \
-                               (clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0) \
                                :
                                 row.prop(clip_settings, "smoothing_power_pin_x_regressor")
                             else:
                                 row.prop(settings, "null_property", text="Linear Model")
                             if \
-                               (clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0) \
                                :
                                 row.prop(clip_settings, "smoothing_power_pin_y_regressor", text="")
                             else:
                                 row.prop(settings, "null_property")
 
                             if clip_settings.smoothing_power_pin_x_regressor == clip_settings.smoothing_power_pin_y_regressor and \
-                               (clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0) \
                                 and \
-                               (clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0) \
                                :
                                 if clip_settings.smoothing_power_pin_x_regressor == "HUBER":
                                     row = sub_column.row(align=True)
@@ -3899,25 +3949,25 @@ class AAEExportOptions(bpy.types.Panel):
                                     row.prop(clip_settings, "smoothing_power_pin_y_lasso_alpha", text="")
                             else:
                                 if clip_settings.smoothing_power_pin_x_regressor == "HUBER" and \
-                               (clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(clip_settings, "smoothing_power_pin_x_huber_epsilon")
                                     row.prop(settings, "null_property")
                                 elif clip_settings.smoothing_power_pin_x_regressor == "LASSO" and \
-                               (clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(clip_settings, "smoothing_power_pin_x_lasso_alpha")
                                     row.prop(settings, "null_property")
                                 if clip_settings.smoothing_power_pin_y_regressor == "HUBER" and \
-                               (clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Epsilon")
                                     row.prop(clip_settings, "smoothing_power_pin_y_huber_epsilon", text="")
                                 elif clip_settings.smoothing_power_pin_y_regressor == "LASSO" and \
-                               (clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Alpha")
@@ -3926,7 +3976,7 @@ class AAEExportOptions(bpy.types.Panel):
 
                     else:
 
-                        if clip_settings.smoothing_power_pin_degree != 0:
+                        if (clip_settings.smoothing_do_power_pin or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_degree != 0:
 
                             sub_column.prop(clip_settings, "smoothing_power_pin_regressor")
                             if clip_settings.smoothing_power_pin_regressor == "HUBER":
@@ -3948,42 +3998,42 @@ class AAEExportOptions(bpy.types.Panel):
 
 
                         if \
-                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0 or \
-                                clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0 or \
-                                clip_settings.smoothing_do_rotation and clip_settings.smoothing_rotation_degree != 0 or \
-                                clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               (((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) or \
+                                ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) or \
+                                ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
+                                ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0)) \
                                 or \
-                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0 or \
-                                clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0 or \
-                                clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               (((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) or \
+                                ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) or \
+                                ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                             if \
-                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0 or \
-                                clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0 or \
-                                clip_settings.smoothing_do_rotation and clip_settings.smoothing_rotation_degree != 0 or \
-                                clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               (((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) or \
+                                ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) or \
+                                ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
+                                ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                 row.prop(clip_settings, "smoothing_x_regressor")
                             else:
                                 row.prop(settings, "null_property", text="Linear Model")
                             if \
-                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0 or \
-                                clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0 or \
-                                clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               (((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) or \
+                                ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) or \
+                                ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                 row.prop(clip_settings, "smoothing_y_regressor", text="")
                             else:
                                 row.prop(settings, "null_property")
 
                             if clip_settings.smoothing_x_regressor == clip_settings.smoothing_y_regressor and \
-                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0 or \
-                                clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0 or \
-                                clip_settings.smoothing_do_rotation and clip_settings.smoothing_rotation_degree != 0 or \
-                                clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               (((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) or \
+                                ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) or \
+                                ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
+                                ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0)) \
                                 and \
-                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0 or \
-                                clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0 or \
-                                clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               (((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) or \
+                                ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) or \
+                                ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                 if clip_settings.smoothing_x_regressor == "HUBER":
                                     row = sub_column.row(align=True)
@@ -3995,35 +4045,35 @@ class AAEExportOptions(bpy.types.Panel):
                                     row.prop(clip_settings, "smoothing_y_lasso_alpha", text="")
                             else:
                                 if clip_settings.smoothing_x_regressor == "HUBER" and \
-                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0 or \
-                                clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0 or \
-                                clip_settings.smoothing_do_rotation and clip_settings.smoothing_rotation_degree != 0 or \
-                                clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               (((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) or \
+                                ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) or \
+                                ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
+                                ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(clip_settings, "smoothing_x_huber_epsilon")
                                     row.prop(settings, "null_property")
                                 elif clip_settings.smoothing_x_regressor == "LASSO" and \
-                               (clip_settings.smoothing_do_position_x and clip_settings.smoothing_position_x_degree != 0 or \
-                                clip_settings.smoothing_do_scale_x and clip_settings.smoothing_scale_x_degree != 0 or \
-                                clip_settings.smoothing_do_rotation and clip_settings.smoothing_rotation_degree != 0 or \
-                                clip_settings.smoothing_do_power_pin_x and clip_settings.smoothing_power_pin_x_degree != 0) \
+                               (((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) or \
+                                ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) or \
+                                ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
+                                ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(clip_settings, "smoothing_x_lasso_alpha")
                                     row.prop(settings, "null_property")
                                 if clip_settings.smoothing_y_regressor == "HUBER" and \
-                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0 or \
-                                clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0 or \
-                                clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               (((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) or \
+                                ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) or \
+                                ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Epsilon")
                                     row.prop(clip_settings, "smoothing_y_huber_epsilon", text="")
                                 elif clip_settings.smoothing_y_regressor == "LASSO" and \
-                               (clip_settings.smoothing_do_position_y and clip_settings.smoothing_position_y_degree != 0 or \
-                                clip_settings.smoothing_do_scale_y and clip_settings.smoothing_scale_y_degree != 0 or \
-                                clip_settings.smoothing_do_power_pin_y and clip_settings.smoothing_power_pin_y_degree != 0) \
+                               (((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) or \
+                                ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) or \
+                                ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
                                     row.prop(settings, "null_property", text="Alpha")
@@ -4032,10 +4082,10 @@ class AAEExportOptions(bpy.types.Panel):
 
                     else:
 
-                        if clip_settings.smoothing_position_degree != 0 or \
-                           clip_settings.smoothing_scale_degree != 0 or \
-                           clip_settings.smoothing_rotation_degree != 0 or \
-                           clip_settings.smoothing_power_pin_degree != 0:
+                        if ((clip_settings.smoothing_do_position or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_degree != 0) or \
+                           ((clip_settings.smoothing_do_scale or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_degree != 0) or \
+                           ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
+                           ((clip_settings.smoothing_do_power_pin or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_degree != 0):
 
                             sub_column.prop(clip_settings, "smoothing_regressor")
                             if clip_settings.smoothing_regressor == "HUBER":
@@ -4077,8 +4127,8 @@ class AAEExportSectionL(bpy.types.UIList):
             row = split.row()
             row.alignment = "RIGHT"
             row.label(text="Section")
-            if item.null_section:
-                split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (null)")
+            if item.disable_section:
+                split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (disabled)")
             elif (context.selected_movieclip_tracks.__len__() == 1) is not ((selected_plane_tracks := [plane_track for plane_track in context.edit_movieclip.tracking.plane_tracks if plane_track.select]).__len__() == 1) and \
                  ((context.selected_movieclip_tracks.__len__() == 1 and \
                    not any([(item.start_frame < marker.frame < item.end_frame or \
@@ -4091,6 +4141,17 @@ class AAEExportSectionL(bpy.types.UIList):
                              marker.frame == item.end_frame == context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration) and \
                             not marker.mute for marker in selected_plane_tracks[0]].markers))):
                 split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (empty)")
+            elif (context.selected_movieclip_tracks.__len__() == 1) is not ((selected_plane_tracks := [plane_track for plane_track in context.edit_movieclip.tracking.plane_tracks if plane_track.select]).__len__() == 1) and \
+                 ((context.selected_movieclip_tracks.__len__() == 1 and \
+                   any([item.start_frame <= marker.frame <= item.end_frame and \
+                        marker.mute for marker in context.selected_movieclip_tracks[0].markers])) or \
+                  (selected_plane_tracks.__len__ == 1 and \
+                   any([item.start_frame <= marker.frame <= item.end_frame and \
+                        marker.mute for marker in selected_plane_tracks[0]].markers))):
+                if item.smoothing_extrapolate:
+                    split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (extrapolated)")
+                else:
+                    split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (partial)")
             else:
                 split.label(text=str(item.start_frame) + "‥" + str(item.end_frame))
         elif self.layout_type in { "GRID" }:
@@ -4206,12 +4267,14 @@ class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
             raise ValueError("The legacy export method only allows one clip to be loaded into Blender at a time. You can either try the new export interface at „Clip Editor > Tools > Solve > AAE Export“ or use „File > New“ to create a new Blender file.")
         clip = bpy.data.movieclips[0]
         settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings = context.edit_movieclip.AAEExportSettingsSectionL
 
         for track in clip.tracking.tracks:
-            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, None), self.filepath, True)
+            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, track, settings, clip_settings, section_settings), self.filepath, True)
 
         for plane_track in clip.tracking.plane_tracks:
-            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, plane_track, None), self.filepath, True)
+            AAEExportExportAll._export_to_file(clip, track, AAEExportExportAll._generate(clip, plane_track, settings, clip_settings, section_settings), self.filepath, True)
 
         return { "FINISHED" }
 
