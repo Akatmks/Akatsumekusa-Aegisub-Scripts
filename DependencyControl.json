@@ -194,6 +194,26 @@
             "name": "UnwhiteDialogue",
             "description": "Automatically select shade and unwhite the dialogues",
             "url": "@{baseUrl}"
+        },
+        "aka.dupe-and-not-comment": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}/macros/aka.dupe-and-not-comment.lua",
+                            "sha1": "58f58318c5786b6781a74328ca9a8adfc7c27e9e"
+                        }
+                    ],
+                    "version": "0.0.2",
+                    "default": true,
+                    "released": "2023-05-15"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "Dupe and Not Comment",
+            "description": "Duplicate selected line line by line",
+            "url": "@{baseUrl}"
         }
     },
     "modules": {
