@@ -116,8 +116,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
     bl_idname = "AAEExportSettingsClip"
 
     def _do_smoothing_update(self, context):
-        context.edit_movieclip.AAEExportSettingsClip.smoothing_blending = "BEZIER"
-
         # Create the first section if there aren't
         if context.edit_movieclip.AAEExportSettingsSectionLL == 0:
             item = context.edit_movieclip.AAEExportSettingsSectionL.add()
@@ -135,12 +133,23 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                          description="Perform smoothing on tracking data.\nThis uses position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks to fit polynomial regression models, and then uses the fit models to generate smoothed data",
                                          default=False,
                                          update=_do_smoothing_update)
+
+    do_advanced_smoothing: bpy.props.BoolProperty(name="Advanced",
+                                                  description="Reveal more options for smoothing, including using different smoothing settings for different section of the clip and for different axis and data type",
+                                                  default=False)
+
+    def _do_predictive_smoothing_update(self, context):
+        context.edit_movieclip.AAEExportSettingsSectionL[0].smoothing_extrapolate = self.do_predictive_smoothing
+    do_predictive_smoothing: bpy.props.BoolProperty(name="Extrapolate",
+                                                    description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled",
+                                                    default=False,
+                                                    update=_do_predictive_smoothing_update)
                                          
     smoothing_blending: bpy.props.EnumProperty(items=(("NONE", "No Blending", "Average the frame on the section boundaries and do not perform any blending for the other frames"),
                                                       ("BEZIER", "Cubic Bézier", "Use a fixed Bézier curve to ease the transition between the sections"),
                                                       ("SHIFT", "Shift", "Shift sections until all nearby sections match up at the boundaries.\nThe amount each section is shifted is proportional to the number of frames in each section")),
                                                name="Section Blending",
-                                               default="NONE")
+                                               default="BEZIER")
     smoothing_blending_bezier_p1: bpy.props.FloatProperty(name="p₁",
                                                           description="The second point on the cubic curve",
                                                           default=0.42,
@@ -150,7 +159,7 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                                           precision=2)
     smoothing_blending_bezier_p2: bpy.props.FloatProperty(name="p₂",
                                                           description="The third point on the cubic curve",
-                                                          default=0.0,
+                                                          default=0.58,
                                                           min=0.0,
                                                           max=1.0,
                                                           step=1,
@@ -185,7 +194,7 @@ define(<<SMOOTHING_SETTINGS_BASE>>, <<dnl START_FRAME_UPDATE <<OPTIONAL>>, END_F
                                                           default=False)
                                                           
     smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
-                                                  description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the section, even if the track or plane track is not enabled on some of the frames.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the track is not enabled.\n\nIf you don't want AAE Export to generate any data over a section, you can check the „Disable section“ option in the „Section Settings“ frame above to disable a section",
+                                                  description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the section, even if the track or plane track is not enabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the track is not enabled",
                                                   default=False)
 >>)
 
@@ -1972,6 +1981,7 @@ class AAEExportOptions(bpy.types.Panel):
         if is_smoothing_modules_available:
 define(<<DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR>>, <<0.44>>)
 define(<<DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR>>, <<0.40>>)
+define(<<DRAW_SMOOTHING__ABOVE_ADVANCED_SRPARATOR_FACTOR>>, <<0.22>>)
 define(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>, <<0.0>>)
 
             clip_settings = context.edit_movieclip.AAEExportSettingsClip
@@ -1984,90 +1994,98 @@ define(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>, <<0.0>>)
             column = box.column(heading="Smoothing")
             column.prop(clip_settings, "do_smoothing")
             column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
-                    
-            sub_column = column.column()
-            sub_column.enabled = clip_settings.do_smoothing and \
-                                 (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
-            sub_column.operator("movieclip.aae_export_plot_result")
-            column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
 
-            sub_column = column.column()
-            sub_column.enabled = clip_settings.do_smoothing
-            sub_column.prop(clip_settings, "smoothing_blending")
-            if clip_settings.smoothing_blending == "BEZIER":
-                row = sub_column.row(align=True)
-                row.prop(clip_settings, "smoothing_blending_bezier_p1", text="Control")
-                row.prop(clip_settings, "smoothing_blending_bezier_p2", text="")
-                sub_column.prop(clip_settings, "smoothing_blending_bezier_range")
-            column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
-            
-            row = column.row(align=True)
-            row.enabled = clip_settings.do_smoothing
-            row.alignment = "CENTER"
-            row.label(text="Sections")
-            column.separator(factor=DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR)
-
-            sub_column = column.column()
-            sub_column.enabled = clip_settings.do_smoothing
-            sub_column.template_list("SOLVE_PT_UL_aae_export_section_list", "SOLVE_PT_aae_export_section_vgourp",
-                                     context.edit_movieclip, "AAEExportSettingsSectionL",
-                                     context.edit_movieclip, "AAEExportSettingsSectionLI",
-                                     rows=2, maxrows=6)
-
-            if context.edit_movieclip.AAEExportSettingsSectionLL != 0:
-define(<<DRAW_SMOOTHING>>, <<dnl SETTINGS, ENABLED
-                row = column.row(align=True)
-                row.enabled = $2
-                sub_row = row.row(align=True)
-                sub_row.enabled = $2 and \
-                                  context.edit_movieclip.AAEExportSettingsSectionLL > 0 and \
-                                  ((context.edit_movieclip.AAEExportSettingsSectionLI == context.edit_movieclip.AAEExportSettingsSectionLL - 1 and \
-                                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame >= 2) or \
-                                   (context.edit_movieclip.AAEExportSettingsSectionLI < context.edit_movieclip.AAEExportSettingsSectionLL - 1 and \
-                                    (context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame >= 2 or \
-                                     context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame >= 2)))
-                sub_row.operator("movieclip.aae_export_section_add_section")
-                sub_row = row.row(align=True)
-                sub_row.enabled = $2 and \
-                                  context.edit_movieclip.AAEExportSettingsSectionLL >= 2
-                sub_row.operator("movieclip.aae_export_section_remove_section")
-                column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
-
-                row = column.row()
-                row.enabled = $2
-                row.alignment = "CENTER"
-                row.label(text="Section Settings")
-                column.separator(factor=DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR)
-
+            if clip_settings.do_advanced_smoothing:
                 sub_column = column.column()
-                sub_column.enabled = $2
-                sub_column.prop($1, "start_frame")
-                sub_column.prop($1, "end_frame")
-                column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
-
-                sub_column = column.column(align=True)
-                sub_column.enabled = $2
-                sub_column.prop($1, "disable_section")
-                sub_column.prop($1, "smoothing_extrapolate", text="Extrapolate section")
-                column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
-                
-                row = column.row(align=True)
-                row.enabled = $2 and not $1.disable_section
-                row.alignment = "CENTER"
-                row.label(text="Section Smoothing")
-                column.separator(factor=DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR)
-                
-                row = column.row(heading="Split Settings for", align=True)
-                row.enabled = $2 and not $1.disable_section
-                row.prop($1, "smoothing_use_different_x_y")
-                row.prop($1, "smoothing_use_different_model")
-                column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
-            
-                sub_column = column.column()
-                sub_column.enabled = $2 and not $1.disable_section and \
+                sub_column.enabled = clip_settings.do_smoothing and \
                                      (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
-                sub_column.operator("movieclip.aae_export_plot_graph")
+                sub_column.operator("movieclip.aae_export_plot_result")
                 column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
+            else:
+                sub_column = column.column()
+                sub_column.enabled = clip_settings.do_smoothing and \
+                                     (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
+                sub_column.operator("movieclip.aae_export_plot_result", text="Plot")
+                column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
+
+            if clip_settings.do_advanced_smoothing:
+                sub_column = column.column()
+                sub_column.enabled = clip_settings.do_smoothing
+                sub_column.prop(clip_settings, "smoothing_blending")
+                if clip_settings.smoothing_blending == "BEZIER":
+                    row = sub_column.row(align=True)
+                    row.prop(clip_settings, "smoothing_blending_bezier_p1", text="Control")
+                    row.prop(clip_settings, "smoothing_blending_bezier_p2", text="")
+                    sub_column.prop(clip_settings, "smoothing_blending_bezier_range")
+                column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
+
+                row = column.row(align=True)
+                row.enabled = clip_settings.do_smoothing
+                row.alignment = "CENTER"
+                row.label(text="Sections")
+                column.separator(factor=DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR)
+
+                sub_column = column.column()
+                sub_column.enabled = clip_settings.do_smoothing
+                sub_column.template_list("SOLVE_PT_UL_aae_export_section_list", "SOLVE_PT_aae_export_section_vgourp",
+                                         context.edit_movieclip, "AAEExportSettingsSectionL",
+                                         context.edit_movieclip, "AAEExportSettingsSectionLI",
+                                         rows=2, maxrows=6)
+
+define(<<DRAW_SMOOTHING>>, <<dnl SETTINGS, ENABLED
+                if clip_settings.do_advanced_smoothing:
+                    row = column.row(align=True)
+                    row.enabled = $2
+                    sub_row = row.row(align=True)
+                    sub_row.enabled = $2 and \
+                                      context.edit_movieclip.AAEExportSettingsSectionLL > 0 and \
+                                      ((context.edit_movieclip.AAEExportSettingsSectionLI == context.edit_movieclip.AAEExportSettingsSectionLL - 1 and \
+                                        context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame >= 2) or \
+                                       (context.edit_movieclip.AAEExportSettingsSectionLI < context.edit_movieclip.AAEExportSettingsSectionLL - 1 and \
+                                        (context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame >= 2 or \
+                                         context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame >= 2)))
+                    sub_row.operator("movieclip.aae_export_section_add_section")
+                    sub_row = row.row(align=True)
+                    sub_row.enabled = $2 and \
+                                      context.edit_movieclip.AAEExportSettingsSectionLL >= 2
+                    sub_row.operator("movieclip.aae_export_section_remove_section")
+                    column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
+
+                    row = column.row()
+                    row.enabled = $2
+                    row.alignment = "CENTER"
+                    row.label(text="Section Settings")
+                    column.separator(factor=DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR)
+
+                    sub_column = column.column()
+                    sub_column.enabled = $2
+                    sub_column.prop($1, "start_frame")
+                    sub_column.prop($1, "end_frame")
+                    column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
+
+                    sub_column = column.column(align=True)
+                    sub_column.enabled = $2
+                    sub_column.prop($1, "disable_section")
+                    sub_column.prop($1, "smoothing_extrapolate", text="Extrapolate section")
+                    column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
+
+                    row = column.row(align=True)
+                    row.enabled = $2 and not $1.disable_section
+                    row.alignment = "CENTER"
+                    row.label(text="Section Smoothing")
+                    column.separator(factor=DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR)
+
+                    row = column.row(heading="Split Settings for", align=True)
+                    row.enabled = $2 and not $1.disable_section
+                    row.prop($1, "smoothing_use_different_x_y")
+                    row.prop($1, "smoothing_use_different_model")
+                    column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
+
+                    sub_column = column.column()
+                    sub_column.enabled = $2 and not $1.disable_section and \
+                                         (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
+                    sub_column.operator("movieclip.aae_export_plot_graph")
+                    column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
 
 define(<<DATA>>, <<DATA NOT INITIALISED>>)
 define(<<DISPLAY_NAME>>, <<DISPLAY_NAME NOT INITIALISED>>)
@@ -2228,10 +2246,23 @@ undefine(<<DATA>>)
 undefine(<<DISPLAY_NAME>>)
 undefine(<<DRAW_SMOOTHING__DATA_REGRESSION>>)
 undefine(<<DRAW_SMOOTHING__DATA>>)
+
+                if not clip_settings.do_advanced_smoothing:
+                    sub_column = column.column()
+                    sub_column.enabled = $2
+                    sub_column.prop(clip_settings, "do_predictive_smoothing")
+                    column.separator(factor=DRAW_SMOOTHING__ABOVE_ADVANCED_SRPARATOR_FACTOR)
+
+                    sub_column = column.column()
+                    sub_column.enabled = $2
+                    sub_column.use_property_split = False
+                    sub_column.prop(clip_settings, "do_advanced_smoothing", toggle=True)
+                    column.separator(factor=DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR)
+
 >>)
 
+            if context.edit_movieclip.AAEExportSettingsSectionLL != 0:
                 section_settings = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI]
-
 DRAW_SMOOTHING(<<section_settings>>, <<clip_settings.do_smoothing>>)
             else:
 DRAW_SMOOTHING(<<clip_settings>>, <<False>>)
@@ -2239,6 +2270,7 @@ DRAW_SMOOTHING(<<clip_settings>>, <<False>>)
 undefine(<<DRAW_SMOOTHING>>)
 undefine(<<DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR>>)
 undefine(<<DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR>>)
+undefine(<<DRAW_SMOOTHING__ABOVE_ADVANCED_SRPARATOR_FACTOR>>)
 undefine(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>)
 
         else:
