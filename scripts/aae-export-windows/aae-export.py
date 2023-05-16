@@ -172,6 +172,31 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                                              step=50,
                                                              precision=1)
 
+    power_pin_remap_0002: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "Power Pin-0002 corresponds to the upper-left corner"),
+                                                        ("0003", "0003 (Upper-right)", "Power Pin-0003 corresponds to the upper-right corner"),
+                                                        ("0004", "0004 (Lower-left)", "Power Pin-0004 corresponds to the lower-left corner"),
+                                                        ("0005", "0005 (Lower-right)", "Power Pin-0005 corresponds to the lower-right corner")),
+                                               name="0002 (Upper-left)",
+                                               default="0002")
+    power_pin_remap_0003: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "Power Pin-0002 corresponds to the upper-left corner"),
+                                                        ("0003", "0003 (Upper-right)", "Power Pin-0003 corresponds to the upper-right corner"),
+                                                        ("0004", "0004 (Lower-left)", "Power Pin-0004 corresponds to the lower-left corner"),
+                                                        ("0005", "0005 (Lower-right)", "Power Pin-0005 corresponds to the lower-right corner")),
+                                               name="0003 (Upper-right)",
+                                               default="0003")
+    power_pin_remap_0004: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "Power Pin-0002 corresponds to the upper-left corner"),
+                                                        ("0003", "0003 (Upper-right)", "Power Pin-0003 corresponds to the upper-right corner"),
+                                                        ("0004", "0004 (Lower-left)", "Power Pin-0004 corresponds to the lower-left corner"),
+                                                        ("0005", "0005 (Lower-right)", "Power Pin-0005 corresponds to the lower-right corner")),
+                                               name="0004 (Lower-left)",
+                                               default="0004")
+    power_pin_remap_0005: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "Power Pin-0002 corresponds to the upper-left corner"),
+                                                        ("0003", "0003 (Upper-right)", "Power Pin 0003-corresponds to the upper-right corner"),
+                                                        ("0004", "0004 (Lower-left)", "Power Pin 0004-corresponds to the lower-left corner"),
+                                                        ("0005", "0005 (Lower-right)", "Power Pin 0005-corresponds to the lower-right corner")),
+                                               name="0005 (Lower-right)",
+                                               default="0005")
+
 
 
 
@@ -5973,7 +5998,6 @@ class AAEExportOptions(bpy.types.Panel):
         column.prop(settings, "do_also_export")
         column.prop(settings, "do_do_not_overwrite")
 
-
         box = layout.box()
         if is_smoothing_modules_available:
 
@@ -7112,6 +7136,17 @@ class AAEExportOptions(bpy.types.Panel):
             column = box.column(heading="Smoothing")
             column.enabled = False
             column.prop(clip_settings, "do_smoothing_fake")
+
+        box = layout.box()
+        column = box.column(heading="Power Pin Remap")
+        row = column.row()
+        row.alignment = "CENTER"
+        row.label(text="Power Pin Remap")
+        column.separator(factor=0.06)
+        column.prop(clip_settings, "power_pin_remap_0002")
+        column.prop(clip_settings, "power_pin_remap_0003")
+        column.prop(clip_settings, "power_pin_remap_0004")
+        column.prop(clip_settings, "power_pin_remap_0005")
 
     @classmethod
     def poll(cls, context):
