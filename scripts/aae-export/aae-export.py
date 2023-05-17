@@ -820,7 +820,6 @@ undefine(<<SMOOTHING_SECTION_AXIS>>)
                                        np.dstack((smoothed_power_pin_0005_x, smoothed_power_pin_0005_y))[0])) if smoothed_power_pin_0002_x is not None else \
                              None
 
-
         position = position[section_settings.start_frame-1:section_settings.end_frame]
         scale = scale[section_settings.start_frame-1:section_settings.end_frame]
         rotation = rotation[section_settings.start_frame-1:section_settings.end_frame]
@@ -1682,12 +1681,12 @@ undefine(<<RESULT_COLOR>>)
         import PIL
         import re
 
-define(<<SCATTER_SIZE>>, <<7.3>>)
 define(<<SCATTER_COLOR>>, <<lightslategrey>>)
-define(<<SCATTER_LW>>, <<0.9>>)
-define(<<SMOOTHED_SCATTER_LW>>, <<1.0>>)
-define(<<SMOOTHED_LW>>, <<1.4>>)
 define(<<SMOOTHED_COLOR>>, <<dodgerblue>>)
+define(<<SCATTER_SIZE>>, <<7.3>>)
+define(<<SMOOTHED_LW_ON_SCATTER_GRAPH>>, <<1.0>>)
+define(<<SCATTER_LW>>, <<0.9>>)
+define(<<SMOOTHED_LW>>, <<1.4>>)
 
         def plot_position(row, position, smoothed_position, label):
             def test_z_score(data):
@@ -1697,14 +1696,14 @@ define(<<SMOOTHED_COLOR>>, <<dodgerblue>>)
             row[0].invert_yaxis()
             row[0].scatter(position[:, 0], position[:, 1], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
             if smoothed_position is not None:
-                row[0].plot(smoothed_position[:, 0], smoothed_position[:, 1], color="SMOOTHED_COLOR", lw=SMOOTHED_SCATTER_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+                row[0].plot(smoothed_position[:, 0], smoothed_position[:, 1], color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[0].legend()
             row[0].set_xlabel("X")
             row[0].set_ylabel("Y")
 
             row[1].scatter((frames := np.arange(section_settings.start_frame, section_settings.end_frame + 1)), position[:, 0], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
             if smoothed_position is not None:
-                row[1].plot(frames, smoothed_position[:, 0], color="SMOOTHED_COLOR", lw=SMOOTHED_SCATTER_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+                row[1].plot(frames, smoothed_position[:, 0], color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[1].legend()
             row[1].set_xlabel("Frame")
             row[1].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
@@ -1722,7 +1721,7 @@ define(<<SMOOTHED_COLOR>>, <<dodgerblue>>)
 
             row[3].scatter(frames, position[:, 1], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
             if smoothed_position is not None:
-                row[3].plot(frames, smoothed_position[:, 1], color="SMOOTHED_COLOR", lw=SMOOTHED_SCATTER_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+                row[3].plot(frames, smoothed_position[:, 1], color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[3].legend()
             row[3].set_xlabel("Frame")
             row[3].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
@@ -1743,7 +1742,7 @@ define(<<SMOOTHED_COLOR>>, <<dodgerblue>>)
             
             row[1].scatter(np.arange(1, rotation.shape[0] + 1), rotation, marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
             if smoothed_rotation is not None:
-                row[1].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation, color="SMOOTHED_COLOR", lw=SMOOTHED_SCATTER_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+                row[1].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation, color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[1].legend()
             row[1].set_xlabel("Frame")
             row[1].set_ylabel(label.title())
@@ -1760,11 +1759,12 @@ define(<<SMOOTHED_COLOR>>, <<dodgerblue>>)
             row[3].axis("off")
             row[4].axis("off")
 
-undefine(<<SCATTER_SIZE>>)
 undefine(<<SCATTER_COLOR>>)
+undefine(<<SMOOTHED_COLOR>>)
+undefine(<<SCATTER_SIZE>>)
+undefine(<<SMOOTHED_LW_ON_SCATTER_GRAPH>>)
 undefine(<<SCATTER_LW>>)
 undefine(<<SMOOTHED_LW>>)
-undefine(<<SMOOTHED_COLOR>>)
         
         fig, axs = plt.subplots(ncols=5, nrows=7, figsize=(5 * 5.4, 7 * 4.05), dpi=250, layout="constrained")
         plot_position(axs[0], position, smoothed_position, "position")

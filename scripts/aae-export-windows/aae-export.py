@@ -3302,7 +3302,6 @@ class AAEExportExportAll(bpy.types.Operator):
                                        np.dstack((smoothed_power_pin_0005_x, smoothed_power_pin_0005_y))[0])) if smoothed_power_pin_0002_x is not None else \
                              None
 
-
         position = position[section_settings.start_frame-1:section_settings.end_frame]
         scale = scale[section_settings.start_frame-1:section_settings.end_frame]
         rotation = rotation[section_settings.start_frame-1:section_settings.end_frame]
@@ -7015,6 +7014,7 @@ class AAEExportExportAll(bpy.types.Operator):
             
             row[3].axis("off")
             row[4].axis("off")
+
 
 
 
