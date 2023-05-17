@@ -1851,6 +1851,11 @@ class AAEExportExportAll(bpy.types.Operator):
                 = AAEExportExportAll._generate_aae_non_numpy( \
                       clip, track)
 
+        aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
+            = AAEExportExportAll._remap_power_pin( \
+                  aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
+                  clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0005)
+
         aae \
             = AAEExportExportAll._combine_aae( \
                   clip, \
@@ -7278,6 +7283,86 @@ class AAEExportExportAll(bpy.types.Operator):
         aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0003))
         aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0004))
         aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0005))
+
+    @staticmethod
+    def _remap_power_pin(power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
+        """
+        Remap Power Pin
+        
+        Parameters
+        ----------
+        power_pin_0002 : object
+        power_pin_0003 : object
+        power_pin_0004 : object
+        power_pin_0005 : object
+        power_pin_remap_0002 : str
+        power_pin_remap_0003 : str
+        power_pin_remap_0004 : str
+        power_pin_remap_0005 : str
+
+        Returns
+        -------
+        return_0002 : object
+        return_0003 : object
+        return_0004 : object
+        return_0005 : object
+
+        """
+
+
+
+        match power_pin_remap_0002:
+            case "0002":
+                return_0002 = power_pin_0002
+            case "0003":
+                return_0002 = power_pin_0003
+            case "0004":
+                return_0002 = power_pin_0004
+            case "0005":
+                return_0002 = power_pin_0005
+
+
+
+
+        match power_pin_remap_0003:
+            case "0002":
+                return_0003 = power_pin_0002
+            case "0003":
+                return_0003 = power_pin_0003
+            case "0004":
+                return_0003 = power_pin_0004
+            case "0005":
+                return_0003 = power_pin_0005
+
+
+
+
+        match power_pin_remap_0004:
+            case "0002":
+                return_0004 = power_pin_0002
+            case "0003":
+                return_0004 = power_pin_0003
+            case "0004":
+                return_0004 = power_pin_0004
+            case "0005":
+                return_0004 = power_pin_0005
+
+
+
+
+        match power_pin_remap_0005:
+            case "0002":
+                return_0005 = power_pin_0002
+            case "0003":
+                return_0005 = power_pin_0003
+            case "0004":
+                return_0005 = power_pin_0004
+            case "0005":
+                return_0005 = power_pin_0005
+
+
+
+        return return_0002, return_0003, return_0004, return_0005
 
     @staticmethod
     def _combine_aae(clip, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, do_includes_power_pin):
