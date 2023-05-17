@@ -146,27 +146,27 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                                     update=_do_predictive_smoothing_update)
                                          
     smoothing_blending: bpy.props.EnumProperty(items=(("NONE", "No Blending", "Average the frame on the section boundaries and do not perform any blending for the other frames"),
-                                                      ("BEZIER", "Cubic Bézier", "Use a fixed Bézier curve to ease the transition between the sections"),
+                                                      ("CUBIC", "Cubic", "Use a fixed cubic curve to ease the transition between the sections"),
                                                       ("SHIFT", "Shift", "Shift sections until all nearby sections match up at the boundaries.\nThe amount each section is shifted is proportional to the number of frames in each section")),
                                                name="Section Blending",
-                                               default="BEZIER")
-    smoothing_blending_bezier_p1: bpy.props.FloatProperty(name="p₁",
+                                               default="CUBIC")
+    smoothing_blending_cubic_p1: bpy.props.FloatProperty(name="p₁",
                                                           description="The second point on the cubic curve",
-                                                          default=0.42,
+                                                          default=0.10,
                                                           min=0.0,
                                                           max=1.0,
                                                           step=1,
                                                           precision=2)
-    smoothing_blending_bezier_p2: bpy.props.FloatProperty(name="p₂",
+    smoothing_blending_cubic_p2: bpy.props.FloatProperty(name="p₂",
                                                           description="The third point on the cubic curve",
-                                                          default=0.58,
+                                                          default=0.90,
                                                           min=0.0,
                                                           max=1.0,
                                                           step=1,
                                                           precision=2)
-    smoothing_blending_bezier_range: bpy.props.FloatProperty(name="Range",
+    smoothing_blending_cubic_range: bpy.props.FloatProperty(name="Range",
                                                              description="Number of frames to apply the blending",
-                                                             default=4.0,
+                                                             default=3.0,
                                                              min=1.0,
                                                              soft_max=24.0,
                                                              step=50,
@@ -411,15 +411,15 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
                     = True
                 context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
-                    = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration
+                    = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - 1
                 context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
                     = False
             else:
-                if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame > context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI + 1:
+                if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame > context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI:
                     context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
                         = True
                     context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
-                        = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI + 1
+                        = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI
                     context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
                         = False
                 if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame < context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI + 1:
@@ -536,7 +536,7 @@ class AAEExportExportAll(bpy.types.Operator):
                 position, scale, rotation, power_pin \
                     = AAEExportExportAll._smoothing_main( \
                           position, scale, rotation, power_pin, \
-                          clip_settings, section_settings_l, section_settings_ll)
+                          clip, clip_settings, section_settings_l, section_settings_ll)
 
                 limited_rotation \
                     = AAEExportExportAll._limit_rotation( \
@@ -565,20 +565,23 @@ class AAEExportExportAll(bpy.types.Operator):
         return aae
 
     @staticmethod
-    def _plot_graph(clip, track, settings):
+    def _plot_result(clip, track, settings, clip_settings, section_settings_l, section_settings_ll):
         """
         Parameters
         ----------
         clip : bpy.types.MovieClip
         track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        settings : AAEExportSettings or None
+        settings : AAEExportSettings
             AAEExportSettings.
-
-        Returns
-        -------
-        aae : str
+        clip_settings : AAEExportSettingsClip
+            AAEExportSettingsClip.
+        section_settings_l : AAEExportSettingsSectionL
+            AAEExportSettingsSectionL.
+        section_settings_ll : bpy.props.IntProperty
+            AAEExportSettingsSectionLL.
 
         """
+        import collections
         import numpy as np
         
         ratio, multiplier \
@@ -588,46 +591,243 @@ class AAEExportExportAll(bpy.types.Operator):
         position, scale, semilimited_rotation, power_pin \
             = AAEExportExportAll._prepare_data( \
                   clip, track, ratio)
-
-        smoothed_position \
-            = AAEExportExportAll._smoothing( \
-                  position, \
-                  settings.smoothing_do_position, settings.smoothing_do_predictive_smoothing, \
-                  settings.smoothing_position_degree, \
-                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
-
-        smoothed_scale \
-            = AAEExportExportAll._smoothing( \
-                  scale, \
-                  settings.smoothing_do_scale, settings.smoothing_do_predictive_smoothing, \
-                  settings.smoothing_scale_degree, \
-                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
-
+        
         rotation \
             = AAEExportExportAll._unlimit_rotation( \
                   semilimited_rotation)
-            
-        smoothed_rotation \
-            = AAEExportExportAll._smoothing( \
-                  rotation, \
-                  settings.smoothing_do_rotation, settings.smoothing_do_predictive_smoothing, \
-                  settings.smoothing_rotation_degree, \
-                  settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
 
-        smoothed_power_pin \
-            = np.empty_like(power_pin)
-        for i in range(4):
-            smoothed_power_pin[i] \
-                = AAEExportExportAll._smoothing( \
-                      power_pin[i], \
-                      settings.smoothing_do_power_pin, settings.smoothing_do_predictive_smoothing, \
-                      settings.smoothing_power_pin_degree, \
-                      settings.smoothing_position_regressor, settings.smoothing_position_huber_epsilon, settings.smoothing_position_lasso_alpha)
+        smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin \
+            = AAEExportExportAll._smoothing_main( \
+                  position, scale, rotation, power_pin, \
+                  clip, clip_settings, section_settings_l, section_settings_ll)
 
-        AAEExportExportAll._plot( \
+        if section_settings_ll > 1 and clip_settings.smoothing_blending != "NONE":
+            no_blending_position, no_blending_scale, no_blending_rotation, no_blending_power_pin \
+                = AAEExportExportAll._smoothing_main( \
+                      position, scale, rotation, power_pin, \
+                      clip, collections.namedtuple("FakeAAEExportSettingsClip", ["smoothing_blending"])("NONE"), section_settings_l, section_settings_ll)
+            if np.all(no_blending_position == smoothed_position):
+                no_blending_position \
+                    = None
+            if np.all(no_blending_scale == smoothed_scale):
+                no_blending_scale \
+                    = None
+            if np.all(no_blending_rotation == smoothed_rotation):
+                no_blending_rotation \
+                    = None
+            if np.all(no_blending_power_pin == smoothed_power_pin):
+                no_blending_power_pin \
+                    = None
+        else:
+            no_blending_position, no_blending_scale, no_blending_rotation, no_blending_power_pin \
+                = None, None, None, None
+
+        AAEExportExportAll._plot_result_plot( \
             position, scale, rotation, power_pin, \
             smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, \
-            settings.smoothing_do_position, settings.smoothing_do_scale, settings.smoothing_do_rotation, settings.smoothing_do_power_pin)
+            no_blending_position, no_blending_scale, no_blending_rotation, no_blending_power_pin, \
+            clip_settings)
+
+    @staticmethod
+    def _plot_section(clip, track, settings, clip_settings, section_settings_l, section_settings_li):
+        """
+        Parameters
+        ----------
+        clip : bpy.types.MovieClip
+        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
+        settings : AAEExportSettings
+            AAEExportSettings.
+        clip_settings : AAEExportSettingsClip
+            AAEExportSettingsClip.
+        section_settings_l : AAEExportSettingsSectionL
+            AAEExportSettingsSectionL.
+        section_settings_li : bpy.props.IntProperty
+            AAEExportSettingsSectionLI.
+
+        """
+        import collections
+        import numpy as np
+        
+        ratio, multiplier \
+            = AAEExportExportAll._calculate_aspect_ratio( \
+                  clip)
+
+        position, scale, semilimited_rotation, power_pin \
+            = AAEExportExportAll._prepare_data( \
+                  clip, track, ratio)
+        
+        rotation \
+            = AAEExportExportAll._unlimit_rotation( \
+                  semilimited_rotation)
+
+        section_settings = section_settings_l[section_settings_li]
+
+define(<<SMOOTHING_DATA_AXIS>>, <<
+
+ifdef(<<POWER_PIN_SELECT>>, <<
+ifelse(POWER_PIN_SELECT, <<0002>>, <<
+define(<<POWER_PIN_COMMA>>, <<0 ,>>)
+>>, <<
+ifelse(POWER_PIN_SELECT, <<0003>>, <<
+define(<<POWER_PIN_COMMA>>, <<1 ,>>)
+>>, <<
+ifelse(POWER_PIN_SELECT, <<0004>>, <<
+define(<<POWER_PIN_COMMA>>, <<2 ,>>)
+>>, <<
+ifelse(POWER_PIN_SELECT, <<0005>>, <<
+define(<<POWER_PIN_COMMA>>, <<3 ,>>)
+>>, <<
+>>)>>)>>)>>)
+define(<<UNDERSCORE_POWER_PIN>>, <<_<<>>POWER_PIN_SELECT>>)
+>>, <<
+define(<<POWER_PIN_COMMA>>, <<>>)
+define(<<UNDERSCORE_POWER_PIN>>, <<>>)
+>>)
+define(<<UNDERSCORE_DATA>>, <<_<<>>DATA>>)
+ifelse(AXIS, <<>>, <<
+define(<<UNDERSCORE_AXIS>>, <<>>)
+define(<<COMMA_AXIS_NUMBER>>, <<>>)
+>>, <<
+ifelse(AXIS, <<x>>, <<
+define(<<UNDERSCORE_AXIS>>, <<_x>>)
+define(<<COMMA_AXIS_NUMBER>>, <<, 0>>)
+>>, <<
+ifelse(AXIS, <<y>>, <<
+define(<<UNDERSCORE_AXIS>>, <<_y>>)
+define(<<COMMA_AXIS_NUMBER>>, <<, 1>>)
+>>, <<>>)>>)>>)
+
+define(<<SMOOTHING_PROCESS>>, <<
+                if section_settings.smoothing_do<<>>UNDERSCORE_DEGREE_NAME<<>> or section_settings.smoothing_extrapolate:
+                    smoothed<<>>UNDERSCORE_DATA<<>>UNDERSCORE_POWER_PIN<<>>UNDERSCORE_AXIS<<>> \
+                        = AAEExportExportAll._smoothing( \
+                              DATA[POWER_PIN_COMMA<<>>section_settings.start_frame-1:section_settings.end_frame<<>>COMMA_AXIS_NUMBER], \
+                              section_settings.smoothing<<>>UNDERSCORE_DEGREE_NAME<<>>_degree, \
+                              section_settings.smoothing<<>>UNDERSCORE_REGRESSION_NAME<<>>_regressor, \
+                              section_settings.smoothing<<>>UNDERSCORE_REGRESSION_NAME<<>>_huber_epsilon, \
+                              section_settings.smoothing<<>>UNDERSCORE_REGRESSION_NAME<<>>_lasso_alpha)
+                else:
+                    smoothed<<>>UNDERSCORE_DATA<<>>UNDERSCORE_POWER_PIN<<>>UNDERSCORE_AXIS<<>> \
+                        = None
+>>)
+        
+        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            case 0b00:
+define(<<UNDERSCORE_DEGREE_NAME>>, <<UNDERSCORE_DATA>>)
+define(<<UNDERSCORE_REGRESSION_NAME>>, <<>>)
+SMOOTHING_PROCESS()
+undefine(<<UNDERSCORE_DEGREE_NAME>>)
+undefine(<<UNDERSCORE_REGRESSION_NAME>>)
+            case 0b01:
+define(<<UNDERSCORE_DEGREE_NAME>>, <<UNDERSCORE_DATA>>)
+define(<<UNDERSCORE_REGRESSION_NAME>>, <<UNDERSCORE_DATA>>)
+SMOOTHING_PROCESS()
+undefine(<<UNDERSCORE_DEGREE_NAME>>)
+undefine(<<UNDERSCORE_REGRESSION_NAME>>)
+            case 0b10:
+define(<<UNDERSCORE_DEGREE_NAME>>, <<UNDERSCORE_DATA<<>>UNDERSCORE_AXIS>>)
+define(<<UNDERSCORE_REGRESSION_NAME>>, <<UNDERSCORE_AXIS>>)
+SMOOTHING_PROCESS()
+undefine(<<UNDERSCORE_DEGREE_NAME>>)
+undefine(<<UNDERSCORE_REGRESSION_NAME>>)
+            case 0b11:
+define(<<UNDERSCORE_DEGREE_NAME>>, <<UNDERSCORE_DATA<<>>UNDERSCORE_AXIS>>)
+define(<<UNDERSCORE_REGRESSION_NAME>>, <<UNDERSCORE_DATA<<>>UNDERSCORE_AXIS>>)
+SMOOTHING_PROCESS()
+undefine(<<UNDERSCORE_DEGREE_NAME>>)
+undefine(<<UNDERSCORE_REGRESSION_NAME>>)
+
+undefine(<<POWER_PIN_COMMA>>)
+undefine(<<UNDERSCORE_POWER_PIN>>)
+undefine(<<UNDERSCORE_DATA>>)
+undefine(<<UNDERSCORE_AXIS>>)
+undefine(<<COMMA_AXIS_NUMBER>>)
+
+>>)
+
+define(<<DATA>>, <<position>>)
+define(<<AXIS>>, <<x>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<DATA>>)
+undefine(<<AXIS>>)
+define(<<DATA>>, <<position>>)
+define(<<AXIS>>, <<y>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<DATA>>)
+undefine(<<AXIS>>)
+define(<<DATA>>, <<scale>>)
+define(<<AXIS>>, <<x>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<DATA>>)
+undefine(<<AXIS>>)
+define(<<DATA>>, <<scale>>)
+define(<<AXIS>>, <<y>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<DATA>>)
+undefine(<<AXIS>>)
+define(<<DATA>>, <<rotation>>)
+define(<<AXIS>>, <<>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<DATA>>)
+undefine(<<AXIS>>)
+define(<<DATA>>, <<power_pin>>)
+define(<<AXIS>>, <<x>>)
+define(<<POWER_PIN_SELECT>>, <<0002>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<POWER_PIN_SELECT>>)
+define(<<POWER_PIN_SELECT>>, <<0003>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<POWER_PIN_SELECT>>)
+define(<<POWER_PIN_SELECT>>, <<0004>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<POWER_PIN_SELECT>>)
+define(<<POWER_PIN_SELECT>>, <<0005>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<POWER_PIN_SELECT>>)
+undefine(<<DATA>>)
+undefine(<<AXIS>>)
+define(<<DATA>>, <<power_pin>>)
+define(<<AXIS>>, <<y>>)
+define(<<POWER_PIN_SELECT>>, <<0002>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<POWER_PIN_SELECT>>)
+define(<<POWER_PIN_SELECT>>, <<0003>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<POWER_PIN_SELECT>>)
+define(<<POWER_PIN_SELECT>>, <<0004>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<POWER_PIN_SELECT>>)
+define(<<POWER_PIN_SELECT>>, <<0005>>)
+SMOOTHING_DATA_AXIS()
+undefine(<<POWER_PIN_SELECT>>)
+undefine(<<DATA>>)
+undefine(<<AXIS>>)
+
+undefine(<<SMOOTHING_SECTION_AXIS>>)
+
+        smoothed_position = np.dstack((smoothed_position_x, smoothed_position_y))[0] if smoothed_position_x is not None else \
+                            None
+        smoothed_scale = np.dstack((smoothed_scale_x, smoothed_scale_y))[0] if smoothed_scale_x is not None else \
+                         None
+        smoothed_power_pin = np.stack((np.dstack((smoothed_power_pin_0002_x, smoothed_power_pin_0002_y))[0],
+                                       np.dstack((smoothed_power_pin_0003_x, smoothed_power_pin_0003_y))[0],
+                                       np.dstack((smoothed_power_pin_0004_x, smoothed_power_pin_0004_y))[0],
+                                       np.dstack((smoothed_power_pin_0005_x, smoothed_power_pin_0005_y))[0])) if smoothed_power_pin_0002_x is not None else \
+                             None
+
+
+        position = position[section_settings.start_frame-1:section_settings.end_frame]
+        scale = scale[section_settings.start_frame-1:section_settings.end_frame]
+        rotation = rotation[section_settings.start_frame-1:section_settings.end_frame]
+        power_pin = np.stack((power_pin[0, section_settings.start_frame-1:section_settings.end_frame],
+                              power_pin[1, section_settings.start_frame-1:section_settings.end_frame],
+                              power_pin[2, section_settings.start_frame-1:section_settings.end_frame],
+                              power_pin[3, section_settings.start_frame-1:section_settings.end_frame]))
+
+        AAEExportExportAll._plot_section_plot( \
+            position, scale, rotation, power_pin, \
+            smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, \
+            section_settings)
 
     @staticmethod
     def _calculate_aspect_ratio(clip):
@@ -906,7 +1106,7 @@ class AAEExportExportAll(bpy.types.Operator):
         return np.swapaxes(misshapen_power_pin.reshape((-1, 4, 2)), 0, 1)
 
     @staticmethod
-    def _smoothing_main(position, scale, rotation, power_pin, clip_settings, section_settings_l, section_settings_ll):
+    def _smoothing_main(position, scale, rotation, power_pin, clip, clip_settings, section_settings_l, section_settings_ll):
         """
         The main logic for smoothing.
 
@@ -917,6 +1117,7 @@ class AAEExportExportAll(bpy.types.Operator):
         rotation : npt.NDArray[float64]
             unlimited rotation
         power_pin : npt.NDArray[float64]
+        clip : bpy.types.MovieClip
         clip_settings : AAEExportSettingsClip
             AAEExportSettingsClip.
         section_settings_l : AAEExportSettingsSectionL
@@ -1014,7 +1215,7 @@ define(<<SMOOTHING_PROCESS>>, <<
         
                     AAEExportExportAll._smoothing_append_result( \
                         return<<>>UNDERSCORE_DATA<<>>UNDERSCORE_POWER_PIN<<>>UNDERSCORE_AXIS<<>>, data, \
-                        clip_settings, section_settings, \
+                        clip, clip_settings, section_settings, \
                         carryover)
 >>)
 
@@ -1046,6 +1247,12 @@ define(<<UNDERSCORE_REGRESSION_NAME>>, <<UNDERSCORE_DATA<<>>UNDERSCORE_AXIS>>)
 SMOOTHING_PROCESS()
 undefine(<<UNDERSCORE_DEGREE_NAME>>)
 undefine(<<UNDERSCORE_REGRESSION_NAME>>)
+
+undefine(<<POWER_PIN_COMMA>>)
+undefine(<<UNDERSCORE_POWER_PIN>>)
+undefine(<<UNDERSCORE_DATA>>)
+undefine(<<UNDERSCORE_AXIS>>)
+undefine(<<COMMA_AXIS_NUMBER>>)
 
 undefine(<<SMOOTHING_PROCESS>>)
 >>)
@@ -1170,7 +1377,7 @@ undefine(<<SMOOTHING_DATA_AXIS>>)
             raise ValueError("regressor " + regressor + " not recognised")
 
     @staticmethod
-    def _smoothing_append_result(return_data, data, clip_settings, section_settings, carryover):
+    def _smoothing_append_result(return_data, data, clip, clip_settings, section_settings, carryover):
         """
         The main logic for smoothing.
 
@@ -1180,6 +1387,7 @@ undefine(<<SMOOTHING_DATA_AXIS>>)
             return_data created in _smoothing_main()
         data : npt.NDArray[float64]
             data after smoothed in _smoothing_main()
+        clip : bpy.types.MovieClip
         clip_settings : AAEExportSettingsClip
         section_settings : AAEExportSettingsSectionL
             Settings for the section AAEExportSettingsSectionL[AAEExportSettingsSectionLI]
@@ -1204,18 +1412,18 @@ undefine(<<SMOOTHING_DATA_AXIS>>)
                         return_data[start_frame+1:end_frame] = data[1:]
                 carryover[0] = data[-1]
 
-            case "BEZIER":
+            case "CUBIC":
                 return_data[start_frame+1:end_frame] = return_data[start_frame+1:end_frame] + data[1:]
                 match (np.isnan(carryover[0]) * 2) + np.isnan(data[0]):
                     case 0b00:
-                        t = np.arange(-(l := min(start_frame, int(clip_settings.smoothing_blending_bezier_range))),
-                                      (h := min(clip.frame_duration - start_frame - 1, int(clip_settings.smoothing_blending_bezier_range))) + 1, dtype=np.float64)
-                        t = 0.5 / clip_settings.smoothing_blending_bezier_range * t
-                        t = 3 * np.power(1-t, 2) * t * clip_settings.smoothing_blending_bezier_p1 + \
-                            3 * (1-t) * np.power(t, 2) * clip_settings.smoothing_blending_bezier_p2 + \
+                        t = np.arange(-(l := min(start_frame, int(clip_settings.smoothing_blending_cubic_range))),
+                                      (h := min(clip.frame_duration - start_frame - 1, int(clip_settings.smoothing_blending_cubic_range))) + 1, dtype=np.float64)
+                        t = 0.5 / clip_settings.smoothing_blending_cubic_range * t + 0.5
+                        t = 3 * np.power(1-t, 2) * t * clip_settings.smoothing_blending_cubic_p1 + \
+                            3 * (1-t) * np.power(t, 2) * clip_settings.smoothing_blending_cubic_p2 + \
                             np.power(t, 3)
-                        t[:l+2] = t[:l+2] * (data[0] - carryover[0])
-                        t[l+2:] = -t[l+2:] * (data[0] - carryover[0])
+                        t[:l+1] = t[:l+1] * (data[0] - carryover[0])
+                        t[l+1:] = -(1 - t[l+1:]) * (data[0] - carryover[0])
 
                         return_data[start_frame-l:start_frame+h+1] = return_data[start_frame-l:start_frame+h+1] + t
                     case 0b10 | 0b11:
@@ -1245,7 +1453,7 @@ undefine(<<SMOOTHING_DATA_AXIS>>)
                         raise ValueError("carryover[0] is NaN but return_data[start_frame] is also NaN")
 
                 if end_frame == clip.frame_duration:
-                    return_data = return_data + carryover[0] / np.count_nonzero(~np.isnan(return_data))
+                    np.add(return_data, carryover[0] / np.count_nonzero(~np.isnan(return_data)), out=return_data)
 
     @staticmethod
     def _unlimit_rotation(semilimited_rotation):
@@ -1347,7 +1555,7 @@ undefine(<<SMOOTHING_DATA_AXIS>>)
         return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
         
     @staticmethod
-    def _plot(position, scale, rotation, power_pin, smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, smoothing_do_position, smoothing_do_scale, smoothing_do_rotation, smoothing_do_power_pin):
+    def _plot_result_plot(position, scale, rotation, power_pin, smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, no_blending_position, no_blending_scale, no_blending_rotation, no_blending_power_pin, clip_settings):
         """
         Plot the data.
 
@@ -1361,6 +1569,12 @@ undefine(<<SMOOTHING_DATA_AXIS>>)
         smoothed_scale : npt.NDArray[float64]
         smoothed_rotation : npt.NDArray[float64]
         smoothed_power_pin : npt.NDArray[float64]
+        no_blending_position : npt.NDArray[float64] or None
+        no_blending_scale : npt.NDArray[float64] or None
+        no_blending_rotation : npt.NDArray[float64] or None
+        no_blending_power_pin : npt.NDArray[float64] or None
+        clip_settings : AAEExportSettingsClip
+
         """
         import matplotlib as mpl
         import matplotlib.pyplot as plt
@@ -1368,68 +1582,170 @@ undefine(<<SMOOTHING_DATA_AXIS>>)
         import PIL
         import re
 
-        def plot_position(row, position, smoothed_position, label, do_smoothing):
+define(<<SCATTER_SIZE>>, <<0.7>>)
+define(<<SCATTER_COLOR>>, <<lightgrey>>)
+define(<<NO_BLENDING_LW>>, <<1.0>>)
+define(<<NO_BLENDING_COLOR>>, <<wheat>>)
+define(<<RESULT_LW>>, <<1.4>>)
+define(<<RESULT_COLOR>>, <<orange>>)
+        def plot_position(axs, y, x, position, smoothed_position, no_blending_position, label, power_pin_remapped=False):
+            axs[y, x].invert_yaxis()
+            axs[y, x].scatter(position[:, 0], position[:, 1], color="SCATTER_COLOR", marker=".", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if no_blending_position is not None:
+                axs[y, x].plot(no_blending_position[:, 0], no_blending_position[:, 1], color="NO_BLENDING_COLOR", lw=NO_BLENDING_LW, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
+            axs[y, x].plot(smoothed_position[:, 0], smoothed_position[:, 1], color="RESULT_COLOR", lw=RESULT_LW, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
+            axs[y, x].legend()
+            axs[y, x].set_xlabel("X")
+            axs[y, x].set_ylabel("Y")
+
+            axs[y, x + 1].scatter(np.arange(1, position.shape[0] + 1), position[:, 0], color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if no_blending_position is not None:
+                axs[y, x + 1].plot(np.arange(1, position.shape[0] + 1), no_blending_position[:, 0], color="NO_BLENDING_COLOR", lw=NO_BLENDING_LW, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
+            axs[y, x + 1].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0], color="RESULT_COLOR", lw=RESULT_LW, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
+            axs[y, x + 1].legend()
+            axs[y, x + 1].set_xlabel("Frame")
+            axs[y, x + 1].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X" + (" (Remapped)" if power_pin_remapped else ""))
+
+            axs[y, x + 2].scatter(np.arange(1, position.shape[0] + 1), position[:, 1], color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if no_blending_position is not None:
+                axs[y, x + 2].plot(np.arange(1, position.shape[0] + 1), no_blending_position[:, 1], color="NO_BLENDING_COLOR", lw=NO_BLENDING_LW, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
+            axs[y, x + 2].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1], color="RESULT_COLOR", lw=RESULT_LW, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
+            axs[y, x + 2].legend()
+            axs[y, x + 2].set_xlabel("Frame")
+            axs[y, x + 2].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y" + (" (Remapped)" if power_pin_remapped else ""))
+        
+        def plot_univariate(axs, y, x, rotation, smoothed_rotation, no_blending_rotation, label):
+            axs[y, x].axis("off")
+            
+            axs[y, x + 1].scatter(np.arange(1, rotation.shape[0] + 1), rotation, color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if no_blending_rotation is not None:
+                axs[y, x + 1].plot(np.arange(1, rotation.shape[0] + 1), no_blending_rotation, color="NO_BLENDING_COLOR", lw=NO_BLENDING_LW, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
+            axs[y, x + 1].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation, color="RESULT_COLOR", lw=RESULT_LW, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
+            axs[y, x + 1].legend()
+            axs[y, x + 1].set_xlabel("Frame")
+            axs[y, x + 1].set_ylabel(label.title())
+
+            axs[y, x + 2].axis("off")
+
+        def plot_emptyness(axs, y, x):
+            axs[y, x].axis("off")
+            axs[y, x + 1].axis("off")
+            axs[y, x + 2].axis("off")
+undefine(<<SCATTER_SIZE>>)
+undefine(<<SCATTER_COLOR>>)
+undefine(<<NO_BLENDING_LW>>)
+undefine(<<NO_BLENDING_COLOR>>)
+undefine(<<RESULT_LW>>)
+undefine(<<RESULT_COLOR>>)
+        
+        fig, axs = plt.subplots(ncols=6, nrows=4, figsize=(6 * 5.4, 4 * 4.05), dpi=250, layout="constrained")
+        plot_position(axs, 0, 0, position, smoothed_position, no_blending_position, "position")
+        plot_position(axs, 0, 3, scale, smoothed_scale, no_blending_scale, "scale")
+        plot_univariate(axs, 1, 0, rotation, smoothed_rotation, no_blending_rotation, "rotation")
+        plot_emptyness(axs, 1, 3)
+        plot_position(axs, 2, 0, power_pin[0], smoothed_power_pin[0], no_blending_power_pin[0] if no_blending_power_pin is not None else None, "power_pin_" + clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0002 != "0002")
+        plot_position(axs, 2, 3, power_pin[1], smoothed_power_pin[1], no_blending_power_pin[1] if no_blending_power_pin is not None else None, "power_pin_" + clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0003 != "0003")
+        plot_position(axs, 3, 0, power_pin[2], smoothed_power_pin[2], no_blending_power_pin[2] if no_blending_power_pin is not None else None, "power_pin_" + clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0004 != "0004")
+        plot_position(axs, 3, 3, power_pin[3], smoothed_power_pin[3], no_blending_power_pin[3] if no_blending_power_pin is not None else None, "power_pin_" + clip_settings.power_pin_remap_0005, clip_settings.power_pin_remap_0005 != "0005")
+
+        fig.canvas.draw()
+        with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
+            im.show()
+        plt.close(fig)
+
+    @staticmethod
+    def _plot_section_plot(position, scale, rotation, power_pin, smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, section_settings):
+        """
+        Plot the data.
+
+        Parameters
+        ----------
+        position : npt.NDArray[float64]
+        scale : npt.NDArray[float64]
+        rotation : npt.NDArray[float64]
+        power_pin : npt.NDArray[float64]
+        smoothed_position : npt.NDArray[float64] or None
+        smoothed_scale : npt.NDArray[float64] or None
+        smoothed_rotation : npt.NDArray[float64] or None
+        smoothed_power_pin : npt.NDArray[float64] or None
+        section_settings :  AAEExportSettingsSectionL
+            AAEExportSettingsSectionL[AAEExportSettingsSectionLI]
+        """
+        import matplotlib as mpl
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import PIL
+        import re
+
+define(<<SCATTER_SIZE>>, <<7.3>>)
+define(<<SCATTER_COLOR>>, <<lightslategrey>>)
+define(<<SCATTER_LW>>, <<0.9>>)
+define(<<SMOOTHED_SCATTER_LW>>, <<1.0>>)
+define(<<SMOOTHED_LW>>, <<1.4>>)
+define(<<SMOOTHED_COLOR>>, <<dodgerblue>>)
+
+        def plot_position(row, position, smoothed_position, label):
             def test_z_score(data):
                 # Iglewicz and Hoaglin's modified Z-score
                 return np.nonzero(0.6745 * (d := np.absolute(data - np.median(data))) / np.median(d) >= 3)[0]
 
             row[0].invert_yaxis()
-            row[0].scatter(position[:, 0], position[:, 1], color="red", marker="x", s=1, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if do_smoothing:
-                row[0].plot(smoothed_position[:, 0], smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[0].scatter(position[:, 0], position[:, 1], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_position is not None:
+                row[0].plot(smoothed_position[:, 0], smoothed_position[:, 1], color="SMOOTHED_COLOR", lw=SMOOTHED_SCATTER_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[0].legend()
             row[0].set_xlabel("X")
             row[0].set_ylabel("Y")
 
-            row[1].scatter(np.arange(1, position.shape[0] + 1), position[:, 0], color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if do_smoothing:
-                row[1].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[1].scatter((frames := np.arange(section_settings.start_frame, section_settings.end_frame + 1)), position[:, 0], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_position is not None:
+                row[1].plot(frames, smoothed_position[:, 0], color="SMOOTHED_COLOR", lw=SMOOTHED_SCATTER_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[1].legend()
             row[1].set_xlabel("Frame")
             row[1].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
 
-            if do_smoothing:
-                row[2].plot(np.arange(1, position.shape[0] + 1), (p := position[:, 0] - smoothed_position[:, 0]), color="red", label="_".join(re.split(" |_", label.lower())), zorder=2.002)
-                row[2].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0] - smoothed_position[:, 0], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_position is not None:
+                row[2].plot(frames, position[:, 0] - position[:, 0], color="SCATTER_COLOR", lw=SCATTER_LW, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[2].plot(frames, (p := position[:, 0] - smoothed_position[:, 0]), color="SMOOTHED_COLOR", lw=SMOOTHED_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 for i in test_z_score(p):
-                    row[2].annotate(i + 1, (i + 1, p[i]))
+                    row[2].annotate(i + section_settings.start_frame, (i + section_settings.start_frame, p[i]))
                 row[2].legend()
                 row[2].set_xlabel("Frame")
                 row[2].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
             else:
                 row[2].axis("off")
 
-            row[3].scatter(np.arange(1, position.shape[0] + 1), position[:, 1], color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if do_smoothing:
-                row[3].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[3].scatter(frames, position[:, 1], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_position is not None:
+                row[3].plot(frames, smoothed_position[:, 1], color="SMOOTHED_COLOR", lw=SMOOTHED_SCATTER_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[3].legend()
             row[3].set_xlabel("Frame")
             row[3].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
 
-            if do_smoothing:
-                row[4].plot(np.arange(1, position.shape[0] + 1), (p := position[:, 1] - smoothed_position[:, 1]), color="red", label="_".join(re.split(" |_", label.lower())), zorder=2.002)
-                row[4].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1] - smoothed_position[:, 1], color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_position is not None:
+                row[4].plot(frames, position[:, 1] - position[:, 1], color="SCATTER_COLOR", lw=SCATTER_LW, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[4].plot(frames, (p := position[:, 1] - smoothed_position[:, 1]), color="SMOOTHED_COLOR", lw=SMOOTHED_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 for i in test_z_score(p):
-                    row[4].annotate(i + 1, (i + 1, p[i]))
+                    row[4].annotate(i + section_settings.start_frame, (i + section_settings.start_frame, p[i]))
                 row[4].legend()
                 row[4].set_xlabel("Frame")
                 row[4].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
             else:
                 row[4].axis("off")
         
-        def plot_univariate(row, rotation, smoothed_rotation, label, do_smoothing):
+        def plot_univariate(row, rotation, smoothed_rotation, label):
             row[0].axis("off")
             
-            row[1].scatter(np.arange(1, rotation.shape[0] + 1), rotation, color="red", s=1, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if do_smoothing:
-                row[1].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation, color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[1].scatter(np.arange(1, rotation.shape[0] + 1), rotation, marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_rotation is not None:
+                row[1].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation, color="SMOOTHED_COLOR", lw=SMOOTHED_SCATTER_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[1].legend()
             row[1].set_xlabel("Frame")
             row[1].set_ylabel(label.title())
 
-            if do_smoothing:
-                row[2].plot(np.arange(1, rotation.shape[0] + 1), rotation - smoothed_rotation, color="red", label="_".join(re.split(" |_", label.lower())), zorder=2.002)
-                row[2].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation - smoothed_rotation, color="blue", label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_rotation is not None:
+                row[2].plot(np.arange(1, rotation.shape[0] + 1), rotation - rotation, color="SCATTER_COLOR", lw=SCATTER_LW, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[2].plot(np.arange(1, rotation.shape[0] + 1), rotation - smoothed_rotation, color="SMOOTHED_COLOR", lw=SMOOTHED_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 row[2].legend()
                 row[2].set_xlabel("Frame")
                 row[2].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))))
@@ -1438,19 +1754,26 @@ undefine(<<SMOOTHING_DATA_AXIS>>)
             
             row[3].axis("off")
             row[4].axis("off")
+
+undefine(<<SCATTER_SIZE>>)
+undefine(<<SCATTER_COLOR>>)
+undefine(<<SCATTER_LW>>)
+undefine(<<SMOOTHED_LW>>)
+undefine(<<SMOOTHED_COLOR>>)
         
         fig, axs = plt.subplots(ncols=5, nrows=7, figsize=(5 * 5.4, 7 * 4.05), dpi=250, layout="constrained")
-        plot_position(axs[0], position, smoothed_position, "position", smoothing_do_position)
-        plot_position(axs[1], scale, smoothed_scale, "scale", smoothing_do_scale)
-        plot_univariate(axs[2], rotation, smoothed_rotation, "rotation", smoothing_do_rotation)
-        plot_position(axs[3], power_pin[0], smoothed_power_pin[0], "power_pin_0002", smoothing_do_power_pin)
-        plot_position(axs[4], power_pin[1], smoothed_power_pin[1], "power_pin_0003", smoothing_do_power_pin)
-        plot_position(axs[5], power_pin[2], smoothed_power_pin[2], "power_pin_0004", smoothing_do_power_pin)
-        plot_position(axs[6], power_pin[3], smoothed_power_pin[3], "power_pin_0005", smoothing_do_power_pin)
+        plot_position(axs[0], position, smoothed_position, "position")
+        plot_position(axs[1], scale, smoothed_scale, "scale")
+        plot_univariate(axs[2], rotation, smoothed_rotation, "rotation")
+        plot_position(axs[3], power_pin[0], smoothed_power_pin[0] if smoothed_power_pin is not None else None, "power_pin_0002")
+        plot_position(axs[4], power_pin[1], smoothed_power_pin[1] if smoothed_power_pin is not None else None, "power_pin_0003")
+        plot_position(axs[5], power_pin[2], smoothed_power_pin[2] if smoothed_power_pin is not None else None, "power_pin_0004")
+        plot_position(axs[6], power_pin[3], smoothed_power_pin[3] if smoothed_power_pin is not None else None, "power_pin_0005")
 
         fig.canvas.draw()
         with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
             im.show()
+        plt.close(fig)
 
     @staticmethod
     def _generate_aae_non_numpy(clip, track):
@@ -1869,13 +2192,16 @@ class AAEExportPlotGraph(bpy.types.Operator):
     def execute(self, context):
         clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings_l = context.edit_movieclip.AAEExportSettingsSectionL
+        section_settings_li = context.edit_movieclip.AAEExportSettingsSectionLI
 
         if context.selected_movieclip_tracks.__len__() == 1:
-            AAEExportExportAll._plot_graph(clip, context.selected_movieclip_tracks[0], settings)
+            AAEExportExportAll._plot_section(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings_l, section_settings_li)
         else:
             for plane_track in context.edit_movieclip.tracking.plane_tracks:
                 if plane_track.select == True:
-                    AAEExportExportAll._plot_graph(clip, plane_track, settings)
+                    AAEExportExportAll._plot_section(clip, plane_track, settings, clip_settings, section_settings_l, section_settings_li)
                     break
 
         return { "FINISHED" }
@@ -1888,13 +2214,16 @@ class AAEExportPlotResult(bpy.types.Operator):
     def execute(self, context):
         clip = context.edit_movieclip
         settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings_l = context.edit_movieclip.AAEExportSettingsSectionL
+        section_settings_ll = context.edit_movieclip.AAEExportSettingsSectionLL
 
         if context.selected_movieclip_tracks.__len__() == 1:
-            AAEExportExportAll._plot_graph(clip, context.selected_movieclip_tracks[0], settings)
+            AAEExportExportAll._plot_result(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings_l, section_settings_ll)
         else:
             for plane_track in context.edit_movieclip.tracking.plane_tracks:
                 if plane_track.select == True:
-                    AAEExportExportAll._plot_graph(clip, plane_track, settings)
+                    AAEExportExportAll._plot_result(clip, plane_track, settings, clip_settings, section_settings_l, section_settings_ll)
                     break
 
         return { "FINISHED" }
@@ -2036,11 +2365,11 @@ define(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>, <<0.0>>)
                 sub_column = column.column()
                 sub_column.enabled = clip_settings.do_smoothing
                 sub_column.prop(clip_settings, "smoothing_blending")
-                if clip_settings.smoothing_blending == "BEZIER":
+                if clip_settings.smoothing_blending == "CUBIC":
                     row = sub_column.row(align=True)
-                    row.prop(clip_settings, "smoothing_blending_bezier_p1", text="Control")
-                    row.prop(clip_settings, "smoothing_blending_bezier_p2", text="")
-                    sub_column.prop(clip_settings, "smoothing_blending_bezier_range")
+                    row.prop(clip_settings, "smoothing_blending_cubic_p1", text="Control")
+                    row.prop(clip_settings, "smoothing_blending_cubic_p2", text="")
+                    sub_column.prop(clip_settings, "smoothing_blending_cubic_range")
                 column.separator(factor=DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR)
 
                 row = column.row(align=True)
@@ -2335,12 +2664,12 @@ class AAEExportSectionL(bpy.types.UIList):
                  ((context.selected_movieclip_tracks.__len__() == 1 and \
                    not any([(item.start_frame < marker.frame < item.end_frame or \
                              marker.frame == item.start_frame == context.edit_movieclip.frame_start or \
-                             marker.frame == item.end_frame == context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration) and \
+                             marker.frame == item.end_frame == context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - 1) and \
                             not marker.mute for marker in context.selected_movieclip_tracks[0].markers])) or \
                   (selected_plane_tracks.__len__ == 1 and \
                    not any([(item.start_frame < marker.frame < item.end_frame or \
                              marker.frame == item.start_frame == context.edit_movieclip.frame_start or \
-                             marker.frame == item.end_frame == context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration) and \
+                             marker.frame == item.end_frame == context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - 1) and \
                             not marker.mute for marker in selected_plane_tracks[0]].markers))):
                 split.label(text=str(item.start_frame) + "‥" + str(item.end_frame) + " (empty)")
             elif (context.selected_movieclip_tracks.__len__() == 1) is not ((selected_plane_tracks := [plane_track for plane_track in context.edit_movieclip.tracking.plane_tracks if plane_track.select]).__len__() == 1) and \
