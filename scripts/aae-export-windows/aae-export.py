@@ -97,11 +97,15 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                   default=True)
 
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
-                                                description="Generate unique files every time",
+                                                description="Generate unique filename every time",
                                                 default=False)
     do_also_export: bpy.props.BoolProperty(name="Auto export",
-                                           description="Automatically export the selected track to file while copying",
+                                           description="Automatically export AAE data to file when copying",
                                            default=True)
+
+    do_advanced_smoothing: bpy.props.BoolProperty(name="Advanced",
+                                                  description="Reveal more options for smoothing, including using different smoothing settings for different section of the clip and for different data and axis",
+                                                  default=False)
 
     def _null_property_update(self, context):
         if self.null_property != "":
@@ -122,7 +126,7 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
             context.edit_movieclip.AAEExportSettingsSectionLL = 1
             context.edit_movieclip.AAEExportSettingsSectionLI = 0
 
-            item.aa_frame_update_suppress = False
+            item.frame_update_suppress = False
             item.start_frame = 1
             item.end_frame = 1
 
@@ -130,70 +134,66 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                               description="Perform smoothing on tracking data.\nThis feature requires additional packages to be installed. Please head to „Edit > Preference > Add-ons > Video Tools: AAE Export > Preferences“ to install the dependencies",
                                               default=False)
     do_smoothing: bpy.props.BoolProperty(name="Enable",
-                                         description="Perform smoothing on tracking data.\nThis uses position data, scale data, rotation data and Power Pin data of individual tracks and plane tracks to fit polynomial regression models, and then uses the fit models to generate smoothed data",
+                                         description="Perform smoothing on tracking data.\nThis uses the track's position, scale, rotation and Power Pin data to fit polynomial regression models, and then uses the fit models to generate smoothed data",
                                          default=False,
                                          update=_do_smoothing_update)
-
-    do_advanced_smoothing: bpy.props.BoolProperty(name="Advanced",
-                                                  description="Reveal more options for smoothing, including using different smoothing settings for different section of the clip and for different axis and data type",
-                                                  default=False)
 
     def _do_predictive_smoothing_update(self, context):
         context.edit_movieclip.AAEExportSettingsSectionL[0].smoothing_extrapolate = self.do_predictive_smoothing
     do_predictive_smoothing: bpy.props.BoolProperty(name="Extrapolate",
-                                                    description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the clip, even if the track or plane track is only enabled on a section of the clip.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the marker is not enabled",
+                                                    description="Generate position, scale, rotation and Power Pin data over the whole length of the clip, even if the track is disabled on some of the frames.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                     default=False,
                                                     update=_do_predictive_smoothing_update)
                                          
     smoothing_blending: bpy.props.EnumProperty(items=(("NONE", "No Blending", "Average the frame on the section boundaries and do not perform any blending for the other frames"),
-                                                      ("CUBIC", "Cubic", "Use a fixed cubic curve to ease the transition between the sections"),
-                                                      ("SHIFT", "Shift", "Shift sections until all nearby sections match up at the boundaries.\nThe amount each section is shifted is proportional to the number of frames in each section")),
+                                                      ("CUBIC", "Cubic", "Use a cubic curve to ease the transition between the sections"),
+                                                      ("SHIFT", "Shift", "Shift sections until they match up at the boundaries.\nThe amount each section is shifted is proportional to the number of frames in each section")),
                                                name="Section Blending",
                                                default="CUBIC")
     smoothing_blending_cubic_p1: bpy.props.FloatProperty(name="p₁",
-                                                          description="The second point on the cubic curve",
+                                                          description="The cubic curve is given as (1-t)³ × 0 + (1-t)² × t × p₁ + (1-t) × t² × p₂ + t³ × 1. p₁ is the the second control point on the cubic curve",
                                                           default=0.10,
                                                           min=0.0,
                                                           max=1.0,
                                                           step=1,
                                                           precision=2)
     smoothing_blending_cubic_p2: bpy.props.FloatProperty(name="p₂",
-                                                          description="The third point on the cubic curve",
+                                                          description="The cubic curve is given as (1-t)³ × 0 + (1-t)² × t × p₁ + (1-t) × t² × p₂ + t³ × 1. p₂ is the the third control point on the cubic curve",
                                                           default=0.90,
                                                           min=0.0,
                                                           max=1.0,
                                                           step=1,
                                                           precision=2)
     smoothing_blending_cubic_range: bpy.props.FloatProperty(name="Range",
-                                                             description="Number of frames to apply the blending",
+                                                             description="Number of frames prior to and following the section boundaries where the blending is applied",
                                                              default=3.0,
                                                              min=1.0,
                                                              soft_max=24.0,
                                                              step=50,
                                                              precision=1)
 
-    power_pin_remap_0002: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "Power Pin-0002 corresponds to the upper-left corner"),
-                                                        ("0003", "0003 (Upper-right)", "Power Pin-0003 corresponds to the upper-right corner"),
-                                                        ("0004", "0004 (Lower-left)", "Power Pin-0004 corresponds to the lower-left corner"),
-                                                        ("0005", "0005 (Lower-right)", "Power Pin-0005 corresponds to the lower-right corner")),
+    power_pin_remap_0002: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
+                                                        ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
+                                                        ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
+                                                        ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track")),
                                                name="0002 (Upper-left)",
                                                default="0002")
-    power_pin_remap_0003: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "Power Pin-0002 corresponds to the upper-left corner"),
-                                                        ("0003", "0003 (Upper-right)", "Power Pin-0003 corresponds to the upper-right corner"),
-                                                        ("0004", "0004 (Lower-left)", "Power Pin-0004 corresponds to the lower-left corner"),
-                                                        ("0005", "0005 (Lower-right)", "Power Pin-0005 corresponds to the lower-right corner")),
+    power_pin_remap_0003: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
+                                                        ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
+                                                        ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
+                                                        ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track")),
                                                name="0003 (Upper-right)",
                                                default="0003")
-    power_pin_remap_0004: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "Power Pin-0002 corresponds to the upper-left corner"),
-                                                        ("0003", "0003 (Upper-right)", "Power Pin-0003 corresponds to the upper-right corner"),
-                                                        ("0004", "0004 (Lower-left)", "Power Pin-0004 corresponds to the lower-left corner"),
-                                                        ("0005", "0005 (Lower-right)", "Power Pin-0005 corresponds to the lower-right corner")),
+    power_pin_remap_0004: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
+                                                        ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
+                                                        ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
+                                                        ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track")),
                                                name="0004 (Lower-left)",
                                                default="0004")
-    power_pin_remap_0005: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "Power Pin-0002 corresponds to the upper-left corner"),
-                                                        ("0003", "0003 (Upper-right)", "Power Pin 0003-corresponds to the upper-right corner"),
-                                                        ("0004", "0004 (Lower-left)", "Power Pin 0004-corresponds to the lower-left corner"),
-                                                        ("0005", "0005 (Lower-right)", "Power Pin 0005-corresponds to the lower-right corner")),
+    power_pin_remap_0005: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
+                                                        ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
+                                                        ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
+                                                        ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track")),
                                                name="0005 (Lower-right)",
                                                default="0005")
 
@@ -216,20 +216,19 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                      )
 
     disable_section: bpy.props.BoolProperty(name="Disable section",
-                                            description="Ignore the section and don't export anything for the section",
+                                            description="Ignore the section and don't export anything from the section",
                                             default=False)
 
     smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
     smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
-                                                          description="Use different regression model for position, scale, rotation and Power Pin data",
+                                                          description="Use different regression models for position, scale, rotation and Power Pin data",
                                                           default=False)
                                                           
     smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
-                                                  description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the section, even if the track or plane track is not enabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the track is not enabled",
+                                                  description="Generate position, scale, rotation and Power Pin data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                   default=False)
-
 
 
 
@@ -263,7 +262,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_huber_epsilon_update(self, context):
         self.smoothing_position_huber_epsilon = self.smoothing_huber_epsilon
         self.smoothing_scale_huber_epsilon = self.smoothing_huber_epsilon
@@ -284,7 +282,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_huber_epsilon_update)
-
 
 
 
@@ -320,7 +317,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_position_update(self, context):
 
         pass
@@ -333,7 +329,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_position_degree_update(self, context):
 
 
@@ -341,12 +336,11 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
     smoothing_position_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for position data.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for position data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=0,
                 min=0,
                 soft_max=16,
                 update=_smoothing_position_degree_update)
-
 
 
 
@@ -367,7 +361,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_scale_degree_update(self, context):
 
 
@@ -375,12 +368,11 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
     smoothing_scale_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for scale data.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for scale data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=0,
                 min=0,
                 soft_max=16,
                 update=_smoothing_scale_degree_update)
-
 
 
 
@@ -401,7 +393,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_rotation_degree_update(self, context):
 
 
@@ -409,12 +400,11 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
     smoothing_rotation_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for rotation data.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for rotation data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=0,
                 min=0,
                 soft_max=16,
                 update=_smoothing_rotation_degree_update)
-
 
 
 
@@ -429,10 +419,9 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
     smoothing_do_power_pin: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on power_pin data",
+                description="Perform smoothing on Power Pin data",
                 default=True,
                 update=_smoothing_do_power_pin_update)
-
 
 
 
@@ -443,7 +432,7 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
     smoothing_power_pin_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for power_pin data.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for power_pin data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=0,
                 min=0,
                 soft_max=16,
@@ -453,117 +442,118 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
 
 
-
 class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettingsSectionL"
     bl_idname = "AAEExportSettingsSectionL"
 
-    aa_frame_update_suppress: bpy.props.BoolProperty(default=True)
+    frame_update_suppress: bpy.props.BoolProperty(default=True)
+
+    frame_update_tooltip: bpy.props.StringProperty(name="frame_update_tooltip", default="Sadly you can't rename sections")
 
     def _start_frame_update(self, context):
-        if not self.aa_frame_update_suppress:
+        if not self.frame_update_suppress:
             if context.edit_movieclip.AAEExportSettingsSectionLI == 0:
-                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                     = True
                 context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame \
                     = context.edit_movieclip.frame_start
-                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                     = False
             else:
                 if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame < context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI:
-                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                         = True
                     context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame \
                         = context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI
-                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                         = False
                 if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame > context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI:
-                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                         = True
                     context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame \
                         = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI
-                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                         = False
                 for i in range(context.edit_movieclip.AAEExportSettingsSectionLI - 1, -1, -1):
-                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
                         = True
                     context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame \
                         = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].start_frame
-                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
                         = False
                     if context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame >= context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame:
-                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
                             = True
                         context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame \
                             = context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame - 1
-                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
                             = False
                     else:
                         break
                 for i in range(context.edit_movieclip.AAEExportSettingsSectionLI, context.edit_movieclip.AAEExportSettingsSectionLL - 1):
                     if context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame <= context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame:
-                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
-                            = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].aa_frame_update_suppress \
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].frame_update_suppress \
                             = True
                         context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame \
                             = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].start_frame \
                             = context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame + 1
-                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
-                            = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].aa_frame_update_suppress \
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i + 1].frame_update_suppress \
                             = False
                     else:
                         break
 
     def _end_frame_update(self, context):
-        if not self.aa_frame_update_suppress:
+        if not self.frame_update_suppress:
             if context.edit_movieclip.AAEExportSettingsSectionLI == context.edit_movieclip.AAEExportSettingsSectionLL - 1:
-                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                     = True
                 context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
                     = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - 1
-                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                     = False
             else:
                 if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame > context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI:
-                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                         = True
                     context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
                         = context.edit_movieclip.frame_start + context.edit_movieclip.frame_duration - context.edit_movieclip.AAEExportSettingsSectionLL + context.edit_movieclip.AAEExportSettingsSectionLI
-                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                         = False
                 if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame < context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI + 1:
-                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                         = True
                     context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
                         = context.edit_movieclip.frame_start + context.edit_movieclip.AAEExportSettingsSectionLI + 1
-                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                         = False
                 for i in range(context.edit_movieclip.AAEExportSettingsSectionLI + 1, context.edit_movieclip.AAEExportSettingsSectionLL):
-                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
                         = True
                     context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame \
                         = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].end_frame
-                    context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                    context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
                         = False
                     if context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame <= context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame:
-                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
                             = True
                         context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame \
                             = context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame + 1
-                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
                             = False
                     else:
                         break
                 for i in range(context.edit_movieclip.AAEExportSettingsSectionLI, 0, -1):
                     if context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame >= context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame:
-                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
-                            = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].aa_frame_update_suppress \
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].frame_update_suppress \
                             = True
                         context.edit_movieclip.AAEExportSettingsSectionL[i].start_frame \
                             = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].end_frame \
                             = context.edit_movieclip.AAEExportSettingsSectionL[i].end_frame - 1
-                        context.edit_movieclip.AAEExportSettingsSectionL[i].aa_frame_update_suppress \
-                            = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].aa_frame_update_suppress \
+                        context.edit_movieclip.AAEExportSettingsSectionL[i].frame_update_suppress \
+                            = context.edit_movieclip.AAEExportSettingsSectionL[i - 1].frame_update_suppress \
                             = False
                     else:
                         break
@@ -578,20 +568,19 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                                      update=_end_frame_update)
 
     disable_section: bpy.props.BoolProperty(name="Disable section",
-                                            description="Ignore the section and don't export anything for the section",
+                                            description="Ignore the section and don't export anything from the section",
                                             default=False)
 
     smoothing_use_different_x_y: bpy.props.BoolProperty(name="Axes",
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
     smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
-                                                          description="Use different regression model for position, scale, rotation and Power Pin data",
+                                                          description="Use different regression models for position, scale, rotation and Power Pin data",
                                                           default=False)
                                                           
     smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
-                                                  description="Generates position data, scale data, rotation data and Power Pin data over the whole length of the section, even if the track or plane track is not enabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in the frames where the track is not enabled",
+                                                  description="Generate position, scale, rotation and Power Pin data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                   default=False)
-
 
 
 
@@ -628,7 +617,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_huber_epsilon_update(self, context):
         self.smoothing_position_huber_epsilon = self.smoothing_huber_epsilon
         self.smoothing_scale_huber_epsilon = self.smoothing_huber_epsilon
@@ -652,7 +640,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_huber_epsilon_update)
-
 
 
 
@@ -694,8 +681,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
-
     def _smoothing_x_regressor_update(self, context):
         self.smoothing_position_x_regressor = self.smoothing_x_regressor
         self.smoothing_scale_x_regressor = self.smoothing_x_regressor
@@ -713,7 +698,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 name="Linear Model",
                 default="LINEAR",
                 update=_smoothing_x_regressor_update)
-
 
 
 
@@ -736,7 +720,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_x_huber_epsilon_update)
-
 
 
 
@@ -774,8 +757,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
-
     def _smoothing_y_regressor_update(self, context):
         self.smoothing_position_y_regressor = self.smoothing_y_regressor
         self.smoothing_scale_y_regressor = self.smoothing_y_regressor
@@ -791,7 +772,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 name="Linear Model",
                 default="LINEAR",
                 update=_smoothing_y_regressor_update)
-
 
 
 
@@ -812,7 +792,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_y_huber_epsilon_update)
-
 
 
 
@@ -845,7 +824,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_position_update(self, context):
 
         self.smoothing_do_position_x = self.smoothing_do_position
@@ -861,7 +839,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_position_degree_update(self, context):
 
 
@@ -872,12 +849,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_position_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for position data.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for position data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=2,
                 min=0,
                 soft_max=16,
                 update=_smoothing_position_degree_update)
-
 
 
 
@@ -900,7 +876,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_position_huber_epsilon_update(self, context):
 
 
@@ -918,7 +893,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_position_huber_epsilon_update)
-
 
 
 
@@ -950,16 +924,14 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_position_x_update(self, context):
         pass
 
     smoothing_do_position_x: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on position x",
+                description="Perform smoothing on x axis of position data",
                 default=True,
                 update=_smoothing_do_position_x_update)
-
 
 
 
@@ -969,12 +941,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_position_x_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for position x.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for position x.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=2,
                 min=0,
                 soft_max=16,
                 update=_smoothing_position_x_degree_update)
-
 
 
 
@@ -993,7 +964,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_position_x_huber_epsilon_update(self, context):
 
         pass
@@ -1007,7 +977,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_position_x_huber_epsilon_update)
-
 
 
 
@@ -1035,16 +1004,14 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_position_y_update(self, context):
         pass
 
     smoothing_do_position_y: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on position y",
+                description="Perform smoothing on y axis of position data",
                 default=True,
                 update=_smoothing_do_position_y_update)
-
 
 
 
@@ -1054,12 +1021,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_position_y_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for position y.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for position y.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=2,
                 min=0,
                 soft_max=16,
                 update=_smoothing_position_y_degree_update)
-
 
 
 
@@ -1078,7 +1044,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_position_y_huber_epsilon_update(self, context):
 
         pass
@@ -1092,7 +1057,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_position_y_huber_epsilon_update)
-
 
 
 
@@ -1121,7 +1085,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_scale_update(self, context):
 
         self.smoothing_do_scale_x = self.smoothing_do_scale
@@ -1137,7 +1100,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_scale_degree_update(self, context):
 
 
@@ -1148,12 +1110,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_scale_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for scale data.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for scale data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=2,
                 min=0,
                 soft_max=16,
                 update=_smoothing_scale_degree_update)
-
 
 
 
@@ -1176,7 +1137,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_scale_huber_epsilon_update(self, context):
 
 
@@ -1194,7 +1154,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_scale_huber_epsilon_update)
-
 
 
 
@@ -1226,16 +1185,14 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_scale_x_update(self, context):
         pass
 
     smoothing_do_scale_x: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on scale x",
+                description="Perform smoothing on x axis of scale data",
                 default=True,
                 update=_smoothing_do_scale_x_update)
-
 
 
 
@@ -1245,12 +1202,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_scale_x_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for scale x.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for scale x.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=2,
                 min=0,
                 soft_max=16,
                 update=_smoothing_scale_x_degree_update)
-
 
 
 
@@ -1269,7 +1225,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_scale_x_huber_epsilon_update(self, context):
 
         pass
@@ -1283,7 +1238,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_scale_x_huber_epsilon_update)
-
 
 
 
@@ -1311,16 +1265,14 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_scale_y_update(self, context):
         pass
 
     smoothing_do_scale_y: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on scale y",
+                description="Perform smoothing on y axis of scale data",
                 default=True,
                 update=_smoothing_do_scale_y_update)
-
 
 
 
@@ -1330,12 +1282,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_scale_y_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for scale y.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for scale y.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=2,
                 min=0,
                 soft_max=16,
                 update=_smoothing_scale_y_degree_update)
-
 
 
 
@@ -1354,7 +1305,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_scale_y_huber_epsilon_update(self, context):
 
         pass
@@ -1368,7 +1318,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_scale_y_huber_epsilon_update)
-
 
 
 
@@ -1398,7 +1347,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_rotation_update(self, context):
 
         pass
@@ -1411,7 +1359,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_rotation_degree_update(self, context):
 
 
@@ -1419,12 +1366,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_rotation_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for rotation data.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for rotation data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=1,
                 min=0,
                 soft_max=16,
                 update=_smoothing_rotation_degree_update)
-
 
 
 
@@ -1444,7 +1390,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_rotation_huber_epsilon_update(self, context):
 
 
@@ -1459,7 +1404,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_rotation_huber_epsilon_update)
-
 
 
 
@@ -1490,7 +1434,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_power_pin_update(self, context):
 
         self.smoothing_do_power_pin_x = self.smoothing_do_power_pin
@@ -1506,7 +1449,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_power_pin_degree_update(self, context):
 
 
@@ -1517,12 +1459,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_power_pin_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for Power Pin data.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for Power Pin data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=2,
                 min=0,
                 soft_max=16,
                 update=_smoothing_power_pin_degree_update)
-
 
 
 
@@ -1545,7 +1486,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_power_pin_huber_epsilon_update(self, context):
 
 
@@ -1563,7 +1503,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_power_pin_huber_epsilon_update)
-
 
 
 
@@ -1595,16 +1534,14 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_power_pin_x_update(self, context):
         pass
 
     smoothing_do_power_pin_x: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on Power Pin x",
+                description="Perform smoothing on x axis of Power Pin data",
                 default=True,
                 update=_smoothing_do_power_pin_x_update)
-
 
 
 
@@ -1614,12 +1551,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_power_pin_x_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for Power Pin x.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for Power Pin x.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=2,
                 min=0,
                 soft_max=16,
                 update=_smoothing_power_pin_x_degree_update)
-
 
 
 
@@ -1638,7 +1574,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_power_pin_x_huber_epsilon_update(self, context):
 
         pass
@@ -1652,7 +1587,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_power_pin_x_huber_epsilon_update)
-
 
 
 
@@ -1680,16 +1614,14 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_do_power_pin_y_update(self, context):
         pass
 
     smoothing_do_power_pin_y: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on Power Pin y",
+                description="Perform smoothing on y axis of Power Pin data",
                 default=True,
                 update=_smoothing_do_power_pin_y_update)
-
 
 
 
@@ -1699,12 +1631,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_power_pin_y_degree: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for Power Pin y.\nSet this to 0 to average the data, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                description="The maximal polynomial degree for Power Pin y.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
                 default=2,
                 min=0,
                 soft_max=16,
                 update=_smoothing_power_pin_y_degree_update)
-
 
 
 
@@ -1720,7 +1651,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 name="Linear Model",
                 default="LINEAR",
                 update=_smoothing_power_pin_y_regressor_update)
-
 
 
 
@@ -1740,7 +1670,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-
     def _smoothing_power_pin_y_lasso_alpha_update(self, context):
 
         pass
@@ -1754,7 +1683,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                 step=1,
                 precision=2,
                 update=_smoothing_power_pin_y_lasso_alpha_update)
-
 
 
 
@@ -7525,31 +7453,9 @@ class AAEExportCopyPlaneTrack(bpy.types.Operator):
         
         return { "FINISHED" }
 
-class AAEExportPlotGraph(bpy.types.Operator):
-    bl_label = "Plot Section"
-    bl_description = "Plot the data and the smoothed data for the section on graph"
-    bl_idname = "movieclip.aae_export_plot_graph"
-
-    def execute(self, context):
-        clip = context.edit_movieclip
-        settings = context.screen.AAEExportSettings
-        clip_settings = context.edit_movieclip.AAEExportSettingsClip
-        section_settings_l = context.edit_movieclip.AAEExportSettingsSectionL
-        section_settings_li = context.edit_movieclip.AAEExportSettingsSectionLI
-
-        if context.selected_movieclip_tracks.__len__() == 1:
-            AAEExportExportAll._plot_section(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings_l, section_settings_li)
-        else:
-            for plane_track in context.edit_movieclip.tracking.plane_tracks:
-                if plane_track.select == True:
-                    AAEExportExportAll._plot_section(clip, plane_track, settings, clip_settings, section_settings_l, section_settings_li)
-                    break
-
-        return { "FINISHED" }
-
 class AAEExportPlotResult(bpy.types.Operator):
     bl_label = "Plot Result"
-    bl_description = "Plot the final data on graph"
+    bl_description = "Plot the result data on graph"
     bl_idname = "movieclip.aae_export_plot_result"
 
     def execute(self, context):
@@ -7568,7 +7474,50 @@ class AAEExportPlotResult(bpy.types.Operator):
                     break
 
         return { "FINISHED" }
-    
+
+class AAEExportPlotSection(bpy.types.Operator):
+    bl_label = "Plot Section"
+    bl_description = "Plot data and smoothed data for the section on graph"
+    bl_idname = "movieclip.aae_export_plot_section"
+
+    def execute(self, context):
+        clip = context.edit_movieclip
+        settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings_l = context.edit_movieclip.AAEExportSettingsSectionL
+        section_settings_li = context.edit_movieclip.AAEExportSettingsSectionLI
+
+        if context.selected_movieclip_tracks.__len__() == 1:
+            AAEExportExportAll._plot_section(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings_l, section_settings_li)
+        else:
+            for plane_track in context.edit_movieclip.tracking.plane_tracks:
+                if plane_track.select == True:
+                    AAEExportExportAll._plot_section(clip, plane_track, settings, clip_settings, section_settings_l, section_settings_li)
+                    break
+
+        return { "FINISHED" }
+
+class AAEExportPlot(bpy.types.Operator):
+    bl_label = "Plot"
+    bl_description = "Plot data and smoothed data on graph"
+    bl_idname = "movieclip.aae_export_plot"
+
+    def execute(self, context):
+        clip = context.edit_movieclip
+        settings = context.screen.AAEExportSettings
+        clip_settings = context.edit_movieclip.AAEExportSettingsClip
+        section_settings_l = context.edit_movieclip.AAEExportSettingsSectionL
+
+        if context.selected_movieclip_tracks.__len__() == 1:
+            AAEExportExportAll._plot_section(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings_l, 0)
+        else:
+            for plane_track in context.edit_movieclip.tracking.plane_tracks:
+                if plane_track.select == True:
+                    AAEExportExportAll._plot_section(clip, plane_track, settings, clip_settings, section_settings_l, 0)
+                    break
+
+        return { "FINISHED" }
+
 class AAEExport(bpy.types.Panel):
     bl_label = "AAE Export"
     bl_idname = "SOLVE_PT_aae_export"
@@ -7689,7 +7638,7 @@ class AAEExportOptions(bpy.types.Panel):
             column.prop(clip_settings, "do_smoothing")
             column.separator(factor=0.0)
 
-            if clip_settings.do_advanced_smoothing:
+            if settings.do_advanced_smoothing:
                 sub_column = column.column()
                 sub_column.enabled = clip_settings.do_smoothing and \
                                      (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
@@ -7699,16 +7648,16 @@ class AAEExportOptions(bpy.types.Panel):
                 sub_column = column.column()
                 sub_column.enabled = clip_settings.do_smoothing and \
                                      (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
-                sub_column.operator("movieclip.aae_export_plot_result", text="Plot")
+                sub_column.operator("movieclip.aae_export_plot")
                 column.separator(factor=0.0)
 
-            if clip_settings.do_advanced_smoothing:
+            if settings.do_advanced_smoothing:
                 sub_column = column.column()
                 sub_column.enabled = clip_settings.do_smoothing
                 sub_column.prop(clip_settings, "smoothing_blending")
                 if clip_settings.smoothing_blending == "CUBIC":
                     row = sub_column.row(align=True)
-                    row.prop(clip_settings, "smoothing_blending_cubic_p1", text="Control")
+                    row.prop(clip_settings, "smoothing_blending_cubic_p1", text="Controls")
                     row.prop(clip_settings, "smoothing_blending_cubic_p2", text="")
                     sub_column.prop(clip_settings, "smoothing_blending_cubic_range")
                 column.separator(factor=0.44)
@@ -7724,13 +7673,14 @@ class AAEExportOptions(bpy.types.Panel):
                 sub_column.template_list("SOLVE_PT_UL_aae_export_section_list", "SOLVE_PT_aae_export_section_vgourp",
                                          context.edit_movieclip, "AAEExportSettingsSectionL",
                                          context.edit_movieclip, "AAEExportSettingsSectionLI",
-                                         rows=2, maxrows=6)
+                                         item_dyntip_propname="frame_update_tooltip",
+                                         rows=2, maxrows=6, type="DEFAULT")
 
 
 
             if context.edit_movieclip.AAEExportSettingsSectionLL != 0:
                 section_settings = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI]
-                if clip_settings.do_advanced_smoothing:
+                if settings.do_advanced_smoothing:
                     row = column.row(align=True)
                     row.enabled = clip_settings.do_smoothing
                     sub_row = row.row(align=True)
@@ -7781,7 +7731,7 @@ class AAEExportOptions(bpy.types.Panel):
                     sub_column = column.column()
                     sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section and \
                                          (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
-                    sub_column.operator("movieclip.aae_export_plot_graph")
+                    sub_column.operator("movieclip.aae_export_plot_section")
                     column.separator(factor=0.0)
 
 
@@ -8251,7 +8201,7 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
-                if not clip_settings.do_advanced_smoothing:
+                if not settings.do_advanced_smoothing:
                     sub_column = column.column()
                     sub_column.enabled = clip_settings.do_smoothing
                     sub_column.prop(clip_settings, "do_predictive_smoothing")
@@ -8260,12 +8210,12 @@ class AAEExportOptions(bpy.types.Panel):
                     sub_column = column.column()
                     sub_column.enabled = clip_settings.do_smoothing
                     sub_column.use_property_split = False
-                    sub_column.prop(clip_settings, "do_advanced_smoothing", toggle=True)
+                    sub_column.prop(settings, "do_advanced_smoothing", toggle=True)
                     column.separator(factor=0.0)
 
 
             else:
-                if clip_settings.do_advanced_smoothing:
+                if settings.do_advanced_smoothing:
                     row = column.row(align=True)
                     row.enabled = False
                     sub_row = row.row(align=True)
@@ -8316,7 +8266,7 @@ class AAEExportOptions(bpy.types.Panel):
                     sub_column = column.column()
                     sub_column.enabled = False and not clip_settings.disable_section and \
                                          (selected_plane_tracks == 1) is not (context.selected_movieclip_tracks.__len__() == 1)
-                    sub_column.operator("movieclip.aae_export_plot_graph")
+                    sub_column.operator("movieclip.aae_export_plot_section")
                     column.separator(factor=0.0)
 
 
@@ -8783,7 +8733,7 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
-                if not clip_settings.do_advanced_smoothing:
+                if not settings.do_advanced_smoothing:
                     sub_column = column.column()
                     sub_column.enabled = False
                     sub_column.prop(clip_settings, "do_predictive_smoothing")
@@ -8792,7 +8742,7 @@ class AAEExportOptions(bpy.types.Panel):
                     sub_column = column.column()
                     sub_column.enabled = False
                     sub_column.use_property_split = False
-                    sub_column.prop(clip_settings, "do_advanced_smoothing", toggle=True)
+                    sub_column.prop(settings, "do_advanced_smoothing", toggle=True)
                     column.separator(factor=0.0)
 
 
@@ -8879,27 +8829,27 @@ class AAEExportSectionAddS(bpy.types.Operator):
         AAEExportSectionAddS._copy(context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI], context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL - 1])
 
         if context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame >= 2:
-            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                 = True
             context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame \
                 = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL - 1].start_frame \
                 = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame + ceil((context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame - context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame) / 2)
-            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
                 = False
         else:
-            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
-                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].frame_update_suppress \
                 = True
             context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL - 1].start_frame \
                 = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame
             context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL - 1].end_frame \
                 = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame \
                 = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame + 1
-            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].aa_frame_update_suppress \
-                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].frame_update_suppress \
+                = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].frame_update_suppress \
                 = False
 
-        context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL - 1].aa_frame_update_suppress \
+        context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLL - 1].frame_update_suppress \
             = False
         context.edit_movieclip.AAEExportSettingsSectionLI += 1
         context.edit_movieclip.AAEExportSettingsSectionL.move(context.edit_movieclip.AAEExportSettingsSectionLL - 1, context.edit_movieclip.AAEExportSettingsSectionLI)
@@ -8937,22 +8887,22 @@ class AAEExportSectionRemoveS(bpy.types.Operator):
 
     def execute(self, context):
         if context.edit_movieclip.AAEExportSettingsSectionLI != 0:
-            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].aa_frame_update_suppress \
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].frame_update_suppress \
                 = True
             context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].end_frame \
                 = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].end_frame
-            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].aa_frame_update_suppress \
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI - 1].frame_update_suppress \
                 = False
 
             context.edit_movieclip.AAEExportSettingsSectionL.remove(context.edit_movieclip.AAEExportSettingsSectionLI)
             context.edit_movieclip.AAEExportSettingsSectionLL -= 1
             context.edit_movieclip.AAEExportSettingsSectionLI -= 1
         else:
-            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].frame_update_suppress \
                 = True
             context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].start_frame \
                 = context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI].start_frame
-            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].aa_frame_update_suppress \
+            context.edit_movieclip.AAEExportSettingsSectionL[context.edit_movieclip.AAEExportSettingsSectionLI + 1].frame_update_suppress \
                 = False
 
             context.edit_movieclip.AAEExportSettingsSectionL.remove(context.edit_movieclip.AAEExportSettingsSectionLI)
@@ -8999,8 +8949,9 @@ classes = (AAEExportSettings,
            AAEExportExportAll,
            AAEExportCopySingleTrack,
            AAEExportCopyPlaneTrack,
-           AAEExportPlotGraph,
            AAEExportPlotResult,
+           AAEExportPlotSection,
+           AAEExportPlot,
            AAEExport,
            AAEExportSelectedTrack,
            AAEExportAllTracks,
