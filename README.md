@@ -9,16 +9,16 @@ AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisu
 –　[Download (Linux aarch64)](scripts/aae-export-windows/aae-export.py)  
 –　[Download (Mac)](scripts/aae-export-mac/aae-export.py)  
 –　[Tutorial 1: Install AAE Export](docs/aae-export-tutorial.md#tutorial-1-install-aae-export)  
-–　[Tutorial 2: Track a simple pan using tracking marker](docs/aae-export-tutorial.md#tutorial-2-track-a-simple-pan-using-tracking-marker)  
-–　[Tutorial 3: Track perspective using plane track](docs/aae-export-tutorial.md#tutorial-3-track-perspective-using-plane-track)  
+–　[Tutorial 2: Basic motion tracking](docs/aae-export-tutorial.md#tutorial-2-basic-motion-tracking)  
+–　[Tutorial 3: Introducing smoothing feature](docs/aae-export-tutorial.md#tutorial-3-introducing-smoothing-feature)  
+–　[Tutorial 4: Tracking perspective](docs/aae-export-tutorial.md#tutorial-4-tracking-perspective)  
 
 Thanks to  
 
 –　arch1t3cht for helping in improving algorithms and for developing the original AAE Export (Power Pin) script.  
+–　bucket3432, Noroino Hanako for helping with AAE Export's function.  
 –　bucket3432, petzku and others for helping with UI/UX design.  
 –　Martin Herkt for developing the original AAE Export script in 2012.  
-
-There is currently no tutorial for the smoothing feature, but there is a small [page](docs/aae-export-smoothing-technical-details.md) logging some of the details about the smoothing process.
 <br clear="left" />
 
 *License information*  

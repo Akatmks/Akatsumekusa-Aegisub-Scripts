@@ -8787,15 +8787,19 @@ class AAEExportOptions(bpy.types.Panel):
             column.prop(clip_settings, "do_smoothing_fake")
 
         box = layout.box()
-        column = box.column(heading="Power Pin Remap")
+        column = box.column()
         row = column.row()
         row.alignment = "CENTER"
         row.label(text="Power Pin Remap")
         column.separator(factor=0.06)
-        column.prop(clip_settings, "power_pin_remap_0002")
-        column.prop(clip_settings, "power_pin_remap_0003")
-        column.prop(clip_settings, "power_pin_remap_0004")
-        column.prop(clip_settings, "power_pin_remap_0005")
+        sub_column = column.column(align=True)
+        sub_column.use_property_split = False
+        row = sub_column.row(align=True)
+        row.prop(clip_settings, "power_pin_remap_0002", text="")
+        row.prop(clip_settings, "power_pin_remap_0003", text="")
+        row = sub_column.row(align=True)
+        row.prop(clip_settings, "power_pin_remap_0004", text="")
+        row.prop(clip_settings, "power_pin_remap_0005", text="")
 
     @classmethod
     def poll(cls, context):
