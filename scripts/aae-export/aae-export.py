@@ -807,27 +807,21 @@ undefine(<<AXIS>>)
 
 undefine(<<SMOOTHING_SECTION_AXIS>>)
 
-        smoothed_position = np.dstack((smoothed_position_x, smoothed_position_y))[0] if smoothed_position_x is not None else \
-                            None
-        smoothed_scale = np.dstack((smoothed_scale_x, smoothed_scale_y))[0] if smoothed_scale_x is not None else \
-                         None
-        smoothed_power_pin = np.stack((np.dstack((smoothed_power_pin_0002_x, smoothed_power_pin_0002_y))[0],
-                                       np.dstack((smoothed_power_pin_0003_x, smoothed_power_pin_0003_y))[0],
-                                       np.dstack((smoothed_power_pin_0004_x, smoothed_power_pin_0004_y))[0],
-                                       np.dstack((smoothed_power_pin_0005_x, smoothed_power_pin_0005_y))[0])) if smoothed_power_pin_0002_x is not None else \
-                             None
-
-        position = position[section_settings.start_frame-1:section_settings.end_frame]
-        scale = scale[section_settings.start_frame-1:section_settings.end_frame]
-        rotation = rotation[section_settings.start_frame-1:section_settings.end_frame]
-        power_pin = np.stack((power_pin[0, section_settings.start_frame-1:section_settings.end_frame],
-                              power_pin[1, section_settings.start_frame-1:section_settings.end_frame],
-                              power_pin[2, section_settings.start_frame-1:section_settings.end_frame],
-                              power_pin[3, section_settings.start_frame-1:section_settings.end_frame]))
-
         AAEExportExportAll._plot_section_plot( \
-            position, scale, rotation, power_pin, \
-            smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, \
+            position[section_settings.start_frame-1:section_settings.end_frame, 0], position[section_settings.start_frame-1:section_settings.end_frame, 1], \
+            scale[section_settings.start_frame-1:section_settings.end_frame, 0], scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
+            rotation[section_settings.start_frame-1:section_settings.end_frame], \
+            power_pin[0, section_settings.start_frame-1:section_settings.end_frame, 0], power_pin[0, section_settings.start_frame-1:section_settings.end_frame, 1], \
+            power_pin[1, section_settings.start_frame-1:section_settings.end_frame, 0], power_pin[1, section_settings.start_frame-1:section_settings.end_frame, 1], \
+            power_pin[2, section_settings.start_frame-1:section_settings.end_frame, 0], power_pin[2, section_settings.start_frame-1:section_settings.end_frame, 1], \
+            power_pin[3, section_settings.start_frame-1:section_settings.end_frame, 0], power_pin[3, section_settings.start_frame-1:section_settings.end_frame, 1], \
+            smoothed_position_x, smoothed_position_y, \
+            smoothed_scale_x, smoothed_scale_y, \
+            smoothed_rotation, \
+            smoothed_power_pin_0002_x, smoothed_power_pin_0002_y, \
+            smoothed_power_pin_0003_x, smoothed_power_pin_0003_y, \
+            smoothed_power_pin_0004_x, smoothed_power_pin_0004_y, \
+            smoothed_power_pin_0005_x, smoothed_power_pin_0005_y, \
             section_settings)
 
     @staticmethod
@@ -1655,20 +1649,53 @@ undefine(<<RESULT_COLOR>>)
         plt.close(fig)
 
     @staticmethod
-    def _plot_section_plot(position, scale, rotation, power_pin, smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, section_settings):
+    def _plot_section_plot( \
+        position_x, position_y, \
+        scale_x, scale_y, \
+        rotation, \
+        power_pin_0002_x, power_pin_0002_y, \
+        power_pin_0003_x, power_pin_0003_y, \
+        power_pin_0004_x, power_pin_0004_y, \
+        power_pin_0005_x, power_pin_0005_y, \
+        smoothed_position_x, smoothed_position_y, \
+        smoothed_scale_x, smoothed_scale_y, \
+        smoothed_rotation, \
+        smoothed_power_pin_0002_x, smoothed_power_pin_0002_y, \
+        smoothed_power_pin_0003_x, smoothed_power_pin_0003_y, \
+        smoothed_power_pin_0004_x, smoothed_power_pin_0004_y, \
+        smoothed_power_pin_0005_x, smoothed_power_pin_0005_y, \
+        section_settings):
         """
         Plot the data.
 
         Parameters
         ----------
-        position : npt.NDArray[float64]
-        scale : npt.NDArray[float64]
+        position_x : npt.NDArray[float64]
+        position_y : npt.NDArray[float64]
+        scale_x : npt.NDArray[float64]
+        scale_y : npt.NDArray[float64]
         rotation : npt.NDArray[float64]
-        power_pin : npt.NDArray[float64]
-        smoothed_position : npt.NDArray[float64] or None
-        smoothed_scale : npt.NDArray[float64] or None
+        power_pin_0002_x : npt.NDArray[float64]
+        power_pin_0002_y : npt.NDArray[float64]
+        power_pin_0003_x : npt.NDArray[float64]
+        power_pin_0003_y : npt.NDArray[float64]
+        power_pin_0004_x : npt.NDArray[float64]
+        power_pin_0004_y : npt.NDArray[float64]
+        power_pin_0005_x : npt.NDArray[float64]
+        power_pin_0005_y : npt.NDArray[float64]
+        smoothed_position_x : npt.NDArray[float64] or None
+        smoothed_position_y : npt.NDArray[float64] or None
+        smoothed_scale_x : npt.NDArray[float64] or None
+        smoothed_scale_y : npt.NDArray[float64] or None
         smoothed_rotation : npt.NDArray[float64] or None
-        smoothed_power_pin : npt.NDArray[float64] or None
+        smoothed_power_pin_0002_x : npt.NDArray[float64] or None
+        smoothed_power_pin_0002_y : npt.NDArray[float64] or None
+        smoothed_power_pin_0003_x : npt.NDArray[float64] or None
+        smoothed_power_pin_0003_y : npt.NDArray[float64] or None
+        smoothed_power_pin_0004_x : npt.NDArray[float64] or None
+        smoothed_power_pin_0004_y : npt.NDArray[float64] or None
+        smoothed_power_pin_0005_x : npt.NDArray[float64] or None
+        smoothed_power_pin_0005_y : npt.NDArray[float64] or None
         section_settings :  AAEExportSettingsSectionL
             AAEExportSettingsSectionL[AAEExportSettingsSectionLI]
         """
@@ -1685,29 +1712,28 @@ define(<<SMOOTHED_LW_ON_SCATTER_GRAPH>>, <<1.0>>)
 define(<<SCATTER_LW>>, <<0.9>>)
 define(<<SMOOTHED_LW>>, <<1.4>>)
 
-        def plot_position(row, position, smoothed_position, label):
+        def plot_position(row, position_x, position_y, smoothed_position_x, smoothed_position_y, label):
             def test_z_score(data):
                 # Iglewicz and Hoaglin's modified Z-score
                 return np.nonzero(0.6745 * (d := np.absolute(data - np.median(data))) / np.median(d) >= 3)[0]
 
             row[0].invert_yaxis()
-            row[0].scatter(position[:, 0], position[:, 1], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if smoothed_position is not None:
-                row[0].plot(smoothed_position[:, 0], smoothed_position[:, 1], color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[0].scatter(position_x, position_y, marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            row[0].plot(smoothed_position_x if smoothed_position_x is not None else position_x, smoothed_position_y if smoothed_position_y is not None else position_y, color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[0].legend()
             row[0].set_xlabel("X")
             row[0].set_ylabel("Y")
 
-            row[1].scatter((frames := np.arange(section_settings.start_frame, section_settings.end_frame + 1)), position[:, 0], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if smoothed_position is not None:
-                row[1].plot(frames, smoothed_position[:, 0], color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[1].scatter((frames := np.arange(section_settings.start_frame, section_settings.end_frame + 1)), position_x, marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_position_x is not None:
+                row[1].plot(frames, smoothed_position_x, color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[1].legend()
             row[1].set_xlabel("Frame")
             row[1].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
 
-            if smoothed_position is not None:
-                row[2].plot(frames, position[:, 0] - position[:, 0], color="SCATTER_COLOR", lw=SCATTER_LW, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
-                row[2].plot(frames, (p := position[:, 0] - smoothed_position[:, 0]), color="SMOOTHED_COLOR", lw=SMOOTHED_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_position_x is not None:
+                row[2].plot(frames, position_x - position_x, color="SCATTER_COLOR", lw=SCATTER_LW, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[2].plot(frames, (p := position_x - smoothed_position_x), color="SMOOTHED_COLOR", lw=SMOOTHED_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 for i in test_z_score(p):
                     row[2].annotate(i + section_settings.start_frame, (i + section_settings.start_frame, p[i]))
                 row[2].legend()
@@ -1716,16 +1742,16 @@ define(<<SMOOTHED_LW>>, <<1.4>>)
             else:
                 row[2].axis("off")
 
-            row[3].scatter(frames, position[:, 1], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if smoothed_position is not None:
-                row[3].plot(frames, smoothed_position[:, 1], color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[3].scatter(frames, position_y, marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_position_y is not None:
+                row[3].plot(frames, smoothed_position_y, color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[3].legend()
             row[3].set_xlabel("Frame")
             row[3].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
 
-            if smoothed_position is not None:
-                row[4].plot(frames, position[:, 1] - position[:, 1], color="SCATTER_COLOR", lw=SCATTER_LW, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
-                row[4].plot(frames, (p := position[:, 1] - smoothed_position[:, 1]), color="SMOOTHED_COLOR", lw=SMOOTHED_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_position_y is not None:
+                row[4].plot(frames, position_y - position_y, color="SCATTER_COLOR", lw=SCATTER_LW, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[4].plot(frames, (p := position_y - smoothed_position_y), color="SMOOTHED_COLOR", lw=SMOOTHED_LW, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 for i in test_z_score(p):
                     row[4].annotate(i + section_settings.start_frame, (i + section_settings.start_frame, p[i]))
                 row[4].legend()
@@ -1764,13 +1790,13 @@ undefine(<<SCATTER_LW>>)
 undefine(<<SMOOTHED_LW>>)
         
         fig, axs = plt.subplots(ncols=5, nrows=7, figsize=(5 * 5.4, 7 * 4.05), dpi=250, layout="constrained")
-        plot_position(axs[0], position, smoothed_position, "position")
-        plot_position(axs[1], scale, smoothed_scale, "scale")
+        plot_position(axs[0], position_x, position_y, smoothed_position_x, smoothed_position_y, "position")
+        plot_position(axs[1], scale_x, scale_y, smoothed_scale_x, smoothed_scale_y, "scale")
         plot_univariate(axs[2], rotation, smoothed_rotation, "rotation")
-        plot_position(axs[3], power_pin[0], smoothed_power_pin[0] if smoothed_power_pin is not None else None, "power_pin_0002")
-        plot_position(axs[4], power_pin[1], smoothed_power_pin[1] if smoothed_power_pin is not None else None, "power_pin_0003")
-        plot_position(axs[5], power_pin[2], smoothed_power_pin[2] if smoothed_power_pin is not None else None, "power_pin_0004")
-        plot_position(axs[6], power_pin[3], smoothed_power_pin[3] if smoothed_power_pin is not None else None, "power_pin_0005")
+        plot_position(axs[3], power_pin_0002_x, power_pin_0002_y, smoothed_power_pin_0002_x, smoothed_power_pin_0002_y, "power_pin_0002")
+        plot_position(axs[4], power_pin_0003_x, power_pin_0003_y, smoothed_power_pin_0003_x, smoothed_power_pin_0003_y, "power_pin_0003")
+        plot_position(axs[5], power_pin_0004_x, power_pin_0004_y, smoothed_power_pin_0004_x, smoothed_power_pin_0004_y, "power_pin_0004")
+        plot_position(axs[6], power_pin_0005_x, power_pin_0005_y, smoothed_power_pin_0005_x, smoothed_power_pin_0005_y, "power_pin_0005")
 
         fig.canvas.draw()
         with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
