@@ -8,6 +8,12 @@
 
 https://user-images.githubusercontent.com/112813970/204144711-09e56711-ce7c-4cc2-a193-29003769062d.mp4
 
+https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/8e7e5059-391c-4016-8508-2185b54370ba
+
+https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/4bdbda67-d10c-43c3-957e-2d592da0f9dd
+
+https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/114ed7e0-7016-4112-8523-0bfe2de26d60
+
 ### Summary: Install AAE Export
 
 * At Blender splash screen, select VFX startup file and you will get a workspace that's pretty much ready for motion tracking. The most important editors for motion tracking are „Movie Clip Editor > Tracking > Clip“ editor and „Movie Clip Editor > Tracking > Graph“ editor.  
