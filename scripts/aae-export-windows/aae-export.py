@@ -122,6 +122,10 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
     def _do_smoothing_update(self, context):
         # Create the first section if there aren't
         if context.edit_movieclip.AAEExportSettingsSectionLL == 0:
+            self.smoothing_blending_cubic_p1 = 0.10
+            self.smoothing_blending_cubic_p2 = 0.90
+            self.smoothing_blending_cubic_range = 3.0
+
             item = context.edit_movieclip.AAEExportSettingsSectionL.add()
             context.edit_movieclip.AAEExportSettingsSectionLL = 1
             context.edit_movieclip.AAEExportSettingsSectionLI = 0
@@ -152,21 +156,21 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                                default="CUBIC")
     smoothing_blending_cubic_p1: bpy.props.FloatProperty(name="p₁",
                                                           description="The cubic curve is given as (1-t)³ × 0 + (1-t)² × t × p₁ + (1-t) × t² × p₂ + t³ × 1. p₁ is the the second control point on the cubic curve",
-                                                          default=0.10,
+                                                          default=0.00,
                                                           min=0.0,
                                                           max=1.0,
                                                           step=1,
                                                           precision=2)
     smoothing_blending_cubic_p2: bpy.props.FloatProperty(name="p₂",
                                                           description="The cubic curve is given as (1-t)³ × 0 + (1-t)² × t × p₁ + (1-t) × t² × p₂ + t³ × 1. p₂ is the the third control point on the cubic curve",
-                                                          default=0.90,
+                                                          default=0.00,
                                                           min=0.0,
                                                           max=1.0,
                                                           step=1,
                                                           precision=2)
     smoothing_blending_cubic_range: bpy.props.FloatProperty(name="Range",
                                                              description="Number of frames prior to and following the section boundaries where the blending is applied",
-                                                             default=3.0,
+                                                             default=0.0,
                                                              min=1.0,
                                                              soft_max=24.0,
                                                              step=50,
@@ -1747,32 +1751,32 @@ class AAEExportExportAll(bpy.types.Operator):
                 = AAEExportExportAll._calculate_aspect_ratio( \
                       clip)
 
-            position, scale, semilimited_rotation, power_pin \
+            data \
                 = AAEExportExportAll._prepare_data( \
                       clip, track, ratio)
 
             if clip_settings.do_smoothing:
-                rotation \
-                    = AAEExportExportAll._unlimit_rotation( \
-                          semilimited_rotation)
+                AAEExportExportAll._unlimit_rotation( \
+                    data)
 
-                position, scale, rotation, power_pin \
+                parsed_section_settings \
+                    = AAEExportExportAll._parse_section_settings( \
+                        section_settings_l, section_settings_ll)
+
+                data \
                     = AAEExportExportAll._smoothing_main( \
-                          position, scale, rotation, power_pin, \
-                          clip, clip_settings, section_settings_l, section_settings_ll)
+                          data, \
+                          clip, clip_settings, parsed_section_settings, section_settings_ll)
 
-                limited_rotation \
-                    = AAEExportExportAll._limit_rotation( \
-                          rotation)
+                AAEExportExportAll._limit_rotation( \
+                    data)
             else:
-                limited_rotation \
-                    = AAEExportExportAll._limit_rotation( \
-                          semilimited_rotation)
+                AAEExportExportAll._limit_rotation( \
+                    data)
 
             aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
                 = AAEExportExportAll._generate_aae( \
-                      position, scale, limited_rotation, power_pin, \
-                      multiplier)
+                      data, multiplier)
 
         else: # not is_smoothing_modules_available
             aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
@@ -1812,52 +1816,46 @@ class AAEExportExportAll(bpy.types.Operator):
         import collections
         import numpy as np
         
-        ratio, multiplier \
+        ratio, _ \
             = AAEExportExportAll._calculate_aspect_ratio( \
                   clip)
 
-        position, scale, semilimited_rotation, power_pin \
+        data \
             = AAEExportExportAll._prepare_data( \
                   clip, track, ratio)
-        
-        rotation \
-            = AAEExportExportAll._unlimit_rotation( \
-                  semilimited_rotation)
 
-        smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin \
-            = AAEExportExportAll._smoothing_main( \
-                  position, scale, rotation, power_pin, \
-                  clip, clip_settings, section_settings_l, section_settings_ll)
+        AAEExportExportAll._unlimit_rotation( \
+            data)
 
-        if section_settings_ll > 1 and clip_settings.smoothing_blending != "NONE":
-            no_blending_position, no_blending_scale, no_blending_rotation, no_blending_power_pin \
+        parsed_section_settings \
+            = AAEExportExportAll._parse_section_settings( \
+                section_settings_l, section_settings_ll)
+
+        if clip_settings.smoothing_blending != "NONE" and \
+           section_settings_ll > 1 and \
+           sum([not (np.all(np.isnan(data[0][parsed_section_settings[i]["start_frame"]:parsed_section_settings[i]["end_frame"]])) or \
+                     parsed_section_settings[i]["disable_section"]) for i in range(section_settings_ll)]) > 1:
+            smoothed_data, no_blending_data \
                 = AAEExportExportAll._smoothing_main( \
-                      position, scale, rotation, power_pin, \
-                      clip, collections.namedtuple("FakeAAEExportSettingsClip", ["smoothing_blending"])("NONE"), section_settings_l, section_settings_ll)
-            if np.all(no_blending_position == smoothed_position):
-                no_blending_position \
-                    = None
-            if np.all(no_blending_scale == smoothed_scale):
-                no_blending_scale \
-                    = None
-            if np.all(no_blending_rotation == smoothed_rotation):
-                no_blending_rotation \
-                    = None
-            if np.all(no_blending_power_pin == smoothed_power_pin):
-                no_blending_power_pin \
-                    = None
-        else:
-            no_blending_position, no_blending_scale, no_blending_rotation, no_blending_power_pin \
-                = None, None, None, None
+                      data, \
+                      clip, clip_settings, parsed_section_settings, section_settings_ll, \
+                      plotting=True)
 
-        AAEExportExportAll._plot_result_plot( \
-            position, scale, rotation, power_pin, \
-            smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, \
-            no_blending_position, no_blending_scale, no_blending_rotation, no_blending_power_pin, \
-            clip_settings)
+            AAEExportExportAll._plot_result_plot( \
+                data, smoothed_data, no_blending_data, \
+                clip_settings)
+        else:
+            smoothed_data \
+                = AAEExportExportAll._smoothing_main( \
+                      data, \
+                      clip, clip_settings, parsed_section_settings, section_settings_ll)
+
+            AAEExportExportAll._plot_result_plot( \
+                data, smoothed_data, [None] * 13, \
+                clip_settings)
 
     @staticmethod
-    def _plot_section(clip, track, settings, clip_settings, section_settings_l, section_settings_li):
+    def _plot_section(clip, track, settings, clip_settings, section_settings_l, section_settings_li, section_settings_ll):
         """
         Parameters
         ----------
@@ -1871,1371 +1869,45 @@ class AAEExportExportAll(bpy.types.Operator):
             AAEExportSettingsSectionL.
         section_settings_li : bpy.props.IntProperty
             AAEExportSettingsSectionLI.
+        section_settings_ll : bpy.props.IntProperty
+            AAEExportSettingsSectionLL.
 
         """
         import collections
         import numpy as np
         
-        ratio, multiplier \
+        ratio, _ \
             = AAEExportExportAll._calculate_aspect_ratio( \
                   clip)
 
-        position, scale, semilimited_rotation, power_pin \
+        data \
             = AAEExportExportAll._prepare_data( \
                   clip, track, ratio)
-        
-        rotation \
-            = AAEExportExportAll._unlimit_rotation( \
-                  semilimited_rotation)
 
-        section_settings = section_settings_l[section_settings_li]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_position or section_settings.smoothing_extrapolate:
-                    smoothed_position_x \
-                        = AAEExportExportAll._smoothing( \
-                              position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_position_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_position_x \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_position or section_settings.smoothing_extrapolate:
-                    smoothed_position_x \
-                        = AAEExportExportAll._smoothing( \
-                              position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_position_degree, \
-                              section_settings.smoothing_position_regressor, \
-                              section_settings.smoothing_position_huber_epsilon, \
-                              section_settings.smoothing_position_lasso_alpha)
-                else:
-                    smoothed_position_x \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate:
-                    smoothed_position_x \
-                        = AAEExportExportAll._smoothing( \
-                              position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_position_x_degree, \
-                              section_settings.smoothing_x_regressor, \
-                              section_settings.smoothing_x_huber_epsilon, \
-                              section_settings.smoothing_x_lasso_alpha)
-                else:
-                    smoothed_position_x \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate:
-                    smoothed_position_x \
-                        = AAEExportExportAll._smoothing( \
-                              position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_position_x_degree, \
-                              section_settings.smoothing_position_x_regressor, \
-                              section_settings.smoothing_position_x_huber_epsilon, \
-                              section_settings.smoothing_position_x_lasso_alpha)
-                else:
-                    smoothed_position_x \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_position or section_settings.smoothing_extrapolate:
-                    smoothed_position_y \
-                        = AAEExportExportAll._smoothing( \
-                              position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_position_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_position_y \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_position or section_settings.smoothing_extrapolate:
-                    smoothed_position_y \
-                        = AAEExportExportAll._smoothing( \
-                              position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_position_degree, \
-                              section_settings.smoothing_position_regressor, \
-                              section_settings.smoothing_position_huber_epsilon, \
-                              section_settings.smoothing_position_lasso_alpha)
-                else:
-                    smoothed_position_y \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate:
-                    smoothed_position_y \
-                        = AAEExportExportAll._smoothing( \
-                              position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_position_y_degree, \
-                              section_settings.smoothing_y_regressor, \
-                              section_settings.smoothing_y_huber_epsilon, \
-                              section_settings.smoothing_y_lasso_alpha)
-                else:
-                    smoothed_position_y \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate:
-                    smoothed_position_y \
-                        = AAEExportExportAll._smoothing( \
-                              position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_position_y_degree, \
-                              section_settings.smoothing_position_y_regressor, \
-                              section_settings.smoothing_position_y_huber_epsilon, \
-                              section_settings.smoothing_position_y_lasso_alpha)
-                else:
-                    smoothed_position_y \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_scale or section_settings.smoothing_extrapolate:
-                    smoothed_scale_x \
-                        = AAEExportExportAll._smoothing( \
-                              scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_scale_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_scale_x \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_scale or section_settings.smoothing_extrapolate:
-                    smoothed_scale_x \
-                        = AAEExportExportAll._smoothing( \
-                              scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_scale_degree, \
-                              section_settings.smoothing_scale_regressor, \
-                              section_settings.smoothing_scale_huber_epsilon, \
-                              section_settings.smoothing_scale_lasso_alpha)
-                else:
-                    smoothed_scale_x \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate:
-                    smoothed_scale_x \
-                        = AAEExportExportAll._smoothing( \
-                              scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_scale_x_degree, \
-                              section_settings.smoothing_x_regressor, \
-                              section_settings.smoothing_x_huber_epsilon, \
-                              section_settings.smoothing_x_lasso_alpha)
-                else:
-                    smoothed_scale_x \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate:
-                    smoothed_scale_x \
-                        = AAEExportExportAll._smoothing( \
-                              scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_scale_x_degree, \
-                              section_settings.smoothing_scale_x_regressor, \
-                              section_settings.smoothing_scale_x_huber_epsilon, \
-                              section_settings.smoothing_scale_x_lasso_alpha)
-                else:
-                    smoothed_scale_x \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_scale or section_settings.smoothing_extrapolate:
-                    smoothed_scale_y \
-                        = AAEExportExportAll._smoothing( \
-                              scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_scale_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_scale_y \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_scale or section_settings.smoothing_extrapolate:
-                    smoothed_scale_y \
-                        = AAEExportExportAll._smoothing( \
-                              scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_scale_degree, \
-                              section_settings.smoothing_scale_regressor, \
-                              section_settings.smoothing_scale_huber_epsilon, \
-                              section_settings.smoothing_scale_lasso_alpha)
-                else:
-                    smoothed_scale_y \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate:
-                    smoothed_scale_y \
-                        = AAEExportExportAll._smoothing( \
-                              scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_scale_y_degree, \
-                              section_settings.smoothing_y_regressor, \
-                              section_settings.smoothing_y_huber_epsilon, \
-                              section_settings.smoothing_y_lasso_alpha)
-                else:
-                    smoothed_scale_y \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate:
-                    smoothed_scale_y \
-                        = AAEExportExportAll._smoothing( \
-                              scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_scale_y_degree, \
-                              section_settings.smoothing_scale_y_regressor, \
-                              section_settings.smoothing_scale_y_huber_epsilon, \
-                              section_settings.smoothing_scale_y_lasso_alpha)
-                else:
-                    smoothed_scale_y \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate:
-                    smoothed_rotation \
-                        = AAEExportExportAll._smoothing( \
-                              rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                              section_settings.smoothing_rotation_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_rotation \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate:
-                    smoothed_rotation \
-                        = AAEExportExportAll._smoothing( \
-                              rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                              section_settings.smoothing_rotation_degree, \
-                              section_settings.smoothing_rotation_regressor, \
-                              section_settings.smoothing_rotation_huber_epsilon, \
-                              section_settings.smoothing_rotation_lasso_alpha)
-                else:
-                    smoothed_rotation \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate:
-                    smoothed_rotation \
-                        = AAEExportExportAll._smoothing( \
-                              rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                              section_settings.smoothing_rotation_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_rotation \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate:
-                    smoothed_rotation \
-                        = AAEExportExportAll._smoothing( \
-                              rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                              section_settings.smoothing_rotation_degree, \
-                              section_settings.smoothing_rotation_regressor, \
-                              section_settings.smoothing_rotation_huber_epsilon, \
-                              section_settings.smoothing_rotation_lasso_alpha)
-                else:
-                    smoothed_rotation \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0002_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_power_pin_0002_x \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0002_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_power_pin_regressor, \
-                              section_settings.smoothing_power_pin_huber_epsilon, \
-                              section_settings.smoothing_power_pin_lasso_alpha)
-                else:
-                    smoothed_power_pin_0002_x \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0002_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_x_degree, \
-                              section_settings.smoothing_x_regressor, \
-                              section_settings.smoothing_x_huber_epsilon, \
-                              section_settings.smoothing_x_lasso_alpha)
-                else:
-                    smoothed_power_pin_0002_x \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0002_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_x_degree, \
-                              section_settings.smoothing_power_pin_x_regressor, \
-                              section_settings.smoothing_power_pin_x_huber_epsilon, \
-                              section_settings.smoothing_power_pin_x_lasso_alpha)
-                else:
-                    smoothed_power_pin_0002_x \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0003_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_power_pin_0003_x \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0003_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_power_pin_regressor, \
-                              section_settings.smoothing_power_pin_huber_epsilon, \
-                              section_settings.smoothing_power_pin_lasso_alpha)
-                else:
-                    smoothed_power_pin_0003_x \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0003_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_x_degree, \
-                              section_settings.smoothing_x_regressor, \
-                              section_settings.smoothing_x_huber_epsilon, \
-                              section_settings.smoothing_x_lasso_alpha)
-                else:
-                    smoothed_power_pin_0003_x \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0003_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_x_degree, \
-                              section_settings.smoothing_power_pin_x_regressor, \
-                              section_settings.smoothing_power_pin_x_huber_epsilon, \
-                              section_settings.smoothing_power_pin_x_lasso_alpha)
-                else:
-                    smoothed_power_pin_0003_x \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0004_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_power_pin_0004_x \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0004_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_power_pin_regressor, \
-                              section_settings.smoothing_power_pin_huber_epsilon, \
-                              section_settings.smoothing_power_pin_lasso_alpha)
-                else:
-                    smoothed_power_pin_0004_x \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0004_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_x_degree, \
-                              section_settings.smoothing_x_regressor, \
-                              section_settings.smoothing_x_huber_epsilon, \
-                              section_settings.smoothing_x_lasso_alpha)
-                else:
-                    smoothed_power_pin_0004_x \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0004_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_x_degree, \
-                              section_settings.smoothing_power_pin_x_regressor, \
-                              section_settings.smoothing_power_pin_x_huber_epsilon, \
-                              section_settings.smoothing_power_pin_x_lasso_alpha)
-                else:
-                    smoothed_power_pin_0004_x \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0005_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_power_pin_0005_x \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0005_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_power_pin_regressor, \
-                              section_settings.smoothing_power_pin_huber_epsilon, \
-                              section_settings.smoothing_power_pin_lasso_alpha)
-                else:
-                    smoothed_power_pin_0005_x \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0005_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_x_degree, \
-                              section_settings.smoothing_x_regressor, \
-                              section_settings.smoothing_x_huber_epsilon, \
-                              section_settings.smoothing_x_lasso_alpha)
-                else:
-                    smoothed_power_pin_0005_x \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0005_x \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                              section_settings.smoothing_power_pin_x_degree, \
-                              section_settings.smoothing_power_pin_x_regressor, \
-                              section_settings.smoothing_power_pin_x_huber_epsilon, \
-                              section_settings.smoothing_power_pin_x_lasso_alpha)
-                else:
-                    smoothed_power_pin_0005_x \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0002_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_power_pin_0002_y \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0002_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_power_pin_regressor, \
-                              section_settings.smoothing_power_pin_huber_epsilon, \
-                              section_settings.smoothing_power_pin_lasso_alpha)
-                else:
-                    smoothed_power_pin_0002_y \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0002_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_y_degree, \
-                              section_settings.smoothing_y_regressor, \
-                              section_settings.smoothing_y_huber_epsilon, \
-                              section_settings.smoothing_y_lasso_alpha)
-                else:
-                    smoothed_power_pin_0002_y \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0002_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_y_degree, \
-                              section_settings.smoothing_power_pin_y_regressor, \
-                              section_settings.smoothing_power_pin_y_huber_epsilon, \
-                              section_settings.smoothing_power_pin_y_lasso_alpha)
-                else:
-                    smoothed_power_pin_0002_y \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0003_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_power_pin_0003_y \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0003_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_power_pin_regressor, \
-                              section_settings.smoothing_power_pin_huber_epsilon, \
-                              section_settings.smoothing_power_pin_lasso_alpha)
-                else:
-                    smoothed_power_pin_0003_y \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0003_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_y_degree, \
-                              section_settings.smoothing_y_regressor, \
-                              section_settings.smoothing_y_huber_epsilon, \
-                              section_settings.smoothing_y_lasso_alpha)
-                else:
-                    smoothed_power_pin_0003_y \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0003_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_y_degree, \
-                              section_settings.smoothing_power_pin_y_regressor, \
-                              section_settings.smoothing_power_pin_y_huber_epsilon, \
-                              section_settings.smoothing_power_pin_y_lasso_alpha)
-                else:
-                    smoothed_power_pin_0003_y \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0004_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_power_pin_0004_y \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0004_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_power_pin_regressor, \
-                              section_settings.smoothing_power_pin_huber_epsilon, \
-                              section_settings.smoothing_power_pin_lasso_alpha)
-                else:
-                    smoothed_power_pin_0004_y \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0004_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_y_degree, \
-                              section_settings.smoothing_y_regressor, \
-                              section_settings.smoothing_y_huber_epsilon, \
-                              section_settings.smoothing_y_lasso_alpha)
-                else:
-                    smoothed_power_pin_0004_y \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0004_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_y_degree, \
-                              section_settings.smoothing_power_pin_y_regressor, \
-                              section_settings.smoothing_power_pin_y_huber_epsilon, \
-                              section_settings.smoothing_power_pin_y_lasso_alpha)
-                else:
-                    smoothed_power_pin_0004_y \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-        match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
-            case 0b00:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0005_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_regressor, \
-                              section_settings.smoothing_huber_epsilon, \
-                              section_settings.smoothing_lasso_alpha)
-                else:
-                    smoothed_power_pin_0005_y \
-                        = None
-
-
-
-            case 0b01:
-
-
-
-                if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0005_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_degree, \
-                              section_settings.smoothing_power_pin_regressor, \
-                              section_settings.smoothing_power_pin_huber_epsilon, \
-                              section_settings.smoothing_power_pin_lasso_alpha)
-                else:
-                    smoothed_power_pin_0005_y \
-                        = None
-
-
-
-            case 0b10:
-
-
-
-                if section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0005_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_y_degree, \
-                              section_settings.smoothing_y_regressor, \
-                              section_settings.smoothing_y_huber_epsilon, \
-                              section_settings.smoothing_y_lasso_alpha)
-                else:
-                    smoothed_power_pin_0005_y \
-                        = None
-
-
-
-            case 0b11:
-
-
-
-                if section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate:
-                    smoothed_power_pin_0005_y \
-                        = AAEExportExportAll._smoothing( \
-                              power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                              section_settings.smoothing_power_pin_y_degree, \
-                              section_settings.smoothing_power_pin_y_regressor, \
-                              section_settings.smoothing_power_pin_y_huber_epsilon, \
-                              section_settings.smoothing_power_pin_y_lasso_alpha)
-                else:
-                    smoothed_power_pin_0005_y \
-                        = None
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        AAEExportExportAll._unlimit_rotation( \
+            data)
+
+        parsed_section_settings \
+            = AAEExportExportAll._parse_section_settings( \
+                section_settings_l, section_settings_ll)
+
+        smoothed_data = {}
+        for i in range(13):
+            data[i] = \
+                data[i][parsed_section_settings[section_settings_li]["start_frame"]:parsed_section_settings[section_settings_li]["end_frame"]]
+            if parsed_section_settings[section_settings_li][i]["smoothing"] or \
+               parsed_section_settings[section_settings_li]["smoothing_extrapolate"]:
+                smoothed_data[i] = \
+                    AAEExportExportAll._smoothing( \
+                        data[i],
+                        parsed_section_settings[section_settings_li][i])
+            else:
+                smoothed_data[i] = \
+                    None
 
         AAEExportExportAll._plot_section_plot( \
-            position[section_settings.start_frame-1:section_settings.end_frame, 0], position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-            scale[section_settings.start_frame-1:section_settings.end_frame, 0], scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-            rotation[section_settings.start_frame-1:section_settings.end_frame], \
-            power_pin[0, section_settings.start_frame-1:section_settings.end_frame, 0], power_pin[0, section_settings.start_frame-1:section_settings.end_frame, 1], \
-            power_pin[1, section_settings.start_frame-1:section_settings.end_frame, 0], power_pin[1, section_settings.start_frame-1:section_settings.end_frame, 1], \
-            power_pin[2, section_settings.start_frame-1:section_settings.end_frame, 0], power_pin[2, section_settings.start_frame-1:section_settings.end_frame, 1], \
-            power_pin[3, section_settings.start_frame-1:section_settings.end_frame, 0], power_pin[3, section_settings.start_frame-1:section_settings.end_frame, 1], \
-            smoothed_position_x, smoothed_position_y, \
-            smoothed_scale_x, smoothed_scale_y, \
-            smoothed_rotation, \
-            smoothed_power_pin_0002_x, smoothed_power_pin_0002_y, \
-            smoothed_power_pin_0003_x, smoothed_power_pin_0003_y, \
-            smoothed_power_pin_0004_x, smoothed_power_pin_0004_y, \
-            smoothed_power_pin_0005_x, smoothed_power_pin_0005_y, \
-            section_settings)
+            data, smoothed_data, \
+            parsed_section_settings[section_settings_li])
 
     @staticmethod
     def _calculate_aspect_ratio(clip):
@@ -3248,7 +1920,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
         Returns
         -------
-        ratio : npt.NDArray[float64]
+        ratio : tuple[float64]
         multiplier: float
 
         """
@@ -3257,13 +1929,13 @@ class AAEExportExportAll(bpy.types.Operator):
         ar = clip.size[0] / clip.size[1]
         # As of 2021/2022
         if ar < 1 / 1.35: # 9:16, 9:19 and higher videos
-            return np.array([1 / 1.35, 1 / 1.35 / ar], dtype=np.float64), clip.size[0] / 1 * 1.35
+            return (1 / 1.35, 1 / 1.35 / ar), clip.size[0] / 1 * 1.35
         elif ar < 1: # vertical videos from 1:1, 3:4, up to 1:1.35
-            return np.array([ar, 1], dtype=np.float64), clip.size[1]
+            return (ar, 1), clip.size[1]
         elif ar <= 1.81: # 1:1, 4:3, 16:9, up to 1920 x 1061
-            return np.array([ar, 1], dtype=np.float64), clip.size[1]
+            return (ar, 1), clip.size[1]
         else: # Ultrawide
-            return np.array([1.81, 1.81 / ar], dtype=np.float64), clip.size[0] / 1.81
+            return (1.81, 1.81 / ar), clip.size[0] / 1.81
 
     @staticmethod
     def _prepare_data(clip, track, ratio):
@@ -3274,54 +1946,56 @@ class AAEExportExportAll(bpy.types.Operator):
         ----------
         clip : bpy.types.MovieClip
         track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        ratio : npt.NDArray[float]
-            ratio likely from Step 03
+        ratio : tuple[float64]
 
         Returns
         -------
-        position : npt.NDArray[float64]
-        scale : npt.NDArray[float64]
-        semilimited_rotation : npt.NDArray[float64]
-        power_pin : npt.NDArray[float64]
+        data : dict[npt.NDArray[float64]]
 
         """
+        # data
+        # {
+        #      0: position_x,
+        #      1: position_y,
+        #      2: scale_x,
+        #      3: scale_y,
+        #      4: rotation,
+        #      5: power_pin_0002_x,
+        #      6: power_pin_0002_y,
+        #      7: power_pin_0003_x,
+        #      8: power_pin_0003_y,
+        #      9: power_pin_0004_x,
+        #     10: power_pin_0004_y,
+        #     11: power_pin_0005_x,
+        #     12: power_pin_0005_y
+        # }
+        data = {}
+
         if track.__class__.__name__ == "MovieTrackingTrack":
-            position, misshapen_power_pin \
-                = AAEExportExportAll._prepare_position_and_misshapen_power_pin_marker_track( \
-                      clip, track, ratio)
+            AAEExportExportAll._prepare_position_and_power_pin_marker_track( \
+                data, clip, track, ratio)
         elif track.__class__.__name__ == "MovieTrackingPlaneTrack":
-            position, misshapen_power_pin \
-                = AAEExportExportAll._prepare_position_and_misshapen_power_pin_plane_track( \
-                      clip, track, ratio)
+            AAEExportExportAll._prepare_position_and_power_pin_plane_track( \
+                data, clip, track, ratio)
         else:
             raise ValueError("track.__class__.__name__ \"" + track.__class__.__name__ + "\" not recognised")
 
-        scale, semilimited_rotation \
-            = AAEExportExportAll._prepare_scale_and_semilimited_rotation( \
-                  misshapen_power_pin)
+        AAEExportExportAll._prepare_scale_and_semilimited_rotation( \
+            data)
 
-        power_pin \
-            = AAEExportExportAll._prepare_power_pin( \
-                  misshapen_power_pin)
-
-        return position, scale, semilimited_rotation, power_pin
+        return data
 
     @staticmethod
-    def _prepare_position_and_misshapen_power_pin_marker_track(clip, track, ratio):
+    def _prepare_position_and_power_pin_marker_track(data, clip, track, ratio):
         """
-        Create position and misshapen_power_pin array from marker track.
+        Create position and Power Pin array from marker track.
 
         Parameters
         ----------
+        data : dict[npt.NDArray[float64]]
         clip : bpy.types.MovieClip
         track : bpy.types.MovieTrackingTrack
-        ratio : npt.NDArray[float]
-
-        Returns
-        -------
-        position : npt.NDArray[float64]
-        misshapen_power_pin : npt.NDArray[float64]
-            As explained below.
+        ratio : tuple[float64]
 
         """
         import numpy as np
@@ -3329,12 +2003,6 @@ class AAEExportExportAll(bpy.types.Operator):
         if not clip.frame_duration >= 1:
             raise ValueError("clip.frame_duration must be greater than or equal to 1")
 
-        # position array structure
-        # +----------+----------------------------------------------------------+
-        # |          |          Frame 0  Frame 1  Frame 2  Frame 3  Frame 4     |
-        # +----------+----------------------------------------------------------+
-        # | Position | array([  [x, y],  [x, y],  [x, y],  [x, y],  [x, y]   ]) |
-        # +----------+----------------------------------------------------------+
         # The origin will be located at the upper left corner of the video,
         # contrary to Blender's usual lower left corner.
         #
@@ -3347,67 +2015,50 @@ class AAEExportExportAll(bpy.types.Operator):
         # 
         # Also, on the topic of precision, NC AAE Export uses float64 across
         # the whole script instead of Blender's float32.
-        position = np.full((clip.frame_duration, 2), np.nan, dtype=np.float64)
-        # power_pin array structure
-        # +--------------------+------------------------------------------------------------+
-        # |                    |           Frame 0  Frame 1  Frame 2  Frame 3  Frame 4      |
-        # +--------------------+------------------------------------------------------------+
-        # | Upper-Left Corner  | array([[  [x, y],  [x, y],  [x, y],  [x, y],  [x, y]   ],  |
-        # |   (Power Pin-0002) |                                                            |
-        # | Upper-Right Corner |        [  [x, y],  [x, y],  [x, y],  [x, y],  [x, y]   ],  |
-        # |   (Power Pin-0003) |                                                            |
-        # | Lower-Left Corner  |        [  [x, y],  [x, y],  [x, y],  [x, y],  [x, y]   ],  |
-        # |   (Power Pin-0004) |                                                            |
-        # | Lower-Right Corner |        [  [x, y],  [x, y],  [x, y],  [x, y],  [x, y]   ]]) |
-        # |   (Power Pin-0005) |                                                            |
-        # +--------------------+------------------------------------------------------------+
+        data[0] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[1] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        
         # power pin position is not absolute and is relative to the position
-        # array
-        # 
-        # misshapen_power_pin array structure
-        # +---------+-----------------------------------------------------------------+
-        # |         |           Upper-Left  Upper-Right  Lower-Left  Lower-Right      |
-        # +---------+-----------------------------------------------------------------+
-        # | Frame 0 | array([[  x, y,       x, y,        x, y        x, y         ],  |
-        # | Frame 1 |        [  x, y,       x, y,        x, y        x, y         ],  |
-        # | Frame 2 |        [  x, y,       x, y,        x, y        x, y         ],  |
-        # | Frame 3 |        [  x, y,       x, y,        x, y        x, y         ],  |
-        # | Frame 4 |        [  x, y,       x, y,        x, y        x, y         ]]) |
-        # +---------+-----------------------------------------------------------------+
-        misshapen_power_pin = np.full((clip.frame_duration, 8), np.nan, dtype=np.float64)
+        data[5] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[6] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[7] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[8] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[9] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[10] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[11] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[12] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
 
         for marker in track.markers:
-            if not 0 < marker.frame <= clip.frame_duration:
+            if not clip.frame_start <= marker.frame <= clip.frame_duration:
                 continue
             if marker.mute:
                 continue
-            position[marker.frame - 1] = [marker.co[0], 1 - marker.co[1]]
-            misshapen_power_pin[marker.frame - 1] = [marker.pattern_corners[3][0], -marker.pattern_corners[3][1], \
-                                                     marker.pattern_corners[2][0], -marker.pattern_corners[2][1], \
-                                                     marker.pattern_corners[0][0], -marker.pattern_corners[0][1], \
-                                                     marker.pattern_corners[1][0], -marker.pattern_corners[1][1]]
 
-        position *= ratio
-        misshapen_power_pin *= np.tile(ratio, 4)
+            i = marker.frame - clip.frame_start
 
-        return position, misshapen_power_pin
+            data[0][i] = marker.co[0] * ratio[0]
+            data[1][i] = (1 - marker.co[1]) * ratio[1]
+
+            data[5][i] = marker.pattern_corners[3][0] * ratio[0]
+            data[6][i] = -marker.pattern_corners[3][1] * ratio[1]
+            data[7][i] = marker.pattern_corners[2][0] * ratio[0]
+            data[8][i] = -marker.pattern_corners[2][1] * ratio[1]
+            data[9][i] = marker.pattern_corners[0][0] * ratio[0]
+            data[10][i] = -marker.pattern_corners[0][1] * ratio[1]
+            data[11][i] = marker.pattern_corners[1][0] * ratio[0]
+            data[12][i] = -marker.pattern_corners[1][1] * ratio[1]
 
     @staticmethod
-    def _prepare_position_and_misshapen_power_pin_plane_track(clip, track, ratio):
+    def _prepare_position_and_power_pin_plane_track(data, clip, track, ratio):
         """
-        Create position and misshapen_power_pin array from plane track.
+        Create position and Power Pin array from plane track.
 
         Parameters
         ----------
+        data : dict[npt.NDArray[float64]]
         clip : bpy.types.MovieClip
         track : bpy.types.MovieTrackingTrack
-        ratio : npt.NDArray[float]
-
-        Returns
-        -------
-        position : npt.NDArray[float64]
-        misshapen_power_pin : npt.NDArray[float64]
-            As explained in _prepare_position_and_power_pin_marker_track().
+        ratio : tuple[float64]
 
         """
         import numpy as np
@@ -3415,119 +2066,144 @@ class AAEExportExportAll(bpy.types.Operator):
 
         if not clip.frame_duration >= 1:
             raise ValueError("clip.frame_duration must be greater than or equal to 1")
-            
-        # As explained in _prepare_position_and_power_pin_marker_track()
-        misshapen_power_pin = np.full((clip.frame_duration, 8), np.nan, dtype=np.float64)
+
+        # As explained in _prepare_position_and_misshapen_power_pin_marker_track() above
+        data[0] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[1] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        
+        data[5] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[6] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[7] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[8] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[9] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[10] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[11] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
+        data[12] = np.full(clip.frame_duration, np.nan, dtype=np.float64)
 
         for marker in track.markers:
-            if not 0 < marker.frame <= clip.frame_duration:
+            if not clip.frame_start <= marker.frame <= clip.frame_duration:
                 continue
             if marker.mute:
                 continue
-            misshapen_power_pin[marker.frame - 1] = [marker.corners[3][0], 1 - marker.corners[3][1],
-                                                     marker.corners[2][0], 1 - marker.corners[2][1],
-                                                     marker.corners[0][0], 1 - marker.corners[0][1],
-                                                     marker.corners[1][0], 1 - marker.corners[1][1]]
-          
-        misshapen_power_pin *= np.tile(ratio, 4)
 
-        # This is discarded due to it being unstable, despite its slightly
-        # faster speed.
-        # https://stackoverflow.com/questions/563198/
-        # def eat(slice):
-        #     if slice[0] == np.nan:
-        #         return np.full((2), np.nan, dtype=np.float64)
-        #     else:
-        #         p = slice[0:2]
-        #         r = slice[6:8] - slice[0:2]
-        #         q = slice[4:6]
-        #         s = slice[2:4] - slice[4:6]
-        #         t = np.cross((q - p), s) / np.cross(r, s)
-        #         return p + t * r
+            i = marker.frame - clip.frame_start
 
-        # https://stackoverflow.com/questions/563198/
-        def eat_(slice):
-            if np.isnan(slice[0]):
-                return np.full((2), np.nan, dtype=np.float64)
-            try:
-                t = LA.solve(np.transpose(np.vstack((slice[6:8] - slice[0:2], slice[2:4] - slice[4:6]))), slice[2:4] - slice[0:2])[0]
-            except LA.LinAlgError:
-                return np.mean(slice.reshape((4, 2)), axis=0)
-            else:
-                return (1 - t) * slice[0:2] + t * slice[6:8]
-        position = np.apply_along_axis(eat_, 1, misshapen_power_pin)
-        misshapen_power_pin -= np.tile(position, 4)
+            data[5][i] = marker.corners[3][0] * ratio[0]
+            data[6][i] = -marker.corners[3][1] * ratio[1]
+            data[7][i] = marker.corners[2][0] * ratio[0]
+            data[8][i] = -marker.corners[2][1] * ratio[1]
+            data[9][i] = marker.corners[0][0] * ratio[0]
+            data[10][i] = -marker.corners[0][1] * ratio[1]
+            data[11][i] = marker.corners[1][0] * ratio[0]
+            data[12][i] = -marker.corners[1][1] * ratio[1]
 
-        return position, misshapen_power_pin
+            if not np.isnan(data[5][i]):
+                try:
+                    t = LA.solve([[data[11][i] - data[5][i], data[7][i] - data[9][i]],
+                                  [data[12][i] - data[6][i], data[8][i] - data[10][i]]],
+                                 [data[7][i] - data[5][i], data[8][i] - data[6][i]])[0]
+                except LA.LinAlgError:
+                    data[0][i] = (data[5][i] + data[7][i] + data[9][i] + data[11][i]) / 4
+                    data[1][i] = (data[6][i] + data[8][i] + data[10][i] + data[12][i]) / 4
+                else:
+                    data[0][i] = (1 - t) * data[5][i] + t * data[11][i]
+                    data[1][i] = (1 - t) * data[6][i] + t * data[12][i]
+
+            for j in range(5, 13, 2):
+                data[j][i] -= data[0][i]
+                data[j + 1][i] -= data[1][i]
+            
+            # This is discarded due to it being unstable, despite its slightly
+            # faster speed.
+            # https://stackoverflow.com/questions/563198/
+            # def eat(slice):
+            #     if slice[0] == np.nan:
+            #         return np.full((2), np.nan, dtype=np.float64)
+            #     else:
+            #         p = slice[0:2]
+            #         r = slice[6:8] - slice[0:2]
+            #         q = slice[4:6]
+            #         s = slice[2:4] - slice[4:6]
+            #         t = np.cross((q - p), s) / np.cross(r, s)
+            #         return p + t * r
+
+            # https://stackoverflow.com/questions/563198/
+            # def eat_(slice):
+            #     if np.isnan(slice[0]):
+            #         return np.full((2), np.nan, dtype=np.float64)
+            #     try:
+            #         t = LA.solve(np.transpose(np.vstack((slice[6:8] - slice[0:2], slice[2:4] - slice[4:6]))), slice[2:4] - slice[0:2])[0]
+            #     except LA.LinAlgError:
+            #         return np.mean(slice.reshape((4, 2)), axis=0)
+            #     else:
+            #         return (1 - t) * slice[0:2] + t * slice[6:8]
         
     @staticmethod
-    def _prepare_scale_and_semilimited_rotation(misshapen_power_pin):
+    def _prepare_scale_and_semilimited_rotation(data):
         """
         Create scale and rotation array.
 
         Parameters
         ----------
-        misshapen_power_pin : npt.NDArray[float64]
-
-        Returns
-        -------
-        scale : npt.NDArray[float64]
-            scale is a 2D array unmultiplied.
-        semilimited_rotation : npt.NDArray[float64]
-            rotation is an 1D array unmultiplied as well.
+        data : dict[npt.NDArray[float64]]
 
         """
         import numpy as np
         import numpy.linalg as LA
-        
+
         # https://stackoverflow.com/questions/1401712/
-        scale_x = LA.norm(misshapen_power_pin[:, 0:2] - misshapen_power_pin[:, 2:4] + misshapen_power_pin[:, 4:6] - misshapen_power_pin[:, 6:8], axis=1)
-        scale_y = LA.norm(misshapen_power_pin[:, 0:2] - misshapen_power_pin[:, 4:6] + misshapen_power_pin[:, 2:4] - misshapen_power_pin[:, 6:8], axis=1)
-        scale = np.hstack((scale_x.reshape((-1, 1)), scale_y.reshape((-1, 1))))
+        data[2] = LA.norm(np.column_stack((data[5] - data[7] + data[9] - data[11],
+                                           data[6] - data[8] + data[10] - data[12])), axis=1)
+        data[3] = LA.norm(np.column_stack((data[5] - data[9] + data[7] - data[11],
+                                           data[6] - data[10] + data[8] - data[12])), axis=1)
         try:
-            scale /= scale[np.nonzero(~np.isnan(scale_x))[0][0]]
+            data[2] /= data[2][np.nonzero(~np.isnan(data[2]))[0][0]]
+            data[3] /= data[3][np.nonzero(~np.isnan(data[2]))[0][0]]
         except IndexError:
             raise ValueError("At least one marker in track.markers needs to be not marker.mute")
 
-        rotation_x = (misshapen_power_pin[:, 0] + misshapen_power_pin[:, 2]) / 2
-        rotation_y = (misshapen_power_pin[:, 1] + misshapen_power_pin[:, 3]) / 2
-        semilimited_rotation = np.arctan2(rotation_x, -rotation_y)
-
-        return scale, semilimited_rotation
+        data[4] = np.arctan2(data[5] + data[7], -data[6] - data[8])
 
     @staticmethod
-    def _prepare_power_pin(misshapen_power_pin):
+    def _unlimit_rotation(data):
         """
-        Create scale and rotation array.
+        Unlimit the rotation.
 
         Parameters
         ----------
-        misshapen_power_pin : npt.NDArray[float64]
-
-        Returns
-        -------
-        power_pin : npt.NDArray[float64]
+        data : dict[npt.NDArray[float64]]
 
         """
         import numpy as np
 
-        return np.swapaxes(misshapen_power_pin.reshape((-1, 4, 2)), 0, 1)
+        diff = np.diff(data[4])
+
+        for i in np.nonzero(diff > np.pi)[0]:
+            data[4][i+1:] -= 2 * np.pi
+        for i in np.nonzero(diff <= -np.pi)[0]:
+            data[4][i+1:] += 2 * np.pi
 
     @staticmethod
-    def _smoothing_main(position, scale, rotation, power_pin, clip, clip_settings, section_settings_l, section_settings_ll):
+    def _limit_rotation(data):
         """
-        The main logic for smoothing.
+        Limit the rotation.
 
         Parameters
         ----------
-        position : npt.NDArray[float64]
-        scale : npt.NDArray[float64]
-        rotation : npt.NDArray[float64]
-            unlimited rotation
-        power_pin : npt.NDArray[float64]
-        clip : bpy.types.MovieClip
-        clip_settings : AAEExportSettingsClip
-            AAEExportSettingsClip.
+        data : dict[npt.NDArray[float64]]
+
+        """
+        import numpy as np
+
+        np.remainder(data[4], 2 * np.pi, out=data[4])
+
+    @staticmethod
+    def _parse_section_settings(section_settings_l, section_settings_ll):
+        """
+        Deal with the messy Blender and output an easy to use section settings.
+
+        Parameters
+        ----------
         section_settings_l : AAEExportSettingsSectionL
             AAEExportSettingsSectionL.
         section_settings_ll : bpy.props.IntProperty
@@ -3535,2981 +2211,581 @@ class AAEExportExportAll(bpy.types.Operator):
 
         Returns
         -------
-        return_position : npt.NDArray[float64]
-        return_scale : npt.NDArray[float64]
-        return_rotation : npt.NDArray[float64]
-            unlimited rotation
-        return_power_pin : npt.NDArray[float64]
+        parsed_settings : dict[dict[dict[]]]
 
         """
-        import numpy as np
+        # parsed_settings structure
+        #
+        # {
+        #     (Section) 0: {
+        #         start_frame: 0
+        #
+        #         (Type) 0..12: {
+        #             degree: 2
+        #
+        #         }
+        #     }
+        # }
+        parsed_settings = {}
+
+        for i in range(section_settings_ll):
+            parsed_settings[i] = {}
+
+            parsed_settings[i]["start_frame"] = section_settings_l[i].start_frame - 1
+            parsed_settings[i]["end_frame"] = section_settings_l[i].end_frame
+
+            parsed_settings[i]["disable_section"] = section_settings_l[i].disable_section
+            parsed_settings[i]["smoothing_extrapolate"] = section_settings_l[i].smoothing_extrapolate
 
 
 
+  
 
+            parsed_settings[i][0] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_position_x \
-            = np.zeros_like(position[:, 0])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_position * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(position[section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_position_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][0]["smoothing"] = section_settings_l[i].smoothing_do_position
+                    parsed_settings[i][0]["degree"] = section_settings_l[i].smoothing_position_degree
+                    parsed_settings[i][0]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][0]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][0]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_position * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_position_regressor, \
-                                      section_settings.smoothing_position_huber_epsilon, \
-                                      section_settings.smoothing_position_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_position_regressor, \
-                                      section_settings.smoothing_position_huber_epsilon, \
-                                      section_settings.smoothing_position_lasso_alpha)
-                            data[np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_position_regressor, \
-                                      section_settings.smoothing_position_huber_epsilon, \
-                                      section_settings.smoothing_position_lasso_alpha)
-                            data[~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(position[section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_position_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][0]["smoothing"] = section_settings_l[i].smoothing_do_position
+                    parsed_settings[i][0]["degree"] = section_settings_l[i].smoothing_position_degree
+                    parsed_settings[i][0]["regressor"] = section_settings_l[i].smoothing_position_regressor
+                    parsed_settings[i][0]["huber_epsilon"] = section_settings_l[i].smoothing_position_huber_epsilon
+                    parsed_settings[i][0]["lasso_alpha"] = section_settings_l[i].smoothing_position_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_position_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(position[section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_position_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][0]["smoothing"] = section_settings_l[i].smoothing_do_position_x
+                    parsed_settings[i][0]["degree"] = section_settings_l[i].smoothing_position_x_degree
+                    parsed_settings[i][0]["regressor"] = section_settings_l[i].smoothing_x_regressor
+                    parsed_settings[i][0]["huber_epsilon"] = section_settings_l[i].smoothing_x_huber_epsilon
+                    parsed_settings[i][0]["lasso_alpha"] = section_settings_l[i].smoothing_x_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][0]["smoothing"] = section_settings_l[i].smoothing_do_position_x
+                    parsed_settings[i][0]["degree"] = section_settings_l[i].smoothing_position_x_degree
+                    parsed_settings[i][0]["regressor"] = section_settings_l[i].smoothing_position_x_regressor
+                    parsed_settings[i][0]["huber_epsilon"] = section_settings_l[i].smoothing_position_x_huber_epsilon
+                    parsed_settings[i][0]["lasso_alpha"] = section_settings_l[i].smoothing_position_x_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_position_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_x_degree, \
-                                      section_settings.smoothing_position_x_regressor, \
-                                      section_settings.smoothing_position_x_huber_epsilon, \
-                                      section_settings.smoothing_position_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_x_degree, \
-                                      section_settings.smoothing_position_x_regressor, \
-                                      section_settings.smoothing_position_x_huber_epsilon, \
-                                      section_settings.smoothing_position_x_lasso_alpha)
-                            data[np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_position_x_degree, \
-                                      section_settings.smoothing_position_x_regressor, \
-                                      section_settings.smoothing_position_x_huber_epsilon, \
-                                      section_settings.smoothing_position_x_lasso_alpha)
-                            data[~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(position[section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_position_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
+  
 
+            parsed_settings[i][1] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_position_y \
-            = np.zeros_like(position[:, 1])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_position * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(position[section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_position_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][1]["smoothing"] = section_settings_l[i].smoothing_do_position
+                    parsed_settings[i][1]["degree"] = section_settings_l[i].smoothing_position_degree
+                    parsed_settings[i][1]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][1]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][1]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_position * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_position_regressor, \
-                                      section_settings.smoothing_position_huber_epsilon, \
-                                      section_settings.smoothing_position_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_position_regressor, \
-                                      section_settings.smoothing_position_huber_epsilon, \
-                                      section_settings.smoothing_position_lasso_alpha)
-                            data[np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_degree, \
-                                      section_settings.smoothing_position_regressor, \
-                                      section_settings.smoothing_position_huber_epsilon, \
-                                      section_settings.smoothing_position_lasso_alpha)
-                            data[~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(position[section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_position_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][1]["smoothing"] = section_settings_l[i].smoothing_do_position
+                    parsed_settings[i][1]["degree"] = section_settings_l[i].smoothing_position_degree
+                    parsed_settings[i][1]["regressor"] = section_settings_l[i].smoothing_position_regressor
+                    parsed_settings[i][1]["huber_epsilon"] = section_settings_l[i].smoothing_position_huber_epsilon
+                    parsed_settings[i][1]["lasso_alpha"] = section_settings_l[i].smoothing_position_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_position_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(position[section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_position_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][1]["smoothing"] = section_settings_l[i].smoothing_do_position_y
+                    parsed_settings[i][1]["degree"] = section_settings_l[i].smoothing_position_y_degree
+                    parsed_settings[i][1]["regressor"] = section_settings_l[i].smoothing_y_regressor
+                    parsed_settings[i][1]["huber_epsilon"] = section_settings_l[i].smoothing_y_huber_epsilon
+                    parsed_settings[i][1]["lasso_alpha"] = section_settings_l[i].smoothing_y_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][1]["smoothing"] = section_settings_l[i].smoothing_do_position_y
+                    parsed_settings[i][1]["degree"] = section_settings_l[i].smoothing_position_y_degree
+                    parsed_settings[i][1]["regressor"] = section_settings_l[i].smoothing_position_y_regressor
+                    parsed_settings[i][1]["huber_epsilon"] = section_settings_l[i].smoothing_position_y_huber_epsilon
+                    parsed_settings[i][1]["lasso_alpha"] = section_settings_l[i].smoothing_position_y_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_position_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_y_degree, \
-                                      section_settings.smoothing_position_y_regressor, \
-                                      section_settings.smoothing_position_y_huber_epsilon, \
-                                      section_settings.smoothing_position_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_y_degree, \
-                                      section_settings.smoothing_position_y_regressor, \
-                                      section_settings.smoothing_position_y_huber_epsilon, \
-                                      section_settings.smoothing_position_y_lasso_alpha)
-                            data[np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      position[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_position_y_degree, \
-                                      section_settings.smoothing_position_y_regressor, \
-                                      section_settings.smoothing_position_y_huber_epsilon, \
-                                      section_settings.smoothing_position_y_lasso_alpha)
-                            data[~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(position[section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = position[section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(position[section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_position_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
 
+  
 
+            parsed_settings[i][2] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_scale_x \
-            = np.zeros_like(scale[:, 0])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_scale * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(scale[section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_scale_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][2]["smoothing"] = section_settings_l[i].smoothing_do_scale
+                    parsed_settings[i][2]["degree"] = section_settings_l[i].smoothing_scale_degree
+                    parsed_settings[i][2]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][2]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][2]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_scale * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_scale_regressor, \
-                                      section_settings.smoothing_scale_huber_epsilon, \
-                                      section_settings.smoothing_scale_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_scale_regressor, \
-                                      section_settings.smoothing_scale_huber_epsilon, \
-                                      section_settings.smoothing_scale_lasso_alpha)
-                            data[np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_scale_regressor, \
-                                      section_settings.smoothing_scale_huber_epsilon, \
-                                      section_settings.smoothing_scale_lasso_alpha)
-                            data[~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(scale[section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_scale_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][2]["smoothing"] = section_settings_l[i].smoothing_do_scale
+                    parsed_settings[i][2]["degree"] = section_settings_l[i].smoothing_scale_degree
+                    parsed_settings[i][2]["regressor"] = section_settings_l[i].smoothing_scale_regressor
+                    parsed_settings[i][2]["huber_epsilon"] = section_settings_l[i].smoothing_scale_huber_epsilon
+                    parsed_settings[i][2]["lasso_alpha"] = section_settings_l[i].smoothing_scale_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_scale_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(scale[section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_scale_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][2]["smoothing"] = section_settings_l[i].smoothing_do_scale_x
+                    parsed_settings[i][2]["degree"] = section_settings_l[i].smoothing_scale_x_degree
+                    parsed_settings[i][2]["regressor"] = section_settings_l[i].smoothing_x_regressor
+                    parsed_settings[i][2]["huber_epsilon"] = section_settings_l[i].smoothing_x_huber_epsilon
+                    parsed_settings[i][2]["lasso_alpha"] = section_settings_l[i].smoothing_x_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][2]["smoothing"] = section_settings_l[i].smoothing_do_scale_x
+                    parsed_settings[i][2]["degree"] = section_settings_l[i].smoothing_scale_x_degree
+                    parsed_settings[i][2]["regressor"] = section_settings_l[i].smoothing_scale_x_regressor
+                    parsed_settings[i][2]["huber_epsilon"] = section_settings_l[i].smoothing_scale_x_huber_epsilon
+                    parsed_settings[i][2]["lasso_alpha"] = section_settings_l[i].smoothing_scale_x_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_scale_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_x_degree, \
-                                      section_settings.smoothing_scale_x_regressor, \
-                                      section_settings.smoothing_scale_x_huber_epsilon, \
-                                      section_settings.smoothing_scale_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_x_degree, \
-                                      section_settings.smoothing_scale_x_regressor, \
-                                      section_settings.smoothing_scale_x_huber_epsilon, \
-                                      section_settings.smoothing_scale_x_lasso_alpha)
-                            data[np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_scale_x_degree, \
-                                      section_settings.smoothing_scale_x_regressor, \
-                                      section_settings.smoothing_scale_x_huber_epsilon, \
-                                      section_settings.smoothing_scale_x_lasso_alpha)
-                            data[~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(scale[section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_scale_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
+  
 
+            parsed_settings[i][3] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_scale_y \
-            = np.zeros_like(scale[:, 1])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_scale * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(scale[section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_scale_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][3]["smoothing"] = section_settings_l[i].smoothing_do_scale
+                    parsed_settings[i][3]["degree"] = section_settings_l[i].smoothing_scale_degree
+                    parsed_settings[i][3]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][3]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][3]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_scale * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_scale_regressor, \
-                                      section_settings.smoothing_scale_huber_epsilon, \
-                                      section_settings.smoothing_scale_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_scale_regressor, \
-                                      section_settings.smoothing_scale_huber_epsilon, \
-                                      section_settings.smoothing_scale_lasso_alpha)
-                            data[np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_degree, \
-                                      section_settings.smoothing_scale_regressor, \
-                                      section_settings.smoothing_scale_huber_epsilon, \
-                                      section_settings.smoothing_scale_lasso_alpha)
-                            data[~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(scale[section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_scale_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][3]["smoothing"] = section_settings_l[i].smoothing_do_scale
+                    parsed_settings[i][3]["degree"] = section_settings_l[i].smoothing_scale_degree
+                    parsed_settings[i][3]["regressor"] = section_settings_l[i].smoothing_scale_regressor
+                    parsed_settings[i][3]["huber_epsilon"] = section_settings_l[i].smoothing_scale_huber_epsilon
+                    parsed_settings[i][3]["lasso_alpha"] = section_settings_l[i].smoothing_scale_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_scale_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(scale[section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_scale_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][3]["smoothing"] = section_settings_l[i].smoothing_do_scale_y
+                    parsed_settings[i][3]["degree"] = section_settings_l[i].smoothing_scale_y_degree
+                    parsed_settings[i][3]["regressor"] = section_settings_l[i].smoothing_y_regressor
+                    parsed_settings[i][3]["huber_epsilon"] = section_settings_l[i].smoothing_y_huber_epsilon
+                    parsed_settings[i][3]["lasso_alpha"] = section_settings_l[i].smoothing_y_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][3]["smoothing"] = section_settings_l[i].smoothing_do_scale_y
+                    parsed_settings[i][3]["degree"] = section_settings_l[i].smoothing_scale_y_degree
+                    parsed_settings[i][3]["regressor"] = section_settings_l[i].smoothing_scale_y_regressor
+                    parsed_settings[i][3]["huber_epsilon"] = section_settings_l[i].smoothing_scale_y_huber_epsilon
+                    parsed_settings[i][3]["lasso_alpha"] = section_settings_l[i].smoothing_scale_y_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_scale_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_y_degree, \
-                                      section_settings.smoothing_scale_y_regressor, \
-                                      section_settings.smoothing_scale_y_huber_epsilon, \
-                                      section_settings.smoothing_scale_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_y_degree, \
-                                      section_settings.smoothing_scale_y_regressor, \
-                                      section_settings.smoothing_scale_y_huber_epsilon, \
-                                      section_settings.smoothing_scale_y_lasso_alpha)
-                            data[np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      scale[section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_scale_y_degree, \
-                                      section_settings.smoothing_scale_y_regressor, \
-                                      section_settings.smoothing_scale_y_huber_epsilon, \
-                                      section_settings.smoothing_scale_y_lasso_alpha)
-                            data[~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(scale[section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = scale[section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(scale[section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_scale_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
 
+  
 
+            parsed_settings[i][4] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_rotation \
-            = np.zeros_like(rotation[:])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_rotation * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])] \
-                                = rotation[section_settings.start_frame-1:section_settings.end_frame][~np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])]
-                        case 0b000:
-                            data \
-                                = rotation[section_settings.start_frame-1:section_settings.end_frame]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(rotation[section_settings.start_frame-1:section_settings.end_frame], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_rotation, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][4]["smoothing"] = section_settings_l[i].smoothing_do_rotation
+                    parsed_settings[i][4]["degree"] = section_settings_l[i].smoothing_rotation_degree
+                    parsed_settings[i][4]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][4]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][4]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_rotation * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_rotation_regressor, \
-                                      section_settings.smoothing_rotation_huber_epsilon, \
-                                      section_settings.smoothing_rotation_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_rotation_regressor, \
-                                      section_settings.smoothing_rotation_huber_epsilon, \
-                                      section_settings.smoothing_rotation_lasso_alpha)
-                            data[np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_rotation_regressor, \
-                                      section_settings.smoothing_rotation_huber_epsilon, \
-                                      section_settings.smoothing_rotation_lasso_alpha)
-                            data[~np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])] \
-                                = rotation[section_settings.start_frame-1:section_settings.end_frame][~np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])]
-                        case 0b000:
-                            data \
-                                = rotation[section_settings.start_frame-1:section_settings.end_frame]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(rotation[section_settings.start_frame-1:section_settings.end_frame], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_rotation, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][4]["smoothing"] = section_settings_l[i].smoothing_do_rotation
+                    parsed_settings[i][4]["degree"] = section_settings_l[i].smoothing_rotation_degree
+                    parsed_settings[i][4]["regressor"] = section_settings_l[i].smoothing_rotation_regressor
+                    parsed_settings[i][4]["huber_epsilon"] = section_settings_l[i].smoothing_rotation_huber_epsilon
+                    parsed_settings[i][4]["lasso_alpha"] = section_settings_l[i].smoothing_rotation_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_rotation * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])] \
-                                = rotation[section_settings.start_frame-1:section_settings.end_frame][~np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])]
-                        case 0b000:
-                            data \
-                                = rotation[section_settings.start_frame-1:section_settings.end_frame]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(rotation[section_settings.start_frame-1:section_settings.end_frame], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_rotation, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][4]["smoothing"] = section_settings_l[i].smoothing_do_rotation
+                    parsed_settings[i][4]["degree"] = section_settings_l[i].smoothing_rotation_degree
+                    parsed_settings[i][4]["regressor"] = section_settings_l[i].smoothing_x_regressor
+                    parsed_settings[i][4]["huber_epsilon"] = section_settings_l[i].smoothing_x_huber_epsilon
+                    parsed_settings[i][4]["lasso_alpha"] = section_settings_l[i].smoothing_x_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][4]["smoothing"] = section_settings_l[i].smoothing_do_rotation
+                    parsed_settings[i][4]["degree"] = section_settings_l[i].smoothing_rotation_degree
+                    parsed_settings[i][4]["regressor"] = section_settings_l[i].smoothing_rotation_regressor
+                    parsed_settings[i][4]["huber_epsilon"] = section_settings_l[i].smoothing_rotation_huber_epsilon
+                    parsed_settings[i][4]["lasso_alpha"] = section_settings_l[i].smoothing_rotation_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_rotation * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_rotation_regressor, \
-                                      section_settings.smoothing_rotation_huber_epsilon, \
-                                      section_settings.smoothing_rotation_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_rotation_regressor, \
-                                      section_settings.smoothing_rotation_huber_epsilon, \
-                                      section_settings.smoothing_rotation_lasso_alpha)
-                            data[np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      rotation[section_settings.start_frame-1:section_settings.end_frame], \
-                                      section_settings.smoothing_rotation_degree, \
-                                      section_settings.smoothing_rotation_regressor, \
-                                      section_settings.smoothing_rotation_huber_epsilon, \
-                                      section_settings.smoothing_rotation_lasso_alpha)
-                            data[~np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])] \
-                                = rotation[section_settings.start_frame-1:section_settings.end_frame][~np.isnan(rotation[section_settings.start_frame-1:section_settings.end_frame])]
-                        case 0b000:
-                            data \
-                                = rotation[section_settings.start_frame-1:section_settings.end_frame]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(rotation[section_settings.start_frame-1:section_settings.end_frame], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_rotation, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
 
+  
 
+            parsed_settings[i][5] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_power_pin_0002_x \
-            = np.zeros_like(power_pin[0 ,:, 0])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0002_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][5]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][5]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][5]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][5]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][5]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0002_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][5]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][5]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][5]["regressor"] = section_settings_l[i].smoothing_power_pin_regressor
+                    parsed_settings[i][5]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_huber_epsilon
+                    parsed_settings[i][5]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0002_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][5]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_x
+                    parsed_settings[i][5]["degree"] = section_settings_l[i].smoothing_power_pin_x_degree
+                    parsed_settings[i][5]["regressor"] = section_settings_l[i].smoothing_x_regressor
+                    parsed_settings[i][5]["huber_epsilon"] = section_settings_l[i].smoothing_x_huber_epsilon
+                    parsed_settings[i][5]["lasso_alpha"] = section_settings_l[i].smoothing_x_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][5]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_x
+                    parsed_settings[i][5]["degree"] = section_settings_l[i].smoothing_power_pin_x_degree
+                    parsed_settings[i][5]["regressor"] = section_settings_l[i].smoothing_power_pin_x_regressor
+                    parsed_settings[i][5]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_x_huber_epsilon
+                    parsed_settings[i][5]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_x_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                            data[np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                            data[~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0002_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
+  
 
+            parsed_settings[i][6] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_power_pin_0003_x \
-            = np.zeros_like(power_pin[1 ,:, 0])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0003_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][6]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][6]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][6]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][6]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][6]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0003_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][6]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][6]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][6]["regressor"] = section_settings_l[i].smoothing_power_pin_regressor
+                    parsed_settings[i][6]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_huber_epsilon
+                    parsed_settings[i][6]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0003_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][6]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_y
+                    parsed_settings[i][6]["degree"] = section_settings_l[i].smoothing_power_pin_y_degree
+                    parsed_settings[i][6]["regressor"] = section_settings_l[i].smoothing_y_regressor
+                    parsed_settings[i][6]["huber_epsilon"] = section_settings_l[i].smoothing_y_huber_epsilon
+                    parsed_settings[i][6]["lasso_alpha"] = section_settings_l[i].smoothing_y_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][6]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_y
+                    parsed_settings[i][6]["degree"] = section_settings_l[i].smoothing_power_pin_y_degree
+                    parsed_settings[i][6]["regressor"] = section_settings_l[i].smoothing_power_pin_y_regressor
+                    parsed_settings[i][6]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_y_huber_epsilon
+                    parsed_settings[i][6]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_y_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                            data[np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                            data[~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0003_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
+  
 
+            parsed_settings[i][7] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_power_pin_0004_x \
-            = np.zeros_like(power_pin[2 ,:, 0])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0004_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][7]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][7]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][7]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][7]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][7]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0004_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][7]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][7]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][7]["regressor"] = section_settings_l[i].smoothing_power_pin_regressor
+                    parsed_settings[i][7]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_huber_epsilon
+                    parsed_settings[i][7]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0004_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][7]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_x
+                    parsed_settings[i][7]["degree"] = section_settings_l[i].smoothing_power_pin_x_degree
+                    parsed_settings[i][7]["regressor"] = section_settings_l[i].smoothing_x_regressor
+                    parsed_settings[i][7]["huber_epsilon"] = section_settings_l[i].smoothing_x_huber_epsilon
+                    parsed_settings[i][7]["lasso_alpha"] = section_settings_l[i].smoothing_x_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][7]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_x
+                    parsed_settings[i][7]["degree"] = section_settings_l[i].smoothing_power_pin_x_degree
+                    parsed_settings[i][7]["regressor"] = section_settings_l[i].smoothing_power_pin_x_regressor
+                    parsed_settings[i][7]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_x_huber_epsilon
+                    parsed_settings[i][7]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_x_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                            data[np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                            data[~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0004_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
+  
 
+            parsed_settings[i][8] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_power_pin_0005_x \
-            = np.zeros_like(power_pin[3 ,:, 0])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0005_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][8]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][8]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][8]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][8]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][8]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0005_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][8]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][8]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][8]["regressor"] = section_settings_l[i].smoothing_power_pin_regressor
+                    parsed_settings[i][8]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_huber_epsilon
+                    parsed_settings[i][8]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_x_regressor, \
-                                      section_settings.smoothing_x_huber_epsilon, \
-                                      section_settings.smoothing_x_lasso_alpha)
-                            data[~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0005_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][8]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_y
+                    parsed_settings[i][8]["degree"] = section_settings_l[i].smoothing_power_pin_y_degree
+                    parsed_settings[i][8]["regressor"] = section_settings_l[i].smoothing_y_regressor
+                    parsed_settings[i][8]["huber_epsilon"] = section_settings_l[i].smoothing_y_huber_epsilon
+                    parsed_settings[i][8]["lasso_alpha"] = section_settings_l[i].smoothing_y_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][8]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_y
+                    parsed_settings[i][8]["degree"] = section_settings_l[i].smoothing_power_pin_y_degree
+                    parsed_settings[i][8]["regressor"] = section_settings_l[i].smoothing_power_pin_y_regressor
+                    parsed_settings[i][8]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_y_huber_epsilon
+                    parsed_settings[i][8]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_y_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_x * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                            data[np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], \
-                                      section_settings.smoothing_power_pin_x_degree, \
-                                      section_settings.smoothing_power_pin_x_regressor, \
-                                      section_settings.smoothing_power_pin_x_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_x_lasso_alpha)
-                            data[~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])] \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0][~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0])]
-                        case 0b000:
-                            data \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 0], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0005_x, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
+  
 
+            parsed_settings[i][9] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_power_pin_0002_y \
-            = np.zeros_like(power_pin[0 ,:, 1])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0002_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][9]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][9]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][9]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][9]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][9]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0002_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][9]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][9]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][9]["regressor"] = section_settings_l[i].smoothing_power_pin_regressor
+                    parsed_settings[i][9]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_huber_epsilon
+                    parsed_settings[i][9]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0002_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][9]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_x
+                    parsed_settings[i][9]["degree"] = section_settings_l[i].smoothing_power_pin_x_degree
+                    parsed_settings[i][9]["regressor"] = section_settings_l[i].smoothing_x_regressor
+                    parsed_settings[i][9]["huber_epsilon"] = section_settings_l[i].smoothing_x_huber_epsilon
+                    parsed_settings[i][9]["lasso_alpha"] = section_settings_l[i].smoothing_x_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][9]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_x
+                    parsed_settings[i][9]["degree"] = section_settings_l[i].smoothing_power_pin_x_degree
+                    parsed_settings[i][9]["regressor"] = section_settings_l[i].smoothing_power_pin_x_regressor
+                    parsed_settings[i][9]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_x_huber_epsilon
+                    parsed_settings[i][9]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_x_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                            data[np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                            data[~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[0 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0002_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
+  
 
+            parsed_settings[i][10] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_power_pin_0003_y \
-            = np.zeros_like(power_pin[1 ,:, 1])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0003_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][10]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][10]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][10]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][10]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][10]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0003_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][10]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][10]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][10]["regressor"] = section_settings_l[i].smoothing_power_pin_regressor
+                    parsed_settings[i][10]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_huber_epsilon
+                    parsed_settings[i][10]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0003_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][10]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_y
+                    parsed_settings[i][10]["degree"] = section_settings_l[i].smoothing_power_pin_y_degree
+                    parsed_settings[i][10]["regressor"] = section_settings_l[i].smoothing_y_regressor
+                    parsed_settings[i][10]["huber_epsilon"] = section_settings_l[i].smoothing_y_huber_epsilon
+                    parsed_settings[i][10]["lasso_alpha"] = section_settings_l[i].smoothing_y_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][10]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_y
+                    parsed_settings[i][10]["degree"] = section_settings_l[i].smoothing_power_pin_y_degree
+                    parsed_settings[i][10]["regressor"] = section_settings_l[i].smoothing_power_pin_y_regressor
+                    parsed_settings[i][10]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_y_huber_epsilon
+                    parsed_settings[i][10]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_y_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                            data[np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                            data[~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[1 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0003_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
+  
 
+            parsed_settings[i][11] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_power_pin_0004_y \
-            = np.zeros_like(power_pin[2 ,:, 1])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0004_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][11]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][11]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][11]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][11]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][11]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0004_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][11]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][11]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][11]["regressor"] = section_settings_l[i].smoothing_power_pin_regressor
+                    parsed_settings[i][11]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_huber_epsilon
+                    parsed_settings[i][11]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0004_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][11]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_x
+                    parsed_settings[i][11]["degree"] = section_settings_l[i].smoothing_power_pin_x_degree
+                    parsed_settings[i][11]["regressor"] = section_settings_l[i].smoothing_x_regressor
+                    parsed_settings[i][11]["huber_epsilon"] = section_settings_l[i].smoothing_x_huber_epsilon
+                    parsed_settings[i][11]["lasso_alpha"] = section_settings_l[i].smoothing_x_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][11]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_x
+                    parsed_settings[i][11]["degree"] = section_settings_l[i].smoothing_power_pin_x_degree
+                    parsed_settings[i][11]["regressor"] = section_settings_l[i].smoothing_power_pin_x_regressor
+                    parsed_settings[i][11]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_x_huber_epsilon
+                    parsed_settings[i][11]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_x_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                            data[np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                            data[~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[2 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0004_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
+  
 
+            parsed_settings[i][12] = {}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_power_pin_0005_y \
-            = np.zeros_like(power_pin[3 ,:, 1])
-        carryover \
-            = np.full((2), np.nan, dtype=np.float64)
-
-
-
-        for section_settings_li in range(section_settings_ll):
-            section_settings = section_settings_l[section_settings_li]
-
-            match (section_settings.smoothing_use_different_x_y * 2) + section_settings.smoothing_use_different_model:
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
                 case 0b00:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_regressor, \
-                                      section_settings.smoothing_huber_epsilon, \
-                                      section_settings.smoothing_lasso_alpha)
-                            data[~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0005_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][12]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][12]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][12]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][12]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][12]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
                 case 0b01:
-
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_degree, \
-                                      section_settings.smoothing_power_pin_regressor, \
-                                      section_settings.smoothing_power_pin_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_lasso_alpha)
-                            data[~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0005_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
-
+                    parsed_settings[i][12]["smoothing"] = section_settings_l[i].smoothing_do_power_pin
+                    parsed_settings[i][12]["degree"] = section_settings_l[i].smoothing_power_pin_degree
+                    parsed_settings[i][12]["regressor"] = section_settings_l[i].smoothing_power_pin_regressor
+                    parsed_settings[i][12]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_huber_epsilon
+                    parsed_settings[i][12]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_lasso_alpha
                 case 0b10:
 
-
-
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_y_regressor, \
-                                      section_settings.smoothing_y_huber_epsilon, \
-                                      section_settings.smoothing_y_lasso_alpha)
-                            data[~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0005_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
-
-
+                    parsed_settings[i][12]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_y
+                    parsed_settings[i][12]["degree"] = section_settings_l[i].smoothing_power_pin_y_degree
+                    parsed_settings[i][12]["regressor"] = section_settings_l[i].smoothing_y_regressor
+                    parsed_settings[i][12]["huber_epsilon"] = section_settings_l[i].smoothing_y_huber_epsilon
+                    parsed_settings[i][12]["lasso_alpha"] = section_settings_l[i].smoothing_y_lasso_alpha
 
                 case 0b11:
 
+                    parsed_settings[i][12]["smoothing"] = section_settings_l[i].smoothing_do_power_pin_y
+                    parsed_settings[i][12]["degree"] = section_settings_l[i].smoothing_power_pin_y_degree
+                    parsed_settings[i][12]["regressor"] = section_settings_l[i].smoothing_power_pin_y_regressor
+                    parsed_settings[i][12]["huber_epsilon"] = section_settings_l[i].smoothing_power_pin_y_huber_epsilon
+                    parsed_settings[i][12]["lasso_alpha"] = section_settings_l[i].smoothing_power_pin_y_lasso_alpha
 
 
-                    match (section_settings.disable_section * 4) + (section_settings.smoothing_do_power_pin_y * 2) + section_settings.smoothing_extrapolate: # match case requires Python 3.10 (Blender 3.1)
-                        case 0b011:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                        case 0b010:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                            data[np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = np.nan
-                        case 0b001:
-                            data \
-                                = AAEExportExportAll._smoothing( \
-                                      power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], \
-                                      section_settings.smoothing_power_pin_y_degree, \
-                                      section_settings.smoothing_power_pin_y_regressor, \
-                                      section_settings.smoothing_power_pin_y_huber_epsilon, \
-                                      section_settings.smoothing_power_pin_y_lasso_alpha)
-                            data[~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])] \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1][~np.isnan(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1])]
-                        case 0b000:
-                            data \
-                                = power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1]
-                        case 0b100 | 0b101 | 0b110 | 0b111:
-                            data \
-                                = np.full_like(power_pin[3 ,section_settings.start_frame-1:section_settings.end_frame, 1], np.nan)
-        
-                    AAEExportExportAll._smoothing_append_result( \
-                        return_power_pin_0005_y, data, \
-                        clip, clip_settings, section_settings, \
-                        carryover)
+  
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        return_position = np.dstack((return_position_x, return_position_y))[0]
-        return_scale = np.dstack((return_scale_x, return_scale_y))[0]
-        return_power_pin = np.stack((np.dstack((return_power_pin_0002_x, return_power_pin_0002_y))[0],
-                                     np.dstack((return_power_pin_0003_x, return_power_pin_0003_y))[0],
-                                     np.dstack((return_power_pin_0004_x, return_power_pin_0004_y))[0],
-                                     np.dstack((return_power_pin_0005_x, return_power_pin_0005_y))[0]))
-
-        return return_position, return_scale, return_rotation, return_power_pin
+        return parsed_settings
 
     @staticmethod
-    def _smoothing(data, degree, regressor, huber_epsilon, lasso_alpha):
+    def _smoothing_main(data, clip, clip_settings, section_settings, section_settings_ll, plotting=False):
+        """
+        The main logic for smoothing.
+
+        Parameters
+        ----------
+        data : dict[npt.NDArray[float64]]
+        clip : bpy.types.MovieClip
+        clip_settings : AAEExportSettingsClip
+            AAEExportSettingsClip.
+        section_settings : dict[dict[dict[]]]
+        section_settings_ll : bpy.props.IntProperty
+            AAEExportSettingsSectionLL.
+
+        Returns
+        -------
+        smoothed_data : dict[npt.NDArray[float64]]
+
+        """
+        import collections
+        import numpy as np
+
+        smoothed_data = {}
+        if plotting:
+            no_blending_data = {}
+
+        for i in range(13):
+            smoothed_data[i] \
+                = np.zeros_like(data[i])
+            if plotting:
+                no_blending_data[i] \
+                    = np.zeros_like(data[i])
+            carryover \
+                = np.full((2), np.nan, dtype=np.float64)
+            if plotting:
+                no_blending_carryover \
+                    = np.full((1), np.nan, dtype=np.float64)
+
+            for j in range(section_settings_ll):
+                match (section_settings[j]["disable_section"] * 4) + (section_settings[j][i]["smoothing"] * 2) + section_settings[j]["smoothing_extrapolate"]:
+                    case 0b011:
+                        returned_data \
+                            = AAEExportExportAll._smoothing( \
+                                  data[i][section_settings[j]["start_frame"]:section_settings[j]["end_frame"]], \
+                                  section_settings[j][i])
+                    case 0b010:
+                        returned_data \
+                            = AAEExportExportAll._smoothing( \
+                                  data[i][section_settings[j]["start_frame"]:section_settings[j]["end_frame"]], \
+                                  section_settings[j][i])
+                        returned_data[np.isnan(data[i][section_settings[j]["start_frame"]:section_settings[j]["end_frame"]])] \
+                            = np.nan
+                    case 0b001:
+                        returned_data \
+                            = AAEExportExportAll._smoothing( \
+                                  data[i][section_settings[j]["start_frame"]:section_settings[j]["end_frame"]], \
+                                  section_settings[j][i])
+                        returned_data[indices] \
+                            = data[i][section_settings[j]["start_frame"]:section_settings[j]["end_frame"]][(indices := ~np.isnan(data[i][section_settings[j]["start_frame"]:section_settings[j]["end_frame"]]))]
+                    case 0b000:
+                        returned_data \
+                            = data[i][section_settings[j]["start_frame"]:section_settings[j]["end_frame"]]
+                    case 0b100 | 0b101 | 0b110 | 0b111:
+                        returned_data \
+                            = np.full_like(data[i][section_settings[j]["start_frame"]:section_settings[j]["end_frame"]], np.nan)
+
+                AAEExportExportAll._smoothing_append_section( \
+                    smoothed_data[i], returned_data, \
+                    clip, clip_settings, section_settings[j], \
+                    carryover)
+                if plotting:
+                    AAEExportExportAll._smoothing_append_section( \
+                        no_blending_data[i], returned_data, \
+                        clip, collections.namedtuple("FakeAAEExportSettingsClip", ["smoothing_blending"])("NONE"), section_settings[j], \
+                        no_blending_carryover)
+
+        if not plotting:
+            return smoothed_data
+        else:
+            return smoothed_data, no_blending_data
+
+    @staticmethod
+    def _smoothing(data, section_settings):
         """
         Perform smoothing depending on the smoothing settings.
 
@@ -6517,10 +2793,8 @@ class AAEExportExportAll(bpy.types.Operator):
         ----------
         data : npt.NDArray[float64]
             univariate data
-        degree : int
-        regressor : str
-        huber_epsilon : int
-        lasso_alpha : int
+        section_settings : dict[]
+            Parsed settings for the section and data
 
         Returns
         -------
@@ -6538,68 +2812,65 @@ class AAEExportExportAll(bpy.types.Operator):
 
         if X.shape[0] == 0:
             return np.copy(data)
-        elif degree == 0:
+        elif section_settings["degree"] == 0:
             return np.full_like(data, np.average(data[~np.isnan(data)]))
-        elif regressor == "HUBER":
-            return Pipeline([("poly", PolynomialFeatures(degree=degree)), \
-                             ("huber", HuberRegressor(epsilon=huber_epsilon))]) \
+        elif section_settings["regressor"] == "HUBER":
+            return Pipeline([("poly", PolynomialFeatures(degree=section_settings["degree"])), \
+                             ("huber", HuberRegressor(epsilon=section_settings["huber_epsilon"]))]) \
                        .fit(X, y) \
                        .predict(np.arange(data.shape[0]).reshape(-1, 1))
-        elif regressor == "LASSO":
-            return Pipeline([("poly", PolynomialFeatures(degree=degree)), \
-                             ("lasso", Lasso(alpha=lasso_alpha))]) \
+        elif section_settings["regressor"] == "LASSO":
+            return Pipeline([("poly", PolynomialFeatures(degree=section_settings["degree"])), \
+                             ("lasso", Lasso(alpha=section_settings["lasso_alpha"]))]) \
                        .fit(X, y) \
                        .predict(np.arange(data.shape[0]).reshape(-1, 1))
-        elif regressor == "LINEAR":
-            return Pipeline([("poly", PolynomialFeatures(degree=degree)), \
+        elif section_settings["regressor"] == "LINEAR":
+            return Pipeline([("poly", PolynomialFeatures(degree=section_settings["degree"])), \
                              ("regressor", LinearRegression())]) \
                        .fit(X, y) \
                        .predict(np.arange(data.shape[0]).reshape(-1, 1))
         else:
-            raise ValueError("regressor " + regressor + " not recognised")
+            raise ValueError("regressor " + section_settings["regressor"] + " not recognised")
 
     @staticmethod
-    def _smoothing_append_result(return_data, data, clip, clip_settings, section_settings, carryover):
+    def _smoothing_append_section(smoothed_data, data, clip, clip_settings, section_settings, carryover):
         """
         The main logic for smoothing.
 
         Parameters
         ----------
-        return_data : npt.NDArray[float64]
-            return_data created in _smoothing_main()
+        smoothed_data : npt.NDArray[float64]
+            smoothed_data created in _smoothing_main()
         data : npt.NDArray[float64]
             data after smoothed in _smoothing_main()
         clip : bpy.types.MovieClip
         clip_settings : AAEExportSettingsClip
-        section_settings : AAEExportSettingsSectionL
-            Settings for the section AAEExportSettingsSectionL[AAEExportSettingsSectionLI]
+        section_settings : dict[dict[]]
+            Parsed settings for the section
         carryover : npt.NDArray[float64]
             Carryover. Initialised in _smoothing_main()
 
         """
         import numpy as np
 
-        start_frame = section_settings.start_frame - 1
-        end_frame = section_settings.end_frame
-
         match clip_settings.smoothing_blending:
             case "NONE":
                 match (np.isnan(carryover[0]) * 2) + np.isnan(data[0]):
                     case 0b00:
-                        return_data[start_frame] = (return_data[start_frame] + data[0]) / 2
-                        return_data[start_frame+1:end_frame] = data[1:]
+                        smoothed_data[section_settings["start_frame"]] = (smoothed_data[section_settings["start_frame"]] + data[0]) / 2
+                        smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] = data[1:]
                     case 0b10:
-                        return_data[start_frame:end_frame] = data
+                        smoothed_data[section_settings["start_frame"]:section_settings["end_frame"]] = data
                     case 0b01 | 0b11:
-                        return_data[start_frame+1:end_frame] = data[1:]
+                        smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] = data[1:]
                 carryover[0] = data[-1]
 
             case "CUBIC":
-                return_data[start_frame+1:end_frame] = return_data[start_frame+1:end_frame] + data[1:]
+                smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] = smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] + data[1:]
                 match (np.isnan(carryover[0]) * 2) + np.isnan(data[0]):
                     case 0b00:
-                        t = np.arange(-(l := min(start_frame, int(clip_settings.smoothing_blending_cubic_range))),
-                                      (h := min(clip.frame_duration - start_frame - 1, int(clip_settings.smoothing_blending_cubic_range))) + 1, dtype=np.float64)
+                        t = np.arange(-(l := min(section_settings["start_frame"], int(clip_settings.smoothing_blending_cubic_range))),
+                                      (h := min(clip.frame_duration - section_settings["start_frame"] - 1, int(clip_settings.smoothing_blending_cubic_range))) + 1, dtype=np.float64)
                         t = 0.5 / clip_settings.smoothing_blending_cubic_range * t + 0.5
                         t = 3 * np.power(1-t, 2) * t * clip_settings.smoothing_blending_cubic_p1 + \
                             3 * (1-t) * np.power(t, 2) * clip_settings.smoothing_blending_cubic_p2 + \
@@ -6607,90 +2878,44 @@ class AAEExportExportAll(bpy.types.Operator):
                         t[:l+1] = t[:l+1] * (data[0] - carryover[0])
                         t[l+1:] = -(1 - t[l+1:]) * (data[0] - carryover[0])
 
-                        return_data[start_frame-l:start_frame+h+1] = return_data[start_frame-l:start_frame+h+1] + t
+                        smoothed_data[section_settings["start_frame"]-l:section_settings["start_frame"]+h+1] = smoothed_data[section_settings["start_frame"]-l:section_settings["start_frame"]+h+1] + t
                     case 0b10 | 0b11:
-                        return_data[start_frame] = data[0]
+                        smoothed_data[section_settings["start_frame"]] = data[0]
                     case 0b01:
                         pass
 
                 carryover[0] = data[-1]
 
             case "SHIFT":
-                match (np.isnan(carryover[0]) * 4) + (np.isnan(return_data[start_frame]) * 2) + np.isnan(data[0]):
+                match (np.isnan(carryover[0]) * 4) + (np.isnan(smoothed_data[section_settings["start_frame"]]) * 2) + np.isnan(data[0]):
                     case 0b100 | 0b101:
-                        return_data[start_frame:end_frame] = data
+                        smoothed_data[section_settings["start_frame"]:section_settings["end_frame"]] = data
                         carryover[0] = 0
                         carryover[1] = 0
                     case 0b000:
-                        carryover[1] = data[0] - return_data[start_frame]
-                        return_data[start_frame+1:end_frame] = data[1:] - carryover[1]
+                        carryover[1] = data[0] - smoothed_data[section_settings["start_frame"]]
+                        smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] = data[1:] - carryover[1]
                         carryover[0] = carryover[0] + carryover[1] * np.count_nonzero(~np.isnan(data[1:]))
                     case 0b010:
-                        return_data[start_frame:end_frame] = data - carryover[1]
+                        smoothed_data[section_settings["start_frame"]:section_settings["end_frame"]] = data - carryover[1]
                         carryover[0] = carryover[0] + carryover[1] * np.count_nonzero(~np.isnan(data))
                     case 0b001 | 0b011:
-                        return_data[start_frame+1:end_frame] = data[1:] - carryover[1]
+                        smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] = data[1:] - carryover[1]
                         carryover[0] = carryover[0] + carryover[1] * np.count_nonzero(~np.isnan(data[1:]))
                     case 0b110 | 0b111:
-                        raise ValueError("carryover[0] is NaN but return_data[start_frame] is also NaN")
+                        raise ValueError("carryover[0] is NaN but smoothed_data[section_settings[\"start_frame\"]] is also NaN")
 
-                if end_frame == clip.frame_duration:
-                    np.add(return_data, carryover[0] / np.count_nonzero(~np.isnan(return_data)), out=return_data)
-
-    @staticmethod
-    def _unlimit_rotation(semilimited_rotation):
-        """
-        Unlimit the rotation.
-
-        Parameters
-        ----------
-        semilimited_rotation : npt.NDArray[float64]
-
-        Returns
-        -------
-        rotation : npt.NDArray[float64]
-
-        """
-        import numpy as np
-
-        diff = np.diff(semilimited_rotation)
-
-        for i in np.nonzero(diff > np.pi)[0]:
-            semilimited_rotation[i+1:] -= 2 * np.pi
-        for i in np.nonzero(diff <= -np.pi)[0]:
-            semilimited_rotation[i+1:] += 2 * np.pi
-
-        return semilimited_rotation
+                if section_settings["end_frame"] == clip.frame_duration:
+                    np.add(smoothed_data, carryover[0] / np.count_nonzero(~np.isnan(smoothed_data)), out=smoothed_data)
 
     @staticmethod
-    def _limit_rotation(rotation):
-        """
-        Limit the rotation.
-
-        Parameters
-        ----------
-        rotation : npt.NDArray[float64]
-
-        Returns
-        -------
-        limited_rotation : npt.NDArray[float64]
-
-        """
-        import numpy as np
-
-        return np.remainder(rotation, 2 * np.pi)
-
-    @staticmethod
-    def _generate_aae(position, scale, limited_rotation, power_pin, multiplier):
+    def _generate_aae(data, multiplier):
         """
         Finalised and stringify the data.
 
         Parameters
         ----------
-        position : npt.NDArray[float64]
-        scale : npt.NDArray[float64]
-        limited_rotation : npt.NDArray[float64]
-        power_pin : npt.NDArray[float64]
+        data : data : dict[npt.NDArray[float64]]
         multiplier: float
 
         Returns
@@ -6706,12 +2931,28 @@ class AAEExportExportAll(bpy.types.Operator):
         """
         import numpy as np
 
-        position *= multiplier
-        scale *= 100.0
-        limited_rotation *= 180.0 / np.pi
-        limited_rotation[limited_rotation >= 359.9995] = 0.0
-        power_pin *= multiplier
-        power_pin += position
+        data[0] *= multiplier
+        data[1] *= multiplier
+        data[2] *= 100
+        data[3] *= 100
+        data[4] *= 180.0 / np.pi
+        data[4][data[4] >= 359.9995] = 0.0
+        data[5] *= multiplier
+        data[5] += data[0]
+        data[6] *= multiplier
+        data[6] += data[1]
+        data[7] *= multiplier
+        data[7] += data[0]
+        data[8] *= multiplier
+        data[8] += data[1]
+        data[9] *= multiplier
+        data[9] += data[0]
+        data[10] *= multiplier
+        data[10] += data[1]
+        data[11] *= multiplier
+        data[11] += data[0]
+        data[12] *= multiplier
+        data[12] += data[1]
 
         aae_position = []
         aae_scale = []
@@ -6721,44 +2962,34 @@ class AAEExportExportAll(bpy.types.Operator):
         aae_power_pin_0004 = []
         aae_power_pin_0005 = []
 
-        for frame in range(position.shape[0]):
-            if not np.isnan(position[frame][0]):
-                aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(frame + 1, *position[frame], 0.0))
-            if not np.isnan(scale[frame][0]):
-                aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(frame + 1, *scale[frame], 100.0))
-            if not np.isnan(limited_rotation[frame]):
-                aae_rotation.append("\t{:d}\t{:.3f}".format(frame + 1, limited_rotation[frame]))
-            if not np.isnan(power_pin[0][frame][0]):
-                aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[0][frame]))
-                aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[1][frame]))
-                aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[2][frame]))
-                aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, *power_pin[3][frame]))
+        for frame in range(data[0].shape[0]):
+            if not np.isnan(data[0][frame]):
+                aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(frame + 1, data[0][frame], data[1][frame], 0.0))
+            if not np.isnan(data[2][frame]):
+                aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(frame + 1, data[2][frame], data[3][frame], 100.0))
+            if not np.isnan(data[4][frame]):
+                aae_rotation.append("\t{:d}\t{:.3f}".format(frame + 1, data[4][frame]))
+            if not np.isnan(data[5][frame]):
+                aae_power_pin_0002.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[5][frame], data[6][frame]))
+                aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[7][frame], data[8][frame]))
+                aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[9][frame], data[10][frame]))
+                aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[11][frame], data[12][frame]))
 
         return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
         
     @staticmethod
-    def _plot_result_plot(position, scale, rotation, power_pin, smoothed_position, smoothed_scale, smoothed_rotation, smoothed_power_pin, no_blending_position, no_blending_scale, no_blending_rotation, no_blending_power_pin, clip_settings):
+    def _plot_result_plot(data, smoothed_data, no_blending_data, clip_settings):
         """
         Plot the data.
 
         Parameters
         ----------
-        position : npt.NDArray[float64]
-        scale : npt.NDArray[float64]
-        rotation : npt.NDArray[float64]
-        power_pin : npt.NDArray[float64]
-        smoothed_position : npt.NDArray[float64]
-        smoothed_scale : npt.NDArray[float64]
-        smoothed_rotation : npt.NDArray[float64]
-        smoothed_power_pin : npt.NDArray[float64]
-        no_blending_position : npt.NDArray[float64] or None
-        no_blending_scale : npt.NDArray[float64] or None
-        no_blending_rotation : npt.NDArray[float64] or None
-        no_blending_power_pin : npt.NDArray[float64] or None
+        data : list[npt.NDArray[float64]]
+        smoothed_data : list[npt.NDArray[float64]]
+        no_blending_data : list[npt.NDArray[float64] or None]
         clip_settings : AAEExportSettingsClip
 
         """
-        import matplotlib as mpl
         import matplotlib.pyplot as plt
         import numpy as np
         import PIL
@@ -6770,39 +3001,39 @@ class AAEExportExportAll(bpy.types.Operator):
 
 
 
-        def plot_position(axs, y, x, position, smoothed_position, no_blending_position, label, power_pin_remapped=False):
+        def plot_x_y(axs, y, x, i, j, label, power_pin_remapped=False):
             axs[y, x].invert_yaxis()
-            axs[y, x].scatter(position[:, 0], position[:, 1], color="lightgrey", marker=".", s=0.7, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if no_blending_position is not None:
-                axs[y, x].plot(no_blending_position[:, 0], no_blending_position[:, 1], color="wheat", lw=1.0, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
-            axs[y, x].plot(smoothed_position[:, 0], smoothed_position[:, 1], color="orange", lw=1.4, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
+            axs[y, x].scatter(data[i], data[j], color="lightgrey", marker=".", s=0.7, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if no_blending_data[i] is not None:
+                axs[y, x].plot(no_blending_data[i], no_blending_data[j], color="wheat", lw=1.0, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
+            axs[y, x].plot(smoothed_data[i], smoothed_data[j], color="orange", lw=1.4, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
             axs[y, x].legend()
             axs[y, x].set_xlabel("X")
             axs[y, x].set_ylabel("Y")
 
-            axs[y, x + 1].scatter(np.arange(1, position.shape[0] + 1), position[:, 0], color="lightgrey", s=0.7, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if no_blending_position is not None:
-                axs[y, x + 1].plot(np.arange(1, position.shape[0] + 1), no_blending_position[:, 0], color="wheat", lw=1.0, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
-            axs[y, x + 1].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 0], color="orange", lw=1.4, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
+            axs[y, x + 1].scatter(np.arange(1, data[i].shape[0] + 1), data[i], color="lightgrey", s=0.7, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if no_blending_data[i] is not None:
+                axs[y, x + 1].plot(np.arange(1, data[i].shape[0] + 1), no_blending_data[i], color="wheat", lw=1.0, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
+            axs[y, x + 1].plot(np.arange(1, data[i].shape[0] + 1), smoothed_data[i], color="orange", lw=1.4, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
             axs[y, x + 1].legend()
             axs[y, x + 1].set_xlabel("Frame")
             axs[y, x + 1].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X" + (" (Remapped)" if power_pin_remapped else ""))
 
-            axs[y, x + 2].scatter(np.arange(1, position.shape[0] + 1), position[:, 1], color="lightgrey", s=0.7, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if no_blending_position is not None:
-                axs[y, x + 2].plot(np.arange(1, position.shape[0] + 1), no_blending_position[:, 1], color="wheat", lw=1.0, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
-            axs[y, x + 2].plot(np.arange(1, position.shape[0] + 1), smoothed_position[:, 1], color="orange", lw=1.4, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
+            axs[y, x + 2].scatter(np.arange(1, data[i].shape[0] + 1), data[j], color="lightgrey", s=0.7, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if no_blending_data[i] is not None:
+                axs[y, x + 2].plot(np.arange(1, data[i].shape[0] + 1), no_blending_data[j], color="wheat", lw=1.0, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
+            axs[y, x + 2].plot(np.arange(1, data[i].shape[0] + 1), smoothed_data[j], color="orange", lw=1.4, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
             axs[y, x + 2].legend()
             axs[y, x + 2].set_xlabel("Frame")
             axs[y, x + 2].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y" + (" (Remapped)" if power_pin_remapped else ""))
         
-        def plot_univariate(axs, y, x, rotation, smoothed_rotation, no_blending_rotation, label):
+        def plot_univariate(axs, y, x, i, label):
             axs[y, x].axis("off")
             
-            axs[y, x + 1].scatter(np.arange(1, rotation.shape[0] + 1), rotation, color="lightgrey", s=0.7, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if no_blending_rotation is not None:
-                axs[y, x + 1].plot(np.arange(1, rotation.shape[0] + 1), no_blending_rotation, color="wheat", lw=1.0, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
-            axs[y, x + 1].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation, color="orange", lw=1.4, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
+            axs[y, x + 1].scatter(np.arange(1, data[i].shape[0] + 1), data[i], color="lightgrey", s=0.7, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if no_blending_data[i] is not None:
+                axs[y, x + 1].plot(np.arange(1, data[i].shape[0] + 1), no_blending_data[i], color="wheat", lw=1.0, label="_".join(["no_blending"] + re.split(" |_", label.lower())), zorder=2.002)
+            axs[y, x + 1].plot(np.arange(1, data[i].shape[0] + 1), smoothed_data[i], color="orange", lw=1.4, label="_".join(["result"] + re.split(" |_", label.lower())), zorder=2.003)
             axs[y, x + 1].legend()
             axs[y, x + 1].set_xlabel("Frame")
             axs[y, x + 1].set_ylabel(label.title())
@@ -6821,14 +3052,14 @@ class AAEExportExportAll(bpy.types.Operator):
 
         
         fig, axs = plt.subplots(ncols=6, nrows=4, figsize=(6 * 5.4, 4 * 4.05), dpi=250, layout="constrained")
-        plot_position(axs, 0, 0, position, smoothed_position, no_blending_position, "position")
-        plot_position(axs, 0, 3, scale, smoothed_scale, no_blending_scale, "scale")
-        plot_univariate(axs, 1, 0, rotation, smoothed_rotation, no_blending_rotation, "rotation")
+        plot_x_y(axs, 0, 0, 0, 1, "position")
+        plot_x_y(axs, 0, 3, 2, 3, "scale")
+        plot_univariate(axs, 1, 0, 4, "rotation")
         plot_emptyness(axs, 1, 3)
-        plot_position(axs, 2, 0, power_pin[0], smoothed_power_pin[0], no_blending_power_pin[0] if no_blending_power_pin is not None else None, "power_pin_" + clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0002 != "0002")
-        plot_position(axs, 2, 3, power_pin[1], smoothed_power_pin[1], no_blending_power_pin[1] if no_blending_power_pin is not None else None, "power_pin_" + clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0003 != "0003")
-        plot_position(axs, 3, 0, power_pin[2], smoothed_power_pin[2], no_blending_power_pin[2] if no_blending_power_pin is not None else None, "power_pin_" + clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0004 != "0004")
-        plot_position(axs, 3, 3, power_pin[3], smoothed_power_pin[3], no_blending_power_pin[3] if no_blending_power_pin is not None else None, "power_pin_" + clip_settings.power_pin_remap_0005, clip_settings.power_pin_remap_0005 != "0005")
+        plot_x_y(axs, 2, 0, 5, 6, "power_pin_" + clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0002 != "0002")
+        plot_x_y(axs, 2, 3, 7, 8, "power_pin_" + clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0003 != "0003")
+        plot_x_y(axs, 3, 0, 9, 10, "power_pin_" + clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0004 != "0004")
+        plot_x_y(axs, 3, 3, 11, 12, "power_pin_" + clip_settings.power_pin_remap_0005, clip_settings.power_pin_remap_0005 != "0005")
 
         fig.canvas.draw()
         with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
@@ -6836,57 +3067,17 @@ class AAEExportExportAll(bpy.types.Operator):
         plt.close(fig)
 
     @staticmethod
-    def _plot_section_plot( \
-        position_x, position_y, \
-        scale_x, scale_y, \
-        rotation, \
-        power_pin_0002_x, power_pin_0002_y, \
-        power_pin_0003_x, power_pin_0003_y, \
-        power_pin_0004_x, power_pin_0004_y, \
-        power_pin_0005_x, power_pin_0005_y, \
-        smoothed_position_x, smoothed_position_y, \
-        smoothed_scale_x, smoothed_scale_y, \
-        smoothed_rotation, \
-        smoothed_power_pin_0002_x, smoothed_power_pin_0002_y, \
-        smoothed_power_pin_0003_x, smoothed_power_pin_0003_y, \
-        smoothed_power_pin_0004_x, smoothed_power_pin_0004_y, \
-        smoothed_power_pin_0005_x, smoothed_power_pin_0005_y, \
-        section_settings):
+    def _plot_section_plot(data, smoothed_data, section_settings):
         """
         Plot the data.
 
         Parameters
         ----------
-        position_x : npt.NDArray[float64]
-        position_y : npt.NDArray[float64]
-        scale_x : npt.NDArray[float64]
-        scale_y : npt.NDArray[float64]
-        rotation : npt.NDArray[float64]
-        power_pin_0002_x : npt.NDArray[float64]
-        power_pin_0002_y : npt.NDArray[float64]
-        power_pin_0003_x : npt.NDArray[float64]
-        power_pin_0003_y : npt.NDArray[float64]
-        power_pin_0004_x : npt.NDArray[float64]
-        power_pin_0004_y : npt.NDArray[float64]
-        power_pin_0005_x : npt.NDArray[float64]
-        power_pin_0005_y : npt.NDArray[float64]
-        smoothed_position_x : npt.NDArray[float64] or None
-        smoothed_position_y : npt.NDArray[float64] or None
-        smoothed_scale_x : npt.NDArray[float64] or None
-        smoothed_scale_y : npt.NDArray[float64] or None
-        smoothed_rotation : npt.NDArray[float64] or None
-        smoothed_power_pin_0002_x : npt.NDArray[float64] or None
-        smoothed_power_pin_0002_y : npt.NDArray[float64] or None
-        smoothed_power_pin_0003_x : npt.NDArray[float64] or None
-        smoothed_power_pin_0003_y : npt.NDArray[float64] or None
-        smoothed_power_pin_0004_x : npt.NDArray[float64] or None
-        smoothed_power_pin_0004_y : npt.NDArray[float64] or None
-        smoothed_power_pin_0005_x : npt.NDArray[float64] or None
-        smoothed_power_pin_0005_y : npt.NDArray[float64] or None
+        data : list[npt.NDArray[float64]]
+        smoothed_data : list[npt.NDArray[float64] or None]
         section_settings :  AAEExportSettingsSectionL
             AAEExportSettingsSectionL[AAEExportSettingsSectionLI]
         """
-        import matplotlib as mpl
         import matplotlib.pyplot as plt
         import numpy as np
         import PIL
@@ -6899,67 +3090,68 @@ class AAEExportExportAll(bpy.types.Operator):
 
 
 
-        def plot_position(row, position_x, position_y, smoothed_position_x, smoothed_position_y, label):
+        def plot_x_y(row, i, j, label):
             def test_z_score(data):
                 # Iglewicz and Hoaglin's modified Z-score
                 return np.nonzero(0.6745 * (d := np.absolute(data - np.median(data))) / np.median(d) >= 3)[0]
 
             row[0].invert_yaxis()
-            row[0].scatter(position_x, position_y, marker="+", color="lightslategrey", s=7.3, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            row[0].plot(smoothed_position_x if smoothed_position_x is not None else position_x, smoothed_position_y if smoothed_position_y is not None else position_y, color="dodgerblue", lw=1.0, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[0].scatter(data[i], data[j], marker="+", color="lightslategrey", s=7.3, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_data[i] is not None or smoothed_data[j] is not None:
+                row[0].plot(smoothed_data[i] if smoothed_data[i] is not None else data[i], smoothed_data[j] if smoothed_data[j] is not None else data[j], color="dodgerblue", lw=1.0, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[0].legend()
             row[0].set_xlabel("X")
             row[0].set_ylabel("Y")
 
-            row[1].scatter((frames := np.arange(section_settings.start_frame, section_settings.end_frame + 1)), position_x, marker="+", color="lightslategrey", s=7.3, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if smoothed_position_x is not None:
-                row[1].plot(frames, smoothed_position_x, color="dodgerblue", lw=1.0, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[1].scatter((frames := np.arange(section_settings["start_frame"], section_settings["end_frame"])), data[i], marker="+", color="lightslategrey", s=7.3, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_data[i] is not None:
+                row[1].plot(frames, smoothed_data[i], color="dodgerblue", lw=1.0, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[1].legend()
             row[1].set_xlabel("Frame")
             row[1].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
 
-            if smoothed_position_x is not None:
-                row[2].plot(frames, position_x - position_x, color="lightslategrey", lw=0.9, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
-                row[2].plot(frames, (p := position_x - smoothed_position_x), color="dodgerblue", lw=1.4, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_data[i] is not None:
+                row[2].plot(frames, np.zeros_like(data[i]), color="lightslategrey", lw=0.9, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[2].plot(frames, (p := data[i] - smoothed_data[i]), color="dodgerblue", lw=1.4, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 for i in test_z_score(p):
-                    row[2].annotate(i + section_settings.start_frame, (i + section_settings.start_frame, p[i]))
+                    row[2].annotate(i + section_settings["start_frame"], (i + section_settings["start_frame"], p[i]))
                 row[2].legend()
                 row[2].set_xlabel("Frame")
                 row[2].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " X")
             else:
                 row[2].axis("off")
 
-            row[3].scatter(frames, position_y, marker="+", color="lightslategrey", s=7.3, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if smoothed_position_y is not None:
-                row[3].plot(frames, smoothed_position_y, color="dodgerblue", lw=1.0, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[3].scatter(frames, data[j], marker="+", color="lightslategrey", s=7.3, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_data[j] is not None:
+                row[3].plot(frames, smoothed_data[j], color="dodgerblue", lw=1.0, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[3].legend()
             row[3].set_xlabel("Frame")
             row[3].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
 
-            if smoothed_position_y is not None:
-                row[4].plot(frames, position_y - position_y, color="lightslategrey", lw=0.9, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
-                row[4].plot(frames, (p := position_y - smoothed_position_y), color="dodgerblue", lw=1.4, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_data[j] is not None:
+                row[4].plot(frames, np.zeros_like(data[j]), color="lightslategrey", lw=0.9, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[4].plot(frames, (p := data[j] - smoothed_data[j]), color="dodgerblue", lw=1.4, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 for i in test_z_score(p):
-                    row[4].annotate(i + section_settings.start_frame, (i + section_settings.start_frame, p[i]))
+                    row[4].annotate(i + section_settings["start_frame"], (i + section_settings["start_frame"], p[i]))
                 row[4].legend()
                 row[4].set_xlabel("Frame")
                 row[4].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
             else:
                 row[4].axis("off")
         
-        def plot_univariate(row, rotation, smoothed_rotation, label):
+        def plot_univariate(row, i, label):
             row[0].axis("off")
             
-            row[1].scatter(np.arange(1, rotation.shape[0] + 1), rotation, marker="+", color="lightslategrey", s=7.3, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
-            if smoothed_rotation is not None:
-                row[1].plot(np.arange(1, rotation.shape[0] + 1), smoothed_rotation, color="dodgerblue", lw=1.0, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
+            row[1].scatter((frames := np.arange(section_settings["start_frame"], section_settings["end_frame"])), data[i], marker="+", color="lightslategrey", s=7.3, label="_".join(re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_data[i] is not None:
+                row[1].plot(frames, smoothed_data[i], color="dodgerblue", lw=1.0, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.002)
             row[1].legend()
             row[1].set_xlabel("Frame")
             row[1].set_ylabel(label.title())
 
-            if smoothed_rotation is not None:
-                row[2].plot(np.arange(1, rotation.shape[0] + 1), rotation - rotation, color="lightslategrey", lw=0.9, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
-                row[2].plot(np.arange(1, rotation.shape[0] + 1), rotation - smoothed_rotation, color="dodgerblue", lw=1.4, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
+            if smoothed_data[i] is not None:
+                row[2].plot(frames, np.zeros_like(data[i]), color="lightslategrey", lw=0.9, label="_".join(re.split(" |_", label.lower())), zorder=2.002)
+                row[2].plot(frames, data[i] - smoothed_data[i], color="dodgerblue", lw=1.4, label="_".join(["smoothed"] + re.split(" |_", label.lower())), zorder=2.001)
                 row[2].legend()
                 row[2].set_xlabel("Frame")
                 row[2].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))))
@@ -6977,13 +3169,13 @@ class AAEExportExportAll(bpy.types.Operator):
 
         
         fig, axs = plt.subplots(ncols=5, nrows=7, figsize=(5 * 5.4, 7 * 4.05), dpi=250, layout="constrained")
-        plot_position(axs[0], position_x, position_y, smoothed_position_x, smoothed_position_y, "position")
-        plot_position(axs[1], scale_x, scale_y, smoothed_scale_x, smoothed_scale_y, "scale")
-        plot_univariate(axs[2], rotation, smoothed_rotation, "rotation")
-        plot_position(axs[3], power_pin_0002_x, power_pin_0002_y, smoothed_power_pin_0002_x, smoothed_power_pin_0002_y, "power_pin_0002")
-        plot_position(axs[4], power_pin_0003_x, power_pin_0003_y, smoothed_power_pin_0003_x, smoothed_power_pin_0003_y, "power_pin_0003")
-        plot_position(axs[5], power_pin_0004_x, power_pin_0004_y, smoothed_power_pin_0004_x, smoothed_power_pin_0004_y, "power_pin_0004")
-        plot_position(axs[6], power_pin_0005_x, power_pin_0005_y, smoothed_power_pin_0005_x, smoothed_power_pin_0005_y, "power_pin_0005")
+        plot_x_y(axs[0], 0, 1, "position")
+        plot_x_y(axs[1], 2, 3, "scale")
+        plot_univariate(axs[2], 4, "rotation")
+        plot_x_y(axs[3], 5, 6, "power_pin_0002")
+        plot_x_y(axs[4], 7, 8, "power_pin_0003")
+        plot_x_y(axs[5], 9, 10, "power_pin_0004")
+        plot_x_y(axs[6], 11, 12, "power_pin_0005")
 
         fig.canvas.draw()
         with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
@@ -7512,13 +3704,14 @@ class AAEExportPlotSection(bpy.types.Operator):
         clip_settings = context.edit_movieclip.AAEExportSettingsClip
         section_settings_l = context.edit_movieclip.AAEExportSettingsSectionL
         section_settings_li = context.edit_movieclip.AAEExportSettingsSectionLI
+        section_settings_ll = context.edit_movieclip.AAEExportSettingsSectionLL
 
         if context.selected_movieclip_tracks.__len__() == 1:
-            AAEExportExportAll._plot_section(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings_l, section_settings_li)
+            AAEExportExportAll._plot_section(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings_l, section_settings_li, section_settings_ll)
         else:
             for plane_track in context.edit_movieclip.tracking.plane_tracks:
                 if plane_track.select == True:
-                    AAEExportExportAll._plot_section(clip, plane_track, settings, clip_settings, section_settings_l, section_settings_li)
+                    AAEExportExportAll._plot_section(clip, plane_track, settings, clip_settings, section_settings_l, section_settings_li, section_settings_ll)
                     break
 
         return { "FINISHED" }
@@ -7535,11 +3728,11 @@ class AAEExportPlot(bpy.types.Operator):
         section_settings_l = context.edit_movieclip.AAEExportSettingsSectionL
 
         if context.selected_movieclip_tracks.__len__() == 1:
-            AAEExportExportAll._plot_section(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings_l, 0)
+            AAEExportExportAll._plot_section(clip, context.selected_movieclip_tracks[0], settings, clip_settings, section_settings_l, 0, 1)
         else:
             for plane_track in context.edit_movieclip.tracking.plane_tracks:
                 if plane_track.select == True:
-                    AAEExportExportAll._plot_section(clip, plane_track, settings, clip_settings, section_settings_l, 0)
+                    AAEExportExportAll._plot_section(clip, plane_track, settings, clip_settings, section_settings_l, 0, 1)
                     break
 
         return { "FINISHED" }
