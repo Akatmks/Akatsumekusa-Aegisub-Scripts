@@ -1274,7 +1274,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
     smoothing_do_scale_y: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on y axis of scale data",
+                description="Perform smoothing on y axis of scale data.\nAs of May 2023, a-mo does not support using different scale for different axes",
                 default=True,
                 update=_smoothing_do_scale_y_update)
 

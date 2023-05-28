@@ -264,7 +264,7 @@ ifdef(<<UNI>>, <<>>, <<
 
     smoothing_do<<>>ONETHREE<<>>: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on<<>>ifelse(<<$3>>, <<>>, <<>>, << $3 axis of>>) ifelse(<<$2>>, <<power_pin>>, <<Power Pin>>, <<$2>>) data",
+                description="Perform smoothing on<<>>ifelse(<<$3>>, <<>>, <<>>, << $3 axis of>>) ifelse(<<$2>>, <<power_pin>>, <<Power Pin>>, <<$2>>) data<<>>ifelse(<<$2>>, <<scale>>, <<ifelse(<<$3>>, <<y>>, <<.\nAs of May 2023, a-mo does not support using different scale for different axes>>, <<>>)>>, <<>>)",
                 default=True,
                 update=_smoothing_do<<>>ONETHREE<<>>_update)
 
