@@ -18,7 +18,7 @@ Thanks to
 –　arch1t3cht for helping in improving algorithms and for developing the original AAE Export (Power Pin) script.  
 –　bucket3432, Noroino Hanako for helping with AAE Export's function.  
 –　bucket3432, petzku and others for helping with UI/UX design.  
-–　Martin Herkt for developing the original AAE Export script in 2012.  
+–　Martin Herkt for developing the original AAE Export script in 2012.
 <br clear="left" />
 
 *License information*  
