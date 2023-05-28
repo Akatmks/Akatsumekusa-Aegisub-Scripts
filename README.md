@@ -1,6 +1,6 @@
 ## aae-export
 
-<img src="https://user-images.githubusercontent.com/112813970/209281100-3d7dfa0b-1ccb-4918-8bef-6e136a29a1ec.jpg" alt="AAE Export Function Preview" width="186" align="left" />
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/af583631-7554-45a4-ab17-ae1ef2a14932" alt="AAE Export Function Preview" width="186" align="left" />
 
 AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisub-Motion](https://github.com/TypesettingTools/Aegisub-Motion/) and [Aegisub-Perspective-Motion](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts/tree/daily_stream) compatible AAE data.  
 
