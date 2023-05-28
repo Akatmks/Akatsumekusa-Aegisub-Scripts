@@ -21,7 +21,7 @@
 
 **Section Blending**
 
-* Data from each section will be blended together based on the difference of the data at the boundary frame. Note that the boundary frame is included in both sections, and only the difference, not derivative for the frame or other frames near the boundary will affect the blending.    
+* Nearby sections share the frame at the boundary. If a section enables smoothing, it changes the output data at the boundary frame and it won't match up with the other section sharing the boundary frame. Section blending smoothes this transition from one section to the next. Only the difference between the data at the boundary frame, not derivative, affects the section blending.   
 
 **Plotting Result**
 
