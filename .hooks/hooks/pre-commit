@@ -309,6 +309,8 @@ if __name__ == "__main__":
     
     if aae_export:
         if (p := Path("scripts/aae-export/aae-export.py")) in added or p in changed:
+            subprocess.run(["sh", Path("scripts/aae-export-windows/generate.sh").as_posix()], check=True)
+            repo.index.add("scripts/aae-export-windows/aae-export.py")
             subprocess.run(["sh", Path("scripts/aae-export-linux-x86_64/generate.sh").as_posix()], check=True)
             repo.index.add("scripts/aae-export-linux-x86_64/aae-export.py")
             subprocess.run(["sh", Path("scripts/aae-export-mac/generate.sh").as_posix()], check=True)
