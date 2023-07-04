@@ -50,7 +50,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 2, 0),
+    "version": (1, 2, 1),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -1753,10 +1753,11 @@ class AAEExportExportAll(bpy.types.Operator):
 
             data \
                 = AAEExportExportAll._prepare_data( \
-                      clip, track, ratio)
+                      clip, track, ratio, \
+                      clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0005)
 
             if clip_settings.do_smoothing:
-                AAEExportExportAll._unlimit_rotation( \
+                AAEExportExportAll._unlimit_rotation_and_frz_fax( \
                     data)
 
                 parsed_section_settings \
@@ -1768,13 +1769,13 @@ class AAEExportExportAll(bpy.types.Operator):
                           data, \
                           clip, clip_settings, parsed_section_settings, section_settings_ll)
 
-                AAEExportExportAll._limit_rotation( \
+                AAEExportExportAll._limit_rotation_and_frz_fax( \
                     data)
             else:
-                AAEExportExportAll._limit_rotation( \
+                AAEExportExportAll._limit_rotation_and_frz_fax( \
                     data)
 
-            aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
+            aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, aae_frz_fax \
                 = AAEExportExportAll._generate_aae( \
                       data, multiplier)
 
@@ -1782,6 +1783,9 @@ class AAEExportExportAll(bpy.types.Operator):
             aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
                 = AAEExportExportAll._generate_aae_non_numpy( \
                       clip, track)
+
+            aae_frz_fax \
+                = None
 
         aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
             = AAEExportExportAll._remap_power_pin( \
@@ -1791,7 +1795,7 @@ class AAEExportExportAll(bpy.types.Operator):
         aae \
             = AAEExportExportAll._combine_aae( \
                   clip, \
-                  aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
+                  aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, aae_frz_fax, \
                   settings.do_includes_power_pin)
 
         return aae
@@ -1822,9 +1826,10 @@ class AAEExportExportAll(bpy.types.Operator):
 
         data \
             = AAEExportExportAll._prepare_data( \
-                  clip, track, ratio)
+                  clip, track, ratio, \
+                  clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0005)
 
-        AAEExportExportAll._unlimit_rotation( \
+        AAEExportExportAll._unlimit_rotation_and_frz_fax( \
             data)
 
         parsed_section_settings \
@@ -1882,9 +1887,10 @@ class AAEExportExportAll(bpy.types.Operator):
 
         data \
             = AAEExportExportAll._prepare_data( \
-                  clip, track, ratio)
+                  clip, track, ratio, \
+                  clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0005)
 
-        AAEExportExportAll._unlimit_rotation( \
+        AAEExportExportAll._unlimit_rotation_and_frz_fax( \
             data)
 
         parsed_section_settings \
@@ -1892,7 +1898,7 @@ class AAEExportExportAll(bpy.types.Operator):
                 section_settings_l, section_settings_ll)
 
         smoothed_data = {}
-        for i in range(13):
+        for i in range(15):
             data[i] = \
                 data[i][parsed_section_settings[section_settings_li]["start_frame"]:parsed_section_settings[section_settings_li]["end_frame"]]
             if parsed_section_settings[section_settings_li][i]["smoothing"] or \
@@ -1938,7 +1944,7 @@ class AAEExportExportAll(bpy.types.Operator):
             return (1.81, 1.81 / ar), clip.size[0] / 1.81
 
     @staticmethod
-    def _prepare_data(clip, track, ratio):
+    def _prepare_data(clip, track, ratio, power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
         """
         Create position, scale, rotation and Power Pin array from tracking markers. [Step 04]
 
@@ -1960,14 +1966,16 @@ class AAEExportExportAll(bpy.types.Operator):
         #      2: scale_x,
         #      3: scale_y,
         #      4: rotation,
-        #      5: power_pin_0002_x,
-        #      6: power_pin_0002_y,
+        #      5: power_pin_0002_x (relative to position_x),
+        #      6: power_pin_0002_y (relative to position_y),
         #      7: power_pin_0003_x,
         #      8: power_pin_0003_y,
         #      9: power_pin_0004_x,
         #     10: power_pin_0004_y,
         #     11: power_pin_0005_x,
-        #     12: power_pin_0005_y
+        #     12: power_pin_0005_y,
+        #     13: frz axis,
+        #     14: fax axis
         # }
         data = {}
 
@@ -1982,6 +1990,10 @@ class AAEExportExportAll(bpy.types.Operator):
 
         AAEExportExportAll._prepare_scale_and_semilimited_rotation( \
             data)
+
+        AAEExportExportAll._prepare_frz_fax( \
+            data, \
+            power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005)
 
         return data
 
@@ -2137,7 +2149,7 @@ class AAEExportExportAll(bpy.types.Operator):
             #         return np.mean(slice.reshape((4, 2)), axis=0)
             #     else:
             #         return (1 - t) * slice[0:2] + t * slice[6:8]
-        
+
     @staticmethod
     def _prepare_scale_and_semilimited_rotation(data):
         """
@@ -2164,8 +2176,104 @@ class AAEExportExportAll(bpy.types.Operator):
 
         data[4] = np.arctan2(data[5] + data[7], -data[6] - data[8])
 
+
     @staticmethod
-    def _unlimit_rotation(data):
+    def _prepare_frz_fax(data, power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
+        import numpy as np
+
+        power_pin_data = {}
+        power_pin_data[0] = None
+        power_pin_data[1] = None
+        power_pin_data[2] = None
+        power_pin_data[3] = None
+        power_pin_data[4] = None
+        power_pin_data[5] = None
+
+
+
+
+
+        match power_pin_remap_0002:
+            case "0002":
+                power_pin_data[0] =  power_pin_data[0] if power_pin_data[0] is not None else data[5]
+                power_pin_data[1] =  power_pin_data[1] if power_pin_data[1] is not None else data[6]
+            case "0003":
+                pass
+            case "0004":
+                power_pin_data[2] =  power_pin_data[2] if power_pin_data[2] is not None else data[5]
+                power_pin_data[3] =  power_pin_data[3] if power_pin_data[3] is not None else data[6]
+            case "0005":
+                power_pin_data[4] =  power_pin_data[4] if power_pin_data[4] is not None else data[5]
+                power_pin_data[5] =  power_pin_data[5] if power_pin_data[5] is not None else data[6]
+
+
+
+
+
+        match power_pin_remap_0003:
+            case "0002":
+                power_pin_data[0] =  power_pin_data[0] if power_pin_data[0] is not None else data[7]
+                power_pin_data[1] =  power_pin_data[1] if power_pin_data[1] is not None else data[8]
+            case "0003":
+                pass
+            case "0004":
+                power_pin_data[2] =  power_pin_data[2] if power_pin_data[2] is not None else data[7]
+                power_pin_data[3] =  power_pin_data[3] if power_pin_data[3] is not None else data[8]
+            case "0005":
+                power_pin_data[4] =  power_pin_data[4] if power_pin_data[4] is not None else data[7]
+                power_pin_data[5] =  power_pin_data[5] if power_pin_data[5] is not None else data[8]
+
+
+
+
+
+        match power_pin_remap_0004:
+            case "0002":
+                power_pin_data[0] =  power_pin_data[0] if power_pin_data[0] is not None else data[9]
+                power_pin_data[1] =  power_pin_data[1] if power_pin_data[1] is not None else data[10]
+            case "0003":
+                pass
+            case "0004":
+                power_pin_data[2] =  power_pin_data[2] if power_pin_data[2] is not None else data[9]
+                power_pin_data[3] =  power_pin_data[3] if power_pin_data[3] is not None else data[10]
+            case "0005":
+                power_pin_data[4] =  power_pin_data[4] if power_pin_data[4] is not None else data[9]
+                power_pin_data[5] =  power_pin_data[5] if power_pin_data[5] is not None else data[10]
+
+
+
+
+
+        match power_pin_remap_0005:
+            case "0002":
+                power_pin_data[0] =  power_pin_data[0] if power_pin_data[0] is not None else data[11]
+                power_pin_data[1] =  power_pin_data[1] if power_pin_data[1] is not None else data[12]
+            case "0003":
+                pass
+            case "0004":
+                power_pin_data[2] =  power_pin_data[2] if power_pin_data[2] is not None else data[11]
+                power_pin_data[3] =  power_pin_data[3] if power_pin_data[3] is not None else data[12]
+            case "0005":
+                power_pin_data[4] =  power_pin_data[4] if power_pin_data[4] is not None else data[11]
+                power_pin_data[5] =  power_pin_data[5] if power_pin_data[5] is not None else data[12]
+
+
+
+
+
+
+        if power_pin_data[0] is None:
+            raise ValueError("ortho-mo requires at least one Power Pin to be specified as Power Pin 0002")
+        if power_pin_data[2] is None:
+            raise ValueError("ortho-mo requires at least one Power Pin to be specified as Power Pin 0004")
+        if power_pin_data[4] is None:
+            raise ValueError("ortho-mo requires at least one Power Pin to be specified as Power Pin 0005")
+
+        data[13] = np.arctan2(-power_pin_data[5] + power_pin_data[3], power_pin_data[4] - power_pin_data[2])
+        data[14] = np.arctan2(-power_pin_data[1] + power_pin_data[3], power_pin_data[0] - power_pin_data[2])
+
+    @staticmethod
+    def _unlimit_rotation_and_frz_fax(data):
         """
         Unlimit the rotation.
 
@@ -2176,15 +2284,16 @@ class AAEExportExportAll(bpy.types.Operator):
         """
         import numpy as np
 
-        diff = np.diff(data[4])
+        for i in (4, 13, 14):
+            diff = np.diff(data[i])
 
-        for i in np.nonzero(diff > np.pi)[0]:
-            data[4][i+1:] -= 2 * np.pi
-        for i in np.nonzero(diff <= -np.pi)[0]:
-            data[4][i+1:] += 2 * np.pi
+            for j in np.nonzero(diff > np.pi)[0]:
+                data[i][j+1:] -= 2 * np.pi
+            for j in np.nonzero(diff <= -np.pi)[0]:
+                data[i][j+1:] += 2 * np.pi
 
     @staticmethod
-    def _limit_rotation(data):
+    def _limit_rotation_and_frz_fax(data):
         """
         Limit the rotation.
 
@@ -2195,7 +2304,8 @@ class AAEExportExportAll(bpy.types.Operator):
         """
         import numpy as np
 
-        np.remainder(data[4], 2 * np.pi, out=data[4])
+        for i in (4, 13, 14):
+            np.remainder(data[i], 2 * np.pi, out=data[i])
 
     @staticmethod
     def _parse_section_settings(section_settings_l, section_settings_ll):
@@ -2935,7 +3045,7 @@ class AAEExportExportAll(bpy.types.Operator):
         data[1] *= multiplier
         data[2] *= 100
         data[3] *= 100
-        data[4] *= 180.0 / np.pi
+        data[4] = np.degrees(data[4])
         data[4][data[4] >= 359.9995] = 0.0
         data[5] *= multiplier
         data[5] += data[0]
@@ -2961,6 +3071,7 @@ class AAEExportExportAll(bpy.types.Operator):
         aae_power_pin_0003 = []
         aae_power_pin_0004 = []
         aae_power_pin_0005 = []
+        aae_frz_fax = []
 
         for frame in range(data[0].shape[0]):
             if not np.isnan(data[0][frame]):
@@ -2974,8 +3085,10 @@ class AAEExportExportAll(bpy.types.Operator):
                 aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[7][frame], data[8][frame]))
                 aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[9][frame], data[10][frame]))
                 aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[11][frame], data[12][frame]))
+            if not np.isnan(data[13][frame]):
+                aae_frz_fax.append("\t{:d}\t{:f}\t{:f}".format(frame + 1, data[13][frame], data[14][frame]))
 
-        return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
+        return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, aae_frz_fax
         
     @staticmethod
     def _plot_result_plot(data, smoothed_data, no_blending_data, clip_settings):
@@ -3511,7 +3624,7 @@ class AAEExportExportAll(bpy.types.Operator):
         return return_0002, return_0003, return_0004, return_0005
 
     @staticmethod
-    def _combine_aae(clip, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, do_includes_power_pin):
+    def _combine_aae(clip, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, aae_frz_fax, do_includes_power_pin):
         """
         Combine and finish aae.
 
@@ -3569,6 +3682,11 @@ class AAEExportExportAll(bpy.types.Operator):
             aae += "Effects	CC Power Pin #1	CC Power Pin-0005\n"
             aae += "\tFrame\tX pixels\tY pixels\n"
             aae += "\n".join(aae_power_pin_0005) + "\n\n"
+
+        if aae_frz_fax is not None:
+            aae += "Orthographic-Motion Data\n"
+            aae += "\tFrame\tX radians\tY radians\n"
+            aae += "\n".join(aae_frz_fax) + "\n\n"
 
         aae += "End of Keyframe Data\n"
 
