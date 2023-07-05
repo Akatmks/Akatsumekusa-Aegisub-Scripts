@@ -63,6 +63,79 @@ bl_info = {
 import bpy
 import bpy_extras.io_utils
 
+# -------------------------------------
+# Top-level functions and classes layout
+# -------------------------------------
+# First, a small section for smoothing modules:
+#   smoothing_modules.
+#   is_smoothing_modules_available.
+#   get_smoothing_modules_install_description().
+# -------------------------------------
+# There are three bpy.types.PropertyGroup for settings:
+#   AAEExportSettings, registered to bpy.types.Screen for general
+#       settings like whether save a copy of AAE data to file.
+#   AAEExportSettingsClip, registered to bpy.types.MovieClip for clip-
+#       wise settings, such as Power Pin remap and section blending.
+#       It also contains a fake set of AAEExportSettingsSectionL for
+#       placeholding before section settings are initialised in
+#       AAEExportSettingsClip._do_smoothing_update().
+#   AAEExportSettingsSectionL, registered as
+#       bpy.props.CollectionProperty to bpy.types.MovieClip. Contains
+#       section-wise smoothing settings.
+# -------------------------------------
+# After the settings are three bpy.types.Operator for export:
+#   AAEExportExportAll for the All tracks > Export button. This class
+#       also contains all the actual export functions, the entrance
+#       point of which is AAEExportExportAll._generate(),
+#       AAEExportExportAll._plot_result(),
+#       AAEExportExportAll._plot_section(), and also
+#       AAEExportExportAll._copy_to_clipboard() and
+#       AAEExportExportAll._export_to_file()
+#   AAEExportCopySingleTrack for
+#       Selected track > Selected track > Copy.
+#   AAEExportCopyPlaneTrack for
+#       Selected track > Selected plane track > Copy.
+#   AAEExportPlotResult for Export Options > Smoothing > Plot Result
+#       when AAEExportSettings.do_advanced_smoothing.
+#   AAEExportPlotSection for Export Options > Smoothing > Plot Section
+#       when AAEExportSettings.do_advanced_smoothing.
+#   AAEExportPlot for Export Options > Smoothing > Plot when
+#       not AAEExportSettings.do_advanced_smoothing.
+# -------------------------------------
+# After the operators are the bpy.types.Panel classes for UI:
+#   AAEExport.
+#   AAEExportSelectedTrack.
+#   AAEExportAllTracks.
+#   AAEExportOptions.
+# A bpy.types.UIList and two operators for sections:
+#   AAEExportSectionL.
+#   AAEExportSectionAddS.
+#   AAEExportSectionRemoveS.
+# -------------------------------------
+# At last the legacy File > Export bpy.types.Operator:
+#   AAEExportLegacy.
+# -------------------------------------
+# This is all the main classes and it is collected in a tuple:
+#   classes.
+# -------------------------------------
+# After the main classes are the preference classes related to
+# installing dependencies:
+#   AAEExportRegisterSettings as bpy.types.PropertyGroup.
+#   AAEExportRegisterSmoothingID as bpy.types.Operator.
+#   AAEExportRegisterPreferencePanel as bpy.types.AddonPreferences.
+#   register_classes as tuple.
+#   is_register_classes_registered as bool
+# -------------------------------------
+# The last is the standard Blender register functions:
+#   register
+#   register_export_legacy
+#   register_main_classes
+#   register_register_classes
+#   unregister
+#   unregister_main_classes
+#   unregister_register_classes
+# -------------------------------------
+
 # ("import name", "PyPI name", "minimum version")
 smoothing_modules = (("numpy", "numpy", ""),
                      ("sklearn", "scikit-learn", "0.18"),
@@ -95,6 +168,10 @@ class AAEExportSettings(bpy.types.PropertyGroup):
     do_includes_power_pin: bpy.props.BoolProperty(name="Includes Power Pin",
                                                   description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is unable to recognise the data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
                                                   default=True)
+
+    do_includes_frz_fax: bpy.props.BoolProperty(name="Includes frz fax",
+                                                description="Includes frz and fax data for Orthographic-Motion in the export for tracks and plane tracks.\nThis requires at least one Power Pin to be selected as Power Pin 0002, 0004, and 0005 respectively in Power Pin Remap function",
+                                                default=True)
 
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
                                                 description="Generate unique filename every time",
@@ -138,14 +215,14 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                               description="Perform smoothing on tracking data.\nThis feature requires additional packages to be installed. Please head to „Edit > Preference > Add-ons > Video Tools: AAE Export > Preferences“ to install the dependencies",
                                               default=False)
     do_smoothing: bpy.props.BoolProperty(name="Enable",
-                                         description="Perform smoothing on tracking data.\nThis uses the track's position, scale, rotation and Power Pin data to fit polynomial regression models, and then uses the fit models to generate smoothed data",
+                                         description="Perform smoothing on tracking data.\nThis uses the track's position, scale, rotation, Power Pin, frz and fax data to fit polynomial regression models, and then uses the fit models to generate smoothed data",
                                          default=False,
                                          update=_do_smoothing_update)
 
     def _do_predictive_smoothing_update(self, context):
         context.edit_movieclip.AAEExportSettingsSectionL[0].smoothing_extrapolate = self.do_predictive_smoothing
     do_predictive_smoothing: bpy.props.BoolProperty(name="Extrapolate",
-                                                    description="Generate position, scale, rotation and Power Pin data over the whole length of the clip, even if the track is disabled on some of the frames.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
+                                                    description="Generate position, scale, rotation, Power Pin, frz and fax data over the whole length of the clip, even if the track is disabled on some of the frames.\n\nThe five options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“, „Smooth Power Pin“ and „Smooth frz fax“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                     default=False,
                                                     update=_do_predictive_smoothing_update)
                                          
@@ -227,11 +304,11 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
     smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
-                                                          description="Use different regression models for position, scale, rotation and Power Pin data",
+                                                          description="Use different regression models for position, scale, rotation, Power Pin, and frz and fax data",
                                                           default=False)
                                                           
     smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
-                                                  description="Generate position, scale, rotation and Power Pin data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
+                                                  description="Generate position, scale, rotation, Power Pin, frz and fax data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe five options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“, „Smooth Power Pin“ and „Smooth frz fax“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                   default=False)
 
 
@@ -252,6 +329,7 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
         self.smoothing_rotation_regressor = self.smoothing_regressor
 
         self.smoothing_power_pin_regressor = self.smoothing_regressor
+        self.smoothing_frz_fax_regressor = self.smoothing_regressor
 
 
         pass
@@ -273,6 +351,7 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
         self.smoothing_rotation_huber_epsilon = self.smoothing_huber_epsilon
 
         self.smoothing_power_pin_huber_epsilon = self.smoothing_huber_epsilon
+        self.smoothing_frz_fax_huber_epsilon = self.smoothing_huber_epsilon
 
 
         pass
@@ -296,6 +375,7 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
         self.smoothing_rotation_lasso_alpha = self.smoothing_lasso_alpha
 
         self.smoothing_power_pin_lasso_alpha = self.smoothing_lasso_alpha
+        self.smoothing_frz_fax_lasso_alpha = self.smoothing_lasso_alpha
 
 
         pass
@@ -423,7 +503,7 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
     smoothing_do_power_pin: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on Power Pin data",
+                description="Perform smoothing on power_pin data",
                 default=True,
                 update=_smoothing_do_power_pin_update)
 
@@ -441,6 +521,70 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                 min=0,
                 soft_max=16,
                 update=_smoothing_power_pin_degree_update)
+
+
+
+
+
+
+
+
+    def _smoothing_do_frz_fax_x_update(self, context):
+
+        pass
+
+    smoothing_do_frz_fax_x: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on frz data",
+                default=False,
+                update=_smoothing_do_frz_fax_x_update)
+
+
+
+    def _smoothing_frz_fax_x_degree_update(self, context):
+
+
+        pass
+
+    smoothing_frz_fax_x_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for frz data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=0,
+                min=0,
+                soft_max=16,
+                update=_smoothing_frz_fax_x_degree_update)
+
+
+
+
+
+
+
+
+    def _smoothing_do_frz_fax_y_update(self, context):
+
+        pass
+
+    smoothing_do_frz_fax_y: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on fax data",
+                default=False,
+                update=_smoothing_do_frz_fax_y_update)
+
+
+
+    def _smoothing_frz_fax_y_degree_update(self, context):
+
+
+        pass
+
+    smoothing_frz_fax_y_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for fax data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=0,
+                min=0,
+                soft_max=16,
+                update=_smoothing_frz_fax_y_degree_update)
 
 
 
@@ -579,11 +723,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
     smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
-                                                          description="Use different regression models for position, scale, rotation and Power Pin data",
+                                                          description="Use different regression models for position, scale, rotation, Power Pin, and frz and fax data",
                                                           default=False)
                                                           
     smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
-                                                  description="Generate position, scale, rotation and Power Pin data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
+                                                  description="Generate position, scale, rotation, Power Pin, frz and fax data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe five options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“, „Smooth Power Pin“ and „Smooth frz fax“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                   default=False)
 
 
@@ -604,6 +748,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_regressor = self.smoothing_regressor
 
         self.smoothing_power_pin_regressor = self.smoothing_regressor
+        self.smoothing_frz_fax_regressor = self.smoothing_regressor
 
 
         self.smoothing_x_regressor = self.smoothing_regressor
@@ -628,6 +773,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_huber_epsilon = self.smoothing_huber_epsilon
 
         self.smoothing_power_pin_huber_epsilon = self.smoothing_huber_epsilon
+        self.smoothing_frz_fax_huber_epsilon = self.smoothing_huber_epsilon
 
 
         self.smoothing_x_huber_epsilon = self.smoothing_huber_epsilon
@@ -654,6 +800,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_lasso_alpha = self.smoothing_lasso_alpha
 
         self.smoothing_power_pin_lasso_alpha = self.smoothing_lasso_alpha
+        self.smoothing_frz_fax_lasso_alpha = self.smoothing_lasso_alpha
 
 
         self.smoothing_x_lasso_alpha = self.smoothing_lasso_alpha
@@ -692,6 +839,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_regressor = self.smoothing_x_regressor
 
         self.smoothing_power_pin_x_regressor = self.smoothing_x_regressor
+        self.smoothing_frz_fax_x_regressor = self.smoothing_x_regressor
 
         pass
 
@@ -712,6 +860,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_huber_epsilon = self.smoothing_x_huber_epsilon
 
         self.smoothing_power_pin_x_huber_epsilon = self.smoothing_x_huber_epsilon
+        self.smoothing_frz_fax_x_huber_epsilon = self.smoothing_x_huber_epsilon
 
         pass
 
@@ -734,6 +883,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_lasso_alpha = self.smoothing_x_lasso_alpha
 
         self.smoothing_power_pin_x_lasso_alpha = self.smoothing_x_lasso_alpha
+        self.smoothing_frz_fax_x_lasso_alpha = self.smoothing_x_lasso_alpha
 
         pass
 
@@ -766,6 +916,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_scale_y_regressor = self.smoothing_y_regressor
 
         self.smoothing_power_pin_y_regressor = self.smoothing_y_regressor
+        self.smoothing_frz_fax_y_regressor = self.smoothing_y_regressor
 
         pass
 
@@ -784,6 +935,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_scale_y_huber_epsilon = self.smoothing_y_huber_epsilon
 
         self.smoothing_power_pin_y_huber_epsilon = self.smoothing_y_huber_epsilon
+        self.smoothing_frz_fax_y_huber_epsilon = self.smoothing_y_huber_epsilon
 
         pass
 
@@ -804,6 +956,7 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_scale_y_lasso_alpha = self.smoothing_y_lasso_alpha
 
         self.smoothing_power_pin_y_lasso_alpha = self.smoothing_y_lasso_alpha
+        self.smoothing_frz_fax_y_lasso_alpha = self.smoothing_y_lasso_alpha
 
         pass
 
@@ -1699,6 +1852,267 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
+    def _smoothing_do_frz_fax_update(self, context):
+
+        self.smoothing_do_frz_fax_x = self.smoothing_do_frz_fax
+        self.smoothing_do_frz_fax_y = self.smoothing_do_frz_fax
+
+        pass
+
+    smoothing_do_frz_fax: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on frz and fax data",
+                default=False,
+                update=_smoothing_do_frz_fax_update)
+
+
+
+    def _smoothing_frz_fax_degree_update(self, context):
+
+
+        self.smoothing_frz_fax_x_degree = self.smoothing_frz_fax_degree
+        self.smoothing_frz_fax_y_degree = self.smoothing_frz_fax_degree
+
+        pass
+
+    smoothing_frz_fax_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for frz and fax data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_frz_fax_degree_update)
+
+
+
+
+    def _smoothing_frz_fax_regressor_update(self, context):
+
+
+        self.smoothing_frz_fax_x_regressor = self.smoothing_frz_fax_regressor
+        self.smoothing_frz_fax_y_regressor = self.smoothing_frz_fax_regressor
+
+        pass
+
+    smoothing_frz_fax_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_frz_fax_regressor_update)
+
+
+
+    def _smoothing_frz_fax_huber_epsilon_update(self, context):
+
+
+        self.smoothing_frz_fax_x_huber_epsilon = self.smoothing_frz_fax_huber_epsilon
+        self.smoothing_frz_fax_y_huber_epsilon = self.smoothing_frz_fax_huber_epsilon
+
+        pass
+
+    smoothing_frz_fax_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_frz_fax_huber_epsilon_update)
+
+
+
+    def _smoothing_frz_fax_lasso_alpha_update(self, context):
+
+
+        self.smoothing_frz_fax_x_lasso_alpha = self.smoothing_frz_fax_lasso_alpha
+        self.smoothing_frz_fax_y_lasso_alpha = self.smoothing_frz_fax_lasso_alpha
+
+        pass
+
+    smoothing_frz_fax_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_frz_fax_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_frz_fax_x_update(self, context):
+        pass
+
+    smoothing_do_frz_fax_x: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on frz data",
+                default=False,
+                update=_smoothing_do_frz_fax_x_update)
+
+
+
+    def _smoothing_frz_fax_x_degree_update(self, context):
+
+        pass
+
+    smoothing_frz_fax_x_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for frz data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_frz_fax_x_degree_update)
+
+
+
+
+    def _smoothing_frz_fax_x_regressor_update(self, context):
+
+        pass
+
+    smoothing_frz_fax_x_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_frz_fax_x_regressor_update)
+
+
+
+    def _smoothing_frz_fax_x_huber_epsilon_update(self, context):
+
+        pass
+
+    smoothing_frz_fax_x_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_frz_fax_x_huber_epsilon_update)
+
+
+
+    def _smoothing_frz_fax_x_lasso_alpha_update(self, context):
+
+        pass
+
+    smoothing_frz_fax_x_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_frz_fax_x_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+    def _smoothing_do_frz_fax_y_update(self, context):
+        pass
+
+    smoothing_do_frz_fax_y: bpy.props.BoolProperty(
+                name="Smooth",
+                description="Perform smoothing on fax data",
+                default=False,
+                update=_smoothing_do_frz_fax_y_update)
+
+
+
+    def _smoothing_frz_fax_y_degree_update(self, context):
+
+        pass
+
+    smoothing_frz_fax_y_degree: bpy.props.IntProperty(
+                name="Max Degree",
+                description="The maximal polynomial degree for fax data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=2,
+                min=0,
+                soft_max=16,
+                update=_smoothing_frz_fax_y_degree_update)
+
+
+
+
+    def _smoothing_frz_fax_y_regressor_update(self, context):
+
+        pass
+
+    smoothing_frz_fax_y_regressor: bpy.props.EnumProperty(
+                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
+                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
+                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
+                name="Linear Model",
+                default="LINEAR",
+                update=_smoothing_frz_fax_y_regressor_update)
+
+
+
+    def _smoothing_frz_fax_y_huber_epsilon_update(self, context):
+
+        pass
+
+    smoothing_frz_fax_y_huber_epsilon: bpy.props.FloatProperty(
+                name="Epsilon",
+                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
+                default=1.50,
+                min=1.00,
+                soft_max=10.00,
+                step=1,
+                precision=2,
+                update=_smoothing_frz_fax_y_huber_epsilon_update)
+
+
+
+    def _smoothing_frz_fax_y_lasso_alpha_update(self, context):
+
+        pass
+
+    smoothing_frz_fax_y_lasso_alpha: bpy.props.FloatProperty(
+                name="Alpha",
+                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
+                default=0.10,
+                min=0.00,
+                soft_max=100.0,
+                step=1,
+                precision=2,
+                update=_smoothing_frz_fax_y_lasso_alpha_update)
+
+
+
+
+
+
+
+
+
+
+
+
 class AAEExportExportAll(bpy.types.Operator):
     bl_label = "Export"
     bl_description = "Export all tracking markers and plane tracks to AAE files next to the original movie clip"
@@ -1726,26 +2140,28 @@ class AAEExportExportAll(bpy.types.Operator):
         return { "FINISHED" }
 
     @staticmethod
-    def _generate(clip, track, settings, clip_settings, section_settings_l, section_settings_ll):
-        """
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        settings : AAEExportSettings
-            AAEExportSettings.
-        clip_settings : AAEExportSettingsClip
-            AAEExportSettingsClip.
-        section_settings_l : AAEExportSettingsSectionL
-            AAEExportSettingsSectionL.
-        section_settings_ll : bpy.props.IntProperty
-            AAEExportSettingsSectionLL.
+    def _generate(clip, track, \
+                  settings, clip_settings, section_settings_l, section_settings_ll):
+        # returns aae : str
 
-        Returns
-        -------
-        aae : str
+        # This is the main logic of aae generating
+        # If smoothing modules are installed, the logic is as follows:
+        #   _calculate_aspect_ratio() calculates the ratio for
+        #       converting 1920 × 1080 to 1.778 × 1.
+        #   _prepare_data() read and calculate all 15 data streams from
+        #       track.
+        #   _unlimit_rotation_and_frz_fax() unwrap the rotations from
+        #       30° 10° 350° to 30° 10° -10°.
+        #   _parse_section_settings() parse settings into an array of
+        #       dicts, away from the madness of Blender.
+        #   _smoothing_main() gets the data after smoothing.
+        #   _limit_rotation_and_frz_fax() limit the data again to 0° to
+        #       360°.
+        #   _generate_aae() to convert the data into aae strings.
+        #
+        # The _plot_result() and _plot_section() are largerly similar
+        # to this functions and plot the result with matplotlib.
 
-        """
         if is_smoothing_modules_available:
             ratio, multiplier \
                 = AAEExportExportAll._calculate_aspect_ratio( \
@@ -1801,22 +2217,8 @@ class AAEExportExportAll(bpy.types.Operator):
         return aae
 
     @staticmethod
-    def _plot_result(clip, track, settings, clip_settings, section_settings_l, section_settings_ll):
-        """
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        settings : AAEExportSettings
-            AAEExportSettings.
-        clip_settings : AAEExportSettingsClip
-            AAEExportSettingsClip.
-        section_settings_l : AAEExportSettingsSectionL
-            AAEExportSettingsSectionL.
-        section_settings_ll : bpy.props.IntProperty
-            AAEExportSettingsSectionLL.
-
-        """
+    def _plot_result(clip, track, \
+                     settings, clip_settings, section_settings_l, section_settings_ll):
         import collections
         import numpy as np
         
@@ -1856,28 +2258,12 @@ class AAEExportExportAll(bpy.types.Operator):
                       clip, clip_settings, parsed_section_settings, section_settings_ll)
 
             AAEExportExportAll._plot_result_plot( \
-                data, smoothed_data, [None] * 13, \
+                data, smoothed_data, [None] * 15, \
                 clip_settings)
 
     @staticmethod
-    def _plot_section(clip, track, settings, clip_settings, section_settings_l, section_settings_li, section_settings_ll):
-        """
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        settings : AAEExportSettings
-            AAEExportSettings.
-        clip_settings : AAEExportSettingsClip
-            AAEExportSettingsClip.
-        section_settings_l : AAEExportSettingsSectionL
-            AAEExportSettingsSectionL.
-        section_settings_li : bpy.props.IntProperty
-            AAEExportSettingsSectionLI.
-        section_settings_ll : bpy.props.IntProperty
-            AAEExportSettingsSectionLL.
-
-        """
+    def _plot_section(clip, track, \
+                      settings, clip_settings, section_settings_l, section_settings_li, section_settings_ll):
         import collections
         import numpy as np
         
@@ -1917,19 +2303,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _calculate_aspect_ratio(clip):
-        """
-        Calculate aspect ratio.
+        # returns ratio : tuple[float64]
+        #         multiplier : float
 
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-
-        Returns
-        -------
-        ratio : tuple[float64]
-        multiplier: float
-
-        """
         import numpy as np
 
         ar = clip.size[0] / clip.size[1]
@@ -1944,21 +2320,10 @@ class AAEExportExportAll(bpy.types.Operator):
             return (1.81, 1.81 / ar), clip.size[0] / 1.81
 
     @staticmethod
-    def _prepare_data(clip, track, ratio, power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
-        """
-        Create position, scale, rotation and Power Pin array from tracking markers. [Step 04]
+    def _prepare_data(clip, track, \
+                      ratio, power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
+        # returns data : dict[npt.NDArray[float64]]
 
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        ratio : tuple[float64]
-
-        Returns
-        -------
-        data : dict[npt.NDArray[float64]]
-
-        """
         # data
         # {
         #      0: position_x,
@@ -1999,17 +2364,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _prepare_position_and_power_pin_marker_track(data, clip, track, ratio):
-        """
-        Create position and Power Pin array from marker track.
-
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack
-        ratio : tuple[float64]
-
-        """
         import numpy as np
 
         if not clip.frame_duration >= 1:
@@ -2062,17 +2416,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _prepare_position_and_power_pin_plane_track(data, clip, track, ratio):
-        """
-        Create position and Power Pin array from plane track.
-
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack
-        ratio : tuple[float64]
-
-        """
         import numpy as np
         import numpy.linalg as LA
 
@@ -2152,14 +2495,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _prepare_scale_and_semilimited_rotation(data):
-        """
-        Create scale and rotation array.
-
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-
-        """
         import numpy as np
         import numpy.linalg as LA
 
@@ -2274,14 +2609,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _unlimit_rotation_and_frz_fax(data):
-        """
-        Unlimit the rotation.
-
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-
-        """
         import numpy as np
 
         for i in (4, 13, 14):
@@ -2294,14 +2621,8 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _limit_rotation_and_frz_fax(data):
-        """
-        Limit the rotation.
+        # Limit the rotation to 0 to 2π
 
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-
-        """
         import numpy as np
 
         for i in (4, 13, 14):
@@ -2309,28 +2630,15 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _parse_section_settings(section_settings_l, section_settings_ll):
-        """
-        Deal with the messy Blender and output an easy to use section settings.
+        # returns parsed_settings : dict[dict[dict[]]]
 
-        Parameters
-        ----------
-        section_settings_l : AAEExportSettingsSectionL
-            AAEExportSettingsSectionL.
-        section_settings_ll : bpy.props.IntProperty
-            AAEExportSettingsSectionLL.
-
-        Returns
-        -------
-        parsed_settings : dict[dict[dict[]]]
-
-        """
         # parsed_settings structure
         #
         # {
         #     (Section) 0: {
         #         start_frame: 0
         #
-        #         (Type) 0..12: {
+        #         (Type) 0..14: {
         #             degree: 2
         #
         #         }
@@ -2491,7 +2799,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
   
 
-  
+   
 
             parsed_settings[i][4] = {}
 
@@ -2525,7 +2833,7 @@ class AAEExportExportAll(bpy.types.Operator):
                     parsed_settings[i][4]["lasso_alpha"] = section_settings_l[i].smoothing_rotation_lasso_alpha
 
 
-  
+   
 
   
 
@@ -2808,30 +3116,87 @@ class AAEExportExportAll(bpy.types.Operator):
 
   
 
+   
+
+            parsed_settings[i][13] = {}
+
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
+                case 0b00:
+                    parsed_settings[i][13]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_x
+                    parsed_settings[i][13]["degree"] = section_settings_l[i].smoothing_frz_fax_x_degree
+                    parsed_settings[i][13]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][13]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][13]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
+                case 0b01:
+                    parsed_settings[i][13]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_x
+                    parsed_settings[i][13]["degree"] = section_settings_l[i].smoothing_frz_fax_x_degree
+                    parsed_settings[i][13]["regressor"] = section_settings_l[i].smoothing_frz_fax_x_regressor
+                    parsed_settings[i][13]["huber_epsilon"] = section_settings_l[i].smoothing_frz_fax_x_huber_epsilon
+                    parsed_settings[i][13]["lasso_alpha"] = section_settings_l[i].smoothing_frz_fax_x_lasso_alpha
+                case 0b10:
+
+                    parsed_settings[i][13]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_x
+                    parsed_settings[i][13]["degree"] = section_settings_l[i].smoothing_frz_fax_x_degree
+                    parsed_settings[i][13]["regressor"] = section_settings_l[i].smoothing_x_regressor
+                    parsed_settings[i][13]["huber_epsilon"] = section_settings_l[i].smoothing_x_huber_epsilon
+                    parsed_settings[i][13]["lasso_alpha"] = section_settings_l[i].smoothing_x_lasso_alpha
+
+                case 0b11:
+
+                    parsed_settings[i][13]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_x
+                    parsed_settings[i][13]["degree"] = section_settings_l[i].smoothing_frz_fax_x_degree
+                    parsed_settings[i][13]["regressor"] = section_settings_l[i].smoothing_frz_fax_x_regressor
+                    parsed_settings[i][13]["huber_epsilon"] = section_settings_l[i].smoothing_frz_fax_x_huber_epsilon
+                    parsed_settings[i][13]["lasso_alpha"] = section_settings_l[i].smoothing_frz_fax_x_lasso_alpha
+
+
+   
+   
+
+            parsed_settings[i][14] = {}
+
+            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
+                case 0b00:
+                    parsed_settings[i][14]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_y
+                    parsed_settings[i][14]["degree"] = section_settings_l[i].smoothing_frz_fax_y_degree
+                    parsed_settings[i][14]["regressor"] = section_settings_l[i].smoothing_regressor
+                    parsed_settings[i][14]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
+                    parsed_settings[i][14]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
+                case 0b01:
+                    parsed_settings[i][14]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_y
+                    parsed_settings[i][14]["degree"] = section_settings_l[i].smoothing_frz_fax_y_degree
+                    parsed_settings[i][14]["regressor"] = section_settings_l[i].smoothing_frz_fax_y_regressor
+                    parsed_settings[i][14]["huber_epsilon"] = section_settings_l[i].smoothing_frz_fax_y_huber_epsilon
+                    parsed_settings[i][14]["lasso_alpha"] = section_settings_l[i].smoothing_frz_fax_y_lasso_alpha
+                case 0b10:
+
+                    parsed_settings[i][14]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_y
+                    parsed_settings[i][14]["degree"] = section_settings_l[i].smoothing_frz_fax_y_degree
+                    parsed_settings[i][14]["regressor"] = section_settings_l[i].smoothing_y_regressor
+                    parsed_settings[i][14]["huber_epsilon"] = section_settings_l[i].smoothing_y_huber_epsilon
+                    parsed_settings[i][14]["lasso_alpha"] = section_settings_l[i].smoothing_y_lasso_alpha
+
+                case 0b11:
+
+                    parsed_settings[i][14]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_y
+                    parsed_settings[i][14]["degree"] = section_settings_l[i].smoothing_frz_fax_y_degree
+                    parsed_settings[i][14]["regressor"] = section_settings_l[i].smoothing_frz_fax_y_regressor
+                    parsed_settings[i][14]["huber_epsilon"] = section_settings_l[i].smoothing_frz_fax_y_huber_epsilon
+                    parsed_settings[i][14]["lasso_alpha"] = section_settings_l[i].smoothing_frz_fax_y_lasso_alpha
+
+
+   
+
 
 
         return parsed_settings
 
     @staticmethod
-    def _smoothing_main(data, clip, clip_settings, section_settings, section_settings_ll, plotting=False):
-        """
-        The main logic for smoothing.
+    def _smoothing_main(data, clip, \
+                        clip_settings, section_settings, section_settings_ll, \
+                        plotting=False):
+        # returns smoothed_data : dict[npt.NDArray[float64]]
 
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-        clip : bpy.types.MovieClip
-        clip_settings : AAEExportSettingsClip
-            AAEExportSettingsClip.
-        section_settings : dict[dict[dict[]]]
-        section_settings_ll : bpy.props.IntProperty
-            AAEExportSettingsSectionLL.
-
-        Returns
-        -------
-        smoothed_data : dict[npt.NDArray[float64]]
-
-        """
         import collections
         import numpy as np
 
@@ -2839,7 +3204,7 @@ class AAEExportExportAll(bpy.types.Operator):
         if plotting:
             no_blending_data = {}
 
-        for i in range(13):
+        for i in range(15):
             smoothed_data[i] \
                 = np.zeros_like(data[i])
             if plotting:
@@ -2896,22 +3261,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _smoothing(data, section_settings):
-        """
-        Perform smoothing depending on the smoothing settings.
+        # returns predicted_data : npt.NDArray[float64]
+        #                          data with all frames filled with predicted value
 
-        Parameters
-        ----------
-        data : npt.NDArray[float64]
-            univariate data
-        section_settings : dict[]
-            Parsed settings for the section and data
-
-        Returns
-        -------
-        predicted_data : npt.NDArray[float64]
-            data with all frames filled with predicted value
-
-        """
         import numpy as np
         from sklearn.preprocessing import PolynomialFeatures
         from sklearn.linear_model import HuberRegressor, Lasso, LinearRegression
@@ -2943,24 +3295,9 @@ class AAEExportExportAll(bpy.types.Operator):
             raise ValueError("regressor " + section_settings["regressor"] + " not recognised")
 
     @staticmethod
-    def _smoothing_append_section(smoothed_data, data, clip, clip_settings, section_settings, carryover):
-        """
-        The main logic for smoothing.
-
-        Parameters
-        ----------
-        smoothed_data : npt.NDArray[float64]
-            smoothed_data created in _smoothing_main()
-        data : npt.NDArray[float64]
-            data after smoothed in _smoothing_main()
-        clip : bpy.types.MovieClip
-        clip_settings : AAEExportSettingsClip
-        section_settings : dict[dict[]]
-            Parsed settings for the section
-        carryover : npt.NDArray[float64]
-            Carryover. Initialised in _smoothing_main()
-
-        """
+    def _smoothing_append_section(smoothed_data, data, \
+                                  clip, clip_settings, section_settings, \
+                                  carryover):
         import numpy as np
 
         match clip_settings.smoothing_blending:
@@ -3020,25 +3357,15 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _generate_aae(data, multiplier):
-        """
-        Finalised and stringify the data.
+        # returns aae_position : list[str]
+        #         aae_scale : list[str]
+        #         aae_rotation : list[str]
+        #         aae_power_pin_0002 : list[str]
+        #         aae_power_pin_0003 : list[str]
+        #         aae_power_pin_0004 : list[str]
+        #         aae_power_pin_0005 : list[str]
+        #         aae_frz_fax : list[str]
 
-        Parameters
-        ----------
-        data : data : dict[npt.NDArray[float64]]
-        multiplier: float
-
-        Returns
-        -------
-        aae_position : list[str]
-        aae_scale : list[str]
-        aae_rotation : list[str]
-        aae_power_pin_0002 : list[str]
-        aae_power_pin_0003 : list[str]
-        aae_power_pin_0004 : list[str]
-        aae_power_pin_0005 : list[str]
-
-        """
         import numpy as np
 
         data[0] *= multiplier
@@ -3088,21 +3415,13 @@ class AAEExportExportAll(bpy.types.Operator):
             if not np.isnan(data[13][frame]):
                 aae_frz_fax.append("\t{:d}\t{:f}\t{:f}".format(frame + 1, data[13][frame], data[14][frame]))
 
-        return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, aae_frz_fax
+        return aae_position, aae_scale, aae_rotation, \
+               aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
+               aae_frz_fax
         
     @staticmethod
-    def _plot_result_plot(data, smoothed_data, no_blending_data, clip_settings):
-        """
-        Plot the data.
-
-        Parameters
-        ----------
-        data : list[npt.NDArray[float64]]
-        smoothed_data : list[npt.NDArray[float64]]
-        no_blending_data : list[npt.NDArray[float64] or None]
-        clip_settings : AAEExportSettingsClip
-
-        """
+    def _plot_result_plot(data, smoothed_data, no_blending_data, \
+                          clip_settings):
         import matplotlib.pyplot as plt
         import numpy as np
         import PIL
@@ -3180,17 +3499,8 @@ class AAEExportExportAll(bpy.types.Operator):
         plt.close(fig)
 
     @staticmethod
-    def _plot_section_plot(data, smoothed_data, section_settings):
-        """
-        Plot the data.
-
-        Parameters
-        ----------
-        data : list[npt.NDArray[float64]]
-        smoothed_data : list[npt.NDArray[float64] or None]
-        section_settings :  AAEExportSettingsSectionL
-            AAEExportSettingsSectionL[AAEExportSettingsSectionLI]
-        """
+    def _plot_section_plot(data, smoothed_data, \
+                           section_settings):
         import matplotlib.pyplot as plt
         import numpy as np
         import PIL
@@ -3297,25 +3607,14 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _generate_aae_non_numpy(clip, track):
-        """
-        Generate aae without numpy.
+        # returns aae_position : list[str]
+        #         aae_scale : list[str]
+        #         aae_rotation : list[str]
+        #         aae_power_pin_0002 : list[str]
+        #         aae_power_pin_0003 : list[str]
+        #         aae_power_pin_0004 : list[str]
+        #         aae_power_pin_0005 : list[str]
 
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-
-        Returns
-        -------
-        aae_position : list[str]
-        aae_scale : list[str]
-        aae_rotation : list[str]
-        aae_power_pin_0002 : list[str]
-        aae_power_pin_0003 : list[str]
-        aae_power_pin_0004 : list[str]
-        aae_power_pin_0005 : list[str]
-
-        """
         aae_position = []
         aae_scale = []
         aae_rotation = []
@@ -3363,30 +3662,20 @@ class AAEExportExportAll(bpy.types.Operator):
         else:
             raise ValueError("track.__class__.__name__ \"" + track.__class__.__name__ + "\" not recognised")
 
-        return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
+        return aae_position, aae_scale, aae_rotation, \
+               aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
 
     @staticmethod
     def _calculate_marker_track_per_frame_non_numpy(clip, marker, scale_base):
-        """
-        Generate data without numpy.
+        # returns position : tuple[float]
+        #         scale : tuple[float]
+        #         rotate : float
+        #         power_pin_0002 : tuple[float]
+        #         power_pin_0003 : tuple[float]
+        #         power_pin_0004 : tuple[float]
+        #         power_pin_0005 : tuple[float]
+        #         scale_base : tuple[float]
 
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        marker : bpy.types.MovieTrackingMarker
-        scale_base : tuple[float] or None
-
-        Returns
-        -------
-        position : tuple[float]
-        scale : tuple[float]
-        rotate : float
-        power_pin_0002 : tuple[float]
-        power_pin_0003 : tuple[float]
-        power_pin_0004 : tuple[float]
-        power_pin_0005 : tuple[float]
-        scale_base : tuple[float]
-        """
         import math
 
         position = (float(marker.co[0]) * clip.size[0],
@@ -3423,26 +3712,15 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _calculate_plane_track_per_frame_non_numpy(clip, marker, scale_base):
-        """
-        Generate data without numpy.
+        # returns position : tuple[float]
+        #         scale : tuple[float]
+        #         rotate : float
+        #         power_pin_0002 : tuple[float]
+        #         power_pin_0003 : tuple[float]
+        #         power_pin_0004 : tuple[float]
+        #         power_pin_0005 : tuple[float]
+        #         scale_base : tuple[float]
 
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        marker : bpy.types.MovieTrackingPlaneMarker
-        scale_base : tuple[float] or None
-
-        Returns
-        -------
-        position : tuple[float]
-        scale : tuple[float]
-        rotate : float
-        power_pin_0002 : tuple[float]
-        power_pin_0003 : tuple[float]
-        power_pin_0004 : tuple[float]
-        power_pin_0005 : tuple[float]
-        scale_base : tuple[float]
-        """
         import math
 
         power_pin_0002 = (float(marker.corners[3][0]) * clip.size[0],
@@ -3475,20 +3753,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _calculate_centre_plane_track_per_frame_non_numpy(power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005):
-        """
-        Parameters
-        ----------
-        power_pin_0002 : tuple[float]
-        power_pin_0003 : tuple[float]
-        power_pin_0004 : tuple[float]
-        power_pin_0005 : tuple[float]
+        # returns i : tuple[float]
+        #             The centre of plane track. Never None.
 
-        Returns
-        -------
-        i : tuple[float]
-            The centre of plane track. Never None.
-
-        """
         # LU decomposition thanks to arch1t3cht
         def calculate_coef_(a, b):
             return ((a[1] - b[1], b[0] - a[0]), b[0] * a[1] - a[0] * b[1])
@@ -3510,29 +3777,11 @@ class AAEExportExportAll(bpy.types.Operator):
                     (power_pin_0002[1] + power_pin_0003[1] + power_pin_0004[1] + power_pin_0005[1]) / 4)
 
     @staticmethod
-    def _generate_aae_per_frame_non_numpy(marker, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005):
-        """
-        Generate aae per frame without numpy.
-
-        Parameters
-        ----------
-        marker : bpy.types.MovieTrackingMarker or bpy.types.MovieTrackingPlaneMarker
-        aae_position : list[str]
-        aae_scale : list[str]
-        aae_rotation : list[str]
-        aae_power_pin_0002 : list[str]
-        aae_power_pin_0003 : list[str]
-        aae_power_pin_0004 : list[str]
-        aae_power_pin_0005 : list[str]
-        position : tuple[float]
-        scale : tuple[float]
-        rotate : float
-        power_pin_0002 : tuple[float]
-        power_pin_0003 : tuple[float]
-        power_pin_0004 : tuple[float]
-        power_pin_0005 : tuple[float]
-
-        """
+    def _generate_aae_per_frame_non_numpy(marker, \
+                                          aae_position, aae_scale, aae_rotation, \
+                                          aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
+                                          position, scale, rotation, \
+                                          power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005):
         aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(marker.frame, *position, 0.0))
         aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(marker.frame, *scale, 100.0))
         if rotation >= 359.9995:
@@ -3544,29 +3793,13 @@ class AAEExportExportAll(bpy.types.Operator):
         aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0005))
 
     @staticmethod
-    def _remap_power_pin(power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
-        """
-        Remap Power Pin
-        
-        Parameters
-        ----------
-        power_pin_0002 : object
-        power_pin_0003 : object
-        power_pin_0004 : object
-        power_pin_0005 : object
-        power_pin_remap_0002 : str
-        power_pin_remap_0003 : str
-        power_pin_remap_0004 : str
-        power_pin_remap_0005 : str
+    def _remap_power_pin(power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, \
+                         power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
+        # returns return_0002 : object
+        #         return_0003 : object
+        #         return_0004 : object
+        #         return_0005 : object
 
-        Returns
-        -------
-        return_0002 : object
-        return_0003 : object
-        return_0004 : object
-        return_0005 : object
-
-        """
 
 
 
@@ -3624,26 +3857,13 @@ class AAEExportExportAll(bpy.types.Operator):
         return return_0002, return_0003, return_0004, return_0005
 
     @staticmethod
-    def _combine_aae(clip, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, aae_frz_fax, do_includes_power_pin):
-        """
-        Combine and finish aae.
+    def _combine_aae(clip, \
+                     aae_position, aae_scale, aae_rotation, \
+                     aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
+                     aae_frz_fax, \
+                     do_includes_power_pin):
+        # returns aae : str
 
-        Parameters
-        ----------
-        clip : clip : bpy.types.MovieClip
-        aae_position : list[str]
-        aae_scale : list[str]
-        aae_rotation : list[str]
-        aae_power_pin_0002 : list[str]
-        aae_power_pin_0003 : list[str]
-        aae_power_pin_0004 : list[str]
-        aae_power_pin_0005 : list[str]
-
-        Returns
-        -------
-        aae : str
-
-        """
         aae = ""
 
         aae += "Adobe After Effects 6.0 Keyframe Data\n\n"
@@ -3694,18 +3914,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _export_to_file(clip, track, aae, prefix, do_do_not_overwrite):
-        """
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or MovieTrackingPlaneTrack
-        aae : str
-            Likely coming from _generated().
-        prefix : None or str
-        do_do_not_overwrite : bool
-            AAEExportSettings.do_do_not_overwrite.
-
-        """
         from datetime import datetime
         from pathlib import Path
 
@@ -3735,14 +3943,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _copy_to_clipboard(context, aae):
-        """
-        Parameters
-        ----------
-        context : bpy.context
-        aae : str
-            Likely coming from _generated().
-            
-        """
         context.window_manager.clipboard = aae
 
 class AAEExportCopySingleTrack(bpy.types.Operator):
@@ -5604,7 +5804,3 @@ def unregister_register_class():
 
     for class_ in register_classes:
         bpy.utils.unregister_class(class_)
-
-if __name__ == "__main__":
-    register()
-#    unregister() 
