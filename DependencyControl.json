@@ -1,0 +1,736 @@
+{
+    "dependencyControlFeedFormatVersion": "0.3.0",
+    "name": "Akatsumekusa's Aegisub Scripts",
+    "description": "Repository for Akatsumekusa's Aegisub Scripts",
+    "maintainer": "Akatsumekusa",
+    "baseUrl": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    "url": "@{baseUrl}",
+    "fileBaseUrl": "raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}",
+    "macros": {
+        "NN.fanhua": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}/macros/NN.fanhua.lua",
+                            "sha1": "41230cfc2e5981fac5851216d54de780ad0ae584"
+                        }
+                    ],
+                    "version": "0.1.7",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.request"
+                        },
+                        {
+                            "moduleName": "aka.config"
+                        },
+                        {
+                            "moduleName": "aka.template"
+                        }
+                    ],
+                    "released": "2023-02-03"
+                }
+            },
+            "author": "Akatsumekusa",
+            "name": "NN.fanhua",
+            "description": "Macro NN.fanhua",
+            "url": "@{baseUrl}"
+        },
+        "NN.switchst": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}/macros/NN.switchst.lua",
+                            "sha1": "e5a551c4d290e65348615530ee3e27d612040a79"
+                        }
+                    ],
+                    "version": "0.1.5",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.actor"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        }
+                    ],
+                    "released": "2023-02-03"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "Switch CHS and CHT",
+            "description": "Comment and uncomment all the CHS and CHT lines in the subtitle",
+            "url": "@{baseUrl}"
+        },
+        "aka.BackupProto": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}/macros/aka.BackupProto.lua",
+                            "sha1": "936984bdc9f13ca22138098ed39d240f366fe534"
+                        }
+                    ],
+                    "version": "0.2.5",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.actor"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        },
+                        {
+                            "moduleName": "aka.optimising",
+                            "optional": true
+                        }
+                    ],
+                    "released": "2023-02-03"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "BackupProto",
+            "description": "Backup selected lines",
+            "url": "@{baseUrl}"
+        },
+        "aka.BoundingBox": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".moon",
+                            "url": "@{fileBaseUrl}/macros/aka.BoundingBox.moon",
+                            "sha1": "d81c05a372d3be1403ce2a3ca357708e216d8638"
+                        }
+                    ],
+                    "version": "0.0.6",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ILL.ILL"
+                        },
+                        {
+                            "moduleName": "SubInspector.Inspector"
+                        },
+                        {
+                            "moduleName": "aka.outcome"
+                        }
+                    ],
+                    "released": "2023-04-09"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "BoundingBox",
+            "description": "Create a clip of the bounding box of the subtitle line",
+            "url": "@{baseUrl}"
+        },
+        "aka.Cycles": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}/macros/aka.Cycles.lua",
+                            "sha1": "015e1156474e2ba2bc0fd192e1a2b12c3ff57e08"
+                        }
+                    ],
+                    "version": "0.1.8",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "l0.ASSFoundation",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ASSFoundation/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aka.actor"
+                        },
+                        {
+                            "moduleName": "aka.config"
+                        },
+                        {
+                            "moduleName": "aka.template"
+                        }
+                    ],
+                    "released": "2023-02-03"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.Cycles",
+            "description": "Macro aka.Cycles",
+            "url": "@{baseUrl}"
+        },
+        "aka.UnwhiteDialogue": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".moon",
+                            "url": "@{fileBaseUrl}/macros/aka.UnwhiteDialogue.moon",
+                            "sha1": "cb845cf4c90d56a84023cd89f5ecfa233b3cc4f1"
+                        }
+                    ],
+                    "version": "0.0.7",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.config"
+                        },
+                        {
+                            "moduleName": "aka.outcome"
+                        },
+                        {
+                            "moduleName": "aka.unwhite_dialogue"
+                        }
+                    ],
+                    "released": "2023-04-08"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "UnwhiteDialogue",
+            "description": "Automatically select shade and unwhite the dialogues",
+            "url": "@{baseUrl}"
+        },
+        "aka.dupe-and-not-comment": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}/macros/aka.dupe-and-not-comment.lua",
+                            "sha1": "58f58318c5786b6781a74328ca9a8adfc7c27e9e"
+                        }
+                    ],
+                    "version": "0.0.2",
+                    "default": true,
+                    "released": "2023-05-15"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "Dupe and Not Comment",
+            "description": "Duplicate selected line line by line",
+            "url": "@{baseUrl}"
+        }
+    },
+    "modules": {
+        "NN.CJCharacter": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/characters.ansi",
+                            "url": "@{fileBaseUrl}/modules/NN/CJCharacter/characters.ansi",
+                            "sha1": "7f29e15761fa4588777438305a470cec5528aca2"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/NN/CJCharacter/init.lua",
+                            "sha1": "f5d24703cdddbe370c7aa9e1c8b9fa85daa9e8c2"
+                        }
+                    ],
+                    "version": "0.1.11",
+                    "default": true,
+                    "released": "2023-02-16"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "NN.CJCharacter",
+            "description": "Module NN.CJCharacter",
+            "url": "@{baseUrl}"
+        },
+        "NN.CJSpacing": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/NN/CJSpacing/init.lua",
+                            "sha1": "24bdf0ffc63c40f0140749d4626ac926f2fc9533"
+                        }
+                    ],
+                    "version": "0.1.5",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "NN.CJCharacter"
+                        },
+                        {
+                            "moduleName": "aegisub.unicode"
+                        }
+                    ],
+                    "released": "2023-02-16"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "NN.CJSpacing",
+            "description": "Module NN.CJSpacing",
+            "url": "@{baseUrl}"
+        },
+        "aka.CIELab": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/colours.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/CIELab/colours.lua",
+                            "sha1": "bc4a713fb0ced892c6b3647ca308106e66b44fb2"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/CIELab/init.lua",
+                            "sha1": "951da64b807755e4565f037fcdd3e38dd03b2799"
+                        },
+                        {
+                            "name": "/interface.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/CIELab/interface.lua",
+                            "sha1": "cbe82bda438ecba68b52c25793ca48e310fe4ef3"
+                        }
+                    ],
+                    "version": "0.0.4",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ffi"
+                        }
+                    ],
+                    "released": "2023-04-05"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.CIELab",
+            "description": "Module aka.CIELab",
+            "url": "@{baseUrl}"
+        },
+        "aka.actor": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/actor/init.lua",
+                            "sha1": "a173745d2e7281798e6ffd46a4863dd3710076a7"
+                        }
+                    ],
+                    "version": "0.1.11",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.singlesimple"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        }
+                    ],
+                    "released": "2023-02-16"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.actor",
+            "description": "Module aka.actor",
+            "url": "@{baseUrl}"
+        },
+        "aka.config": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/config.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
+                            "sha1": "b52d0177dc87a93ca1e8d81e3cda52ef09cf4dc4"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
+                            "sha1": "a6f9606102c1866a53bf23e59afe2168c2872d81"
+                        }
+                    ],
+                    "version": "0.1.32",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.config2"
+                        },
+                        {
+                            "moduleName": "aka.outcome"
+                        },
+                        {
+                            "moduleName": "aka.unicode"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        }
+                    ],
+                    "released": "2023-04-07"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.config",
+            "description": "Module aka.config",
+            "url": "@{baseUrl}"
+        },
+        "aka.config2": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/config2.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/config2/config2.lua",
+                            "sha1": "0b9ae3294ded07d5a8afd10a287c8b4beb624724"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/config2/init.lua",
+                            "sha1": "c84a7546b768208c3d0d5ab4d3b5db970dd1ba43"
+                        },
+                        {
+                            "name": "/json.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/config2/json.lua",
+                            "sha1": "66004f9373847d877fe0aae5ad8a02bf7e161fef"
+                        }
+                    ],
+                    "version": "0.2.3",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.outcome"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        },
+                        {
+                            "moduleName": "aegisub.unicode"
+                        },
+                        {
+                            "moduleName": "lfs"
+                        }
+                    ],
+                    "released": "2023-04-03"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.config2",
+            "description": "Module aka.config2",
+            "url": "@{baseUrl}"
+        },
+        "aka.effil": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/effil-osx.so",
+                            "url": "@{fileBaseUrl}/modules/aka/effil/effil-osx.so",
+                            "sha1": "8a689d202a8457f7f35f236e3b1afabed00b7551",
+                            "platform": "OSX-x64"
+                        },
+                        {
+                            "name": "/effil-osx.so",
+                            "url": "@{fileBaseUrl}/modules/aka/effil/effil-osx.so",
+                            "sha1": "8a689d202a8457f7f35f236e3b1afabed00b7551",
+                            "platform": "OSX-arm"
+                        },
+                        {
+                            "name": "/effil.dll",
+                            "url": "@{fileBaseUrl}/modules/aka/effil/effil.dll",
+                            "sha1": "eddc636e421a72f7de7164124828ffc65f065559",
+                            "platform": "Windows-x64"
+                        },
+                        {
+                            "name": "/effil.dll",
+                            "url": "@{fileBaseUrl}/modules/aka/effil/effil.dll",
+                            "sha1": "eddc636e421a72f7de7164124828ffc65f065559",
+                            "platform": "Windows-arm"
+                        },
+                        {
+                            "name": "/effil.so",
+                            "url": "@{fileBaseUrl}/modules/aka/effil/effil.so",
+                            "sha1": "40aa226581acd5dd7d28d0758cdff61f4ed41bc9",
+                            "platform": "Linux-x64"
+                        },
+                        {
+                            "name": "/effil.so",
+                            "url": "@{fileBaseUrl}/modules/aka/effil/effil.so",
+                            "sha1": "40aa226581acd5dd7d28d0758cdff61f4ed41bc9",
+                            "platform": "BSD-x64"
+                        },
+                        {
+                            "name": "/effil.so",
+                            "url": "@{fileBaseUrl}/modules/aka/effil/effil.so",
+                            "sha1": "40aa226581acd5dd7d28d0758cdff61f4ed41bc9",
+                            "platform": "POSIX-x64"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/effil/init.lua",
+                            "sha1": "be05b6749074a89a94a2f750de8917e7199ae5f7"
+                        }
+                    ],
+                    "version": "0.1.3",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ffi"
+                        }
+                    ],
+                    "released": "2023-02-16"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.effil",
+            "description": "Module aka.effil",
+            "url": "@{baseUrl}"
+        },
+        "aka.optimising": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/optimising/init.lua",
+                            "sha1": "c3ee2a5d0e3f9221f1c1138ea625d04da3cc4b6e"
+                        }
+                    ],
+                    "version": "0.1.9",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.singlesimple"
+                        },
+                        {
+                            "moduleName": "PT.PreciseTimer"
+                        }
+                    ],
+                    "released": "2023-02-21"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.optimising",
+            "description": "Module aka.optimising",
+            "url": "@{baseUrl}"
+        },
+        "aka.outcome": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/outcome/init.lua",
+                            "sha1": "e814d38e008f7996c01354f6c97b3c1d7c608448"
+                        }
+                    ],
+                    "version": "0.1.6",
+                    "default": true,
+                    "released": "2023-04-07"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.outcome",
+            "description": "Module aka.outcome",
+            "url": "@{baseUrl}"
+        },
+        "aka.request": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/request/init.lua",
+                            "sha1": "5188070791a75929c8f4369fd7832ec424689564"
+                        },
+                        {
+                            "name": "/luajit-request/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/request/luajit-request/init.lua",
+                            "sha1": "49151c860234ca9056eb45c48e1dd85d0de80891"
+                        },
+                        {
+                            "name": "/luajit-request/libcurl.dll",
+                            "url": "@{fileBaseUrl}/modules/aka/request/luajit-request/libcurl.dll",
+                            "sha1": "f1efdab4a346d4aec11e6c2e51b535e37a48fca0",
+                            "platform": "Windows-x64"
+                        },
+                        {
+                            "name": "/luajit-request/libcurl.dll",
+                            "url": "@{fileBaseUrl}/modules/aka/request/luajit-request/libcurl.dll",
+                            "sha1": "f1efdab4a346d4aec11e6c2e51b535e37a48fca0",
+                            "platform": "Windows-arm"
+                        },
+                        {
+                            "name": "/luajit-request/luajit-curl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/request/luajit-request/luajit-curl.lua",
+                            "sha1": "3dccef9647138e9974ebf76c0105e12702e63e97"
+                        }
+                    ],
+                    "version": "1.0.7",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ffi"
+                        },
+                        {
+                            "moduleName": "requireffi.requireffi",
+                            "version": "0.1.2"
+                        }
+                    ],
+                    "released": "2023-02-16"
+                }
+            },
+            "author": "Lucien Greathouse, slightly altered by Akatsumekusa",
+            "name": "aka.request",
+            "description": "Module aka.request",
+            "url": "@{baseUrl}"
+        },
+        "aka.singlesimple": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
+                            "sha1": "3803a4ee9e7da94b3c924f0ce2911e6b5491d554"
+                        }
+                    ],
+                    "version": "0.2.3",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.config2"
+                        },
+                        {
+                            "moduleName": "aka.outcome"
+                        }
+                    ],
+                    "released": "2023-04-08"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.singlesimple",
+            "description": "Module aka.singlesimple",
+            "url": "@{baseUrl}"
+        },
+        "aka.unicode": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/unicode/init.lua",
+                            "sha1": "0502eee5be97595c7882bd984953d0a5c6435fe4"
+                        }
+                    ],
+                    "version": "0.0.2",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aegisub.unicode"
+                        },
+                        {
+                            "moduleName": "bit"
+                        }
+                    ],
+                    "released": "2023-03-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.unicode",
+            "description": "Module aka.unicode",
+            "url": "@{baseUrl}"
+        },
+        "aka.unwhite_dialogue": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/unwhite_dialogue/init.lua",
+                            "sha1": "39dcb91efda9e8b027b300dd9dd982307fb8008b"
+                        },
+                        {
+                            "name": "/samples.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/unwhite_dialogue/samples.lua",
+                            "sha1": "fb89bf777e32689ecfb1b491afa6de00fda0beeb"
+                        }
+                    ],
+                    "version": "0.0.4",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ILL.ILL"
+                        },
+                        {
+                            "moduleName": "aka.CIELab"
+                        },
+                        {
+                            "moduleName": "aka.outcome"
+                        }
+                    ],
+                    "released": "2023-04-07"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.unwhite_dialogue",
+            "description": "Module aka.unwhite_dialogue",
+            "url": "@{baseUrl}"
+        },
+        "aka.workflow": {
+            "channels": {
+                "dev": {
+                    "files": [
+                        {
+                            "name": "/config.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/config.lua",
+                            "sha1": "818008397c95d81928d33bc7db3e2537718ac1f5"
+                        },
+                        {
+                            "name": "/dialog.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/dialog.lua",
+                            "sha1": "7f1261e67d0333c4c3fd15bdcaa2dd9b78426ee5"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/init.lua",
+                            "sha1": "ef39896eef61e859f5f6faedf623ea193ab68d92"
+                        },
+                        {
+                            "name": "/intrarun.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/intrarun.lua",
+                            "sha1": "d83fb09e92649d1bd1021635abac2b8b0e35744a"
+                        },
+                        {
+                            "name": "/postrun.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/postrun.lua",
+                            "sha1": "7b4483e47c665b28ecdd1d9bcc8717f344ef23dc"
+                        },
+                        {
+                            "name": "/run.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/run.lua",
+                            "sha1": "afbd9794b95598729818340b0123b0049973de05"
+                        },
+                        {
+                            "name": "/threads.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/workflow/threads.lua",
+                            "sha1": "9be436bc7888fb015714a4350d9f08909d9a81bc"
+                        }
+                    ],
+                    "version": "0.1.17",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.config2"
+                        },
+                        {
+                            "moduleName": "ffi"
+                        }
+                    ],
+                    "released": "2023-03-02"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.workflow",
+            "description": "Module aka.workflow",
+            "url": "@{baseUrl}"
+        }
+    }
+}
