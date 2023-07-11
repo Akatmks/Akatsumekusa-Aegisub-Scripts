@@ -1,4 +1,4 @@
--- aka.BoundingBox.moon
+-- aka.BoundingBox
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -24,7 +24,7 @@
 versioning =
     name: "BoundingBox"
     description: "Create a clip of the bounding box of the subtitle line"
-    version: "0.0.6"
+    version: "1.0.2"
     author: "Akatsumekusa and contributors"
     namespace: "aka.BoundingBox"
     requireModules: "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"SubInspector.Inspector\" }, { \"moduleName\": \"aka.outcome\" }]"
@@ -44,7 +44,7 @@ if hasDepCtrl
         author: versioning.author,
         moduleName: versioning.namespace,
         url: "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed: "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        feed: "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
             { "ILL.ILL" },
             { "SubInspector.Inspector" },

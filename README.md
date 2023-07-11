@@ -2,7 +2,7 @@
 
 <img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/af583631-7554-45a4-ab17-ae1ef2a14932" alt="AAE Export Function Preview" width="186" align="left" />
 
-AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisub-Motion](https://github.com/TypesettingTools/Aegisub-Motion/) and [Aegisub-Perspective-Motion](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts) compatible AAE data.  
+AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisub-Motion](https://github.com/TypesettingTools/Aegisub-Motion/), [Aegisub-Perspective-Motion](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts) and [Orthographic-Motion](#akaortho-mo) compatible AAE data.  
 
 –　[Download (Windows)](scripts/aae-export-windows/aae-export.py)  
 –　[Download (Linux x86_64)](scripts/aae-export-linux-x86_64/aae-export.py)  
@@ -25,3 +25,9 @@ Thanks to
 – *aae-export was originally released by Martin Herkt under ISC License. Since then, aae-export has been completely rewritten, with every original line replaced. It is now released under a single MIT License.*  
 – *[aae-export-install-dependencies](tools/aae-export-install-dependencies) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. The tool is released under MIT License, using [Qt](https://www.qt.io/) libraries under LGPLv3.*  
 – *[aae-export-base122](tools/aae-export-base122) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. It is a wrapper of Kevin Albertson's [libbase122](https://github.com/kevinAlbs/libbase122) library, and is released under Apache License.*  
+
+## ortho-mo
+
+Orthographic-Motion is a macro to apply `\frz\fax` from tracking data. It requires either frz fax data from [aae-export](#aae-export), or Power Pin data.  
+
+To use ortho-mo, first use a-mo to apply position and scale, and then use ortho-mo to apply `\frz\fax`.  

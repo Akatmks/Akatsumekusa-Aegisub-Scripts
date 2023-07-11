@@ -1,4 +1,4 @@
--- aka.Cycles.lua
+-- aka.Cycles
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.Cycles"
 versioning.description = "Macro aka.Cycles"
-versioning.version = "0.1.8"
+versioning.version = "0.1.10"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Cycles"
 
@@ -46,7 +46,7 @@ if hasDepCtrl then
         author = versioning.author,
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
             { "l0.ASSFoundation" },
             { "aka.actor" },

@@ -1,4 +1,4 @@
--- aka.dupe-and-not-comment.lua
+-- aka.dupe-and-not-comment
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Dupe and Not Comment"
 versioning.description = "Duplicate selected line line by line"
-versioning.version = "0.0.2"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.dupe-and-not-comment"
 
@@ -44,7 +44,7 @@ if hasDepCtrl then
         author = versioning.author,
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json"
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
     })
 end
 

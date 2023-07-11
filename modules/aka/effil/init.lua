@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.effil"
 versioning.description = "Module aka.effil"
-versioning.version = "0.1.3"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.effil"
 
@@ -40,12 +40,13 @@ if hasDepCtrl then
         author = versioning.author,
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
             { "ffi" }
         }
     })
 end
+local ffi = require("ffi")
 
 if ffi.os ~= "OSX" then
     local effil = require("aka.effil.effil")

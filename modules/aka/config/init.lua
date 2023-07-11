@@ -38,7 +38,7 @@ local versioning = {}
 --                 ‎aka.config
 versioning.name = "aka.config"
 versioning.description = "Module aka.config"
-versioning.version = "0.1.32"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config"
 
@@ -53,7 +53,7 @@ if hasDepCtrl then
         author = versioning.author,
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
             { "aka.config2" },
             { "aka.outcome" },

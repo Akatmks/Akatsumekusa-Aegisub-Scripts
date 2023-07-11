@@ -35,7 +35,7 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "0.1.6"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.outcome"
 
@@ -48,7 +48,7 @@ if hasDepCtrl then
     author = versioning.author,
     moduleName = versioning.namespace,
     url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
   })
 end
 

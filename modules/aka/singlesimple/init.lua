@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "0.2.3"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
@@ -40,7 +40,7 @@ if hasDepCtrl then
         author = versioning.author,
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
             { "aka.config2" },
             { "aka.outcome" }
@@ -60,7 +60,7 @@ local make_config
 -- @param str config [nil]: The subfolder where the config is in
 -- @param str config_supp: The name for the config file without the file extension
 -- @param possible_values: Either a table for all the possible values for the config
---                         or a type() string specifying the type of the value
+--                         or a full validation function
 -- @param table default_value: The default value for the config
 -- 
 -- @returns table Config: A initialised config object with Config.value and Config.setValue
@@ -95,11 +95,17 @@ make_config = function(config, config_supp, possible_values, default_value)
                     if config[1] == v then
                         return ok(config[1])
                 end end
-            else -- type(possible_values) == "string" then
-                if type(config[1]) == possible_values then
-                    return ok(config[1])
-            end end
-            return err("[aka.singlesimple] Error") end)
+            elseif type(possible_values) == "function" then
+                return possible_values(config)
+                    :andThen(function(return_config)
+                        if return_config == nil then
+                            return ok(config[1])
+                        else
+                            return ok(return_config[1])
+                        end end)
+            else
+                error("[aka.singlesimple] Error")
+            end end)
         :orElseOther(function()
             aconfig.write_config(config, config_supp, { default_value })
             return ok(default_value) end)

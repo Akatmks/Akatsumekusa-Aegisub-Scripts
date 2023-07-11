@@ -1,4 +1,4 @@
--- NN.Fanhua.lua
+-- NN.Fanhua
 -- Copyright (c) Akatsumekusa
 
 ------------------------------------------------------------------------------
@@ -20,11 +20,11 @@ local versioning = {}
 
 versioning.name = "NN.fanhua"
 versioning.description = "Macro NN.fanhua"
-versioning.version = "0.1.7"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.fanhua"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.template\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.optimising\", \"optional\": True }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -41,13 +41,376 @@ if hasDepCtrl then
         author = versioning.author,
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
             { "aka.request" },
             { "aka.config" },
-            { "aka.template" }
+            { "aka.outcome" },
+            { "aegisub.re" },
+            { "aka.actor" },
+            { "aka.optimising", optional = true }
         }
     }):requireModules()
 end
-local request = require("aka.luajit-request")
-local config = require("aka.config")
+local request = require("aka.request")
+local aactor = require("aka.actor")
+local aconfig = require("aka.config")
+local outcome = require("aka.outcome")
+local ok, err = outcome.ok, outcome.err
+local re = require("aegisub.re")
+local hasOptimising, optimising = pcall(require, "aka.optimising")
+
+
+local Detect
+Detect = function(line)
+    local return_
+
+    return_ = false
+    for _, flag in ipairs(aactor._flags("")) do
+        if flag["body"] == "chs" then
+            if return_ == false then return_ = "chs"
+            else return false end
+        elseif flag["body"] == "cht" then
+            if return_ == false then return_ = "cht"
+            else return false end
+        elseif flag["body"] ~= "" then
+            return false
+    end end
+    return return_
+end
+
+
+local target
+local Target
+Target = function(sub)
+    local i
+    local detect
+
+    if target then return end
+
+    for i = 1, #sub do
+        line = sub[i]
+        if line.class == "dialogue" then
+            detect = Detect(line)
+            
+            if detect == "chs" then
+                if line.comment == false then target = "chs"
+                else target = "cht" end
+            elseif detect == "cht" then
+                if line.comment == false then target = "cht"
+                else target = "chs" end
+    end end end
+
+    if not target then
+        target = false
+end end
+
+
+local SwitchST
+SwitchST = function(sub)
+    local i
+    local line
+
+    if not target then Target(sub) end
+    
+    if not target then return
+    elseif target == "chs" then target = "cht"
+    elseif target == "cht" then target = "chs" end
+
+    for i = 1, #sub do
+        line = sub[i]
+        if line.class == "dialogue" then
+            detect = Detect(line)
+
+            if target == "chs" and detect == "chs" or
+               target == "cht" and detect == "cht" then
+                if line.comment == true then
+                    line.comment = false
+                    sub[i] = line
+                end
+            elseif target == "chs" and detect == "cht" or
+                   target == "cht" and detect == "chs" then
+                if line.comment == false then
+                    line.comment = true
+                    sub[i] = line
+end end end end end
+
+
+local config
+local validation_func
+local Config
+local ConfigTarget
+aconfig = aconfig.make_editor({
+    display_name = "fanhua",
+    presets = {
+        ["SweetSub"] = {
+            converter = "Taiwan",
+            modules = {
+                ["*"] = 0,
+                ["ChineseVariant"] = -1,
+                ["Computer"] = -1,
+                ["ProperNoun"] = -1,
+                ["Repeat"] = -1,
+                ["RepeatAutoFix"] = -1,
+                ["Unit"] = -1
+            },
+            userPostReplace = [[
+Source Han Sans SC=Source Han Sans TC
+Source Han Sans CN=Source Han Sans TW
+SourceHanSansSC=SourceHanSansTC
+
+Source Han Serif SC=Source Han Serif TC
+Source Han Serif CN=Source Han Serif TW
+]]      }
+    },
+    default = "SweetSub"
+})
+validation_func = function(configd)
+    local msg
+
+    if not configd then
+        msg = "Root object not found"
+    else
+        if configd.converter == nil then
+            if not msg then msg = "Key \"converter\" is required by zhconvert\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\""
+            else msg = msg .. "\n" .. "Key \"converter\" is required by zhconvert\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\"" end
+        elseif configd.converter ~= "Simplified" and
+               configd.converter ~= "Traditional" and
+               configd.converter ~= "China" and
+               configd.converter ~= "Hongkong" and
+               configd.converter ~= "Taiwan" and
+               configd.converter ~= "Pinyin" and
+               configd.converter ~= "Bopomofo" and
+               configd.converter ~= "Mars" and
+               configd.converter ~= "WikiSimplified" and
+               configd.converter ~= "WikiTraditional" then
+            if not msg then msg = "Invalid value for key \"converter\"\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\""
+            else msg = msg .. "\n" .. "Invalid value for key \"converter\"\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\"" end
+        end
+        if configd.text ~= nil then
+            if not msg then msg = "Key \"text\" should be left nil for the script to fill"
+            else msg = msg .. "\n" .. "Key \"text\" should be left nil for the script to fill" end
+    end end
+    
+    if not msg then return ok(configd)
+    else return err(msg) end
+end
+Config = function()
+    if not config then
+        config = aconfig:read_and_validate_config_or_else_edit_and_save("NN.fanhua", validation_func)
+            :ifErr(aegisub.cancel)
+            :unwrap()
+end end
+ConfigTarget = function()
+    if config.converter == "Simplified" or
+       config.converter == "China" or
+       config.converter == "WikiSimplified" then
+        return "chs"
+    elseif config.converter == "Traditional" or
+           config.converter == "Hongkong" or
+           config.converter == "Taiwan" or
+           config.converter == "WikiTraditional" then
+        return "cht"
+    else return "else" end
+end
+EditConfig = function()
+    config = aconfig:read_edit_validate_and_save_config("NN.fanhua", validation_func)
+        :ifErr(aegisub.cancel)
+        :unwrap()
+end
+
+
+local Fanhua
+local ProprocessSub
+local LoadLines
+local FanhuaLines
+local ApplyLines
+local ApplyLinesApply
+
+Fanhua = function(sub, sel, act)
+    local ctarget
+    local lines
+    local fanhua
+
+    if hasOptimising then optimising.start() end
+
+    if hasOptimising then optimising.lap("Loading config") end
+    Config()
+
+    ctarget = ConfigTarget()
+    ProprocessSub(sub, ctarget)
+
+    lines, fanhua = LoadLines(sub, sel)
+
+    fanhua = FanhuaLines(fanhua)
+
+    sel, act = ApplyLines(sub, sel, act, ctarget, lines, fanhua)
+    
+    if hasOptimising then optimising.lap("fanhua finished") end
+    return sel, act
+end
+ProprocessSub = function(sub, ctarget)
+    if hasOptimising then optimising.lap("Detecting target") end
+    if not target then Target(sub) end
+    
+    if ctarget == "chs" then
+        if not target then target = "chs"
+        elseif target == "cht" then
+            if hasOptimising then optimising.lap("Switching chs and cht") end
+            SwitchST(sub)
+        end
+    elseif ctarget == "cht" then
+        if not target then target = "cht"
+        elseif target == "chs" then
+            if hasOptimising then optimising.lap("Switching chs and cht") end
+            SwitchST(sub)
+        end
+end end
+LoadLines = function(sub, sel)
+    local lines
+    local fanhua
+
+    lines = {}
+    fanhua = ""
+    for i in 1, #sel do
+        if hasOptimising then optimising.lap("Loading line " .. tostring(i)) end
+
+        lines[i] = sub[sel[i]]
+        fanhua = fanhua .. lines[i].text .. "\n"
+    end
+
+    return lines, fanhua
+end
+FanhuaLines = function(fanhua)
+    local ensureNewlineAtEof_
+    local response
+    local err
+    local msg
+
+    ensureNewlineAtEof_ = config.ensureNewlineAtEof
+    config.ensureNewlineAtEof = true
+    config.text = fanhua
+    response, err, msg = request.send("https://api.zhconvert.org/convert", config)
+    config.ensureNewlineAtEof = ensureNewlineAtEof_
+    config.text = nil
+
+    if not response then
+        aegisub.debug.out("[NN.fanhua] Request failed with code " .. tostring(err) .. "\n")
+        aegisub.debug.out("[NN.fanhua] " .. tostring(err) .. msg .. "\n")
+        aegisub.cancel()
+    elseif response.code ~= 0 then
+        aegisub.debug.out("[NN.fanhua] zhconvert responded with code " .. tostring(response.code) .. "\n")
+        aegisub.debug.out("[NN.fanhua] " .. tostring(response.code) .. response.msg .. "\n")
+        aegisub.cancel()
+    end
+
+    return response.data.text
+end
+ApplyLines = function(sub, sel, act, ctarget, lines, fanhua)
+    local i
+    local j
+
+    j = #sel repeat
+        i = 1 repeat
+            if j - i == sel[j] - sel[i] then
+                if hasOptimising then optimising.lap("Writing line " .. tostring(i) .. " to " .. tostring(j)) end
+                
+                sel, act = ApplyLinesApply(sub, sel, act, ctarget, lines, fanhua, i, j)
+                j = i - 1
+                break
+            else i = i + 1 end
+        until false
+    until j == 0
+
+    return sel, act
+end
+ApplyLinesApply = function(sub, sel, act, ctarget, lines, fanhua, i, j)
+    local k
+    local comment_
+    local fanhuas
+
+    local select = function(selected, sel_i, sel_j)
+        if selected < sel_i then return selected
+        else return selected + sel_j - sel_i + 1 end
+    end
+
+    for k = i, j do
+        if ctarget == "chs" then
+            lines[i][aactor.field:value()] = "cht"
+            comment_ = lines[i].comment
+            lines[i].comment = true
+            sub[sel[i]] = lines[i]
+            lines[i].comment = comment_
+
+        elseif ctarget == "cht" then
+            lines[i][aactor.field:value()] = "chs"
+            comment_ = lines[i].comment
+            lines[i].comment = true
+            sub[sel[i]] = lines[i]
+            lines[i].comment = comment_
+    end end
+    
+    fanhuas = {}
+    k = i
+    for t in fanhua:gmatch"([^\n]*)\n" do
+        fanhuas[k] = t
+        k = k + 1
+    end
+
+    for k = j, i, -1 do
+        if ctarget == "chs" then
+            lines[k][aactor.field:value()] = "chs"
+        elseif ctarget == "cht" then
+            lines[k][aactor.field:value()] = "cht"
+        end
+        lines[k].text = fanhuas[k]
+        
+        sub[-j] = lines[k]
+    end
+
+    for k in ipairs(sel) do sel[k] = select(sel[k], sel[i], sel[j]) end
+    act = select(act, sel[i], sel[j])
+    return sel, act
+end
+
+
+local Field
+Field = function()
+    local dialog
+    local buttons
+    local button_ids
+    local button
+    local result_table
+
+    dialog = { { class = "label",                           x = 0, y = 0, width = 24,
+                                                            label = "Select the field for chs and cht flag" },
+               { class = "label",                           x = 1, y = 1, width = 5,
+                                                            label = "Field: " },
+               { class = "dropdown", name = "field",        x = 6, y = 1, width = 6,
+                                                            items = { "Actor", "Effect", "Style" }, value = re.sub(aactor.field:field(), "^\\w", string.upper) },
+               { class = "label",                           x = 0, y = 2, width = 24,
+                                                            label = "This setting will apply to all NN and aka scripts." } }
+    buttons = { "&Apply", "Close" }
+    button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Close", no = "Close", cancel = "Close" }
+
+    button, result_table = aegisub.dialog.display(dialog, buttons, button_ids)
+
+    if button == false or button == "Close" then aegisub.cancel()
+    elseif button == "&Apply" then
+        aactor.field:setField(string.lower(result_table["field"]))
+end end
+
+
+if hasDepCtrl then
+    DepCtrl:registerMacros({
+        { "fanhua", "fanhua selected lines", Fanhua },
+        { "Switch chs and cht", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST },
+        { "Edit zhconvert settings", "Edit zhconvert settings", EditConfig },
+        { "Edit flag settings", "Change where chs and cht flags are placed", Field }
+    })
+else
+    aegisub.register_macro("fanhua/fanhua", "fanhua selected lines", Fanhua)
+    aegisub.register_macro("fanhua/Switch chs and cht", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST)
+    aegisub.register_macro("fanhua/Edit zhconvert settings", "Edit zhconvert settings", EditConfig)
+    aegisub.register_macro("fanhua/Edit flag settings", "Change where chs and cht flags are placed", Field)
+end

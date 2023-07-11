@@ -27,7 +27,7 @@ local versioning = {}
 
 versioning.name = "aka.actor"
 versioning.description = "Module aka.actor"
-versioning.version = "0.1.11"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.actor"
 
@@ -42,7 +42,7 @@ if hasDepCtrl then
         author = versioning.author,
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
             { "aka.singlesimple" },
             { "aegisub.re" }
@@ -213,5 +213,7 @@ functions.onelessFlag = onelessFlag
 -- Use field:value() to get the field using,
 -- Use field:setValue() to set the field to either "actor", "effect" or "style"
 functions.field = field
+
+functions._flags = flags
 
 return functions

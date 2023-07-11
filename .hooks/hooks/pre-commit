@@ -79,7 +79,7 @@ excluded_files = [
     "modules/aka/optimising/time.lua"
 ]
 platform_dependent_files = {
-    "modules/aka/request/luajit-request/libcurl.dll": ["Windows-x64", "Windows-arm"],
+    "modules/aka/request/libcurl.dll": ["Windows-x64", "Windows-arm"],
     "modules/aka/effil/effil.dll": ["Windows-x64", "Windows-arm"],
     "modules/aka/effil/effil.so": ["Linux-x64", "BSD-x64", "POSIX-x64"],
     "modules/aka/effil/effil-osx.so": ["OSX-x64", "OSX-arm"],
@@ -179,8 +179,8 @@ def getNameForFilesFile(p):
 
 
 if __name__ == "__main__":
-    if not repo.active_branch.name == dev_branch:
-        dependency_control = dependency_control and False
+    # if not repo.active_branch.name == dev_branch:
+    #     dependency_control = dependency_control and False
 
     p = Path("DependencyControl.json")
     if not p.exists():
