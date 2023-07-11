@@ -253,28 +253,28 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                                              step=50,
                                                              precision=1)
 
-    power_pin_remap_0002: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
+    power_pin_remap_0002: bpy.props.EnumProperty(items=(("0002", "(0002 (Upper-left))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
                                                         ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
                                                         ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
                                                         ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track")),
                                                name="0002 (Upper-left)",
                                                default="0002")
     power_pin_remap_0003: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
-                                                        ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
+                                                        ("0003", "(0003 (Upper-right))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
                                                         ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
                                                         ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track")),
                                                name="0003 (Upper-right)",
                                                default="0003")
     power_pin_remap_0004: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
                                                         ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
-                                                        ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
+                                                        ("0004", "(0004 (Lower-left))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
                                                         ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track")),
                                                name="0004 (Lower-left)",
                                                default="0004")
     power_pin_remap_0005: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
                                                         ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
                                                         ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
-                                                        ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track")),
+                                                        ("0005", "(0005 (Lower-right))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track")),
                                                name="0005 (Lower-right)",
                                                default="0005")
 
@@ -2539,16 +2539,27 @@ class AAEExportExportAll(bpy.types.Operator):
 
             match power_pin_remap_0002:
                 case "0002":
-                    power_pin_data[0] =  power_pin_data[0] if power_pin_data[0] is not None else data[5]
-                    power_pin_data[1] =  power_pin_data[1] if power_pin_data[1] is not None else data[6]
+
+                    pass
+
                 case "0003":
                     pass
                 case "0004":
-                    power_pin_data[2] =  power_pin_data[2] if power_pin_data[2] is not None else data[5]
-                    power_pin_data[3] =  power_pin_data[3] if power_pin_data[3] is not None else data[6]
+
+                    if power_pin_data[2] is None:
+                        power_pin_data[2] = data[5]
+                        power_pin_data[3] = data[6]
+                    else:
+                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0004")
+
                 case "0005":
-                    power_pin_data[4] =  power_pin_data[4] if power_pin_data[4] is not None else data[5]
-                    power_pin_data[5] =  power_pin_data[5] if power_pin_data[5] is not None else data[6]
+
+                    if power_pin_data[4] is None:
+                        power_pin_data[4] = data[5]
+                        power_pin_data[5] = data[6]
+                    else:
+                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0005")
+
 
 
 
@@ -2556,16 +2567,31 @@ class AAEExportExportAll(bpy.types.Operator):
 
             match power_pin_remap_0003:
                 case "0002":
-                    power_pin_data[0] =  power_pin_data[0] if power_pin_data[0] is not None else data[7]
-                    power_pin_data[1] =  power_pin_data[1] if power_pin_data[1] is not None else data[8]
+
+                    if power_pin_data[0] is None:
+                        power_pin_data[0] = data[7]
+                        power_pin_data[1] = data[8]
+                    else:
+                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0002")
+
                 case "0003":
                     pass
                 case "0004":
-                    power_pin_data[2] =  power_pin_data[2] if power_pin_data[2] is not None else data[7]
-                    power_pin_data[3] =  power_pin_data[3] if power_pin_data[3] is not None else data[8]
+
+                    if power_pin_data[2] is None:
+                        power_pin_data[2] = data[7]
+                        power_pin_data[3] = data[8]
+                    else:
+                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0004")
+
                 case "0005":
-                    power_pin_data[4] =  power_pin_data[4] if power_pin_data[4] is not None else data[7]
-                    power_pin_data[5] =  power_pin_data[5] if power_pin_data[5] is not None else data[8]
+
+                    if power_pin_data[4] is None:
+                        power_pin_data[4] = data[7]
+                        power_pin_data[5] = data[8]
+                    else:
+                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0005")
+
 
 
 
@@ -2573,16 +2599,27 @@ class AAEExportExportAll(bpy.types.Operator):
 
             match power_pin_remap_0004:
                 case "0002":
-                    power_pin_data[0] =  power_pin_data[0] if power_pin_data[0] is not None else data[9]
-                    power_pin_data[1] =  power_pin_data[1] if power_pin_data[1] is not None else data[10]
+
+                    if power_pin_data[0] is None:
+                        power_pin_data[0] = data[9]
+                        power_pin_data[1] = data[10]
+                    else:
+                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0002")
+
                 case "0003":
                     pass
                 case "0004":
-                    power_pin_data[2] =  power_pin_data[2] if power_pin_data[2] is not None else data[9]
-                    power_pin_data[3] =  power_pin_data[3] if power_pin_data[3] is not None else data[10]
+
+                    pass
+
                 case "0005":
-                    power_pin_data[4] =  power_pin_data[4] if power_pin_data[4] is not None else data[9]
-                    power_pin_data[5] =  power_pin_data[5] if power_pin_data[5] is not None else data[10]
+
+                    if power_pin_data[4] is None:
+                        power_pin_data[4] = data[9]
+                        power_pin_data[5] = data[10]
+                    else:
+                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0005")
+
 
 
 
@@ -2590,28 +2627,48 @@ class AAEExportExportAll(bpy.types.Operator):
 
             match power_pin_remap_0005:
                 case "0002":
-                    power_pin_data[0] =  power_pin_data[0] if power_pin_data[0] is not None else data[11]
-                    power_pin_data[1] =  power_pin_data[1] if power_pin_data[1] is not None else data[12]
+
+                    if power_pin_data[0] is None:
+                        power_pin_data[0] = data[11]
+                        power_pin_data[1] = data[12]
+                    else:
+                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0002")
+
                 case "0003":
                     pass
                 case "0004":
-                    power_pin_data[2] =  power_pin_data[2] if power_pin_data[2] is not None else data[11]
-                    power_pin_data[3] =  power_pin_data[3] if power_pin_data[3] is not None else data[12]
+
+                    if power_pin_data[2] is None:
+                        power_pin_data[2] = data[11]
+                        power_pin_data[3] = data[12]
+                    else:
+                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0004")
+
                 case "0005":
-                    power_pin_data[4] =  power_pin_data[4] if power_pin_data[4] is not None else data[11]
-                    power_pin_data[5] =  power_pin_data[5] if power_pin_data[5] is not None else data[12]
+
+                    pass
 
 
 
 
 
+
+            if power_pin_data[0] is None and power_pin_remap_0002 == "0002":
+                power_pin_data[0] = data[5]
+                power_pin_data[1] = data[6]
+            if power_pin_data[2] is None and power_pin_remap_0004 == "0004":
+                power_pin_data[2] = data[9]
+                power_pin_data[3] = data[10]
+            if power_pin_data[4] is None and power_pin_remap_0005 == "0005":
+                power_pin_data[4] = data[11]
+                power_pin_data[5] = data[12]
 
             if power_pin_data[0] is None:
-                raise ValueError("ortho-mo requires at least one Power Pin to be specified as Power Pin 0002")
+                raise ValueError("frz fax requires at least one Power Pin to be specified as Power Pin 0002")
             if power_pin_data[2] is None:
-                raise ValueError("ortho-mo requires at least one Power Pin to be specified as Power Pin 0004")
+                raise ValueError("frz fax requires at least one Power Pin to be specified as Power Pin 0004")
             if power_pin_data[4] is None:
-                raise ValueError("ortho-mo requires at least one Power Pin to be specified as Power Pin 0005")
+                raise ValueError("frz fax requires at least one Power Pin to be specified as Power Pin 0005")
 
             data[13] = np.arctan2(-power_pin_data[5] + power_pin_data[3], power_pin_data[4] - power_pin_data[2])
             data[14] = np.arctan2(-power_pin_data[1] + power_pin_data[3], power_pin_data[0] - power_pin_data[2])
