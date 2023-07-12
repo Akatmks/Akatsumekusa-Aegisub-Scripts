@@ -1,25 +1,7 @@
-## Table of contents
-
 <table>
 <tr>
-<th align="center">
-<img width="2000" height="1px">
-<p> 
-<small>
-Scripts and Macros
-</small>
-</p>
-</th>
-<th align="center">
-<img width="2000" height="1">
-<p> 
-<small>
-Modules
-</small>
-</p>
-</th>
-</tr>
-<tr>
+<th align="center" colspan="2"><hr /><h3>Akatsumekusa-Aegisub-Scripts</h3><hr /></th>
+</tr><tr>
 <td>
 
 ***DependencyControl***  
@@ -35,8 +17,7 @@ Modules
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
   
-</td>
-<td>
+</td><td>
   
 ***Modules***  
 – [aka.actor](#akaactor)  
@@ -53,16 +34,10 @@ Modules
 – [request](#request)  
   
 </td>
-</tr>
-<tr>
-<td align="center">
-　
-</td>
-<td align="center">
-　
-</td>
-</tr>
-</table>
+</tr><tr>
+<td><img width="2000" height="1px" /></td>
+<td><img width="2000" height="1px" /></td>
+</tr></table>
 
 ## aae-export
 
