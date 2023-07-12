@@ -1,7 +1,8 @@
 <table>
 <tr>
 <th align="center" colspan="2"><hr /><h3>Table of Contents</h3><hr /></th>
-</tr><tr>
+</tr>
+<tr>
 <td>
 
 ***DependencyControl***  
@@ -17,7 +18,8 @@
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
   
-</td><td>
+</td>
+<td>
   
 ***Modules***  
 – [aka.actor](#akaactor)  
@@ -34,10 +36,12 @@
 – [request](#request)  
   
 </td>
-</tr><tr>
+</tr>
+<tr>
 <td><img width="2000" height="1px" /></td>
 <td><img width="2000" height="1px" /></td>
-</tr></table>
+</tr>
+</table>
 
 ## aae-export
 
