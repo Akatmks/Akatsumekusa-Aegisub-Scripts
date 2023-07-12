@@ -1,8 +1,39 @@
+## Table of contents
+
+*For end users*  
+**DependencyControl**  
+`https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json`  
+**Motion Tracking**  
+– [aae-export](#aae-export)  
+– [ortho-mo](#ortho-mo)  
+**Typesetting Aids**  
+– [aka.BackupSection](#akabackupsection--akadupe-and-not-comment)  
+– [aka.BoundingBox](#akaboundingbox)  
+– [aka.Cycles](#akacycles)  
+– [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
+**farn huah**  
+– [NN.farnhuah](#nnfarnhuah)  
+
+*For developers*  
+**Modules**  
+– [aka.actor](#akaactor)  
+– [aka.config](#akaconfig--akaconfig2)  
+– [aka.config2](#akaconfig--akaconfig2)  
+– [aka.singlesimple](#akasinglesimple)  
+– [aka.optimising](#akaoptimising)  
+– [aka.outcome](#akaoutcome)  
+– [aka.unicode](#akaunicode)  
+**Thirdparty Modules**  
+– [effil](#effil)  
+– [ljsyscall](#mmapfile--ljsyscall)  
+– [mmapfile](#mmapfile--ljsyscall)  
+– [request](#request)  
+
 ## aae-export
 
 <img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/af583631-7554-45a4-ab17-ae1ef2a14932" alt="AAE Export Function Preview" width="186" align="left" />
 
-AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisub-Motion](https://github.com/TypesettingTools/Aegisub-Motion/), [Aegisub-Perspective-Motion](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts) and [Orthographic-Motion](#akaortho-mo) compatible AAE data.  
+AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisub-Motion](https://github.com/TypesettingTools/Aegisub-Motion), [Aegisub-Perspective-Motion](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts) and [Orthographic-Motion](#akaortho-mo) compatible AAE data.  
 
 –　[Download (Windows)](scripts/aae-export-windows/aae-export.py)  
 –　[Download (Linux x86_64)](scripts/aae-export-linux-x86_64/aae-export.py)  
@@ -28,6 +59,170 @@ Thanks to
 
 ## ortho-mo
 
-Orthographic-Motion is a macro to apply `\frz\fax` from tracking data. It requires either frz fax data from [aae-export](#aae-export), or Power Pin data.  
+Aegisub-Orthographic-Motion is a macro to apply `\frz\fax` from tracking data. It works with frz fax data from [aae-export](#aae-export) and Power Pin data from mocha.  
 
-To use ortho-mo, first use a-mo to apply position and scale, and then use ortho-mo to apply `\frz\fax`.  
+To use ortho-mo, apply position and scale with [a-mo](https://github.com/TypesettingTools/Aegisub-Motion) first, and then apply `\frz\fax` with ortho-mo.  
+
+## aka.BackupSection & aka.dupe-and-not-comment
+
+aka.BackupSection and aka.dupe-and-not-comment are similar in function to [garret.dupe-and-comment](https://github.com/garret1317/aegisub-scripts#dupe-and-comment) but arrange the new line in different ways.  
+
+To backup using aka.BackupSection, select the lines to backup and click „Backup“. To start from a previous backup, select the previously commented lines and click „Backup“.  
+
+Comparing the three scripts, when applying to the following selection:  
+<table>
+<tr><td>(Selected)</td><td>Line 1</td></tr>
+<tr><td>(Selected)</td><td>Line 2</td></tr>
+<tr><td>(Selected)</td><td>Line 3</td></tr>
+</table>
+
+aka.BackupSection:  
+<table>
+<tr><td>(Commented)</td><td>Line 1</td><td>backup</td></tr>
+<tr><td>(Commented)</td><td>Line 2</td><td>backup</td></tr>
+<tr><td>(Commented)</td><td>Line 3</td><td>backup</td></tr>
+<tr><td>(Selected)</td><td>Line 1</td><td></td></tr>
+<tr><td>(Selected)</td><td>Line 2</td><td></td></tr>
+<tr><td>(Selected)</td><td>Line 3</td><td></td></tr>
+</table>
+
+garret.dupe-and-comment:  
+<table>
+<tr><td>(Selected)</td><td>Line 1</td></tr>
+<tr><td>(Commented)</td><td>Line 1</td></tr>
+<tr><td>(Selected)</td><td>Line 2</td></tr>
+<tr><td>(Commented)</td><td>Line 2</td></tr>
+<tr><td>(Selected)</td><td>Line 3</td></tr>
+<tr><td>(Commented)</td><td>Line 3</td></tr>
+</table>
+
+aka.dupe-and-not-comment:  
+<table>
+<tr><td>(Selected)</td><td>Line 1</td></tr>
+<tr><td></td><td>Line 1</td></tr>
+<tr><td>(Selected)</td><td>Line 2</td></tr>
+<tr><td></td><td>Line 2</td></tr>
+<tr><td>(Selected)</td><td>Line 3</td></tr>
+<tr><td></td><td>Line 3</td></tr>
+</table>
+
+## aka.BoundingBox
+
+aka.BoundingBox adds either [SubInspector](https://github.com/TypesettingTools/SubInspector)-style or [text_extents](https://github.com/arch1t3cht/Aegisub/blob/master/automation/v4-docs/misc.txt)-style bounding box as rect clip to selected lines.  
+
+## aka.Cycles
+
+aka.Cycles is exactly the same as [ua.Cycles](https://github.com/unanimated/luaegisub) but with a configuration window inside Aegisub.  
+
+## NN.farnhuah
+
+NN.farnhuah is an Aegisub frontend for [zhconvert](https://zhconvert.org/).  
+
+To use NN.farnhuah, select the line for farnhuah and click „farn huah“. To switch between chs and cht subtitles, click „chie huann chs her cht“.  
+On first launch, NN.farnhuah will show a configuration window. Create your own configuration from zhconvert's [documentation](https://docs.zhconvert.org/api/convert/), or click „Apply Preset“ to use the default config from SweetSub.  
+
+## aka.actor
+
+aka.actor is a flag system visible to the user.  
+For example, when you backup a line with [aka.BackupSection](#akabackupsection--akadupe-and-not-comment), a `backup` flag will be added to the commented line.  
+
+Check the number of times a flag exists on line:  
+```lua
+aactor.flag(line, "backup")
+```
+Set flag on line:  
+```lua
+aactor.setFlag(line, "backup")
+```
+
+Other functions include:  
+```lua
+aactor.flag(line, flag)
+aactor.setFlag(line, flag)
+aactor.clearFlag(line, flag)
+aactor.toggleFlag(line, flag)
+aactor.onemoreFlag(line, flag)
+aactor.onelessFlag(line, flag)
+```
+
+`aactor.field` is a [aka.singlesimple](#akasinglesimple) config specifying the field to place the flags. It has three possible values, `actor`, `effect` and `style`. It synced across all scripts using aka.actor.  
+
+## aka.config & aka.config2
+
+aka.config is a config module that includes a builtin JSON editor with pretty JSON. aka.config2 provides JSON and file system functions while aka.config provides GUI and readytouse config functions.  
+
+Readytouse config functions include:
+```lua
+aconfig.read_edit_validate_and_save_config(config, config_supp, validation_func)
+aconfig.read_and_validate_config_or_else_edit_and_save(config, config_supp, validation_func)
+aconfig.read_and_validate_config_if_empty_then_default_or_else_edit_and_save(config, config_supp, validation_func)
+```
+
+Detailed tutorial is available at [docs/Using aka.config.md](docs/Using%20aka.config.md).  
+
+## aka.singlesimple
+
+aka.singlesimple is a synced config module for a single enum. The value of the enum is shared between all scripts using the same config name.  
+
+Create a config:
+```lua
+config = ss.make_config("aka.Testing", possible_values, default_value)
+```
+Get the current value:
+```lua
+config:value()
+```
+Set the value:
+```lua
+config:setValue(value)
+```
+
+Detailed tutorial is available at [docs/Using aka.singlesimple.md](docs/Using%20aka.singlesimple.md).  
+
+## aka.optimising
+
+aka.optimising introduces a timing function for debugging purpose.  
+
+Set `aka.optimising.json` under DependencyControl's `configDir` to `{ true }`. Use `optimising.start()` to start the timer. Use `optimising.lap(lap_name)` to print time to `aegisub.debug.out`.  
+
+## aka.outcome
+
+aka.outcome introduces `Result` and `Option` similar to Rust's `std::result::Result` and `std::option::Option`. It is based on mtdowling's [Outcome](https://github.com/mtdowling/outcome) and is used by `aka.config`, `aka.config` and many other Akatsumkusa's scripts.  
+
+Detailed introduction is available at [docs/Using aka.outcome.md](docs/Using%20aka.outcome.md).  
+
+*License Information*
+– *Outcome is originally released by Michael Dowling under MIT License.*  
+– *It is modified with exisiting feature changed and new features added by Akatsumekusa.*  
+
+## aka.unicode
+
+aka.unicode extends aegisub.unicode with a `unicode.char(codepoint)` function to turn codepoints back to characters.  
+
+## effil
+
+[effil](https://github.com/effil/effil) is a multithreading library for Lua.  
+
+Add `aka.effil` to DependencyControl's required modules. View the documents at the [original repository](https://github.com/effil/effil).  
+
+*License Information*  
+– *effil is copyrighted to Mikhail Kupriyanov and Ilia Udalov and is licensed under MIT License.*  
+
+## mmapfile & ljsyscall
+
+[lua-mmapfile](https://github.com/geoffleyland/lua-mmapfile) is a mmap interface for LuaJIT. [ljsyscall](https://github.com/justincormack/ljsyscall) is a system call interface for LuaJIT. ljsyscall is a dependency of lua-mmapfile on Unix environments.  
+
+Add `aka.mmapfile` to DependencyControl's required modules to use mmapfile. View the documents at the [original repository](https://github.com/geoffleyland/lua-mmapfile).  
+
+*License Information*  
+– *lua-mmapfile is copyrighted to Incremental IP Limited and is licensed under MIT License.*  
+– *ljsyscall is copyrighted to Justin Cormack and is licensed under MIT License.*  
+
+## request
+
+[LuaJIT-Request](https://github.com/LPGhatguy/luajit-request) is a request module for LuaJIT based on libcurl.  
+
+Add `aka.request` to DependencyControl's required modules. View the documents at the [original repository](https://github.com/LPGhatguy/luajit-request).  
+
+*License Information*  
+– *LuaJIT-Request is copyrighted to Lucien Greathouse and is licensed under zlib License. It is adapted to Aegisub environment with minimum modifications.*  

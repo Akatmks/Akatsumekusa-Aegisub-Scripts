@@ -22,9 +22,9 @@
 
 local versioning = {}
 
-versioning.name = "aka.ljsyscall"
-versioning.description = "Module aka.ljsyscall"
-versioning.version = "1.0.1"
+versioning.name = "ljsyscall"
+versioning.description = "Module ljsyscall"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.ljsyscall"
 

@@ -23,9 +23,9 @@
 
 local versioning = {}
 
-versioning.name = "aka.ortho-mo"
-versioning.description = "Macro aka.ortho-mo"
-versioning.version = "0.1.2"
+versioning.name = "Aegisub-Orthographic-Motion"
+versioning.description = "Apply frz fax motion"
+versioning.version = "0.1.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.ortho-mo"
 

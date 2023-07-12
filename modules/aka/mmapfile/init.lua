@@ -23,9 +23,9 @@
 
 local versioning = {}
 
-versioning.name = "aka.mmapfile"
-versioning.description = "Module aka.mmapfile"
-versioning.version = "1.0.1"
+versioning.name = "mmapfile"
+versioning.description = "Module mmapfile"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.mmapfile"
 

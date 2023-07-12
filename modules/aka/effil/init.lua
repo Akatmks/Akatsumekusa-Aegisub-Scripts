@@ -23,9 +23,9 @@
 
 local versioning = {}
 
-versioning.name = "aka.effil"
-versioning.description = "Module aka.effil"
-versioning.version = "1.0.3"
+versioning.name = "effil"
+versioning.description = "Module effil"
+versioning.version = "1.0.4"
 versioning.author = "Mikhail Kupriyanov, Ilia Udalov"
 versioning.namespace = "aka.effil"
 

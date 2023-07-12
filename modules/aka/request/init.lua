@@ -26,10 +26,10 @@ not be misrepresented as being the original software.
 
 local versioning = {}
 
-versioning.name = "aka.request"
-versioning.description = "Module aka.request"
-versioning.version = "1.0.9"
-versioning.author = "Lucien Greathouse"
+versioning.name = "request"
+versioning.description = "Module request"
+versioning.version = "1.0.10"
+versioning.author = "Lucien Greathouse, adapted to Aegisub environment by Akatsumekusa"
 versioning.namespace = "aka.request"
 
 versioning.requireModules = "[{ \"moduleName\": \"ffi\" }, { \"moduleName\": \"requireffi.requireffi\", \"version\": \"0.1.2\" }]"
