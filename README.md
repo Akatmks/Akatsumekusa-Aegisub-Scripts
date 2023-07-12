@@ -85,6 +85,12 @@ aka.dupe-and-not-comment:
 
 aka.BoundingBox adds either [SubInspector](https://github.com/TypesettingTools/SubInspector)-style or [text_extents](https://github.com/arch1t3cht/Aegisub/blob/master/automation/v4-docs/misc.txt)-style bounding box as rect clip to selected lines.  
 
+SubInspector:  
+![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/7bd79529-17bf-4d9c-ba87-5fef7bbee73e)
+
+aegisub.text_extents:  
+![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/ce2972d3-c4f5-481e-9c86-6b8a392882c0)
+
 ## aka.Cycles
 
 aka.Cycles is exactly the same as [ua.Cycles](https://github.com/unanimated/luaegisub) but with a configuration window inside Aegisub.  
