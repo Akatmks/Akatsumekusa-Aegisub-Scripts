@@ -1,6 +1,6 @@
 <table>
 <tr>
-<th align="center" colspan="2"><hr /><h3>Akatsumekusa-Aegisub-Scripts</h3><hr /></th>
+<th align="center" colspan="2"><hr /><h3>Table of Contents</h3><hr /></th>
 </tr><tr>
 <td>
 
