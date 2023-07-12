@@ -179,6 +179,9 @@ config_methods.read_edit_validate_and_save_config = function(self, config, confi
         :errOption()
     config_string = config_string
         :okOption()
+    if config_string:isNone() then
+        error = none()
+    end
 
     while true do
         config_string = self:edit_config(config_string, error)
@@ -233,6 +236,9 @@ config_methods.read_and_validate_config_or_else_edit_and_save = function(self, c
     end
     config_string = config_string
         :okOption()
+    if config_string:isNone() then
+        error = none()
+    end
 
     while true do    
         config_string = self:edit_config(config_string, error)

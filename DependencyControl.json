@@ -14,12 +14,15 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/NN.fanhua.lua",
-                            "sha1": "8f83fef7fc8dc3b08ed3ff4ac16da63121da133a"
+                            "sha1": "3dd6788dcefc0bc7f7299b0d838e09056ea643a0"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requireModules": [
+                        {
+                            "moduleName": "json"
+                        },
                         {
                             "moduleName": "aka.request"
                         },
@@ -40,7 +43,7 @@
                             "optional": true
                         }
                     ],
-                    "released": "2023-07-11"
+                    "released": "2023-07-12"
                 }
             },
             "author": "Akatsumekusa",
@@ -55,10 +58,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.BackupSelection.lua",
-                            "sha1": "707d85892d0e7c34521608dba6235425f13b92c0"
+                            "sha1": "7de9faad447b82a148fbe511b8edeb3292bfe8de"
                         }
                     ],
-                    "version": "1.0.7",
+                    "version": "1.0.8",
                     "default": true,
                     "requireModules": [
                         {
@@ -72,7 +75,7 @@
                             "optional": true
                         }
                     ],
-                    "released": "2023-07-11"
+                    "released": "2023-07-12"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -87,10 +90,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}/macros/aka.BoundingBox.moon",
-                            "sha1": "df712c81f6faa761ebe5c8ca2bfa7ba0c9d60b21"
+                            "sha1": "9bb29e202dbdb49973b0e01c4292b3ed2179f7fc"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requireModules": [
                         {
@@ -103,7 +106,7 @@
                             "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-07-11"
+                    "released": "2023-07-12"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -153,12 +156,12 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.dupe-and-not-comment.lua",
-                            "sha1": "7fb1190f65dcac498994169b18c2935f75f0dd88"
+                            "sha1": "6c7440d8cd1fff060c63b1d96e6fbec542a1b158"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
-                    "released": "2023-07-11"
+                    "released": "2023-07-12"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -228,15 +231,15 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "b52d0177dc87a93ca1e8d81e3cda52ef09cf4dc4"
+                            "sha1": "d3689b4db550a9887ebcfffcd5ddf40287d5fd9b"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "6e311d633745f11a90bd6035f7d5bd6d2debf87d"
+                            "sha1": "de76a3cb40a0ef80b1af22b1b0626f4e97141e2a"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requireModules": [
                         {
@@ -252,7 +255,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-07-11"
+                    "released": "2023-07-12"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -353,22 +356,639 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/effil/init.lua",
-                            "sha1": "72fad1ba1a68d90ed914bbc4f20e85549f1c81e7"
+                            "sha1": "7eaea05b8deff32928b9f950a749cfab485ab473"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ffi"
+                        },
+                        {
+                            "moduleName": "requireffi.requireffi",
+                            "version": "0.1.2"
+                        }
+                    ],
+                    "released": "2023-07-12"
+                }
+            },
+            "author": "Mikhail Kupriyanov, Ilia Udalov",
+            "name": "aka.effil",
+            "description": "Module aka.effil",
+            "url": "@{baseUrl}"
+        },
+        "aka.ljsyscall": {
+            "channels": {
+                "rc": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/init.lua",
+                            "sha1": "04d43b9ea37b584cf6103fc1c32e071e967d3295"
+                        },
+                        {
+                            "name": "/syscall.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall.lua",
+                            "sha1": "a13c16fb5bfa6eaf63b02bd27f8b6d99211d2ea7"
+                        },
+                        {
+                            "name": "/syscall/abi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/abi.lua",
+                            "sha1": "185929403479873e8de005323ecc6120cdaceb3e"
+                        },
+                        {
+                            "name": "/syscall/bit.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/bit.lua",
+                            "sha1": "25cc2fc2863bfe6c7b443ddc919491ab76949e2a"
+                        },
+                        {
+                            "name": "/syscall/bsd/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/bsd/ffi.lua",
+                            "sha1": "075b8888103bad7997d08c29d5e61b5b96b37349"
+                        },
+                        {
+                            "name": "/syscall/bsd/syscalls.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/bsd/syscalls.lua",
+                            "sha1": "42ae34395112a07780a68e6b1253840f91bcabc6"
+                        },
+                        {
+                            "name": "/syscall/bsd/types.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/bsd/types.lua",
+                            "sha1": "ec2b19450add8e10c8219aefb81b201d9b290442"
+                        },
+                        {
+                            "name": "/syscall/compat.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/compat.lua",
+                            "sha1": "d93c6ccc7539dd46d8202a8753e14b10163a8ab4"
+                        },
+                        {
+                            "name": "/syscall/ffitypes.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/ffitypes.lua",
+                            "sha1": "571ace00b352aefbaa4eb9ea681c7576e49e0883"
+                        },
+                        {
+                            "name": "/syscall/freebsd/c.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/c.lua",
+                            "sha1": "2ac8f59baa1088c97c6a7730e74f996d230690b4"
+                        },
+                        {
+                            "name": "/syscall/freebsd/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/constants.lua",
+                            "sha1": "296db52e7deea12c28976fd70e6244b94719d448"
+                        },
+                        {
+                            "name": "/syscall/freebsd/errors.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/errors.lua",
+                            "sha1": "16afe4adccabb592f5e2066e2753c37620f6b5d2"
+                        },
+                        {
+                            "name": "/syscall/freebsd/fcntl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/fcntl.lua",
+                            "sha1": "66cbe537a176e9a96d62673717161afdde9ad094"
+                        },
+                        {
+                            "name": "/syscall/freebsd/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/ffi.lua",
+                            "sha1": "347a83dff9dfa5f3ca1089369fd021864c6418b1"
+                        },
+                        {
+                            "name": "/syscall/freebsd/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/ioctl.lua",
+                            "sha1": "6b306297423f276f2c133dcd626a83e496c0f13a"
+                        },
+                        {
+                            "name": "/syscall/freebsd/syscalls.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/syscalls.lua",
+                            "sha1": "a8c3ea6da660e7442d2bcfc30c3e9737b712e93f"
+                        },
+                        {
+                            "name": "/syscall/freebsd/sysctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/sysctl.lua",
+                            "sha1": "74b680f3c98b2c0155ddd20177445a6df721f0f1"
+                        },
+                        {
+                            "name": "/syscall/freebsd/types.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/types.lua",
+                            "sha1": "3c954139b233392d6ea1fdaa2824bc2adaa76ea9"
+                        },
+                        {
+                            "name": "/syscall/freebsd/util.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/util.lua",
+                            "sha1": "360f55a0e6951cb3227b14dc48daae8a9c415171"
+                        },
+                        {
+                            "name": "/syscall/freebsd/version.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/freebsd/version.lua",
+                            "sha1": "6250d46090cf058b5eb67b6150d25cb5e7a5f28c"
+                        },
+                        {
+                            "name": "/syscall/helpers.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/helpers.lua",
+                            "sha1": "03b146e78893da6c5788c7fda593117d378e3524"
+                        },
+                        {
+                            "name": "/syscall/lfs.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/lfs.lua",
+                            "sha1": "4650092d5e456d9784aa60780ac615022913da39"
+                        },
+                        {
+                            "name": "/syscall/libc.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/libc.lua",
+                            "sha1": "b955834e4f04ae84783e2e975002f74dc0530587"
+                        },
+                        {
+                            "name": "/syscall/linux/arm/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/arm/constants.lua",
+                            "sha1": "b4c8fc57b353455160b6b77f400c0289905a335c"
+                        },
+                        {
+                            "name": "/syscall/linux/arm/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/arm/ffi.lua",
+                            "sha1": "152a0d362ed270b67afe8f41e3f08a806056f19d"
+                        },
+                        {
+                            "name": "/syscall/linux/arm/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/arm/ioctl.lua",
+                            "sha1": "c07b225eeb5e39e952f4e716b6a378e72aa4e9a1"
+                        },
+                        {
+                            "name": "/syscall/linux/arm/nr.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/arm/nr.lua",
+                            "sha1": "5074a398c2dfb88a24bdd95135d2011d3b3212c2"
+                        },
+                        {
+                            "name": "/syscall/linux/arm64/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/arm64/constants.lua",
+                            "sha1": "a6c6baaa8555ef610983e32dfd665896c16dafee"
+                        },
+                        {
+                            "name": "/syscall/linux/arm64/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/arm64/ffi.lua",
+                            "sha1": "517ee74b439188c7820e5367b93b8546490f7e14"
+                        },
+                        {
+                            "name": "/syscall/linux/arm64/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/arm64/ioctl.lua",
+                            "sha1": "0e8ab412415d638f6d10083af3826f04b1c1857a"
+                        },
+                        {
+                            "name": "/syscall/linux/arm64/nr.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/arm64/nr.lua",
+                            "sha1": "7cb1d33142df55bf46a840763436168237f55381"
+                        },
+                        {
+                            "name": "/syscall/linux/c.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/c.lua",
+                            "sha1": "882bc6564a4d2ee63229b48adc491750b78bfdd8"
+                        },
+                        {
+                            "name": "/syscall/linux/cgroup.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/cgroup.lua",
+                            "sha1": "efac6478474495124c85db597f46932b8e5ed0d3"
+                        },
+                        {
+                            "name": "/syscall/linux/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/constants.lua",
+                            "sha1": "c61e678f86697e3a8328aed7cd692245de01a888"
+                        },
+                        {
+                            "name": "/syscall/linux/errors.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/errors.lua",
+                            "sha1": "7db295183c0db0eca7ac5fbe15fec912d1555c5f"
+                        },
+                        {
+                            "name": "/syscall/linux/fcntl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/fcntl.lua",
+                            "sha1": "ad644a44e361389263b4d98b28b880a3f02a0f15"
+                        },
+                        {
+                            "name": "/syscall/linux/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/ffi.lua",
+                            "sha1": "7c1426e7239ec4b3586585839612650c0315d0c7"
+                        },
+                        {
+                            "name": "/syscall/linux/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/ioctl.lua",
+                            "sha1": "cf112f9571a78095eadb9970d59974f3db6ce053"
+                        },
+                        {
+                            "name": "/syscall/linux/mips/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/mips/constants.lua",
+                            "sha1": "dc540d6773d02ee0b0db62aa6f68a8ba9e990cd3"
+                        },
+                        {
+                            "name": "/syscall/linux/mips/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/mips/ffi.lua",
+                            "sha1": "a63952f5b9c97aad29fa0be06965a06b278dc37f"
+                        },
+                        {
+                            "name": "/syscall/linux/mips/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/mips/ioctl.lua",
+                            "sha1": "9e9e06079f3ee0f01571881b098e5ccabd09edb6"
+                        },
+                        {
+                            "name": "/syscall/linux/mips/nr.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/mips/nr.lua",
+                            "sha1": "59545799ad335e3514206adb213434869fa3fdf5"
+                        },
+                        {
+                            "name": "/syscall/linux/mipsel",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/mipsel",
+                            "sha1": "fb4dee53913412775d040c51e1b2ba0f0483450f"
+                        },
+                        {
+                            "name": "/syscall/linux/netfilter.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/netfilter.lua",
+                            "sha1": "703cd13e7092faaf3eae97a5043432b466898d46"
+                        },
+                        {
+                            "name": "/syscall/linux/nl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/nl.lua",
+                            "sha1": "d623408ea6a505f9471d052a51ea412e8a13f890"
+                        },
+                        {
+                            "name": "/syscall/linux/nr.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/nr.lua",
+                            "sha1": "373020c68e7fa4af8d245769fa94d620c5c65c2c"
+                        },
+                        {
+                            "name": "/syscall/linux/ppc/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/ppc/constants.lua",
+                            "sha1": "945f45c4ca2418aa782f6ee98d6408e8f3e89bed"
+                        },
+                        {
+                            "name": "/syscall/linux/ppc/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/ppc/ffi.lua",
+                            "sha1": "077ce855d95d84ada291a3e6d202f5355f863b46"
+                        },
+                        {
+                            "name": "/syscall/linux/ppc/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/ppc/ioctl.lua",
+                            "sha1": "e2bb10d5c07d024c0868851e236787113eb09ad4"
+                        },
+                        {
+                            "name": "/syscall/linux/ppc/nr.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/ppc/nr.lua",
+                            "sha1": "d6a4bb862b1b13e057ffe6f76a469d1eca8d3fcb"
+                        },
+                        {
+                            "name": "/syscall/linux/ppc64le/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/ppc64le/constants.lua",
+                            "sha1": "945f45c4ca2418aa782f6ee98d6408e8f3e89bed"
+                        },
+                        {
+                            "name": "/syscall/linux/ppc64le/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/ppc64le/ffi.lua",
+                            "sha1": "fc2c74e85c84e506cb93d7db71495144b2cb004e"
+                        },
+                        {
+                            "name": "/syscall/linux/ppc64le/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/ppc64le/ioctl.lua",
+                            "sha1": "be8133ad6e78b87828b0984de72e59788728b79a"
+                        },
+                        {
+                            "name": "/syscall/linux/ppc64le/nr.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/ppc64le/nr.lua",
+                            "sha1": "fb704ceb61c47f11ef70ec8aa2b7c77ff36f01c9"
+                        },
+                        {
+                            "name": "/syscall/linux/sockopt.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/sockopt.lua",
+                            "sha1": "46f6747f9e0f132d98b5ae6101bcd9460153e505"
+                        },
+                        {
+                            "name": "/syscall/linux/syscalls.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/syscalls.lua",
+                            "sha1": "edeac8f6a61e24b4e63c29c2918f61b8690f3083"
+                        },
+                        {
+                            "name": "/syscall/linux/types.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/types.lua",
+                            "sha1": "a86f87cffa3f8088c43b5ae17a283a98ba291b26"
+                        },
+                        {
+                            "name": "/syscall/linux/util.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/util.lua",
+                            "sha1": "7fbdc5a7ec32399ee7224950cbd88af124b2e009"
+                        },
+                        {
+                            "name": "/syscall/linux/x64/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/x64/constants.lua",
+                            "sha1": "593711d3ef88cc3e659a0a62bbe602eb7bb44e33"
+                        },
+                        {
+                            "name": "/syscall/linux/x64/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/x64/ffi.lua",
+                            "sha1": "71df62a947064d7c160e3e610a40e278f74b10fc"
+                        },
+                        {
+                            "name": "/syscall/linux/x64/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/x64/ioctl.lua",
+                            "sha1": "6eaec54f6725c31eaf40a1d19877768e31db89f8"
+                        },
+                        {
+                            "name": "/syscall/linux/x64/nr.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/x64/nr.lua",
+                            "sha1": "8476354d7075fea4d89d21fe07fd339a62452ef9"
+                        },
+                        {
+                            "name": "/syscall/linux/x86/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/x86/constants.lua",
+                            "sha1": "b616bcacc854099733719dd550d436e72c3bff5e"
+                        },
+                        {
+                            "name": "/syscall/linux/x86/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/x86/ffi.lua",
+                            "sha1": "baaec9da101812573ec241d47887a440033eaa50"
+                        },
+                        {
+                            "name": "/syscall/linux/x86/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/x86/ioctl.lua",
+                            "sha1": "6b0aa69eb4b535d4eb81aa61fe66671cf0e79600"
+                        },
+                        {
+                            "name": "/syscall/linux/x86/nr.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/linux/x86/nr.lua",
+                            "sha1": "2886a211fb8de4fc54dee0585f0b5f7794e8c484"
+                        },
+                        {
+                            "name": "/syscall/methods.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/methods.lua",
+                            "sha1": "533d80ef0f8fed40c88de34a14b30721644651b7"
+                        },
+                        {
+                            "name": "/syscall/netbsd/c.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/c.lua",
+                            "sha1": "3c757cf8f24758487d0bc6957b3ba4ac8b4c1854"
+                        },
+                        {
+                            "name": "/syscall/netbsd/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/constants.lua",
+                            "sha1": "2a85402eea7282411157103571d7578cb9c573ac"
+                        },
+                        {
+                            "name": "/syscall/netbsd/errors.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/errors.lua",
+                            "sha1": "8f9e654d6e3bff213b29fa618c039ae8d595bc44"
+                        },
+                        {
+                            "name": "/syscall/netbsd/fcntl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/fcntl.lua",
+                            "sha1": "bd7fce22b4f73ff5ed0f56559d7e0b466fcf52a8"
+                        },
+                        {
+                            "name": "/syscall/netbsd/ffifunctions.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/ffifunctions.lua",
+                            "sha1": "33e12b05a08f70211cb677cd1bac94a0a2d3dbd8"
+                        },
+                        {
+                            "name": "/syscall/netbsd/ffitypes.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/ffitypes.lua",
+                            "sha1": "a8f34c2a1a6d179a60afe799d9fc830265dd1ed1"
+                        },
+                        {
+                            "name": "/syscall/netbsd/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/init.lua",
+                            "sha1": "064bdfb8f224f6c6089025489c6ee3f9d7d8333b"
+                        },
+                        {
+                            "name": "/syscall/netbsd/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/ioctl.lua",
+                            "sha1": "9d8bc989e5f293c9333cea124351bb9ea95773dc"
+                        },
+                        {
+                            "name": "/syscall/netbsd/nr.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/nr.lua",
+                            "sha1": "e87a27c1f3b413e4dcccc59eb954f0e83b9dd8d2"
+                        },
+                        {
+                            "name": "/syscall/netbsd/syscalls.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/syscalls.lua",
+                            "sha1": "8de0bbd08d0d3a5bd6adf3bb0b1fa310a86246a1"
+                        },
+                        {
+                            "name": "/syscall/netbsd/sysctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/sysctl.lua",
+                            "sha1": "056f83c79f59f635398ae5a3ff4508d87673472a"
+                        },
+                        {
+                            "name": "/syscall/netbsd/types.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/types.lua",
+                            "sha1": "5d3e6c951704faa1f0260939cbe92b8f159d1e4d"
+                        },
+                        {
+                            "name": "/syscall/netbsd/util.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/util.lua",
+                            "sha1": "f4f6919c89da030d01e6d4cfac8a554aed658adb"
+                        },
+                        {
+                            "name": "/syscall/netbsd/version.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/netbsd/version.lua",
+                            "sha1": "02405e7419abe01e48ec9c1a62ae9c88b4bceb8a"
+                        },
+                        {
+                            "name": "/syscall/openbsd/c.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/c.lua",
+                            "sha1": "9442c08a4550ae26075cc636aed8ab8c7b2da5a7"
+                        },
+                        {
+                            "name": "/syscall/openbsd/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/constants.lua",
+                            "sha1": "d245102370168118aaa201e97fafff617663152c"
+                        },
+                        {
+                            "name": "/syscall/openbsd/errors.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/errors.lua",
+                            "sha1": "1af235d9de2504483f0df327506eb17e7f315de8"
+                        },
+                        {
+                            "name": "/syscall/openbsd/fcntl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/fcntl.lua",
+                            "sha1": "dba76c3bb3be1833321f58c0a7f419d2c91b3b83"
+                        },
+                        {
+                            "name": "/syscall/openbsd/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/ffi.lua",
+                            "sha1": "f10638e2fd47b0acc5a718b4aadf18fd7d8cfd75"
+                        },
+                        {
+                            "name": "/syscall/openbsd/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/ioctl.lua",
+                            "sha1": "6cea2b8ff0de9d444f5a4f6e300a2a8660c812f4"
+                        },
+                        {
+                            "name": "/syscall/openbsd/syscalls.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/syscalls.lua",
+                            "sha1": "33c5fda82c52cd891a63dd697310a3d54f426254"
+                        },
+                        {
+                            "name": "/syscall/openbsd/sysctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/sysctl.lua",
+                            "sha1": "8cc9d6c3f8ea27a907c33a8e6d56fec31af8e0dc"
+                        },
+                        {
+                            "name": "/syscall/openbsd/types.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/types.lua",
+                            "sha1": "9ad8775b4e6ae7ef863fd18656c0f957f09b8b7f"
+                        },
+                        {
+                            "name": "/syscall/openbsd/util.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/util.lua",
+                            "sha1": "406932153ccb0b03443511624c13eba1d359d238"
+                        },
+                        {
+                            "name": "/syscall/openbsd/version.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/openbsd/version.lua",
+                            "sha1": "a47399d340d4e859db8c9f597c916108af8cd1c8"
+                        },
+                        {
+                            "name": "/syscall/osx/c.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/osx/c.lua",
+                            "sha1": "81745f93ad83fb91694ddedbd56b6669c2166fe6"
+                        },
+                        {
+                            "name": "/syscall/osx/constants.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/osx/constants.lua",
+                            "sha1": "86914c7ed5554d9fe2a26a02f2b34a774b3868cf"
+                        },
+                        {
+                            "name": "/syscall/osx/errors.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/osx/errors.lua",
+                            "sha1": "43f917d46c0e15fc52487642098721bf570b3f98"
+                        },
+                        {
+                            "name": "/syscall/osx/fcntl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/osx/fcntl.lua",
+                            "sha1": "dd482592c940998cc71efc9692e7e263c2145878"
+                        },
+                        {
+                            "name": "/syscall/osx/ffi.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/osx/ffi.lua",
+                            "sha1": "de047ed9bb202004f3ad8dd52e079321c495d9d8"
+                        },
+                        {
+                            "name": "/syscall/osx/ioctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/osx/ioctl.lua",
+                            "sha1": "9848acbf0e4759b8e8b49ddc6549a046d5d259df"
+                        },
+                        {
+                            "name": "/syscall/osx/syscalls.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/osx/syscalls.lua",
+                            "sha1": "aaabe311272c701443a117c37316a074368b7401"
+                        },
+                        {
+                            "name": "/syscall/osx/sysctl.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/osx/sysctl.lua",
+                            "sha1": "71a3f038c664a826f9e966a40a91b58b578eda0a"
+                        },
+                        {
+                            "name": "/syscall/osx/types.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/osx/types.lua",
+                            "sha1": "820eb9e2ca7b86347abd567d025f9e23151721d2"
+                        },
+                        {
+                            "name": "/syscall/osx/util.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/osx/util.lua",
+                            "sha1": "cd3e9367f4276fc84d50cdcdc74fb60d50284716"
+                        },
+                        {
+                            "name": "/syscall/rump/c.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/rump/c.lua",
+                            "sha1": "f7ee6f2e24aafb6620c5636af6702ad4fed521a3"
+                        },
+                        {
+                            "name": "/syscall/rump/ffirump.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/rump/ffirump.lua",
+                            "sha1": "82a6c7fbd377d61b504718e2bcf2ae98c5900450"
+                        },
+                        {
+                            "name": "/syscall/rump/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/rump/init.lua",
+                            "sha1": "2ce8e0ac3628d3b59cc8a3ff69fc33cf649a0a27"
+                        },
+                        {
+                            "name": "/syscall/shared/types.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/shared/types.lua",
+                            "sha1": "48f0d2f5b7b2ab64b19613cc05eff77664b8695c"
+                        },
+                        {
+                            "name": "/syscall/syscalls.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/syscalls.lua",
+                            "sha1": "e9383a45e02472933dec1c5e23a0c3d4ae24cf9b"
+                        },
+                        {
+                            "name": "/syscall/types.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/types.lua",
+                            "sha1": "01361d2636eeff7700d78a604fea090f537e01ad"
+                        },
+                        {
+                            "name": "/syscall/util.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/ljsyscall/syscall/util.lua",
+                            "sha1": "efd84164fb14b18f9f351d1e2a40f1b0c04119b1"
+                        }
+                    ],
+                    "version": "1.0.1",
                     "default": true,
                     "requireModules": [
                         {
                             "moduleName": "ffi"
                         }
                     ],
-                    "released": "2023-07-11"
+                    "released": "2023-07-12"
                 }
             },
             "author": "Akatsumekusa and contributors",
-            "name": "aka.effil",
-            "description": "Module aka.effil",
+            "name": "aka.ljsyscall",
+            "description": "Module aka.ljsyscall",
+            "url": "@{baseUrl}"
+        },
+        "aka.mmapfile": {
+            "channels": {
+                "rc": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/mmapfile/init.lua",
+                            "sha1": "577e5d22925fe6ade6c7650536e0231b15526563"
+                        },
+                        {
+                            "name": "/mmapfile.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/mmapfile/mmapfile.lua",
+                            "sha1": "86d000c7d16679cce9346997a652d6770c26ee93"
+                        },
+                        {
+                            "name": "/mmapfile/string_list.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/mmapfile/mmapfile/string_list.lua",
+                            "sha1": "da678cf4eeea4614e576aadf7559287d608cc381"
+                        },
+                        {
+                            "name": "/mmapfile/unix.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/mmapfile/mmapfile/unix.lua",
+                            "sha1": "c9c7abe5aa4cdaa4ed992f97c0521f874907e61c"
+                        },
+                        {
+                            "name": "/mmapfile/windows.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/mmapfile/mmapfile/windows.lua",
+                            "sha1": "bc1b7b49908ae03fb83a155ed8c95ae9249522c7"
+                        }
+                    ],
+                    "version": "1.0.1",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ffi"
+                        },
+                        {
+                            "moduleName": "aka.ljsyscall"
+                        }
+                    ],
+                    "released": "2023-07-12"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.mmapfile",
+            "description": "Module aka.mmapfile",
             "url": "@{baseUrl}"
         },
         "aka.optimising": {
@@ -378,10 +998,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/optimising/init.lua",
-                            "sha1": "3aadecd091fa196a5e521d2e18361442f73b4187"
+                            "sha1": "9428d5d4d0a66d1fdb20c3db8d6af627b51086d9"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requireModules": [
                         {
@@ -391,7 +1011,7 @@
                             "moduleName": "PT.PreciseTimer"
                         }
                     ],
-                    "released": "2023-07-11"
+                    "released": "2023-07-12"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -406,15 +1026,15 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/outcome/init.lua",
-                            "sha1": "a579f409ce518d55d3032858a2169baf1f4d3ccf"
+                            "sha1": "85dbd7bee9000276699e44ef8581f52c059f5f4b"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
-                    "released": "2023-07-11"
+                    "released": "2023-07-12"
                 }
             },
-            "author": "Akatsumekusa and contributors",
+            "author": "Michael Dowling, modified by Akatsumekusa",
             "name": "aka.outcome",
             "description": "Module aka.outcome",
             "url": "@{baseUrl}"
@@ -472,10 +1092,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
-                            "sha1": "63ec6cd96d121524ca8375de8e2cc8179eb350ca"
+                            "sha1": "f2746b33d3cd2dd6096e162297792922d0a73d22"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requireModules": [
                         {
@@ -483,9 +1103,18 @@
                         },
                         {
                             "moduleName": "aka.outcome"
+                        },
+                        {
+                            "moduleName": "aka.mmapfile"
+                        },
+                        {
+                            "moduleName": "aka.effil"
+                        },
+                        {
+                            "moduleName": "ffi"
                         }
                     ],
-                    "released": "2023-07-11"
+                    "released": "2023-07-12"
                 }
             },
             "author": "Akatsumekusa and contributors",

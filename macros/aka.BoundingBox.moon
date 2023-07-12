@@ -24,7 +24,7 @@
 versioning =
     name: "BoundingBox"
     description: "Create a clip of the bounding box of the subtitle line"
-    version: "1.0.2"
+    version: "1.0.3"
     author: "Akatsumekusa and contributors"
     namespace: "aka.BoundingBox"
     requireModules: "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"SubInspector.Inspector\" }, { \"moduleName\": \"aka.outcome\" }]"
@@ -82,7 +82,7 @@ inspector_main = (sub, sel, act) ->
     ass = Ass sub, sel, activeLine
     inspector = o(Inspector sub)\unwrap!
 
-    for l, line, s, i, n in ass\iterSel! true
+    for l, line, s, i, n in ass\iterSel true
         ass\progressLine s, i, n
         Line.process ass, line
         bounds = o(inspector\getBounds { l })\unwrap![1][1]

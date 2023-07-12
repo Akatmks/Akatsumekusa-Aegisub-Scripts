@@ -20,11 +20,11 @@ local versioning = {}
 
 versioning.name = "NN.fanhua"
 versioning.description = "Macro NN.fanhua"
-versioning.version = "1.0.2"
+versioning.version = "1.0.3"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.fanhua"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.optimising\", \"optional\": True }]"
+versioning.requireModules = "[{ \"moduleName\": \"json\" }, { \"moduleName\": \"aka.request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.optimising\", \"optional\": True }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -43,6 +43,7 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
+            { "json" },
             { "aka.request" },
             { "aka.config" },
             { "aka.outcome" },
@@ -52,6 +53,7 @@ if hasDepCtrl then
         }
     }):requireModules()
 end
+local json = require("json")
 local request = require("aka.request")
 local aactor = require("aka.actor")
 local aconfig = require("aka.config")
@@ -66,7 +68,7 @@ Detect = function(line)
     local return_
 
     return_ = false
-    for _, flag in ipairs(aactor._flags("")) do
+    for _, flag in ipairs(aactor._flags(line, "")) do
         if flag["body"] == "chs" then
             if return_ == false then return_ = "chs"
             else return false end
@@ -141,7 +143,7 @@ local validation_func
 local Config
 local ConfigTarget
 aconfig = aconfig.make_editor({
-    display_name = "fanhua",
+    display_name = "zhconvert",
     presets = {
         ["SweetSub"] = {
             converter = "Taiwan",
@@ -172,8 +174,8 @@ validation_func = function(configd)
         msg = "Root object not found"
     else
         if configd.converter == nil then
-            if not msg then msg = "Key \"converter\" is required by zhconvert\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\""
-            else msg = msg .. "\n" .. "Key \"converter\" is required by zhconvert\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\"" end
+            if not msg then msg = "Key \"converter\" is required by zhconvert\nSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\""
+            else msg = msg .. "\n" .. "Key \"converter\" is required by zhconvert\nSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\"" end
         elseif configd.converter ~= "Simplified" and
                configd.converter ~= "Traditional" and
                configd.converter ~= "China" and
@@ -184,8 +186,8 @@ validation_func = function(configd)
                configd.converter ~= "Mars" and
                configd.converter ~= "WikiSimplified" and
                configd.converter ~= "WikiTraditional" then
-            if not msg then msg = "Invalid value for key \"converter\"\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\""
-            else msg = msg .. "\n" .. "Invalid value for key \"converter\"\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\"" end
+            if not msg then msg = "Invalid value for key \"converter\"\nSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\""
+            else msg = msg .. "\n" .. "Invalid value for key \"converter\"\nSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\"" end
         end
         if configd.text ~= nil then
             if not msg then msg = "Key \"text\" should be left nil for the script to fill"
@@ -272,7 +274,7 @@ LoadLines = function(sub, sel)
 
     lines = {}
     fanhua = ""
-    for i in 1, #sel do
+    for i = 1, #sel do
         if hasOptimising then optimising.lap("Loading line " .. tostring(i)) end
 
         lines[i] = sub[sel[i]]
@@ -282,29 +284,38 @@ LoadLines = function(sub, sel)
     return lines, fanhua
 end
 FanhuaLines = function(fanhua)
-    local ensureNewlineAtEof_
+    local data
     local response
     local err
     local msg
 
-    ensureNewlineAtEof_ = config.ensureNewlineAtEof
-    config.ensureNewlineAtEof = true
-    config.text = fanhua
-    response, err, msg = request.send("https://api.zhconvert.org/convert", config)
-    config.ensureNewlineAtEof = ensureNewlineAtEof_
-    config.text = nil
+    data = {}
+    for k, v in pairs(config) do
+        if type(v) == "string" then data[k] = v
+        elseif type(v) == "table" then data[k] = json.encode(v)
+        else data[k] = tostring(v) end
+    end
+    data.text = fanhua
+    data.ensureNewlineAtEof = "true"
+    response, err, msg = request.send("https://api.zhconvert.org/convert", { method = "GET", data = data })
 
     if not response then
-        aegisub.debug.out("[NN.fanhua] Request failed with code " .. tostring(err) .. "\n")
-        aegisub.debug.out("[NN.fanhua] " .. tostring(err) .. msg .. "\n")
+        aegisub.debug.out("[NN.fanhua] Request failed with error " .. tostring(err) .. "\n")
+        aegisub.debug.out("[NN.fanhua] " .. tostring(err) .. " " .. tostring(msg) .. "\n")
         aegisub.cancel()
-    elseif response.code ~= 0 then
-        aegisub.debug.out("[NN.fanhua] zhconvert responded with code " .. tostring(response.code) .. "\n")
-        aegisub.debug.out("[NN.fanhua] " .. tostring(response.code) .. response.msg .. "\n")
+    elseif response.code ~= 200 then
+        aegisub.debug.out("[NN.fanhua] Request failed with code " .. tostring(response.code) .. "\n")
+        aegisub.debug.out("[NN.fanhua] " .. tostring(response.code) .. " " .. tostring(response.body) .. "\n")
+        aegisub.cancel()
+    end
+    data = json.decode(response.body)
+    if data.code ~= 0 then
+        aegisub.debug.out("[NN.fanhua] zhconvert responded with code " .. tostring(data.code) .. "\n")
+        aegisub.debug.out("[NN.fanhua] " .. tostring(data.code) .. " " .. tostring(data.msg) .. "\n")
         aegisub.cancel()
     end
 
-    return response.data.text
+    return data.data.text
 end
 ApplyLines = function(sub, sel, act, ctarget, lines, fanhua)
     local i
@@ -336,18 +347,18 @@ ApplyLinesApply = function(sub, sel, act, ctarget, lines, fanhua, i, j)
 
     for k = i, j do
         if ctarget == "chs" then
-            lines[i][aactor.field:value()] = "cht"
-            comment_ = lines[i].comment
-            lines[i].comment = true
-            sub[sel[i]] = lines[i]
-            lines[i].comment = comment_
+            lines[k][aactor.field:value()] = "cht"
+            comment_ = lines[k].comment
+            lines[k].comment = true
+            sub[sel[k]] = lines[k]
+            lines[k].comment = comment_
 
         elseif ctarget == "cht" then
-            lines[i][aactor.field:value()] = "chs"
-            comment_ = lines[i].comment
-            lines[i].comment = true
-            sub[sel[i]] = lines[i]
-            lines[i].comment = comment_
+            lines[k][aactor.field:value()] = "chs"
+            comment_ = lines[k].comment
+            lines[k].comment = true
+            sub[sel[k]] = lines[k]
+            lines[k].comment = comment_
     end end
     
     fanhuas = {}
@@ -365,11 +376,12 @@ ApplyLinesApply = function(sub, sel, act, ctarget, lines, fanhua, i, j)
         end
         lines[k].text = fanhuas[k]
         
-        sub[-j] = lines[k]
+        sub[-sel[j]-1] = lines[k]
     end
-
-    for k in ipairs(sel) do sel[k] = select(sel[k], sel[i], sel[j]) end
-    act = select(act, sel[i], sel[j])
+    
+    i = sel[i] j = sel[j]
+    for k in ipairs(sel) do sel[k] = select(sel[k], i, j) end
+    act = select(act, i, j)
     return sel, act
 end
 
@@ -387,7 +399,7 @@ Field = function()
                { class = "label",                           x = 1, y = 1, width = 5,
                                                             label = "Field: " },
                { class = "dropdown", name = "field",        x = 6, y = 1, width = 6,
-                                                            items = { "Actor", "Effect", "Style" }, value = re.sub(aactor.field:field(), "^\\w", string.upper) },
+                                                            items = { "Actor", "Effect", "Style" }, value = re.sub(aactor.field:value(), "^\\w", string.upper) },
                { class = "label",                           x = 0, y = 2, width = 24,
                                                             label = "This setting will apply to all NN and aka scripts." } }
     buttons = { "&Apply", "Close" }
@@ -397,16 +409,16 @@ Field = function()
 
     if button == false or button == "Close" then aegisub.cancel()
     elseif button == "&Apply" then
-        aactor.field:setField(string.lower(result_table["field"]))
+        aactor.field:setValue(string.lower(result_table["field"]))
 end end
 
 
 if hasDepCtrl then
     DepCtrl:registerMacros({
-        { "fanhua", "fanhua selected lines", Fanhua },
-        { "Switch chs and cht", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST },
-        { "Edit zhconvert settings", "Edit zhconvert settings", EditConfig },
-        { "Edit flag settings", "Change where chs and cht flags are placed", Field }
+        { "fanhua/fanhua", "fanhua selected lines", Fanhua },
+        { "fanhua/Switch chs and cht", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST },
+        { "fanhua/Edit zhconvert settings", "Edit zhconvert settings", EditConfig },
+        { "fanhua/Edit flag settings", "Change where chs and cht flags are placed", Field }
     })
 else
     aegisub.register_macro("fanhua/fanhua", "fanhua selected lines", Fanhua)

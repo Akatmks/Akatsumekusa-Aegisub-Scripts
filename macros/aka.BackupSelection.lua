@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "BackupSelection"
 versioning.description = "Backup selected lines"
-versioning.version = "1.0.7"
+versioning.version = "1.0.8"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.BackupSelection"
 
@@ -160,7 +160,7 @@ if hasDepCtrl then
         { "Backup", "Backup selected lines", Backup },
         { "Edit settings", "Edit backup settings", Field }
     })
-else
-    aegisub.register_macro("BackupSelection/Backup", "Backup selected lines", Backup)
-    aegisub.register_macro("BackupSelection/Edit settings", "Edit backup settings", Field)
+-- else
+--     aegisub.register_macro("BackupSelection/Backup", "Backup selected lines", Backup)
+--     aegisub.register_macro("BackupSelection/Edit settings", "Edit backup settings", Field)
 end

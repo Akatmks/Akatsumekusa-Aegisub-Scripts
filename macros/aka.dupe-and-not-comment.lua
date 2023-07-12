@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Dupe and Not Comment"
 versioning.description = "Duplicate selected line line by line"
-versioning.version = "1.0.2"
+versioning.version = "1.0.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.dupe-and-not-comment"
 
@@ -52,7 +52,7 @@ local Dupe
 
 Dupe = function(sub, sel, act)
     for i=#sel,1,-1 do
-        sub[-i] = sub[i]
+        sub[-sel[i]] = sub[sel[i]]
 
         if act == sel[i] then
             sel[i] = sel[i] + i - 1
@@ -66,8 +66,8 @@ end
 
 if hasDepCtrl then
     DepCtrl:registerMacros({
-        { "Dupe and Not Comment", "Duplicate selected line line by line", Dupe }
+        { "Do", "Duplicate selected line line by line", Dupe }
     })
 else
-    aegisub.register_macro("Dupe and Not Comment", "Duplicate selected line line by line", Dupe)
+    aegisub.register_macro("Dupe and Not Comment/Do", "Duplicate selected line line by line", Dupe)
 end

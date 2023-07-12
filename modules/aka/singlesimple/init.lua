@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "1.0.2"
+versioning.version = "1.0.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aka.outcome\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.mmapfile\" }, { \"moduleName\": \"aka.effil\" }, { \"moduleName\": \"ffi\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -43,14 +43,24 @@ if hasDepCtrl then
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
             { "aka.config2" },
-            { "aka.outcome" }
+            { "aka.outcome" },
+            { "aka.mmapfile" },
+            { "aka.effil" },
+            { "ffi" }
         }
     }):requireModules()
 end
 
 local aconfig = require("aka.config2")
 local outcome = require("aka.outcome")
-local ok, err = outcome.ok, outcome.err
+local ok, err, pcall_ = outcome.ok, outcome.err, outcome.pcall
+local mmapfile = require("aka.mmapfile")
+local effil = require("aka.effil")
+local ffi = require("ffi")
+
+ffi.cdef[[
+struct config { size_t idx; };
+]]
 
 local make_config
 
@@ -59,12 +69,13 @@ local make_config
 -- 
 -- @param str config [nil]: The subfolder where the config is in
 -- @param str config_supp: The name for the config file without the file extension
--- @param possible_values: Either a table for all the possible values for the config
---                         or a full validation function
+-- @param possible_values: A table for all the possible values for the config
 -- @param table default_value: The default value for the config
 -- 
 -- @returns table Config: A initialised config object with Config.value and Config.setValue
 make_config = function(config, config_supp, possible_values, default_value)
+    local try
+
     if type(config_supp) == "table" or
        default_value == nil then
         default_value = possible_values possible_values = config_supp config_supp = config config = nil
@@ -73,42 +84,83 @@ make_config = function(config, config_supp, possible_values, default_value)
     local Config = {}
     Config.__index = Config
     
-    Config.value = function(self)
-        return self._value
+    Config.value2 = function(self) return
+        pcall_(mmapfile.open, "aka.singlesimple." .. (config and config .. "." or "") .. config_supp, "struct config")
+            :andThen(function(ptr)
+                local idx = tonumber(ptr.idx)
+                mmapfile.close(ptr) return
+                ok(idx) end)
+            :andThen(function(idx) return
+                ok(possible_values[idx]) end)
+    end
+    Config.value = function(self) return
+        self:value2()
+            :ifErr(function(err)
+                aegisub.debug.out(err)
+                aegisub.cancel() end)
+            :unwrap()
     end
     Config.setValue2 = function(self, value)
-        self._value = value
-        return aconfig.write_config(config, config_supp, { value })
+        local idx
+
+        for i, v in ipairs(possible_values) do
+            if value == v then
+                idx = i
+                break
+        end end
+        if not idx then
+            return err("[aka.singlesimple] Invalid value")
+        end
+        return
+        pcall_(mmapfile.open, "aka.singlesimple." .. (config and config .. "." or "") .. config_supp, "struct config", "rw")
+            :andThen(function(ptr)
+                ptr.idx = idx
+                mmapfile.close(ptr) return
+                ok() end)
+            :andThen(function() return
+                aconfig.write_config(config, config_supp, { value }) end)
     end
     Config.setValue = function(self, value)
         self:setValue2(value)
             :ifErr(function(err)
-                aegisub.debug.out(1, "[aka.singlesimple] Failed to save the value to file\n" .. err) end)
+                aegisub.debug.out(1, err) end)
     end
 
     local self = setmetatable({}, Config)
 
-    self._value = aconfig.read_config(config, config_supp)
-        :andThen(function(config)
-            if type(possible_values) == "table" then
-                for _, v in ipairs(possible_values) do
-                    if config[1] == v then
-                        return ok(config[1])
-                end end
-            elseif type(possible_values) == "function" then
-                return possible_values(config)
-                    :andThen(function(return_config)
-                        if return_config == nil then
-                            return ok(config[1])
-                        else
-                            return ok(return_config[1])
-                        end end)
-            else
-                error("[aka.singlesimple] Error")
-            end end)
+    try = function()
+        return pcall_(mmapfile.open, "aka.singlesimple." .. (config and config .. "." or "") .. config_supp, "struct config")
+            :andThen(function(ptr)
+                mmapfile.close(ptr) return
+                ok() end)
+            :orElseOther(function(_) return
+                aconfig.read_config(config, config_supp)
+                    :andThen(function(config)
+                        for i, v in ipairs(possible_values) do
+                            if config[1] == v then return
+                                ok(i)
+                        end end return
+                        err("[aka.singlesimple] Invalid config") end)
+                    :orElseOther(function()
+                        for i, v in ipairs(possible_values) do
+                            if default_value == v then return
+                                aconfig.write_config(config, config_supp, { v })
+                                    :andThen(function() return
+                                        ok(i) end)
+                        end end
+                        error("[aka.singlesimple] Invalid default value") end)
+                    :andThen(function(i) return
+                        pcall_(mmapfile.gccreate, "aka.singlesimple." .. (config and config .. "." or "") .. config_supp, 1, "struct config")
+                            :andThen(function(ptr)
+                                ptr.idx = i
+                                mmapfile.close(ptr) return
+                                ok(ptr) end) end) end)
+    end
+
+    self._keep = try()
         :orElseOther(function()
-            aconfig.write_config(config, config_supp, { default_value })
-            return ok(default_value) end)
+            effil.sleep(50, "ms") return
+            try() end)
         :unwrap()
 
     return self

@@ -170,7 +170,7 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                   default=True)
 
     do_includes_frz_fax: bpy.props.BoolProperty(name="Includes frz fax",
-                                                description="Includes frz and fax data for Orthographic-Motion in the export for tracks and plane tracks.\nThis requires at least one Power Pin to be selected as Power Pin 0002, 0004, and 0005 respectively in Power Pin Remap function",
+                                                description="Includes frz and fax data for Aegisub-Orthographic-Motion in the export for tracks and plane tracks.\nThis requires at least one Power Pin to be selected as Power Pin 0002, 0004, and 0005 respectively in Power Pin Remap function",
                                                 default=True)
 
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
@@ -1958,7 +1958,7 @@ undefine(<<REMAP>>)
             aae += "\n".join(aae_power_pin_0005) + "\n\n"
 
         if aae_frz_fax is not None:
-            aae += "Orthographic-Motion Data\n"
+            aae += "Aegisub-Orthographic-Motion Data\n"
             aae += "\tFrame\tX radians\tY radians\n"
             aae += "\n".join(aae_frz_fax) + "\n\n"
 

@@ -20,3 +20,11 @@ tools/aae-export-base122/util.h linguist-vendored
 # aka.request
 modules/aka/request/luajit-request/init.lua linguist-vendored
 modules/aka/request/luajit-request/luajit-curl.lua linguist-vendored
+
+# aka.mmapfile
+modules/aka/mmapfile/mmapfile.lua linguist-vendored
+modules/aka/mmapfile/mmapfile/* linguist-vendored
+
+# aka.ljsyscall
+modules/aka/ljsyscall/syscall.lua linguist-vendored
+modules/aka/ljsyscall/syscall/* linguist-vendored

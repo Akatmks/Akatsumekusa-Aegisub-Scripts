@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.optimising"
 versioning.description = "Module aka.optimising"
-versioning.version = "1.0.2"
+versioning.version = "1.0.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.optimising"
 
@@ -57,7 +57,7 @@ local timer
 
 start = function()
     if ssconfig:value() then
-        timer = PT.new()
+        timer = PT()
         aegisub.debug.out(3, "[aka.optimising][" .. string.format("%.6f", 0) .. "] Start aka.optimising\n")
 end end
 lap = function(lap_name)

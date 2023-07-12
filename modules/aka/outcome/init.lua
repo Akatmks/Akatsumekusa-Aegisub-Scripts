@@ -35,8 +35,8 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "1.0.2"
-versioning.author = "Akatsumekusa and contributors"
+versioning.version = "1.0.3"
+versioning.author = "Michael Dowling, modified by Akatsumekusa"
 versioning.namespace = "aka.outcome"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
@@ -968,6 +968,16 @@ function outcome.pcall(f, ...)
     return outcome.ok(result)
   else
     return outcome.err(result)
+  end
+end
+
+function outcome.multi_pcall(f, ...)
+  result = table.pack(pcall(f, ...))
+  if result[1] == true then
+    table.remove(result, 1)
+    return outcome.ok(result)
+  else
+    return outcome.err(result[2])
   end
 end
 
