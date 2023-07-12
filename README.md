@@ -1,8 +1,29 @@
 ## Table of contents
 
+<table>
+<tr>
+<th align="center">
+<img width="2000" height="1px">
+<p> 
+<small>
+Scripts and Macros
+</small>
+</p>
+</th>
+<th align="center">
+<img width="2000" height="1">
+<p> 
+<small>
+Modules
+</small>
+</p>
+</th>
+</tr>
+<tr>
+<td>
+
 ***DependencyControl***  
 `https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json`  
-
 ***Motion Tracking***  
 – [aae-export](#aae-export)  
 – [ortho-mo](#ortho-mo)  
@@ -13,7 +34,10 @@
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
-
+  
+</td>
+<td>
+  
 ***Modules***  
 – [aka.actor](#akaactor)  
 – [aka.config](#akaconfig--akaconfig2)  
@@ -27,6 +51,18 @@
 – [ljsyscall](#mmapfile--ljsyscall)  
 – [mmapfile](#mmapfile--ljsyscall)  
 – [request](#request)  
+  
+</td>
+</tr>
+<tr>
+<td align="center">
+　
+</td>
+<td align="center">
+　
+</td>
+</tr>
+</table>
 
 ## aae-export
 
@@ -172,7 +208,7 @@ aka.outcome introduces `Result` and `Option` similar to Rust's `std::result::Res
 
 Detailed introduction is available at [docs/Using aka.outcome.md](docs/Using%20aka.outcome.md).  
 
-*License Information*
+*License Information*  
 – *Outcome is originally released by Michael Dowling under MIT License.*  
 – *It is modified with exisiting feature changed and new features added by Akatsumekusa.*  
 
