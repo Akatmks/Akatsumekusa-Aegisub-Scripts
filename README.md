@@ -1,21 +1,20 @@
 ## Table of contents
 
-*For end users*  
-**DependencyControl**  
+***DependencyControl***  
 `https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json`  
-**Motion Tracking**  
+
+***Motion Tracking***  
 – [aae-export](#aae-export)  
 – [ortho-mo](#ortho-mo)  
-**Typesetting Aids**  
+***Typesetting Aids***  
 – [aka.BackupSection](#akabackupsection--akadupe-and-not-comment)  
 – [aka.BoundingBox](#akaboundingbox)  
 – [aka.Cycles](#akacycles)  
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
-**farn huah**  
+***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
 
-*For developers*  
-**Modules**  
+***Modules***  
 – [aka.actor](#akaactor)  
 – [aka.config](#akaconfig--akaconfig2)  
 – [aka.config2](#akaconfig--akaconfig2)  
@@ -23,7 +22,7 @@
 – [aka.optimising](#akaoptimising)  
 – [aka.outcome](#akaoutcome)  
 – [aka.unicode](#akaunicode)  
-**Thirdparty Modules**  
+***Thirdparty Modules***  
 – [effil](#effil)  
 – [ljsyscall](#mmapfile--ljsyscall)  
 – [mmapfile](#mmapfile--ljsyscall)  
@@ -65,46 +64,22 @@ To use ortho-mo, apply position and scale with [a-mo](https://github.com/Typeset
 
 ## aka.BackupSection & aka.dupe-and-not-comment
 
-aka.BackupSection and aka.dupe-and-not-comment are similar in function to [garret.dupe-and-comment](https://github.com/garret1317/aegisub-scripts#dupe-and-comment) but arrange the new line in different ways.  
+aka.BackupSection and aka.dupe-and-not-comment are similar in function to [garret.dupe-and-comment](https://github.com/garret1317/aegisub-scripts#dupe-and-comment) but arrange the new lines in different ways.  
 
 To backup using aka.BackupSection, select the lines to backup and click „Backup“. To start from a previous backup, select the previously commented lines and click „Backup“.  
 
-Comparing the three scripts, when applying to the following selection:  
-<table>
-<tr><td>(Selected)</td><td>Line 1</td></tr>
-<tr><td>(Selected)</td><td>Line 2</td></tr>
-<tr><td>(Selected)</td><td>Line 3</td></tr>
-</table>
+Comparing the three scripts,  
+when applied to the following selection:  
+![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/cfac5853-7e0d-463b-a977-82b17aa63770)
 
 aka.BackupSection:  
-<table>
-<tr><td>(Commented)</td><td>Line 1</td><td>backup</td></tr>
-<tr><td>(Commented)</td><td>Line 2</td><td>backup</td></tr>
-<tr><td>(Commented)</td><td>Line 3</td><td>backup</td></tr>
-<tr><td>(Selected)</td><td>Line 1</td><td></td></tr>
-<tr><td>(Selected)</td><td>Line 2</td><td></td></tr>
-<tr><td>(Selected)</td><td>Line 3</td><td></td></tr>
-</table>
+![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/d8da70be-d684-437e-8faa-c3d1f0cf4419)
 
 garret.dupe-and-comment:  
-<table>
-<tr><td>(Selected)</td><td>Line 1</td></tr>
-<tr><td>(Commented)</td><td>Line 1</td></tr>
-<tr><td>(Selected)</td><td>Line 2</td></tr>
-<tr><td>(Commented)</td><td>Line 2</td></tr>
-<tr><td>(Selected)</td><td>Line 3</td></tr>
-<tr><td>(Commented)</td><td>Line 3</td></tr>
-</table>
+![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/79de7767-e432-4416-9904-6bcfb15f6067)
 
 aka.dupe-and-not-comment:  
-<table>
-<tr><td>(Selected)</td><td>Line 1</td></tr>
-<tr><td></td><td>Line 1</td></tr>
-<tr><td>(Selected)</td><td>Line 2</td></tr>
-<tr><td></td><td>Line 2</td></tr>
-<tr><td>(Selected)</td><td>Line 3</td></tr>
-<tr><td></td><td>Line 3</td></tr>
-</table>
+![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/460b0ba8-dd71-4610-83e3-4354db1b232e)
 
 ## aka.BoundingBox
 
@@ -126,7 +101,7 @@ On first launch, NN.farnhuah will show a configuration window. Create your own c
 aka.actor is a flag system visible to the user.  
 For example, when you backup a line with [aka.BackupSection](#akabackupsection--akadupe-and-not-comment), a `backup` flag will be added to the commented line.  
 
-Check the number of times a flag exists on line:  
+Check whether a flag exists and the number of times it exists on line:  
 ```lua
 aactor.flag(line, "backup")
 ```
