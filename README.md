@@ -38,6 +38,9 @@
 </td>
 </tr>
 <tr>
+<th align="center" colspan="2"><hr /></th>
+</tr>
+<tr>
 <td><img width="2000" height="1px" /></td>
 <td><img width="2000" height="1px" /></td>
 </tr>
