@@ -78,9 +78,10 @@ end
 -- 
 -- @param outcome.Option<string, string> config_string: config JSON
 -- @param outcome.Option<string, string> error: Errors probably coming from validation function
+-- @param function validation_func [optional]: Validation function
 -- 
 -- @returns outcome.result<string, string>: Return the new config_string
-config_methods.edit_config = function(self, config_string, error)
+config_methods.edit_config = function(self, config_string, error, validation_func)
     local dialog
     local buttons
     local button_ids
@@ -90,12 +91,14 @@ config_methods.edit_config = function(self, config_string, error)
     local preset_name
     local config_data
 
+    if not validation_func then validation_func = function() return ok() end end
+
     config_text = config_string:unwrapOr("")
     preset_name = self.default
     while true do
         error = error
             :mapOr({}, function(error) return
-                re.split(error, "\n") end)
+                some(re.split(error, "\n")) end)
             :unwrap()
         dialog = { { class = "label",                           x = 0, y = 0, width = self.width,
                                                                 label = (config_string:isSome() and "𝗘𝗱𝗶𝘁" or "𝗖𝗿𝗲𝗮𝘁𝗲") .. " 𝗖𝗼𝗻𝗳𝗶𝗴 𝗳𝗼𝗿 " .. self.display_name_b .. ":" },
@@ -116,19 +119,24 @@ config_methods.edit_config = function(self, config_string, error)
                 table.insert(dialog, { class = "label",         x = self.width, y = i, width = self.width,
                                                                 label = v })
         end end
-        buttons = { "&Apply", "&Beautify", "&View Preset", "Apply &Preset", "Diminish" }
-        button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Diminish", no = "Diminish", cancel = "Diminish" }
+        buttons = { "&Apply", "&Beautify", "&View Preset", "Apply &Preset", "Cancel" }
+        button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Cancel", no = "Cancel", cancel = "Cancel" }
 
         button, result_table = aegisub.dialog.display(dialog, buttons, button_ids)
 
-        if button == false or button == "Diminish" then
+        if button == false or button == "Cancel" then
             return err("[aka.config] Operation cancelled by user")
         elseif button == "&Apply" then
             config_text = result_table["config_text"]
 
-            self.json:decode2(config_text)
+            config_data = self.json:decode2(config_text)
             if self.json.error:isNone() then
-                return ok(config_text)
+                config_data = validation_func(config_data)
+                if config_data:isOk() then
+                    return ok(config_text), ok(config_data)
+                else
+                    error = config_data:errOption()
+                end
             else
                 error = self.json.error
             end
@@ -145,9 +153,11 @@ config_methods.edit_config = function(self, config_string, error)
             preset_name = result_table["preset"]
             error = none()
         elseif button == "Apply &Preset" then
-            return ok(type(self.presets[result_table["preset"]]) == "string" and
-                      self.presets[result_table["preset"]] or
-                      self.json:encode_pretty(self.presets[result_table["preset"]]))
+            if (self.presets[result_table["preset"]]) == "string" then
+                return ok(self.presets[result_table["preset"]]), ok(self.json:decode2(self.presets[result_table["preset"]]))
+            else
+                return ok(self.json:encode_pretty(self.presets[result_table["preset"]])), ok(self.presets[result_table["preset"]])
+            end
         else
             error("[aka.config] Unspecified error")
 end end end
@@ -166,43 +176,34 @@ config_methods.read_edit_validate_and_save_config = function(self, config, confi
     local config_string
     local error
     local config_data
-    local to_return
     
     if type(config_supp) ~= "string" then validation_func = config_supp config_supp = config config = nil end
     if type(validation_func) ~= "function" then validation_func = function(config_data) return ok(config_data) end end
     
     config_string = self.read_config_string(config, config_supp)
-    error = config_string
-        :andThen(function(config_string) return
-            self.json:decode3(config_string) end)
-        :andThen(validation_func)
-        :errOption()
-    config_string = config_string
-        :okOption()
-    if config_string:isNone() then
+    if config_string:isOk() then
+        error = config_string
+            :andThen(function(config_string) return
+                self.json:decode3(config_string) end)
+            :andThen(validation_func)
+            :errOption()
+        config_string = config_string
+            :okOption()
+    else
+        config_string = none()
         error = none()
     end
 
-    while true do
-        config_string = self:edit_config(config_string, error)
-            :mapErr(function(error)
-                to_return = err(error) return error end) if to_return then return to_return end
-        config_data = config_string
-            :andThen(function(config_string) return
-                self.json:decode3(config_string) end)
-        error = config_data
-            :andThen(validation_func)
-            :errOption()
-        
-        if error:isNone() then
-            self.write_config_string(config, config_supp, config_string:unwrap())
-                :mapErr(function(error) return
-                    aegisub.debug.out(1, error) end)
-            return config_data
-        end
-        config_string = config_string
-            :okOption()
-end end
+    config_string, config_data = self:edit_config(config_string, error, validation_func)
+    if config_string:isErr() then
+        return config_string
+    end
+
+    self.write_config_string(config, config_supp, config_string:unwrap())
+        :mapErr(function(error) return
+            aegisub.debug.out(1, error) end)
+    return config_data
+end
 
 -------------------------------------------------
 -- Read and validate config. If anything happens, edit, validate and save config
@@ -216,51 +217,41 @@ end end
 -- @aegisub.debug.out: This will print message to aegisub.debug.out and return ok(config_data) if the save process failed
 config_methods.read_and_validate_config_or_else_edit_and_save = function(self, config, config_supp, validation_func)
     local config_string
-    local error
     local config_data
-    local to_return
+    local error
     
     if type(config_supp) ~= "string" then validation_func = config_supp config_supp = config config = nil end
     if type(validation_func) ~= "function" then validation_func = function(config_data) return ok(config_data) end end
     
     config_string = self.read_config_string(config, config_supp)
-    config_data = config_string
-        :andThen(function(config_string) return
-            self.json:decode3(config_string) end)
-    error = config_data
-        :andThen(validation_func)
-        :errOption()
-
-    if error:isNone() then
-        return config_data
-    end
-    config_string = config_string
-        :okOption()
-    if config_string:isNone() then
-        error = none()
-    end
-
-    while true do    
-        config_string = self:edit_config(config_string, error)
-            :mapErr(function(error)
-                to_return = err(error) return error end) if to_return then return to_return end
-                
+    if config_string:isOk() then
         config_data = config_string
             :andThen(function(config_string) return
                 self.json:decode3(config_string) end)
-        error = config_data
             :andThen(validation_func)
-            :errOption()
-        
-        if error:isNone() then
-            self.write_config_string(config, config_supp, config_string:unwrap())
-                :mapErr(function(error) return
-                    aegisub.debug.out(1, error) end)
+        if config_data:isOk() then
             return config_data
         end
+        
         config_string = config_string
             :okOption()
-end end
+        error = config_data
+            :errOption()
+    else
+        config_string = none()
+        error = none()
+    end
+
+    config_string, config_data = self:edit_config(config_string, error, validation_func)
+    if config_string:isErr() then
+        return config_string
+    end
+
+    self.write_config_string(config, config_supp, config_string:unwrap())
+        :mapErr(function(error) return
+            aegisub.debug.out(1, error) end)
+    return config_data
+end
 
 -------------------------------------------------
 -- Read and validate config. If it is empty, save and return the default config happens; Or else edit, validate and save config
@@ -279,9 +270,22 @@ config_methods.read_and_validate_config_if_empty_then_default_or_else_edit_and_s
     
     if type(config_supp) ~= "string" then validation_func = config_supp config_supp = config config = nil end
     if type(validation_func) ~= "function" then validation_func = function(config_data) return ok(config_data) end end
-    
+
     config_string = self.read_config_string(config, config_supp)
-    if config_string:isErr() then
+    if config_string:isOk() then
+        config_data = config_string
+            :andThen(function(config_string) return
+                self.json:decode3(config_string) end)
+            :andThen(validation_func)
+        if config_data:isOk() then
+            return config_data
+        end
+        
+        config_string = config_string
+            :okOption()
+        error = config_data
+            :errOption()
+    else
         if type(self.presets[self.default]) == "string" then
             self.write_config_string(config, config_supp, self.presets[self.default])
                 :mapErr(function(error) return
@@ -294,26 +298,16 @@ config_methods.read_and_validate_config_if_empty_then_default_or_else_edit_and_s
             return ok(self.presets[self.default])
         end
     end
-    while true do
-        config_data = config_string
-            :andThen(function(config_string) return
-                self.json:decode3(config_string) end)
-        error = config_data
-            :andThen(validation_func)
-            :errOption()
-        
-        if error:isNone() then
-            self.write_config_string(config, config_supp, config_string:unwrap())
-                :mapErr(function(config_string) return
-                    aegisub.debug.out(1, error) end)
-            return config_data
-        end
-        config_string = config_string
-            :okOption()
-        
-        config_string = self:edit_config(config_string, error)
-            :mapErr(function(error) return
-                err(error) end)
-end end
+
+    config_string, config_data = self:edit_config(config_string, error, validation_func)
+    if config_string:isErr() then
+        return config_string
+    end
+
+    self.write_config_string(config, config_supp, config_string:unwrap())
+        :mapErr(function(error) return
+            aegisub.debug.out(1, error) end)
+    return config_data
+end
 
 return config

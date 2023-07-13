@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "farnhuah"
 versioning.description = "farn huah jeau been"
-versioning.version = "1.0.4"
+versioning.version = "1.0.5"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.farnhuah"
 
@@ -174,8 +174,8 @@ validation_func = function(configd)
         msg = "Root object not found"
     else
         if configd.converter == nil then
-            if not msg then msg = "Key \"converter\" is required by zhconvert\nSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\""
-            else msg = msg .. "\n" .. "Key \"converter\" is required by zhconvert\nSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\"" end
+            if not msg then msg = "Key \"converter\" is required by zhconvert\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\""
+            else msg = msg .. "\n" .. "Key \"converter\" is required by zhconvert\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\"" end
         elseif configd.converter ~= "Simplified" and
                configd.converter ~= "Traditional" and
                configd.converter ~= "China" and
@@ -186,12 +186,12 @@ validation_func = function(configd)
                configd.converter ~= "Mars" and
                configd.converter ~= "WikiSimplified" and
                configd.converter ~= "WikiTraditional" then
-            if not msg then msg = "Invalid value for key \"converter\"\nSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\""
-            else msg = msg .. "\n" .. "Invalid value for key \"converter\"\nSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\"" end
+            if not msg then msg = "Invalid value for key \"converter\"\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\""
+            else msg = msg .. "\n" .. "Invalid value for key \"converter\"\n\tSome possible values includes \"Traditional\", \"Hongkong\", \"Taiwan\" and \"WikiTraditional\"" end
         end
         if configd.text ~= nil then
-            if not msg then msg = "Key \"text\" should be left nil for the script to fill"
-            else msg = msg .. "\n" .. "Key \"text\" should be left nil for the script to fill" end
+            if not msg then msg = "Key \"text\" should be left nil to the script"
+            else msg = msg .. "\n" .. "Key \"text\" should be left nil to the script" end
     end end
     
     if not msg then return ok(configd)

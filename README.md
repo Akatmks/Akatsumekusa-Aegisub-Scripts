@@ -10,7 +10,7 @@
 ***Motion Tracking***  
 – [aae-export](#aae-export)  
 – [ortho-mo](#ortho-mo)  
-***Typesetting Aids***  
+***Typesetting Aid***  
 – [aka.BackupSection](#akabackupsection--akadupe-and-not-comment)  
 – [aka.BoundingBox](#akaboundingbox)  
 – [aka.Cycles](#akacycles)  
@@ -152,9 +152,9 @@ aka.config is a config module that includes a builtin JSON editor with pretty JS
 
 Readytouse config functions include:
 ```lua
-aconfig.read_edit_validate_and_save_config(config, config_supp, validation_func)
-aconfig.read_and_validate_config_or_else_edit_and_save(config, config_supp, validation_func)
 aconfig.read_and_validate_config_if_empty_then_default_or_else_edit_and_save(config, config_supp, validation_func)
+aconfig.read_and_validate_config_or_else_edit_and_save(config, config_supp, validation_func)
+aconfig.read_edit_validate_and_save_config(config, config_supp, validation_func)
 ```
 
 Detailed tutorial is available at [docs/Using aka.config.md](docs/Using%20aka.config.md).  

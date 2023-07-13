@@ -14,10 +14,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/NN.farnhuah.lua",
-                            "sha1": "6b37ed336cd9bcbd6393193a5123e6067194b239"
+                            "sha1": "e28abbdf1509a3945d12fc6a44e4970de331273a"
                         }
                     ],
-                    "version": "1.0.4",
+                    "version": "1.0.5",
                     "default": true,
                     "requireModules": [
                         {
@@ -43,7 +43,7 @@
                             "optional": true
                         }
                     ],
-                    "released": "2023-07-12"
+                    "released": "2023-07-13"
                 }
             },
             "author": "Akatsumekusa",
@@ -119,17 +119,19 @@
                 "rc": {
                     "files": [
                         {
-                            "name": ".lua",
-                            "url": "@{fileBaseUrl}/macros/aka.Cycles.lua",
-                            "sha1": "4f02bf06a6ec3f83f3df9e4f1e2536d6893feed4"
+                            "name": ".moon",
+                            "url": "@{fileBaseUrl}/macros/aka.Cycles.moon",
+                            "sha1": "14d8447d16b35349ac4a093d3fdfa64a9a01446a"
                         }
                     ],
-                    "version": "0.1.10",
+                    "version": "1.0.1",
                     "default": true,
                     "requireModules": [
                         {
-                            "moduleName": "l0.ASSFoundation",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ASSFoundation/master/DependencyControl.json"
+                            "moduleName": "a-mo.LineCollection"
+                        },
+                        {
+                            "moduleName": "l0.ASSFoundation"
                         },
                         {
                             "moduleName": "aka.actor"
@@ -138,15 +140,15 @@
                             "moduleName": "aka.config"
                         },
                         {
-                            "moduleName": "aka.template"
+                            "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-07-11"
+                    "released": "2023-07-13"
                 }
             },
             "author": "Akatsumekusa and contributors",
-            "name": "aka.Cycles",
-            "description": "Macro aka.Cycles",
+            "name": "Cycles",
+            "description": "Cycles tags on selected lines",
             "url": "@{baseUrl}"
         },
         "aka.dupe-and-not-comment": {
@@ -231,15 +233,15 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "d3689b4db550a9887ebcfffcd5ddf40287d5fd9b"
+                            "sha1": "4d457849162021ace8c26a29ec2c8a9c638e824b"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "de76a3cb40a0ef80b1af22b1b0626f4e97141e2a"
+                            "sha1": "e6e563174bf91c35c06aa2c9569232e3ec88cbf3"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.4",
                     "default": true,
                     "requireModules": [
                         {
@@ -255,7 +257,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-07-12"
+                    "released": "2023-07-13"
                 }
             },
             "author": "Akatsumekusa and contributors",
