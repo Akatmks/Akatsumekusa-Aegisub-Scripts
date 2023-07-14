@@ -35,7 +35,7 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "1.0.4"
+versioning.version = "1.0.5"
 versioning.author = "Michael Dowling, modified by Akatsumekusa"
 versioning.namespace = "aka.outcome"
 
@@ -385,11 +385,11 @@ function None:filter(_)
 end
 
 function None:okOr(err)
-  return outcome.outcome.err(err)
+  return outcome.err(err)
 end
 
 function None:okOrElse(errorProvider)
-  return outcome.outcome.err(errorProvider(self._value))
+  return outcome.err(errorProvider(self._value))
 end
 
 -- Option Some implementation
@@ -479,11 +479,11 @@ function Some:filter(f)
 end
 
 function Some:okOr(_)
-  return outcome.outcome.ok(self._value)
+  return outcome.ok(self._value)
 end
 
 function Some:okOrElse(_)
-  return outcome.outcome.ok(self._value)
+  return outcome.ok(self._value)
 end
 
 -- Result

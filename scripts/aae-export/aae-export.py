@@ -693,7 +693,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
             AAEExportExportAll._plot_result_plot( \
                 data, smoothed_data, no_blending_data, \
-                clip_settings)
+                settings, clip_settings)
         else:
             smoothed_data \
                 = AAEExportExportAll._smoothing_main( \

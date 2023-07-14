@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "1.0.4"
+versioning.version = "1.0.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
@@ -143,8 +143,8 @@ make_config = function(config, config_supp, possible_values, default_value)
 
     self._filename = "aka.singlesimple." .. (config and config .. "." or "") .. config_supp .. "." .. tostring(pid)
 
-    try = function()
-        return pcall_(mmapfile.open, self._filename, "struct config")
+    try = function() return
+        pcall_(mmapfile.open, self._filename, "struct config")
             :andThen(function(ptr)
                 mmapfile.close(ptr) return
                 ok() end)

@@ -178,11 +178,22 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.ortho-mo.lua",
-                            "sha1": "247bbcb3de04aac6451d8fe237a3244d75afe00a"
+                            "sha1": "d58b3fe2b2a4b880a19a0807ffe8dcec973339c8"
                         }
                     ],
-                    "version": "0.1.4",
+                    "version": "1.0.1",
                     "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.outcome"
+                        },
+                        {
+                            "moduleName": "aegisub.clipboard"
+                        },
+                        {
+                            "moduleName": "lpeg"
+                        }
+                    ],
                     "released": "2023-07-14"
                 }
             },
@@ -1023,10 +1034,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/outcome/init.lua",
-                            "sha1": "6bf28db6d54a02cf972490bfcc54e6a0c236a850"
+                            "sha1": "e5f16d21f130bff7742f21504b8dc137603f4f33"
                         }
                     ],
-                    "version": "1.0.4",
+                    "version": "1.0.5",
                     "default": true,
                     "released": "2023-07-14"
                 }
@@ -1089,10 +1100,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
-                            "sha1": "1421f6b8e109a6ca6c2a96f6c7e35e69db115984"
+                            "sha1": "9bd12711a1269a7976ff1d0b8cab29949ebec610"
                         }
                     ],
-                    "version": "1.0.4",
+                    "version": "1.0.5",
                     "default": true,
                     "requireModules": [
                         {

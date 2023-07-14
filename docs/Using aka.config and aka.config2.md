@@ -140,9 +140,9 @@ with aconfig.read_config "aka.TestMacro"
     with \andThen validation_func
         config = \unwrapOr { key1: "Value", key2: 0 }
 ```
-・ `aconfig.read_config` reads config from `?config/aka.TestMacro`. It could return an `Ok` with config or an `Err` with an error message.  
-・ If `Result.andThen` receives an `Ok` value, it sends the config to `validation_func` and collect the new `Result`. If `Result.andThen` receives an `Err` value, it passed the `Err` value down without invoking `validation_func`.  
-・ `Result.unwrapOr` unwrap the `Ok` to get the config, or return the default value if `Result.andThen` gives it an `Err`. The value from `Result.unwrapOr` is then assigned to `config`.  
+* `aconfig.read_config` reads config from `?config/aka.TestMacro`. It could return an `Ok` with config or an `Err` with an error message.  
+* If `Result.andThen` receives an `Ok` value, it sends the config to `validation_func` and collect the new `Result`. If `Result.andThen` receives an `Err` value, it passed the `Err` value down without invoking `validation_func`.  
+* `Result.unwrapOr` unwrap the `Ok` to get the config, or return the default value if `Result.andThen` gives it an `Err`. The value from `Result.unwrapOr` is then assigned to `config`.  
 
 ### Introduction 3: Saving script configuration
 
@@ -176,9 +176,9 @@ aconfig = aconfig.make_editor
         ["Brilliant"]: preset_2
     default: "Amazing"
 ```
-・ `TestMacro` is set as the display name of the config in the editor.  
-・ The editor will have two presets, `"Amazing"` and `"Brilliant"` for the user to choose from or reference.  
-・ `"Amazing"` is selected as the default preset and default config.  
+* `TestMacro` is set as the display name of the config in the editor.  
+* The editor will have two presets, `"Amazing"` and `"Brilliant"` for the user to choose from or reference.  
+* `"Amazing"` is selected as the default preset and default config.  
 
 With the editor set up, the three functions are available:  
 ```lua
@@ -230,11 +230,11 @@ main = (sub, sel, act) ->
 
     -- Main logic
 ```
-・ A variable named `config` is set up outside the macro processing function. If it is nil, `aconfig.read_and_validate_config_if_empty_then_default_or_else_edit_and_save` is called at the start of the macro processing function to read config to that variable. 
-・ `aconfig.read_and_validate_config_if_empty_then_default_or_else_edit_and_save` returns `Ok` with the config either when the config is read and validated successfully, or the user creates a config that's successfullly validated.
+* A variable named `config` is set up outside the macro processing function. If it is nil, `aconfig.read_and_validate_config_if_empty_then_default_or_else_edit_and_save` is called at the start of the macro processing function to read config to that variable. 
+* `aconfig.read_and_validate_config_if_empty_then_default_or_else_edit_and_save` returns `Ok` with the config either when the config is read and validated successfully, or the user creates a config that's successfullly validated.
 It will only return `Err` when the user close the config editor.  
-・ When the user closes the config editor and cancels, `Result.ifErr` captures the `Err` and invokes `aegisub.cancel`. Similar to the validation function in [chapter 2](#introduction-2-validate-your-save), you pass the function to `Result.ifErr` instead of `Result.ifErr(aegisub.cancel())`.  
-・ After that, you can `unwrap` the `Result` and save it to the `config` variable outside macro processing function.  
+* When the user closes the config editor and cancels, `Result.ifErr` captures the `Err` and invokes `aegisub.cancel`. Similar to the validation function in [chapter 2](#introduction-2-validate-your-save), you pass the function to `Result.ifErr` instead of `Result.ifErr(aegisub.cancel())`.  
+* After that, you can `unwrap` the `Result` and save it to the `config` variable outside macro processing function.  
 
 Additionally, you can also create a macro processing function to let the user open the config editor at any time using `read_edit_validate_and_save_config`:  
 ```lua
@@ -254,7 +254,7 @@ edit_config = (sub, sel, act) ->
         with \ifErr aegisub.cancel
             config = \unwrap!
 ```
-・ This is the same idea as the previous example. One detail to notice is that if `aegisub.cancel` is invoked at `Result.ifErr`, the assignment to `config` will not happen. This is the same in Lua and MoonScript, although MoonScript makes it more obvious that it is the case.  
+* This is the same idea as the previous example. One detail to notice is that if `aegisub.cancel` is invoked at `Result.ifErr`, the assignment to `config` will not happen. This is the same in Lua and MoonScript, although MoonScript makes it more obvious that it is the case.  
 
 This is a complete example of a macro using aka.config:  
 ```lua

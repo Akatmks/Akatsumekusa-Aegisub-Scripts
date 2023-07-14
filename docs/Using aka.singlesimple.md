@@ -11,9 +11,9 @@ config = ss.make_config("aka.actor", { "Style", "Actor", "Effect" }, "Actor")
 ss = require "aka.singlesimple"
 config = ss.make_config "aka.actor", { "Style", "Actor", "Effect" }, "Actor"
 ```
-・ The first parameter to `make_config` specifies the config name. In this example, we use the name `aka.actor` and the config will be stored at `?config/aka.actor.json`. `?config` is linked to `configDir` specified in DependencyControl's config.  
-・ The second parameter is a table listing all the possible values.  
-・ The third parameter is the default value and the fallback value for the enum. It must be one of the values specified in the second parameter.  
+* The first parameter to `make_config` specifies the config name. In this example, we use the name `aka.actor` and the config will be stored at `?config/aka.actor.json`. `?config` is linked to `configDir` specified in DependencyControl's config.  
+* The second parameter is a table listing all the possible values.  
+* The third parameter is the default value and the fallback value for the enum. It must be one of the values specified in the second parameter.  
 
 After that, you can use `Config.value` to get the value:  
 ```lua

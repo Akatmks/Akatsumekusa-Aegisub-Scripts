@@ -3,10 +3,10 @@
 aka.outcome introduces `Result` and `Option` similar to Rust's `std::option::Option` ([The Rust Programming Language](https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html#the-option-enum-and-its-advantages-over-null-values) | [Reference](https://doc.rust-lang.org/stable/std/option/)) and `std::result::Result` ([The Rust Programming Language](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html) | [Reference](https://doc.rust-lang.org/std/result/)).  
 
 If you are familiar with some other languages, these are equivalents of `Result` and `Option` in those languages:  
-– C++: [`std::optional`](https://en.cppreference.com/w/cpp/utility/optional) and [`std::expected`](https://en.cppreference.com/w/cpp/utility/expected)  
-– C#: [Nullable](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types)  
-– Swift: [Optional](https://developer.apple.com/documentation/swift/result) and [Result](https://developer.apple.com/documentation/swift/result)  
-– Kotlin: [Nullable](https://kotlinlang.org/docs/null-safety.html)  
+*　C++: [`std::optional`](https://en.cppreference.com/w/cpp/utility/optional) and [`std::expected`](https://en.cppreference.com/w/cpp/utility/expected)  
+*　C#: [Nullable](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types)  
+*　Swift: [Optional](https://developer.apple.com/documentation/swift/result) and [Result](https://developer.apple.com/documentation/swift/result)  
+*　Kotlin: [Nullable](https://kotlinlang.org/docs/null-safety.html)  
 
 aka.outcome is forked from [mtdowling/outcome](https://github.com/mtdowling/outcome). You can read mtdowling/outcome's [document](https://mtdowling.com/outcome/) but note these major changes in aka.outcome:  
 
