@@ -35,7 +35,7 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "1.0.3"
+versioning.version = "1.0.4"
 versioning.author = "Michael Dowling, modified by Akatsumekusa"
 versioning.namespace = "aka.outcome"
 
@@ -169,6 +169,18 @@ function Option:expect(message) end
 -- @tparam Option other Alternative `Option<T>` to return.
 -- @treturn Option Returns `Option<T>`
 function Option:andOther(other) end
+
+--- Returns the result of f if the option value is Some, otherwise return self.
+--
+--    local optA = outcome.some("abc")
+--    local optB = optA:orElseOther(function()
+--      return outcome.some("123")
+--    end)
+--    assert(optB:unwrap() == "123")
+--
+-- @tparam function f Function that returns an `Option<T>`.
+-- @treturn Option Returns `Option<T>`
+function Option:andThen(f) end
 
 --- Returns self if a value is Some, otherwise returns `other`.
 --
@@ -340,6 +352,10 @@ function None:andOther(_)
   return self
 end
 
+function None:andThen(_)
+  return self
+end
+
 function None:orOther(other)
   return assertOption(other)
 end
@@ -424,6 +440,10 @@ end
 
 function Some:andOther(other)
   return assertOption(other)
+end
+
+function Some:andThen(f)
+  return assertOption(f(self._value))
 end
 
 function Some:orOther(_)
@@ -593,7 +613,19 @@ function Result:expect(message) end
 -- @treturn Result Returns `Result<T, E>`
 function Result:andOther(other) end
 
-function Result:andThen(other) end
+--- Calls resultProvider if the result is Ok, otherwise returns self.
+--
+-- This function can be used for control flow based on result values.
+--
+--    local value = outcome.ok(1)
+--        :orElseOther(function(v) return outcome.ok(2) end)
+--        :unwrap()
+--
+--    assert(value == 2)
+--
+-- @tparam function resultProvider Function that returns `Result<T, E>`.
+-- @treturn Result Returns `Result<T, E>`
+function Result:andThen(resultProvider) end
 
 --- Returns other if the result is Err, otherwise returns self.
 --
@@ -971,6 +1003,19 @@ function outcome.pcall(f, ...)
   end
 end
 
+--- Invokes a function and returns a `Result<T, E>`.
+-- Compared to outcome.pcall, outcome.multi_pcall is able to receive
+-- multiple returns from function and pack returns into a table.
+-- If the function errors, an Err Result is returned.
+--
+--    local res = Result.multi_pcall(error, "oh no!")
+--    assert(res:isErr())
+--    assert(res:unwrapErr() == "oh no!")
+--
+-- @tparam function f Function to invoke that returns T or raises E.
+-- @tparam ... Arguments to pass to the function.
+-- @treturn Result Returns `Result<T, E>`
+-- @within Result functions
 function outcome.multi_pcall(f, ...)
   result = table.pack(pcall(f, ...))
   if result[1] == true then
@@ -981,6 +1026,20 @@ function outcome.multi_pcall(f, ...)
   end
 end
 
+--- Pack returns from a function into a `Result<T, E>`.
+-- Some Lua functions return a the result when success, and return nil
+-- or false with an error message on error. outcome.o packs such
+-- returns into a `Result<T, E>`.
+--
+--    local res = Result.o(io.open("/invalid/path"))
+--    assert(res:isErr())
+--
+--    local res = Result.o(io.open("/valid/path")):unwrap()
+--    assert(type(res) == "userdata")
+--
+-- @tparam returns from functions
+-- @treturn Result Returns `Result<T, E>`
+-- @within Result functions
 function outcome.o(...)
   local result
 

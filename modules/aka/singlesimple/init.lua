@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "1.0.3"
+versioning.version = "1.0.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
@@ -62,6 +62,19 @@ ffi.cdef[[
 struct config { size_t idx; };
 ]]
 
+local pid
+if jit.os == "Windows" then
+    ffi.cdef[[
+uint32_t GetCurrentProcessId();
+    ]]
+    pid = tonumber(ffi.C.GetCurrentProcessId())
+else
+    ffi.cdef[[
+int32_t getpid();
+    ]]
+    pid = tonumber(ffi.C.getpid())
+end
+
 local make_config
 
 -------------------------------------------------
@@ -69,8 +82,8 @@ local make_config
 -- 
 -- @param str config [nil]: The subfolder where the config is in
 -- @param str config_supp: The name for the config file without the file extension
--- @param possible_values: A table for all the possible values for the config
--- @param table default_value: The default value for the config
+-- @param table possible_values: A table for all the possible values for the config
+-- @param anytype or function default_value: The default value for the config or a function as value provider
 -- 
 -- @returns table Config: A initialised config object with Config.value and Config.setValue
 make_config = function(config, config_supp, possible_values, default_value)
@@ -85,7 +98,7 @@ make_config = function(config, config_supp, possible_values, default_value)
     Config.__index = Config
     
     Config.value2 = function(self) return
-        pcall_(mmapfile.open, "aka.singlesimple." .. (config and config .. "." or "") .. config_supp, "struct config")
+        pcall_(mmapfile.open, self._filename, "struct config")
             :andThen(function(ptr)
                 local idx = tonumber(ptr.idx)
                 mmapfile.close(ptr) return
@@ -112,7 +125,7 @@ make_config = function(config, config_supp, possible_values, default_value)
             return err("[aka.singlesimple] Invalid value")
         end
         return
-        pcall_(mmapfile.open, "aka.singlesimple." .. (config and config .. "." or "") .. config_supp, "struct config", "rw")
+        pcall_(mmapfile.open, self._filename, "struct config", "rw")
             :andThen(function(ptr)
                 ptr.idx = idx
                 mmapfile.close(ptr) return
@@ -128,8 +141,10 @@ make_config = function(config, config_supp, possible_values, default_value)
 
     local self = setmetatable({}, Config)
 
+    self._filename = "aka.singlesimple." .. (config and config .. "." or "") .. config_supp .. "." .. tostring(pid)
+
     try = function()
-        return pcall_(mmapfile.open, "aka.singlesimple." .. (config and config .. "." or "") .. config_supp, "struct config")
+        return pcall_(mmapfile.open, self._filename, "struct config")
             :andThen(function(ptr)
                 mmapfile.close(ptr) return
                 ok() end)
@@ -142,6 +157,9 @@ make_config = function(config, config_supp, possible_values, default_value)
                         end end return
                         err("[aka.singlesimple] Invalid config") end)
                     :orElseOther(function()
+                        if type(default_value) == "function" then
+                            default_value = default_value()
+                        end
                         for i, v in ipairs(possible_values) do
                             if default_value == v then return
                                 aconfig.write_config(config, config_supp, { v })
@@ -150,14 +168,14 @@ make_config = function(config, config_supp, possible_values, default_value)
                         end end
                         error("[aka.singlesimple] Invalid default value") end)
                     :andThen(function(i) return
-                        pcall_(mmapfile.gccreate, "aka.singlesimple." .. (config and config .. "." or "") .. config_supp, 1, "struct config")
+                        pcall_(mmapfile.gccreate, self._filename, 1, "struct config")
                             :andThen(function(ptr)
                                 ptr.idx = i
                                 mmapfile.close(ptr) return
                                 ok(ptr) end) end) end)
     end
 
-    self._keep = try()
+    self._ptr_no_gc = try()
         :orElseOther(function()
             effil.sleep(50, "ms") return
             try() end)

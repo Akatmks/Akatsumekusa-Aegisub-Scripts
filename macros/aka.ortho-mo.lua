@@ -25,11 +25,9 @@ local versioning = {}
 
 versioning.name = "Aegisub-Orthographic-Motion"
 versioning.description = "Apply frz fax motion"
-versioning.version = "0.1.3"
+versioning.version = "0.1.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.ortho-mo"
-
-versioning.requireModules = "[{ \"moduleName\": \"ILL.ILL\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -47,9 +45,7 @@ if hasDepCtrl then
         moduleName = versioning.namespace,
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "ILL.ILL" }
-        }
     }):requireModules()
 end
-local ILL = require("ILL.ILL")
+
+

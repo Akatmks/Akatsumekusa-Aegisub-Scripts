@@ -1,8 +1,6 @@
-<table>
-<tr>
+<table><tr>
 <th align="center" colspan="2"><hr /><h3>Table of Contents</h3><hr /></th>
-</tr>
-<tr>
+</tr><tr>
 <td>
 
 ***DependencyControl***  
@@ -17,10 +15,10 @@
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
-  
+
 </td>
 <td>
-  
+
 ***Modules***  
 – [aka.actor](#akaactor)  
 – [aka.config](#akaconfig--akaconfig2)  
@@ -28,6 +26,7 @@
 – [aka.singlesimple](#akasinglesimple)  
 – [aka.optimising](#akaoptimising)  
 – [aka.outcome](#akaoutcome)  
+– [aka.threads](#akathreads)  
 – [aka.unicode](#akaunicode)  
 ***Thirdparty Modules***  
 – [effil](#effil)  
@@ -36,15 +35,12 @@
 – [request](#request)  
   
 </td>
-</tr>
-<tr>
+</tr><tr>
 <th align="center" colspan="2"><hr /></th>
-</tr>
-<tr>
+</tr><tr>
 <td><img width="2000" height="1px" /></td>
 <td><img width="2000" height="1px" /></td>
-</tr>
-</table>
+</tr></table>
 
 ## aae-export
 
@@ -106,12 +102,12 @@ aka.BoundingBox adds either [SubInspector](https://github.com/TypesettingTools/S
 SubInspector:  
 ![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/7bd79529-17bf-4d9c-ba87-5fef7bbee73e)
 
-aegisub.text_extents:  
+`aegisub.text_extents`:  
 ![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/ce2972d3-c4f5-481e-9c86-6b8a392882c0)
 
 ## aka.Cycles
 
-aka.Cycles is exactly the same as [ua.Cycles](https://github.com/unanimated/luaegisub) but with a configuration window inside Aegisub.  
+aka.Cycles is largely the same as [ua.Cycles](https://github.com/unanimated/luaegisub) but with a configuration editor inside Aegisub.  
 
 ## NN.farnhuah
 
@@ -144,35 +140,31 @@ aactor.onemoreFlag(line, flag)
 aactor.onelessFlag(line, flag)
 ```
 
-`aactor.field` is a [aka.singlesimple](#akasinglesimple) config specifying the field to place the flags. It has three possible values, `actor`, `effect` and `style`. It synced across all scripts using aka.actor.  
+`aactor.field` is a [aka.singlesimple](#akasinglesimple) config specifying the field to place the flags. It has three possible values, `actor`, `effect` and `style`. It is synced across all scripts using aka.actor.  
 
 ## aka.config & aka.config2
 
-aka.config is a config module that includes a builtin JSON editor with pretty JSON. aka.config2 provides JSON and file system functions while aka.config provides GUI and readytouse config functions.  
+aka.config is a config module that features a builtin JSON editor with pretty JSON. aka.config2 provides the base JSON and file system functions while aka.config implements three readytouse config functions with GUI.  
 
 Readytouse config functions include:
 ```lua
-aconfig.read_and_validate_config_if_empty_then_default_or_else_edit_and_save(config, config_supp, validation_func)
-aconfig.read_and_validate_config_or_else_edit_and_save(config, config_supp, validation_func)
-aconfig.read_edit_validate_and_save_config(config, config_supp, validation_func)
+aconfig.read_and_validate_config_if_empty_then_default_or_else_edit_and_save(self, config, config_supp, validation_func)
+aconfig.read_and_validate_config_or_else_edit_and_save(self, config, config_supp, validation_func)
+aconfig.read_edit_validate_and_save_config(self, config, config_supp, validation_func)
 ```
 
-Detailed tutorial is available at [docs/Using aka.config.md](docs/Using%20aka.config.md).  
+Detailed tutorial is available at [docs/Using aka.config and aka.config2.md](docs/Using%20aka.config%20and%20aka.config2.md).  
 
 ## aka.singlesimple
 
-aka.singlesimple is a synced config module for a single enum. The value of the enum is shared between all scripts using the same config name.  
+aka.singlesimple is a synced config module. It stores one enum per config and the enum is synced across all scrips requesting the same config.  
 
-Create a config:
 ```lua
+-- Create a config
 config = ss.make_config("aka.Testing", possible_values, default_value)
-```
-Get the current value:
-```lua
+-- Get the current value
 config:value()
-```
-Set the value:
-```lua
+-- Set the value
 config:setValue(value)
 ```
 
@@ -180,7 +172,7 @@ Detailed tutorial is available at [docs/Using aka.singlesimple.md](docs/Using%20
 
 ## aka.optimising
 
-aka.optimising introduces a timing function for debugging purpose.  
+aka.optimising introduces a timing function for debugging.  
 
 Set `aka.optimising.json` under DependencyControl's `configDir` to `{ true }`. Use `optimising.start()` to start the timer. Use `optimising.lap(lap_name)` to print time to `aegisub.debug.out`.  
 
@@ -192,7 +184,20 @@ Detailed introduction is available at [docs/Using aka.outcome.md](docs/Using%20a
 
 *License Information*  
 – *Outcome is originally released by Michael Dowling under MIT License.*  
-– *It is modified with exisiting feature changed and new features added by Akatsumekusa.*  
+– *It is modified with exisiting functions changed and new functions added by Akatsumekusa.*  
+
+## aka.threads
+
+aka.threads is a synced [aka.singlesimple](#akasinglesimple) config storing the number of threads used when multithreading.  
+
+aka.threads defaults to the number of logical processors on the system. Any multithreading script could get the number of threads to use from this config and also change this config at user's request.  
+```lua
+threads = require("aka.threads")
+-- Get the number of threads to use
+threads.threads()
+-- Change this config for all scripts
+threads.setThreads(8)
+```
 
 ## aka.unicode
 
@@ -203,6 +208,8 @@ aka.unicode extends aegisub.unicode with a `unicode.char(codepoint)` function to
 [effil](https://github.com/effil/effil) is a multithreading library for Lua.  
 
 Add `aka.effil` to DependencyControl's required modules. View the documents at the [original repository](https://github.com/effil/effil).  
+
+It is recommended to use the synced module [aka.threads](#akathreads) for the number of threads to use when multithreading.  
 
 *License Information*  
 – *effil is copyrighted to Mikhail Kupriyanov and Ilia Udalov and is licensed under MIT License.*  

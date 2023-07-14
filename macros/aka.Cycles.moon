@@ -24,7 +24,7 @@
 versioning =
   name: "Cycles"
   description: "Cycles tags on selected lines"
-  version: "1.0.1"
+  version: "1.0.2"
   author: "Akatsumekusa and contributors"
   namespace: "aka.Cycles"
   requireModules: "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }]"
@@ -154,7 +154,7 @@ Cycles = (sub, sel, act, tag) ->
   lines = LineCollection sub, sel, () -> true
   for line in *lines
     data = ASS\parse line
-    tags = data\getEffectiveTags!.tags
+    tags = (data\getEffectiveTags 1, false, false, false).tags
 
     if not tags[tag]
       data\insertTags ASS\createTag tag, seq[1]
@@ -162,15 +162,15 @@ Cycles = (sub, sel, act, tag) ->
       (() ->
         set_next_after = (i) ->
           if not aactor.flag line, "switch"
-            data\replaceTags tags[tag]\set seq[i + 1]
+            tags[tag]\set seq[i + 1]
           else
-            data\replaceTags tags[tag]\set seq[i - 1]
+            tags[tag]\set seq[i - 1]
 
         set_next = (i) ->
           if not aactor.flag line, "switch"
-            data\replaceTags tags[tag]\set seq[i + 1]
+            tags[tag]\set seq[i + 1]
           else
-            data\replaceTags tags[tag]\set seq[i]
+            tags[tag]\set seq[i]
 
         for i = 1, seq.n
           if tags[tag]\get! == seq[i]

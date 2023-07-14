@@ -21,13 +21,13 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
--- Explainaries are at the bottom
+-- A list of functions are at the bottom
 
 local versioning = {}
 
 versioning.name = "aka.actor"
 versioning.description = "Module aka.actor"
-versioning.version = "1.0.2"
+versioning.version = "1.0.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.actor"
 

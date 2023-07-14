@@ -91,7 +91,7 @@ config_methods.edit_config = function(self, config_string, error, validation_fun
     local preset_name
     local config_data
 
-    if not validation_func then validation_func = function() return ok() end end
+    if not validation_func then validation_func = function(config_data) return ok(config_data) end end
 
     config_text = config_string:unwrapOr("")
     preset_name = self.default
