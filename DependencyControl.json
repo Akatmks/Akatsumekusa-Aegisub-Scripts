@@ -58,10 +58,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.BackupSelection.lua",
-                            "sha1": "7de9faad447b82a148fbe511b8edeb3292bfe8de"
+                            "sha1": "03ef45a5ac389eec9bb960bb4763d387ac5386d7"
                         }
                     ],
-                    "version": "1.0.8",
+                    "version": "1.0.9",
                     "default": true,
                     "requireModules": [
                         {
@@ -75,7 +75,7 @@
                             "optional": true
                         }
                     ],
-                    "released": "2023-07-12"
+                    "released": "2023-07-15"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -121,10 +121,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}/macros/aka.Cycles.moon",
-                            "sha1": "9f76a90cc92f0cea6b7a3200964765f6c9f924fa"
+                            "sha1": "182647fc0f7342deaf7ba4a1fac949793c130f2a"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requireModules": [
                         {
@@ -143,7 +143,7 @@
                             "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-07-14"
+                    "released": "2023-07-15"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -178,10 +178,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.ortho-mo.lua",
-                            "sha1": "b0545497283dcb178a33c5ff899ce956d4ff4f6f"
+                            "sha1": "a20b3ea5c70ca0d3ec878161ac1ca47db00ec9df"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requireModules": [
                         {

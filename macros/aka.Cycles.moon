@@ -24,7 +24,7 @@
 versioning =
   name: "Cycles"
   description: "Cycles tags on selected lines"
-  version: "1.0.2"
+  version: "1.0.3"
   author: "Akatsumekusa and contributors"
   namespace: "aka.Cycles"
   requireModules: "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }]"
@@ -120,35 +120,44 @@ validation_func = (config) ->
   return err msg
 local config
 
+prepare_config = (config) ->
+  for k, _ in pairs config
+    if k == "\\alpha" or k == "\\1a" or k == "\\2a" or k == "\\3a" or k == "\\4a"
+      for i, _ in ipairs config[k]
+        if (type config[k][i]) == "string"
+          config[k][i] = tonumber config[k][i], 16
+
+    config[k].n = #config[k]
+    config[k].min = 1
+    for i = 1, config[k].n
+      config[k][config[k].n + i] = config[k][i]
+      if config[k][i] < config[k][config[k].min]
+        config[k].min = i
+    config[k][0] = config[k][config[k].n]
+
+  return ok config
+
 EditConfig = () ->
   with aconfig\read_edit_validate_and_save_config "aka.Cycles", validation_func
-    with \ifErr aegisub.cancel
-      config = \unwrap!
+    with \andThen prepare_config
+      with \ifErr aegisub.cancel
+        config = \unwrap!
 
 
 
 Cycles = (sub, sel, act, tag) ->
   if not config
     with aconfig\read_and_validate_config_if_empty_then_default_or_else_edit_and_save "aka.Cycles", validation_func
-      with \ifErr aegisub.cancel
-        config = \unwrap!
+      with \andThen prepare_config
+        with \ifErr aegisub.cancel
+          config = \unwrap!
   if not config[tag]
     aegisub.debug.out("[aka.Cycles] No config found for \\" .. tag .. "\n")
     aegisub.debug.out("[aka.Cycles] To setup config for \\" .. tag .. ", click „Edit config“ and add a new line" .. "\n")
     aegisub.cancel()
 
   seq = config[tag]
-  if tag == "alpha" or tag == "1a" or tag == "2a" or tag == "3a" or tag == "4a"
-    seq = [tonumber value, 16 for value in *seq]
   tag = ASS.toTagName[tag]
-
-  seq.n = #seq
-  seq.min = 1
-  for i = 1, seq.n
-    seq[seq.n + i] = seq[i]
-    if seq[i] < seq[seq.min]
-      seq.min = i
-  seq[0] = seq[seq.n]
 
 
   lines = LineCollection sub, sel, () -> true

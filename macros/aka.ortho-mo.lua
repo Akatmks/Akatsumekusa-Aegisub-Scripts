@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Aegisub-Orthographic-Motion"
 versioning.description = "Apply \\frz and \\fax to subtitle lines from AAE data"
-versioning.version = "1.0.2"
+versioning.version = "1.0.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.ortho-mo"
 
@@ -78,7 +78,13 @@ get_clipboard = function()
                 else return err() end end)
             :okOption()
     else
-        return none()
+        local f
+        local str
+        f = io.popen("xclip -o -selection clip")
+        str = f:read("*a")
+        f:close()
+        if f == "" or not f then return none()
+        else return some(f) end
 end end
 
 
@@ -257,6 +263,72 @@ parse_AAE = function(AAE)
     return ok(data)
 end
 
+convert_Power_Pin = function(data, remap_0002, remap_0003, remap_0004, remap_0005)
+    local _0002_x
+    local _0002_y
+    local _0004_x
+    local _0004_y
+    local _0005_x
+    local _0005_y
+
+    if remap_0002 == "Power Pin-0004" then
+                               _0004_x = data[3]
+                               _0004_y = data[4] end
+    if remap_0002 == "Power Pin-0005" then
+                               _0005_x = data[3]
+                               _0005_y = data[4] end
+    if remap_0003 == "Power Pin-0002" then
+                               _0002_x = data[5]
+                               _0002_y = data[6] end
+    if remap_0003 == "Power Pin-0004" then
+                               _0004_x = data[5]
+                               _0004_y = data[6] end
+    if remap_0003 == "Power Pin-0005" then
+                               _0005_x = data[5]
+                               _0005_y = data[6] end
+    if remap_0004 == "Power Pin-0002" then
+                               _0002_x = data[7]
+                               _0002_y = data[8] end
+    if remap_0004 == "Power Pin-0005" then
+                               _0005_x = data[7]
+                               _0005_y = data[8] end
+    if remap_0005 == "Power Pin-0002" then
+                               _0002_x = data[9]
+                               _0002_y = data[10] end
+    if remap_0005 == "Power Pin-0004" then
+                               _0004_x = data[9]
+                               _0004_y = data[10] end
+
+    if remap_0002 == "(Power Pin-0002)" and not _0002_x then
+                                _0002_x = data[3]
+                                _0002_y = data[4] end
+    if remap_0004 == "(Power Pin-0004)" and not _0004_x then
+                                _0004_x = data[7]
+                                _0004_y = data[8] end
+    if remap_0005 == "(Power Pin-0005)" and not _0005_x then
+                                _0005_x = data[9]
+                                _0005_y = data[10] end
+
+    if not _0002_x then
+        aegisub.debug.out("[aka.ortho-mo] At least one Power Pin must be specified as Power Pin-0002" .. "\n")
+        aegisub.cancel()
+    end
+    if not _0004_x then
+        aegisub.debug.out("[aka.ortho-mo] At least one Power Pin must be specified as Power Pin-0004" .. "\n")
+        aegisub.cancel()
+    end
+    if not _0005_x then
+        aegisub.debug.out("[aka.ortho-mo] At least one Power Pin must be specified as Power Pin-0005" .. "\n")
+        aegisub.cancel()
+    end
+
+    data[1] = {}
+    data[2] = {}
+    for i=1,#data[3] do
+        data[1][i] = math.atan2(-_0005_y[i] + _0004_y[i], _0005_x[i] - _0004_x[i])
+        data[2][i] = math.atan2(-_0002_y[i] + _0004_y[i], _0002_x[i] - _0004_x[i])
+end end
+
 
 
 dialog_save = nil
@@ -330,7 +402,7 @@ Aegisub-Orthographic-Motion requires either frz fax data from aae-export or Powe
 
 Select the data you will prefer to use using the dropdown. If the preferred data is not available, Aegisub-Orthographic-Motion will use the other data available.
 
-If frz fax data is not available or Power Pin data is preferred, Power Pin-0004 and Power Pin-0005 is used to generate \frz and Power Pin-0002 to Power Pin-0004 is used to generate \fax. You can remap the Power Pin data to match the rotation and flip of your sign.]] })
+If frz fax data is not available or Power Pin data is preferred, Power Pin-0004 and Power Pin-0005 is used to generate \frz and Power Pin-0002 to Power Pin-0004 is used to generate \fax. You can remap the Power Pin data to match the rotation of your sign.]] })
         end
 
         buttons = { "&Apply", "&Help", "Close" }
@@ -365,70 +437,6 @@ end end end
 
 
 
-
-convert_Power_Pin = function(data, remap_0002, remap_0003, remap_0004, remap_0005)
-    local _0002_x
-    local _0002_y
-    local _0004_x
-    local _0004_y
-    local _0005_x
-    local _0005_y
-
-    if remap_0002 == "Power Pin-0004" then
-                               _0004_x = data[3]
-                               _0004_y = data[4] end
-    if remap_0002 == "Power Pin-0005" then
-                               _0005_x = data[3]
-                               _0005_y = data[4] end
-    if remap_0003 == "Power Pin-0002" then
-                               _0002_x = data[5]
-                               _0002_y = data[6] end
-    if remap_0003 == "Power Pin-0004" then
-                               _0004_x = data[5]
-                               _0004_y = data[6] end
-    if remap_0003 == "Power Pin-0005" then
-                               _0005_x = data[5]
-                               _0005_y = data[6] end
-    if remap_0004 == "Power Pin-0002" then
-                               _0002_x = data[7]
-                               _0002_y = data[8] end
-    if remap_0004 == "Power Pin-0005" then
-                               _0005_x = data[7]
-                               _0005_y = data[8] end
-    if remap_0005 == "Power Pin-0002" then
-                               _0002_x = data[9]
-                               _0002_y = data[10] end
-    if remap_0005 == "Power Pin-0004" then
-                               _0004_x = data[9]
-                               _0004_y = data[10] end
-
-    if remap_0002 == "(Power Pin-0002)" and not _0002_x then
-                                _0002_x = data[3]
-                                _0002_y = data[4] end
-    if remap_0004 == "(Power Pin-0004)" and not _0004_x then
-                                _0004_x = data[7]
-                                _0004_y = data[8] end
-    if remap_0005 == "(Power Pin-0005)" and not _0005_x then
-                                _0005_x = data[9]
-                                _0005_y = data[10] end
-
-    if not _0002_x then
-        aegisub.debug.out("[aka.ortho-mo] At least one Power Pin must be specified as Power Pin-0002" .. "\n")
-    end
-    if not _0004_x then
-        aegisub.debug.out("[aka.ortho-mo] At least one Power Pin must be specified as Power Pin-0004" .. "\n")
-    end
-    if not _0005_x then
-        aegisub.debug.out("[aka.ortho-mo] At least one Power Pin must be specified as Power Pin-0005" .. "\n")
-    end
-
-    data[1] = {}
-    data[2] = {}
-    for i=1,#data[3] do
-        data[1][i] = math.atan2(-_0005_y[i] + _0004_y[i], _0005_x[i] - _0004_x[i])
-        data[2][i] = math.atan2(-_0002_y[i] + _0004_y[i], _0002_x[i] - _0004_x[i])
-end end
-
 apply_AAE_style_cache = nil
 apply_AAE = function(sub, sel, act, data)
     local sel_initial_len
@@ -437,7 +445,6 @@ apply_AAE = function(sub, sel, act, data)
     local line
     local frame_start
     local frame_end
-
 
     apply_AAE_style_cache = {}
 
@@ -479,9 +486,10 @@ apply_AAE = function(sub, sel, act, data)
             aegisub.debug.out(2, "[aka.ortho-mo] Skipping line of 0 frame long\n")
     end end
     if head ~= 1 then
-        aegisub.debug.out(1, "[aka.ortho-mo] The frame length of selected lines doesn't match the length of AAE data\n")
+        aegisub.debug.out(1, "[aka.ortho-mo] The frame length of selected lines mismatchdx the length of AAE data\n")
         aegisub.debug.out(1, "[aka.ortho-mo] Frame length of selected lines: " .. tostring(frame_count) .. "\n")
         aegisub.debug.out(1, "[aka.ortho-mo] Frame length of AAE data: " .. tostring(#data[1]) .. "\n")
+        aegisub.debug.out(1, "[aka.ortho-mo] Please confirm your result after Aegisub-Orthographic-Motion finishes.\n")
     end
 
     return sel, act
@@ -547,7 +555,7 @@ apply_AAE_line = function(sub, line, x_radian, y_radian)
     cleanTag(line, "fscx")
     cleanTag(line, "fscy")
 
-    to_write = math.deg(x_radian) if to_write >= 0.0005 and to_write < 359.9995 and getStyleTag(sub, line, "angle") == 0 then
+    to_write = math.deg(x_radian) % (2 * math.pi) if to_write >= 0.0005 and to_write < 359.9995 and getStyleTag(sub, line, "angle") == 0 then
     setTagSingle(line, "frz", to_write) end
     fscx = getTagSingle(line, "fscx") or getStyleTag(sub, line, "scale_x") or 100
     fscy = getTagSingle(line, "fscy") or getStyleTag(sub, line, "scale_y") or 100
