@@ -24,12 +24,12 @@
 local versioning = {}
 
 versioning.name = "Aegisub-Orthographic-Motion"
-versioning.description = "Apply frz fax motion"
-versioning.version = "1.0.1"
+versioning.description = "Apply \\frz and \\fax to subtitle lines from AAE data"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.ortho-mo"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.clipboard\" }, { \"moduleName\": \"lpeg\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.clipboard\" }, { \"moduleName\": \"aka.config2\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -50,19 +50,20 @@ if hasDepCtrl then
         {
             { "aka.outcome" },
             { "aegisub.clipboard" },
-            { "lpeg" }
+            { "aka.config2" }
         }
     }):requireModules()
 end
 local outcome = require("aka.outcome")
 local ok, err, some, none, o = outcome.ok, outcome.err, outcome.some, outcome.none, outcome.o
 local clipboard = require("aegisub.clipboard")
-local lpeg = require("lpeg")
-local P, S, R = lpeg.P, lpeg.S, lpeg.R
+local aconfig = require("aka.config2")
 
 local get_clipboard
 local parse_AAE
 local ortho_mo
+local dialog_save
+local convert_Power_Pin
 local apply_AAE
 local apply_AAE_line
 local apply_AAE_style_cache
@@ -240,17 +241,17 @@ parse_AAE = function(AAE)
             data[9][frame]      = nil
             data[10][frame]     = nil
             data[3][frame - power_pin_frame_start + 1]  = x[3]
-            data[4][frame - power_pin_frame_end + 1]    = x[4]
+            data[4][frame - power_pin_frame_start + 1]  = x[4]
             data[5][frame - power_pin_frame_start + 1]  = x[5]
-            data[6][frame - power_pin_frame_end + 1]    = x[6]
+            data[6][frame - power_pin_frame_start + 1]  = x[6]
             data[7][frame - power_pin_frame_start + 1]  = x[7]
-            data[8][frame - power_pin_frame_end + 1]    = x[8]
+            data[8][frame - power_pin_frame_start + 1]  = x[8]
             data[9][frame - power_pin_frame_start + 1]  = x[9]
-            data[10][frame - power_pin_frame_end + 1]   = x[10]
+            data[10][frame - power_pin_frame_start + 1] = x[10]
     end end
 
     if not frz_fax_frame_start and not power_pin_frame_start then
-        return err("[aka.ortho-mo] ortho-mo requires either Aegisub-Orthographic-Motion Data or Power Pin data to work")
+        return err("[aka.ortho-mo] ortho-mo requires either Aegisub-Orthographic-Motion Data or Power Pin data")
     end
 
     return ok(data)
@@ -258,50 +259,191 @@ end
 
 
 
+dialog_save = nil
 ortho_mo = function(sub, sel, act)
+    local text
     local data
-    local sels
     local dialog
+    local dialog_reuse
+    local show_help
     local buttons
     local button_ids
     local button
-    local result_table
+
+    if not dialog_save then
+        dialog_save = aconfig.read_config("aka.ortho-mo")
+            :andThen(function(config)
+                if config["type"] == "Prefer frz fax data" or config["type"] == "Prefer Power Pin data" then return ok(config)
+                else return err() end end)
+            :unwrapOr({ ["type"] = "Prefer frz fax data" })
+    end
     
-    data = get_clipboard()
-        :okOr()
+
+    text = get_clipboard()
+    data = text:okOr()
         :andThen(parse_AAE)
-        :andThen(function(data)
+
+    data:ifErr(function()
+        text = none() end)
+
+    if dialog_save["type"] == "Prefer frz fax data" then
+        data = data:andThen(function(data)
             if data[1][1] then return ok(data)
-            else return err() end end)
-    if data:isOk() then
-        return apply_AAE(sub, sel, act, data:unwrap())
+            else return err("[aka.ortho-mo] Error") end end)
+        if data:isOk() then
+            return apply_AAE(sub, sel, act, data:unwrap())
+        end
     end
 
-    aegisub.debug.out("Catch")
-end
+
+    show_help = false
+    dialog_reuse = {}
+    dialog_reuse["AAE"] = text:unwrapOr("")
+    dialog_reuse["type"] = dialog_save["type"]
+    dialog_reuse["remap_0002"] = "(Power Pin-0002)"
+    dialog_reuse["remap_0003"] = "(Power Pin-0003)"
+    dialog_reuse["remap_0004"] = "(Power Pin-0004)"
+    dialog_reuse["remap_0005"] = "(Power Pin-0005)"
+    while true do
+        dialog = { { class = "label",                           x = 0, y = 0, width = show_help and 16 or 18,
+                                                                label = "Paste your AAE data:" },
+                   { class = "textbox", name = "AAE",           x = 0, y = 1, width = show_help and 16 or 18, height = 6,
+                                                                text = dialog_reuse["AAE"] },
+                   { class = "label",                           x = 0, y = 7, width = show_help and 16 or 18,
+                                                                label = "Select the data type:" },
+                   { class = "dropdown", name = "type",         x = 0, y = 8, width = 16,
+                                                                items = { "Prefer frz fax data", "Prefer Power Pin data" }, value = dialog_reuse["type"] },
+                   { class = "label",                           x = 0, y = 9, width = show_help and 16 or 18,
+                                                                label = "Power Pin remap:" },
+                   { class = "dropdown", name = "remap_0002",   x = 0, y = 10, width = 8,
+                                                                items = { "(Power Pin-0002)", "Power Pin-0003", "Power Pin-0004", "Power Pin-0005" }, value = dialog_reuse["remap_0002"] },
+                   { class = "dropdown", name = "remap_0003",   x = 8, y = 10, width = 8,
+                                                                items = { "Power Pin-0002", "(Power Pin-0003)", "Power Pin-0004", "Power Pin-0005" }, value = dialog_reuse["remap_0003"] },
+                   { class = "dropdown", name = "remap_0004",   x = 0, y = 11, width = 8,
+                                                                items = { "Power Pin-0002", "Power Pin-0003", "(Power Pin-0004)", "Power Pin-0005" }, value = dialog_reuse["remap_0004"] },
+                   { class = "dropdown", name = "remap_0005",   x = 8, y = 11, width = 8,
+                                                                items = { "Power Pin-0002", "Power Pin-0003", "Power Pin-0004", "(Power Pin-0005)" }, value = dialog_reuse["remap_0005"] } }
+        if show_help then
+            table.insert(dialog, { class = "textbox",           x = 16, y = 0, width = 28, height = 12,
+                                                                text = [[
+Aegisub-Orthographic-Motion requires either frz fax data from aae-export or Power Pin data to work.
+
+Select the data you will prefer to use using the dropdown. If the preferred data is not available, Aegisub-Orthographic-Motion will use the other data available.
+
+If frz fax data is not available or Power Pin data is preferred, Power Pin-0004 and Power Pin-0005 is used to generate \frz and Power Pin-0002 to Power Pin-0004 is used to generate \fax. You can remap the Power Pin data to match the rotation and flip of your sign.]] })
+        end
+
+        buttons = { "&Apply", "&Help", "Close" }
+        button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Close", no = "Close", cancel = "Close" }
+
+        button, dialog_reuse = aegisub.dialog.display(dialog, buttons, button_ids)
+
+        if button == false or button == "Close" then
+            return aegisub.cancel()
+        elseif button == "&Help" then
+            show_help = true
+        elseif button == "&Apply" then
+            if dialog_reuse["type"] ~= dialog_save["type"] then
+                dialog_save["type"] = dialog_reuse["type"]
+                aconfig.write_config("aka.ortho-mo", dialog_save)
+            end
+
+            data = parse_AAE(dialog_reuse["AAE"])
+                :ifErr(function(err) aegisub.debug.out(err) aegisub.cancel() end)
+                :unwrap()
+            if data[1][1] and (dialog_reuse["type"] == "Prefer frz fax data" or not data[3][1]) then
+                return apply_AAE(sub, sel, act, data)
+            elseif data[3][1] and (dialog_reuse["type"] == "Prefer Power Pin data" or not data[1][1]) then
+                convert_Power_Pin(data, dialog_reuse["remap_0002"], dialog_reuse["remap_0003"], dialog_reuse["remap_0004"], dialog_reuse["remap_0005"])
+                return apply_AAE(sub, sel, act, data)
+            else
+                error("[aka.ortho-mo] Error")
+            end
+        else
+            error("[aka.ortho-mo] Error")
+end end end
 
 
 
-local ILL = require("ILL.ILL")
+
+convert_Power_Pin = function(data, remap_0002, remap_0003, remap_0004, remap_0005)
+    local _0002_x
+    local _0002_y
+    local _0004_x
+    local _0004_y
+    local _0005_x
+    local _0005_y
+
+    if remap_0002 == "Power Pin-0004" then
+                               _0004_x = data[3]
+                               _0004_y = data[4] end
+    if remap_0002 == "Power Pin-0005" then
+                               _0005_x = data[3]
+                               _0005_y = data[4] end
+    if remap_0003 == "Power Pin-0002" then
+                               _0002_x = data[5]
+                               _0002_y = data[6] end
+    if remap_0003 == "Power Pin-0004" then
+                               _0004_x = data[5]
+                               _0004_y = data[6] end
+    if remap_0003 == "Power Pin-0005" then
+                               _0005_x = data[5]
+                               _0005_y = data[6] end
+    if remap_0004 == "Power Pin-0002" then
+                               _0002_x = data[7]
+                               _0002_y = data[8] end
+    if remap_0004 == "Power Pin-0005" then
+                               _0005_x = data[7]
+                               _0005_y = data[8] end
+    if remap_0005 == "Power Pin-0002" then
+                               _0002_x = data[9]
+                               _0002_y = data[10] end
+    if remap_0005 == "Power Pin-0004" then
+                               _0004_x = data[9]
+                               _0004_y = data[10] end
+
+    if remap_0002 == "(Power Pin-0002)" and not _0002_x then
+                                _0002_x = data[3]
+                                _0002_y = data[4] end
+    if remap_0004 == "(Power Pin-0004)" and not _0004_x then
+                                _0004_x = data[7]
+                                _0004_y = data[8] end
+    if remap_0005 == "(Power Pin-0005)" and not _0005_x then
+                                _0005_x = data[9]
+                                _0005_y = data[10] end
+
+    if not _0002_x then
+        aegisub.debug.out("[aka.ortho-mo] At least one Power Pin must be specified as Power Pin-0002" .. "\n")
+    end
+    if not _0004_x then
+        aegisub.debug.out("[aka.ortho-mo] At least one Power Pin must be specified as Power Pin-0004" .. "\n")
+    end
+    if not _0005_x then
+        aegisub.debug.out("[aka.ortho-mo] At least one Power Pin must be specified as Power Pin-0005" .. "\n")
+    end
+
+    data[1] = {}
+    data[2] = {}
+    for i=1,#data[3] do
+        data[1][i] = math.atan2(-_0005_y[i] + _0004_y[i], _0005_x[i] - _0004_x[i])
+        data[2][i] = math.atan2(-_0002_y[i] + _0004_y[i], _0002_x[i] - _0004_x[i])
+end end
+
 apply_AAE_style_cache = nil
 apply_AAE = function(sub, sel, act, data)
-    local error
-    local more_error
     local sel_initial_len
     local head
+    local frame_count
     local line
     local frame_start
     local frame_end
 
-    error = none()
-    more_error = function(text)
-        error = error:mapOr(text, function(existing_text) return existing_text .. "\n" .. text end)
-    end
 
     apply_AAE_style_cache = {}
 
     sel_initial_len = #sel
     head = 1
+    frame_count = 0
     for i=1,sel_initial_len do
         line = sub[sel[i]]
         frame_start = aegisub.frame_from_ms(line.start_time)
@@ -309,7 +451,7 @@ apply_AAE = function(sub, sel, act, data)
 
         if frame_end - frame_start == 1 then
             apply_AAE_line(sub, line, data[1][head], data[2][head])
-            if head >= #data[1] then head = 1 else head = head + 1 end
+            if head >= #data[1] then head = 1 else head = head + 1 end frame_count = frame_count + 1
 
             sub[sel[i]] = line
         elseif frame_end - frame_start > 1 then
@@ -318,7 +460,7 @@ apply_AAE = function(sub, sel, act, data)
             line.end_time = aegisub.ms_from_frame(frame_start + 1)
             
             apply_AAE_line(sub, line, data[1][head], data[2][head])
-            if head >= #data[1] then head = 1 else head = head + 1 end
+            if head >= #data[1] then head = 1 else head = head + 1 end frame_count = frame_count + 1
 
             sub[sel[i]] = line
             for j=1,frame_end-frame_start-1 do
@@ -326,7 +468,7 @@ apply_AAE = function(sub, sel, act, data)
                 line.end_time = aegisub.ms_from_frame(frame_start + j + 1)
 
                 apply_AAE_line(sub, line, data[1][head], data[2][head])
-                if head >= #data[1] then head = 1 else head = head + 1 end
+                if head >= #data[1] then head = 1 else head = head + 1 end frame_count = frame_count + 1
 
                 sub.insert(sel[i] + 1, line)
                 table.insert(sel, sel[i])
@@ -334,10 +476,12 @@ apply_AAE = function(sub, sel, act, data)
                 for k=i,sel_initial_len do sel[k] = sel[k] + 1 end
             end
         else -- frame_end - frame_start < 1
-            aegisub.debug.out(2, "[aka.ortho-mo] Skipping line of 0 frame long")
+            aegisub.debug.out(2, "[aka.ortho-mo] Skipping line of 0 frame long\n")
     end end
     if head ~= 1 then
-        aegisub.debug.out(1, "[aka.ortho-mo] The length of selected lines mismatches the length of AAE data")
+        aegisub.debug.out(1, "[aka.ortho-mo] The frame length of selected lines doesn't match the length of AAE data\n")
+        aegisub.debug.out(1, "[aka.ortho-mo] Frame length of selected lines: " .. tostring(frame_count) .. "\n")
+        aegisub.debug.out(1, "[aka.ortho-mo] Frame length of AAE data: " .. tostring(#data[1]) .. "\n")
     end
 
     return sel, act
@@ -347,6 +491,7 @@ apply_AAE_line = function(sub, line, x_radian, y_radian)
     local setTagSingle
     local cleanTag
     local getTagSingle
+    local getStyleTag
     local to_write
     local fscx
     local fscy

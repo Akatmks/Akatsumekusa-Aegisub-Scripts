@@ -1957,7 +1957,7 @@ undefine(<<REMAP>>)
             aae += "\tFrame\tX pixels\tY pixels\n"
             aae += "\n".join(aae_power_pin_0005) + "\n\n"
 
-        if aae_frz_fax is not None:
+        if aae_frz_fax:
             aae += "Aegisub-Orthographic-Motion Data\n"
             aae += "\tFrame\tX radians\tY radians\n"
             aae += "\n".join(aae_frz_fax) + "\n\n"

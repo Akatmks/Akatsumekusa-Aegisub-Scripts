@@ -72,7 +72,7 @@ Thanks to
 
 ## ortho-mo
 
-Aegisub-Orthographic-Motion is a macro to apply `\frz\fax` from tracking data. It works with frz fax data from [aae-export](#aae-export) and Power Pin data from mocha.  
+Aegisub-Orthographic-Motion is a macro to apply `\frz` and `\fax` to subtitle lines from AAE data. It works with either frz fax data from [aae-export](#aae-export) or Power Pin data.  
 
 To use ortho-mo, apply position and scale with [a-mo](https://github.com/TypesettingTools/Aegisub-Motion) first, and then apply `\frz\fax` with ortho-mo.  
 

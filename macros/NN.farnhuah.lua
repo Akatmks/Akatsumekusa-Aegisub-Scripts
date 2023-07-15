@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "farnhuah"
 versioning.description = "farn huah jeau been"
-versioning.version = "1.0.5"
+versioning.version = "1.0.6"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.farnhuah"
 
@@ -85,7 +85,7 @@ end
 local target
 local Target
 Target = function(sub)
-    local i
+    local line
     local detect
 
     if target then return end
@@ -110,8 +110,8 @@ end end
 
 local SwitchST
 SwitchST = function(sub)
-    local i
     local line
+    local detect
 
     if not target then Target(sub) end
     

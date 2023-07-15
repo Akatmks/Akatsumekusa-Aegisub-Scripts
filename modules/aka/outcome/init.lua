@@ -35,7 +35,7 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "1.0.5"
+versioning.version = "1.0.6"
 versioning.author = "Michael Dowling, modified by Akatsumekusa"
 versioning.namespace = "aka.outcome"
 
@@ -1017,7 +1017,7 @@ end
 -- @treturn Result Returns `Result<T, E>`
 -- @within Result functions
 function outcome.multi_pcall(f, ...)
-  result = table.pack(pcall(f, ...))
+  local result = table.pack(pcall(f, ...))
   if result[1] == true then
     table.remove(result, 1)
     return outcome.ok(result)
