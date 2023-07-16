@@ -98,7 +98,7 @@ config_methods.edit_config = function(self, config_string, error, validation_fun
     while true do
         error = error
             :mapOr({}, function(error) return
-                some(re.split(error, "\n")) end)
+                re.split(error, "\n") end)
             :unwrap()
         dialog = { { class = "label",                           x = 0, y = 0, width = self.width,
                                                                 label = (config_string:isSome() and "𝗘𝗱𝗶𝘁" or "𝗖𝗿𝗲𝗮𝘁𝗲") .. " 𝗖𝗼𝗻𝗳𝗶𝗴 𝗳𝗼𝗿 " .. self.display_name_b .. ":" },
@@ -133,7 +133,7 @@ config_methods.edit_config = function(self, config_string, error, validation_fun
             if self.json.error:isNone() then
                 config_data = validation_func(config_data)
                 if config_data:isOk() then
-                    return ok(config_text), ok(config_data)
+                    return ok(config_text), config_data
                 else
                     error = config_data:errOption()
                 end
@@ -154,7 +154,7 @@ config_methods.edit_config = function(self, config_string, error, validation_fun
             error = none()
         elseif button == "Apply &Preset" then
             if (self.presets[result_table["preset"]]) == "string" then
-                return ok(self.presets[result_table["preset"]]), ok(self.json:decode2(self.presets[result_table["preset"]]))
+                return ok(self.presets[result_table["preset"]]), self.json:decode3(self.presets[result_table["preset"]])
             else
                 return ok(self.json:encode_pretty(self.presets[result_table["preset"]])), ok(self.presets[result_table["preset"]])
             end

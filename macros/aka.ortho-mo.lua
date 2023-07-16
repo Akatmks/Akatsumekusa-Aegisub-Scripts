@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Aegisub-Orthographic-Motion"
 versioning.description = "Apply \\frz and \\fax to subtitle lines from AAE data"
-versioning.version = "1.0.3"
+versioning.version = "1.0.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.ortho-mo"
 
@@ -382,7 +382,7 @@ ortho_mo = function(sub, sel, act)
                    { class = "textbox", name = "AAE",           x = 0, y = 1, width = show_help and 16 or 18, height = 6,
                                                                 text = dialog_reuse["AAE"] },
                    { class = "label",                           x = 0, y = 7, width = show_help and 16 or 18,
-                                                                label = "Select the data type:" },
+                                                                label = "Select data type:" },
                    { class = "dropdown", name = "type",         x = 0, y = 8, width = 16,
                                                                 items = { "Prefer frz fax data", "Prefer Power Pin data" }, value = dialog_reuse["type"] },
                    { class = "label",                           x = 0, y = 9, width = show_help and 16 or 18,
@@ -400,9 +400,9 @@ ortho_mo = function(sub, sel, act)
                                                                 text = [[
 Aegisub-Orthographic-Motion requires either frz fax data from aae-export or Power Pin data to work.
 
-Select the data you will prefer to use using the dropdown. If the preferred data is not available, Aegisub-Orthographic-Motion will use the other data available.
+Select the data you prefer to use using the dropdown. If the preferred data is not available, Aegisub-Orthographic-Motion will use the other data available.
 
-If frz fax data is not available or Power Pin data is preferred, Power Pin-0004 and Power Pin-0005 is used to generate \frz and Power Pin-0002 to Power Pin-0004 is used to generate \fax. You can remap the Power Pin data to match the rotation of your sign.]] })
+If frz fax data is not present or Power Pin data is preferred, Power Pin-0004 and Power Pin-0005 is used to generate \frz and Power Pin-0002 to Power Pin-0004 is used to generate \fax. You can remap Power Pin data to match the rotation of your sign.]] })
         end
 
         buttons = { "&Apply", "&Help", "Close" }

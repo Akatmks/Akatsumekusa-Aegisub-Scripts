@@ -58,10 +58,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.BackupSelection.lua",
-                            "sha1": "03ef45a5ac389eec9bb960bb4763d387ac5386d7"
+                            "sha1": "36d49ce48854e830c4531b05c5b623a86b8b74a4"
                         }
                     ],
-                    "version": "1.0.9",
+                    "version": "1.0.11",
                     "default": true,
                     "requireModules": [
                         {
@@ -75,7 +75,7 @@
                             "optional": true
                         }
                     ],
-                    "released": "2023-07-15"
+                    "released": "2023-07-16"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -121,10 +121,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}/macros/aka.Cycles.moon",
-                            "sha1": "182647fc0f7342deaf7ba4a1fac949793c130f2a"
+                            "sha1": "88020309ac0ef8d051daa2e7c76987d8da1b97c4"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.5",
                     "default": true,
                     "requireModules": [
                         {
@@ -143,7 +143,7 @@
                             "moduleName": "aka.outcome"
                         }
                     ],
-                    "released": "2023-07-15"
+                    "released": "2023-07-16"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -178,10 +178,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.ortho-mo.lua",
-                            "sha1": "a20b3ea5c70ca0d3ec878161ac1ca47db00ec9df"
+                            "sha1": "9b6a72653750ecc5acc9ef8b1dcf8720492838c8"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.5",
                     "default": true,
                     "requireModules": [
                         {
@@ -194,7 +194,7 @@
                             "moduleName": "aka.config2"
                         }
                     ],
-                    "released": "2023-07-15"
+                    "released": "2023-07-16"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -239,15 +239,15 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "e571f058011d754dea4914861f1420e032b82b20"
+                            "sha1": "17377970df54d6301b3b2d3fc4fef544152937d5"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "d27c0b88dcf55d5092858c1069d914a43fadc945"
+                            "sha1": "82c0bf438283bfa61423e2ffd268f971d4619f26"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requireModules": [
                         {
@@ -263,7 +263,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-07-14"
+                    "released": "2023-07-16"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -1100,10 +1100,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
-                            "sha1": "9bd12711a1269a7976ff1d0b8cab29949ebec610"
+                            "sha1": "cbc761d1cfd4d0752a27216600fba4f332379319"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requireModules": [
                         {
@@ -1122,7 +1122,7 @@
                             "moduleName": "ffi"
                         }
                     ],
-                    "released": "2023-07-14"
+                    "released": "2023-07-16"
                 }
             },
             "author": "Akatsumekusa and contributors",

@@ -24,7 +24,7 @@
 versioning =
   name: "Cycles"
   description: "Cycles tags on selected lines"
-  version: "1.0.3"
+  version: "1.0.5"
   author: "Akatsumekusa and contributors"
   namespace: "aka.Cycles"
   requireModules: "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }]"
@@ -76,10 +76,10 @@ aconfig = aconfig.make_editor
       "\\fsp": { 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20, 30 }
       "\\shad": { 0, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }
     "Akatsumekusa": 
-      "\\alpha": { "00", "04", "08", "0A", "10", "18", "20", "28", "30", "38", "40", "50", "60", "70", "80", "88", "90", "98", "A0", "A8", "B0", "B8", "C0", "D0", "E0", "F0", "FF" }
-      "\\blur": { 0.5, 0.53, 0.56, 0.6, 0.65, 0.7, 0.8, 1, 1.2, 1.5, 1.7, 2, 2.5, 3, 4, 5, 6, 7, 10, 15, 20, 30, 0, 0.35, 0.4, 0.44, 0.47 }
-      "\\bord": { 0, 0.6, 0.8, 1, 1.2, 1.5, 1.7, 2, 2.2, 2.5, 2.7, 3, 3.2, 3.5, 4, 4.5, 5, 5.5, 6, 9, 12, 15 }
-      "\\shad": { 0, 0.7, 1, 1.2, 1.5, 1.7, 2, 2.2, 2.5, 2.7, 3, 3.2, 3.5, 3.7, 4, 4.2, 4.5, 4.7, 5, 5.2, 5.5, 5.7, 6, 6.5, 7, 7.5, 8, 9, 12 }
+      "\\alpha": { "00", "05", "0A", "10", "18", "20", "28", "30", "40", "50", "60", "70", "80", "88", "90", "98", "A0", "A8", "B0", "B8", "C0", "D0", "E0", "F0", "FF" }
+      "\\blur": { 0.53, 0.56, 0.6, 0.65, 0.7, 0.8, 1, 1.2, 1.5, 1.7, 2, 2.5, 3, 4, 5, 6, 7, 10, 15, 20, 30, 0, 0.35, 0.4, 0.44, 0.47, 0.5 }
+      "\\bord": { 0, 0.6, 0.8, 1, 1.2, 1.5, 1.7, 2, 2.2, 2.5, 2.7, 3, 3.2, 3.5, 4, 4.5, 5, 5.5, 6, 7.5, 9, 10.5, 12, 13.5, 15 }
+      "\\shad": { 0, 0.7, 1, 1.2, 1.5, 1.7, 2, 2.2, 2.5, 2.7, 3, 3.2, 3.5, 3.7, 4, 4.2, 4.5, 4.7, 5, 5.2, 5.5, 5.7, 6, 6.5, 7, 7.5, 8, 9, 10.5, 12 }
   default: "unanimated"
 validation_func = (config) ->
   all_number = (table_) ->
@@ -139,8 +139,8 @@ prepare_config = (config) ->
 
 EditConfig = () ->
   with aconfig\read_edit_validate_and_save_config "aka.Cycles", validation_func
-    with \andThen prepare_config
-      with \ifErr aegisub.cancel
+    with \ifErr aegisub.cancel
+      with \andThen prepare_config
         config = \unwrap!
 
 
@@ -148,8 +148,8 @@ EditConfig = () ->
 Cycles = (sub, sel, act, tag) ->
   if not config
     with aconfig\read_and_validate_config_if_empty_then_default_or_else_edit_and_save "aka.Cycles", validation_func
-      with \andThen prepare_config
-        with \ifErr aegisub.cancel
+      with \ifErr aegisub.cancel
+        with \andThen prepare_config
           config = \unwrap!
   if not config[tag]
     aegisub.debug.out("[aka.Cycles] No config found for \\" .. tag .. "\n")
