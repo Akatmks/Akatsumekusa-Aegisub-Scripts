@@ -178,10 +178,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.ortho-mo.lua",
-                            "sha1": "9b6a72653750ecc5acc9ef8b1dcf8720492838c8"
+                            "sha1": "f7480fbb02c1ef46e6d22458f7b7a7199f94eb79"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requireModules": [
                         {
@@ -194,7 +194,7 @@
                             "moduleName": "aka.config2"
                         }
                     ],
-                    "released": "2023-07-16"
+                    "released": "2023-07-17"
                 }
             },
             "author": "Akatsumekusa and contributors",

@@ -1519,10 +1519,34 @@ undefine(<<RESULT_COLOR>>)
             plot_two(axs, 1, 3, 13, 14, "frz", "fax")
         else:
             plot_emptyness(axs, 1, 3)
-        plot_x_y(axs, 2, 0, 5, 6, "power_pin_" + clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0002 != "0002")
-        plot_x_y(axs, 2, 3, 7, 8, "power_pin_" + clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0003 != "0003")
-        plot_x_y(axs, 3, 0, 9, 10, "power_pin_" + clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0004 != "0004")
-        plot_x_y(axs, 3, 3, 11, 12, "power_pin_" + clip_settings.power_pin_remap_0005, clip_settings.power_pin_remap_0005 != "0005")
+define(<<REMAP>>, <<
+        match clip_settings.power_pin_remap_<<>>POWER_PIN:
+            case "0002":
+                remapped_0002 = "POWER_PIN"
+            case "0003":
+                remapped_0003 = "POWER_PIN"
+            case "0004":
+                remapped_0004 = "POWER_PIN"
+            case "0005":
+                remapped_0005 = "POWER_PIN"
+>>)
+define(<<POWER_PIN>>, <<0002>>)
+REMAP()
+undefine(<<POWER_PIN>>)
+define(<<POWER_PIN>>, <<0003>>)
+REMAP()
+undefine(<<POWER_PIN>>)
+define(<<POWER_PIN>>, <<0004>>)
+REMAP()
+undefine(<<POWER_PIN>>)
+define(<<POWER_PIN>>, <<0005>>)
+REMAP()
+undefine(<<POWER_PIN>>)
+undefine(<<REMAP>>)
+        plot_x_y(axs, 2, 0, 5, 6, "power_pin_" + remapped_0002, remapped_0002 != "0002")
+        plot_x_y(axs, 2, 3, 7, 8, "power_pin_" + remapped_0003, remapped_0003 != "0003")
+        plot_x_y(axs, 3, 0, 9, 10, "power_pin_" + remapped_0004, remapped_0004 != "0004")
+        plot_x_y(axs, 3, 3, 11, 12, "power_pin_" + remapped_0005, remapped_0005 != "0005")
 
         fig.canvas.draw()
         with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
@@ -1887,13 +1911,13 @@ undefine(<<SMOOTHED_LW>>)
 define(<<REMAP>>, <<
         match power_pin_remap_<<>>POWER_PIN:
             case "0002":
-                return_<<>>POWER_PIN = power_pin_0002
+                return_0002 = power_pin_<<>>POWER_PIN
             case "0003":
-                return_<<>>POWER_PIN = power_pin_0003
+                return_0003 = power_pin_<<>>POWER_PIN
             case "0004":
-                return_<<>>POWER_PIN = power_pin_0004
+                return_0004 = power_pin_<<>>POWER_PIN
             case "0005":
-                return_<<>>POWER_PIN = power_pin_0005
+                return_0005 = power_pin_<<>>POWER_PIN
 >>)
 define(<<POWER_PIN>>, <<0002>>)
 REMAP()

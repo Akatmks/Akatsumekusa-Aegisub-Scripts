@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Aegisub-Orthographic-Motion"
 versioning.description = "Apply \\frz and \\fax to subtitle lines from AAE data"
-versioning.version = "1.0.5"
+versioning.version = "1.0.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.ortho-mo"
 
@@ -479,7 +479,7 @@ apply_AAE = function(sub, sel, act, data)
 
                 sub.insert(sel[i] + 1, line)
                 table.insert(sel, sel[i])
-                if act >= sel[i] then act = act + 1 end
+                if act > sel[i] then act = act + 1 end
                 for k=i,sel_initial_len do sel[k] = sel[k] + 1 end
             end
         else -- frame_end - frame_start < 1
@@ -555,7 +555,7 @@ apply_AAE_line = function(sub, line, x_radian, y_radian)
     cleanTag(line, "fscx")
     cleanTag(line, "fscy")
 
-    to_write = math.deg(x_radian) % (2 * math.pi) if to_write >= 0.0005 and to_write < 359.9995 and getStyleTag(sub, line, "angle") == 0 then
+    to_write = math.deg(x_radian) % 360 if to_write >= 0.0005 and to_write < 359.9995 and getStyleTag(sub, line, "angle") == 0 then
     setTagSingle(line, "frz", to_write) end
     fscx = getTagSingle(line, "fscx") or getStyleTag(sub, line, "scale_x") or 100
     fscy = getTagSingle(line, "fscy") or getStyleTag(sub, line, "scale_y") or 100
