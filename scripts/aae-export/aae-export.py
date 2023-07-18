@@ -50,7 +50,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 3, 0),
+    "version": (1, 2, 1),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -169,10 +169,6 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                   description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is unable to recognise the data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
                                                   default=True)
 
-    do_includes_frz_fax: bpy.props.BoolProperty(name="Includes frz fax",
-                                                description="Includes frz and fax data for Aegisub-Orthographic-Motion in the export for tracks and plane tracks.\nThis requires at least one Power Pin to be selected as Power Pin 0002, 0004, and 0005 respectively in Power Pin Remap function",
-                                                default=True)
-
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
                                                 description="Generate unique filename every time",
                                                 default=False)
@@ -215,14 +211,14 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                               description="Perform smoothing on tracking data.\nThis feature requires additional packages to be installed. Please head to „Edit > Preference > Add-ons > Video Tools: AAE Export > Preferences“ to install the dependencies",
                                               default=False)
     do_smoothing: bpy.props.BoolProperty(name="Enable",
-                                         description="Perform smoothing on tracking data.\nThis uses the track's position, scale, rotation, Power Pin, frz and fax data to fit polynomial regression models, and then uses the fit models to generate smoothed data",
+                                         description="Perform smoothing on tracking data.\nThis uses the track's position, scale, rotation and Power Pin data to fit polynomial regression models, and then uses the fit models to generate smoothed data",
                                          default=False,
                                          update=_do_smoothing_update)
 
     def _do_predictive_smoothing_update(self, context):
         context.edit_movieclip.AAEExportSettingsSectionL[0].smoothing_extrapolate = self.do_predictive_smoothing
     do_predictive_smoothing: bpy.props.BoolProperty(name="Extrapolate",
-                                                    description="Generate position, scale, rotation, Power Pin, frz and fax data over the whole length of the clip, even if the track is disabled on some of the frames.\n\nThe five options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“, „Smooth Power Pin“ and „Smooth frz fax“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
+                                                    description="Generate position, scale, rotation and Power Pin data over the whole length of the clip, even if the track is disabled on some of the frames.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                     default=False,
                                                     update=_do_predictive_smoothing_update)
                                          
@@ -253,28 +249,28 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                                              step=50,
                                                              precision=1)
 
-    power_pin_remap_0002: bpy.props.EnumProperty(items=(("0002", "(0002 (Upper-left))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
+    power_pin_remap_0002: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
                                                         ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
                                                         ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
                                                         ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track")),
                                                name="0002 (Upper-left)",
                                                default="0002")
     power_pin_remap_0003: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
-                                                        ("0003", "(0003 (Upper-right))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
+                                                        ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
                                                         ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
                                                         ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track")),
                                                name="0003 (Upper-right)",
                                                default="0003")
     power_pin_remap_0004: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
                                                         ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
-                                                        ("0004", "(0004 (Lower-left))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
+                                                        ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
                                                         ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track")),
                                                name="0004 (Lower-left)",
                                                default="0004")
     power_pin_remap_0005: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
                                                         ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
                                                         ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
-                                                        ("0005", "(0005 (Lower-right))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track")),
+                                                        ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track")),
                                                name="0005 (Lower-right)",
                                                default="0005")
 
@@ -296,17 +292,17 @@ define(<<SMOOTHING_SETTINGS_BASE>>, <<dnl START_FRAME_UPDATE <<OPTIONAL>>, END_F
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
     smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
-                                                          description="Use different regression models for position, scale, rotation, Power Pin, and frz and fax data",
+                                                          description="Use different regression models for position, scale, rotation and Power Pin data",
                                                           default=False)
                                                           
     smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
-                                                  description="Generate position, scale, rotation, Power Pin, frz and fax data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe five options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“, „Smooth Power Pin“ and „Smooth frz fax“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
+                                                  description="Generate position, scale, rotation and Power Pin data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                   default=False)
 >>)
 
-define(<<SMOOTHING_SETTINGS_SETTINGS>>, <<dnl CODE_NAME, DISPLAY_NAME, XY_NAME, XY_DISPLAY_NAME, DEFAULT_SMOOTHING, DEFAULT_DEGREE
+define(<<SMOOTHING_SETTINGS_SETTINGS>>, <<dnl CODE_NAME, DISPLAY_NAME, XY_NAME <<OPTIONAL>>, DEFAULT_DEGREE
 
-define(<<ONETHREE>>, <<ifelse(<<$1>>, <<>>, <<>>, <<_$1>>)<<>>ifelse(<<$3>>, <<>>, <<>>, <<_$3>>)>>)
+define(<<ONETHREE>>, <<<<>>ifelse(<<$1>>, <<>>, <<>>, <<_$1>>)<<>>ifelse(<<$3>>, <<>>, <<>>, <<_$3>>)>>)
 define(<<NAME>>, <<NAME NOT INITIALISED>>)
 
 define(<<UPDATE>>, <<
@@ -318,7 +314,6 @@ ifelse(ONETHREE, <<_y>>, <<>>, <<
         self.smoothing_rotation_<<>>NAME<<>> = self.smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
 >>)
         self.smoothing_power_pin<<>>ONETHREE<<>>_<<>>NAME<<>> = self.smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
-        self.smoothing_frz_fax<<>>ONETHREE<<>>_<<>>NAME<<>> = self.smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>
 >>, <<>>)dnl $1 CODE_NAME IS EMPTY
 
 ifelse(<<$3>>, <<>>, <<dnl $3 XY_NAME IS EMPTY
@@ -342,16 +337,16 @@ ifdef(<<UNI>>, <<>>, <<
 
     smoothing_do<<>>ONETHREE<<>>: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on<<>>ifelse(<<$4>>, <<x>>, << x axis of>>, <<ifelse(<<$4>>, <<y>>, << y axis of>>, <<>>)>>) ifelse(<<$4>>, <<frz>>, <<frz>>, ifelse(<<$4>>, <<fax>>, <<fax>>, <<$2>>)) data<<>>ifelse(<<$1>>, <<scale>>, <<ifelse(<<$4>>, <<y>>, <<.\nAs of May 2023, a-mo does not support using different scale for different axes>>, <<>>)>>, <<>>)",
-                default=$5,
+                description="Perform smoothing on<<>>ifelse(<<$3>>, <<>>, <<>>, << $3 axis of>>) ifelse(<<$2>>, <<power_pin>>, <<Power Pin>>, <<$2>>) data<<>>ifelse(<<$2>>, <<scale>>, <<ifelse(<<$3>>, <<y>>, <<.\nAs of May 2023, a-mo does not support using different scale for different axes>>, <<>>)>>, <<>>)",
+                default=True,
                 update=_smoothing_do<<>>ONETHREE<<>>_update)
 
 define(<<NAME>>, <<degree>>)
 UPDATE()
     smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>: bpy.props.IntProperty(
                 name="Max Degree",
-                description="The maximal polynomial degree for<<>>ifelse(<<$4>>, <<frz>>, <<>>, ifelse(<<$4>>, <<fax>>, <<>>, << $2>>)) ifelse(<<$4>>, <<>>, <<data>>, <<ifelse(<<$4>>, <<frz>>, <<frz data>>, <<ifelse(<<$4>>, <<fax>>, <<fax data>>, <<$4>>)>>)>>).\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                default=$6,
+                description="The maximal polynomial degree for $2 ifelse(<<$3>>, <<>>, <<data>>, <<$3>>).\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
+                default=$4,
                 min=0,
                 soft_max=16,
                 update=_smoothing<<>>ONETHREE<<>>_<<>>NAME<<>>_update)
@@ -398,15 +393,15 @@ undefine(<<UPDATE>>)
 >>)dnl SMALL
 >>)
 
-define(<<SMOOTHING_SETTINGS_XY>>, <<dnl CODE_NAME, DISPLAY_NAME, DEFAULT_SMOOTHING, DEFAULT_DEGREE
-SMOOTHING_SETTINGS_SETTINGS(<<$1>>, <<$2>>, <<>>, <<>>, <<$3>>, <<$4>>)
-SMOOTHING_SETTINGS_SETTINGS(<<$1>>, ifelse(<<$1>>, <<frz_fax>>, <<>>, <<$2>>), <<x>>, ifelse(<<$1>>, <<frz_fax>>, <<frz>>, <<x>>), <<$3>>, <<$4>>)
-SMOOTHING_SETTINGS_SETTINGS(<<$1>>, ifelse(<<$1>>, <<frz_fax>>, <<>>, <<$2>>), <<y>>, ifelse(<<$1>>, <<frz_fax>>, <<fax>>, <<y>>), <<$3>>, <<$4>>)
+define(<<SMOOTHING_SETTINGS_XY>>, <<dnl CODE_NAME, DISPLAY_NAME, DEFAULT_DEGREE
+SMOOTHING_SETTINGS_SETTINGS(<<$1>>, <<$2>>, <<>>, <<$3>>)
+SMOOTHING_SETTINGS_SETTINGS(<<$1>>, <<$2>>, <<x>>, <<$3>>)
+SMOOTHING_SETTINGS_SETTINGS(<<$1>>, <<$2>>, <<y>>, <<$3>>)
 >>)
 
-define(<<SMOOTHING_SETTINGS_UNI>>, <<dnl CODE_NAME, DISPLAY_NAME,DEFAULT_SMOOTHING,  DEFAULT_DEGREE
+define(<<SMOOTHING_SETTINGS_UNI>>, <<dnl CODE_NAME, DISPLAY_NAME, DEFAULT_DEGREE
 define(<<UNI>>)
-SMOOTHING_SETTINGS_SETTINGS(<<$1>>, <<$2>>, <<>>, <<>>, <<$3>>, <<$4>>)
+SMOOTHING_SETTINGS_SETTINGS(<<$1>>, <<$2>>, <<>>, <<$3>>)
 undefine(<<UNI>>)
 >>)
 
@@ -415,12 +410,10 @@ SMOOTHING_SETTINGS_BASE()
 define(<<UNI>>)
 SMOOTHING_SETTINGS_SETTINGS(<<>>, <<>>, <<>>, <<0>>)
 define(<<SMALL>>)
-SMOOTHING_SETTINGS_SETTINGS(<<position>>, <<position>>, <<>>, <<>>, <<True>>, <<0>>)
-SMOOTHING_SETTINGS_SETTINGS(<<scale>>, <<scale>>, <<>>, <<>>, <<True>>, <<0>>)
-SMOOTHING_SETTINGS_SETTINGS(<<rotation>>, <<rotation>>, <<>>, <<>>, <<True>>, <<0>>)
-SMOOTHING_SETTINGS_SETTINGS(<<power_pin>>, <<power_pin>>, <<>>, <<>>, <<True>>, <<0>>)
-SMOOTHING_SETTINGS_SETTINGS(<<frz_fax_x>>, <<frz>>, <<>>, <<>>, <<True>>, <<0>>)
-SMOOTHING_SETTINGS_SETTINGS(<<frz_fax_y>>, <<fax>>, <<>>, <<>>, <<True>>, <<0>>)
+SMOOTHING_SETTINGS_SETTINGS(<<position>>, <<position>>, <<>>, <<0>>)
+SMOOTHING_SETTINGS_SETTINGS(<<scale>>, <<scale>>, <<>>, <<0>>)
+SMOOTHING_SETTINGS_SETTINGS(<<rotation>>, <<rotation>>, <<>>, <<0>>)
+SMOOTHING_SETTINGS_SETTINGS(<<power_pin>>, <<power_pin>>, <<>>, <<0>>)
 undefine(<<UNI>>)
 undefine(<<SMALL>>)
 
@@ -543,11 +536,10 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 SMOOTHING_SETTINGS_BASE(<<_start_frame_update>>, <<_end_frame_update>>)
 
 SMOOTHING_SETTINGS_XY(<<>>, <<>>, <<0>>)
-SMOOTHING_SETTINGS_XY(<<position>>, <<position>>, <<True>>, <<2>>)
-SMOOTHING_SETTINGS_XY(<<scale>>, <<scale>>, <<True>>, <<2>>)
-SMOOTHING_SETTINGS_UNI(<<rotation>>, <<rotation>>, <<True>>, <<1>>)
-SMOOTHING_SETTINGS_XY(<<power_pin>>, <<Power Pin>>, <<True>>, <<2>>)
-SMOOTHING_SETTINGS_XY(<<frz_fax>>, <<frz and fax>>, <<True>>, <<1>>)
+SMOOTHING_SETTINGS_XY(<<position>>, <<position>>, <<2>>)
+SMOOTHING_SETTINGS_XY(<<scale>>, <<scale>>, <<2>>)
+SMOOTHING_SETTINGS_UNI(<<rotation>>, <<rotation>>, <<1>>)
+SMOOTHING_SETTINGS_XY(<<power_pin>>, <<Power Pin>>, <<2>>)
 
 undefine(<<SMOOTHING_SETTINGS_BASE>>)
 undefine(<<SMOOTHING_SETTINGS_SETTINGS>>)
@@ -589,10 +581,10 @@ class AAEExportExportAll(bpy.types.Operator):
         # If smoothing modules are installed, the logic is as follows:
         #   _calculate_aspect_ratio() calculates the ratio for
         #       converting 1920 × 1080 to 1.778 × 1.
-        #   _prepare_data() read and calculate all 15 data streams from
+        #   _prepare_data() read and calculate all 13 data streams from
         #       track.
-        #   _unlimit_rotation_and_frz_fax() unwrap the rotations from
-        #       30° 10° 350° to 30° 10° -10°.
+        #   _unlimit_rotation() unwrap the rotations from for example
+        #       30° - 10° - 350° to 30° - 10° - -10°.
         #   _parse_section_settings() parse settings into an array of
         #       dicts, away from the madness of Blender.
         #   _smoothing_main() gets the data after smoothing.
@@ -610,12 +602,10 @@ class AAEExportExportAll(bpy.types.Operator):
 
             data \
                 = AAEExportExportAll._prepare_data( \
-                      clip, track, ratio, \
-                      settings.do_includes_frz_fax, \
-                      clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0005)
+                      clip, track, ratio)
 
             if clip_settings.do_smoothing:
-                AAEExportExportAll._unlimit_rotation_and_frz_fax( \
+                AAEExportExportAll._unlimit_rotation( \
                     data)
 
                 parsed_section_settings \
@@ -627,13 +617,13 @@ class AAEExportExportAll(bpy.types.Operator):
                           data, \
                           clip, clip_settings, parsed_section_settings, section_settings_ll)
 
-                AAEExportExportAll._limit_rotation_and_frz_fax( \
+                AAEExportExportAll._limit_rotation( \
                     data)
             else:
-                AAEExportExportAll._limit_rotation_and_frz_fax( \
+                AAEExportExportAll._limit_rotation( \
                     data)
 
-            aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, aae_frz_fax \
+            aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
                 = AAEExportExportAll._generate_aae( \
                       data, multiplier)
 
@@ -641,9 +631,6 @@ class AAEExportExportAll(bpy.types.Operator):
             aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
                 = AAEExportExportAll._generate_aae_non_numpy( \
                       clip, track)
-
-            aae_frz_fax \
-                = None
 
         aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
             = AAEExportExportAll._remap_power_pin( \
@@ -653,7 +640,7 @@ class AAEExportExportAll(bpy.types.Operator):
         aae \
             = AAEExportExportAll._combine_aae( \
                   clip, \
-                  aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, aae_frz_fax, \
+                  aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
                   settings.do_includes_power_pin)
 
         return aae
@@ -670,11 +657,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
         data \
             = AAEExportExportAll._prepare_data( \
-                  clip, track, ratio, \
-                  settings.do_includes_frz_fax, \
-                  clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0005)
+                  clip, track, ratio)
 
-        AAEExportExportAll._unlimit_rotation_and_frz_fax( \
+        AAEExportExportAll._unlimit_rotation( \
             data)
 
         parsed_section_settings \
@@ -693,7 +678,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
             AAEExportExportAll._plot_result_plot( \
                 data, smoothed_data, no_blending_data, \
-                settings, clip_settings)
+                clip_settings)
         else:
             smoothed_data \
                 = AAEExportExportAll._smoothing_main( \
@@ -701,8 +686,8 @@ class AAEExportExportAll(bpy.types.Operator):
                       clip, clip_settings, parsed_section_settings, section_settings_ll)
 
             AAEExportExportAll._plot_result_plot( \
-                data, smoothed_data, [None] * 15, \
-                settings, clip_settings)
+                data, smoothed_data, [None] * 13, \
+                clip_settings)
 
     @staticmethod
     def _plot_section(clip, track, \
@@ -716,11 +701,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
         data \
             = AAEExportExportAll._prepare_data( \
-                  clip, track, ratio, \
-                  settings.do_includes_frz_fax, \
-                  clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0005)
+                  clip, track, ratio)
 
-        AAEExportExportAll._unlimit_rotation_and_frz_fax( \
+        AAEExportExportAll._unlimit_rotation( \
             data)
 
         parsed_section_settings \
@@ -728,7 +711,7 @@ class AAEExportExportAll(bpy.types.Operator):
                 section_settings_l, section_settings_ll)
 
         smoothed_data = {}
-        for i in range(15):
+        for i in range(13):
             data[i] = \
                 data[i][parsed_section_settings[section_settings_li]["start_frame"]:parsed_section_settings[section_settings_li]["end_frame"]]
             if parsed_section_settings[section_settings_li][i]["smoothing"] or \
@@ -743,7 +726,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
         AAEExportExportAll._plot_section_plot( \
             data, smoothed_data, \
-            settings, parsed_section_settings[section_settings_li])
+            parsed_section_settings[section_settings_li])
 
     @staticmethod
     def _calculate_aspect_ratio(clip):
@@ -765,9 +748,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _prepare_data(clip, track, \
-                      ratio, \
-                      do_includes_frz_fax, \
-                      power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
+                      ratio):
         # returns data : dict[npt.NDArray[float64]]
 
         # data
@@ -777,16 +758,14 @@ class AAEExportExportAll(bpy.types.Operator):
         #      2: scale_x,
         #      3: scale_y,
         #      4: rotation,
-        #      5: power_pin_0002_x (relative to position_x),
-        #      6: power_pin_0002_y (relative to position_y),
+        #      5: power_pin_0002_x, (relative to position_x),
+        #      6: power_pin_0002_y, (relative to position_y),
         #      7: power_pin_0003_x,
         #      8: power_pin_0003_y,
         #      9: power_pin_0004_x,
         #     10: power_pin_0004_y,
         #     11: power_pin_0005_x,
-        #     12: power_pin_0005_y,
-        #     13: frz axis,
-        #     14: fax axis
+        #     12: power_pin_0005_y
         # }
         data = {}
 
@@ -801,11 +780,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
         AAEExportExportAll._prepare_scale_and_semilimited_rotation( \
             data)
-
-        AAEExportExportAll._prepare_frz_fax( \
-            data, \
-            do_includes_frz_fax, \
-            power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005)
 
         return data
 
@@ -958,120 +932,22 @@ class AAEExportExportAll(bpy.types.Operator):
 
         data[4] = np.arctan2(data[5] + data[7], -data[6] - data[8])
 
-
     @staticmethod
-    def _prepare_frz_fax(data, \
-                         do_includes_frz_fax, \
-                         power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
+    def _unlimit_rotation(data):
         import numpy as np
 
-        if do_includes_frz_fax:
-            power_pin_data = {}
-            power_pin_data[0] = None
-            power_pin_data[1] = None
-            power_pin_data[2] = None
-            power_pin_data[3] = None
-            power_pin_data[4] = None
-            power_pin_data[5] = None
-define(<<REMAP>>, <<
-            match power_pin_remap_<<>>POWER_PIN:
-                case "0002":
-ifelse(POWER_PIN, <<0002>>, <<
-                    pass
->>, <<
-                    if power_pin_data[0] is None:
-                        power_pin_data[0] = data[DATA_X]
-                        power_pin_data[1] = data[DATA_Y]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0002")
->>)
-                case "0003":
-                    pass
-                case "0004":
-ifelse(POWER_PIN, <<0004>>, <<
-                    pass
->>, <<
-                    if power_pin_data[2] is None:
-                        power_pin_data[2] = data[DATA_X]
-                        power_pin_data[3] = data[DATA_Y]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0004")
->>)
-                case "0005":
-ifelse(POWER_PIN, <<0005>>, <<
-                    pass
->>, <<
-                    if power_pin_data[4] is None:
-                        power_pin_data[4] = data[DATA_X]
-                        power_pin_data[5] = data[DATA_Y]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0005")
->>)
->>)
-define(<<POWER_PIN>>, <<0002>>)
-define(<<DATA_X>>, <<5>>)
-define(<<DATA_Y>>, <<6>>)
-REMAP()
-define(<<POWER_PIN>>, <<0003>>)
-define(<<DATA_X>>, <<7>>)
-define(<<DATA_Y>>, <<8>>)
-REMAP()
-define(<<POWER_PIN>>, <<0004>>)
-define(<<DATA_X>>, <<9>>)
-define(<<DATA_Y>>, <<10>>)
-REMAP()
-define(<<POWER_PIN>>, <<0005>>)
-define(<<DATA_X>>, <<11>>)
-define(<<DATA_Y>>, <<12>>)
-REMAP()
-undefine(<<POWER_PIN>>)
-undefine(<<DATA_X>>)
-undefine(<<DATA_Y>>)
-undefine(<<REMAP>>)
-            if power_pin_data[0] is None and power_pin_remap_0002 == "0002":
-                power_pin_data[0] = data[5]
-                power_pin_data[1] = data[6]
-            if power_pin_data[2] is None and power_pin_remap_0004 == "0004":
-                power_pin_data[2] = data[9]
-                power_pin_data[3] = data[10]
-            if power_pin_data[4] is None and power_pin_remap_0005 == "0005":
-                power_pin_data[4] = data[11]
-                power_pin_data[5] = data[12]
+        diff = np.diff(data[4])
 
-            if power_pin_data[0] is None:
-                raise ValueError("frz fax requires at least one Power Pin to be specified as Power Pin 0002")
-            if power_pin_data[2] is None:
-                raise ValueError("frz fax requires at least one Power Pin to be specified as Power Pin 0004")
-            if power_pin_data[4] is None:
-                raise ValueError("frz fax requires at least one Power Pin to be specified as Power Pin 0005")
-
-            data[13] = np.arctan2(-power_pin_data[5] + power_pin_data[3], power_pin_data[4] - power_pin_data[2])
-            data[14] = np.arctan2(-power_pin_data[1] + power_pin_data[3], power_pin_data[0] - power_pin_data[2])
-
-        else:
-            data[13] = np.full_like(data[0], np.nan, dtype=np.float64)
-            data[14] = np.full_like(data[0], np.nan, dtype=np.float64)
+        for i in np.nonzero(diff > np.pi)[0]:
+            data[4][i+1:] -= 2 * np.pi
+        for i in np.nonzero(diff <= -np.pi)[0]:
+            data[4][i+1:] += 2 * np.pi
 
     @staticmethod
-    def _unlimit_rotation_and_frz_fax(data):
+    def _limit_rotation(data):
         import numpy as np
 
-        for i in (4, 13, 14):
-            diff = np.diff(data[i])
-
-            for j in np.nonzero(diff > np.pi)[0]:
-                data[i][j+1:] -= 2 * np.pi
-            for j in np.nonzero(diff <= -np.pi)[0]:
-                data[i][j+1:] += 2 * np.pi
-
-    @staticmethod
-    def _limit_rotation_and_frz_fax(data):
-        # Limit the rotation to 0 to 2π
-
-        import numpy as np
-
-        for i in (4, 13, 14):
-            np.remainder(data[i], 2 * np.pi, out=data[i])
+        np.remainder(data[4], 2 * np.pi, out=data[4])
 
     @staticmethod
     def _parse_section_settings(section_settings_l, section_settings_ll):
@@ -1083,7 +959,7 @@ undefine(<<REMAP>>)
         #     (Section) 0: {
         #         start_frame: 0
         #
-        #         (Type) 0..14: {
+        #         (Type) 0..12: {
         #             degree: 2
         #
         #         }
@@ -1120,9 +996,9 @@ define(<<PARSE_DATA_AXIS>>, <<
 ifdef(<<UNI>>, <<
                     parsed_settings[i][INDEX]["smoothing"] = section_settings_l[i].smoothing_do_<<>>DATA<<>>
                     parsed_settings[i][INDEX]["degree"] = section_settings_l[i].smoothing_<<>>DATA<<>>_degree
-                    parsed_settings[i][INDEX]["regressor"] = section_settings_l[i].smoothing_<<>>AXIS<<>>_regressor
-                    parsed_settings[i][INDEX]["huber_epsilon"] = section_settings_l[i].smoothing_<<>>AXIS<<>>_huber_epsilon
-                    parsed_settings[i][INDEX]["lasso_alpha"] = section_settings_l[i].smoothing_<<>>AXIS<<>>_lasso_alpha
+                    parsed_settings[i][INDEX]["regressor"] = section_settings_l[i].smoothing_x_regressor
+                    parsed_settings[i][INDEX]["huber_epsilon"] = section_settings_l[i].smoothing_x_huber_epsilon
+                    parsed_settings[i][INDEX]["lasso_alpha"] = section_settings_l[i].smoothing_x_lasso_alpha
 >>, <<
                     parsed_settings[i][INDEX]["smoothing"] = section_settings_l[i].smoothing_do_<<>>DATA<<>>_<<>>AXIS<<>>
                     parsed_settings[i][INDEX]["degree"] = section_settings_l[i].smoothing_<<>>DATA<<>>_<<>>AXIS<<>>_degree
@@ -1160,9 +1036,9 @@ define(<<INDEX>>, <<3>>) define(<<DATA>>, <<scale>>) define(<<AXIS>>, <<y>>)
 PARSE_DATA_AXIS()
 undefine(<<INDEX>>) undefine(<<DATA>>) undefine(<<AXIS>>)
 
-define(<<INDEX>>, <<4>>) define(<<DATA>>, <<rotation>>) define(<<UNI>>, <<>>) define(<<AXIS>>, <<x>>)
+define(<<INDEX>>, <<4>>) define(<<DATA>>, <<rotation>>) define(<<UNI>>, <<>>)
 PARSE_DATA_AXIS()
-undefine(<<INDEX>>) undefine(<<DATA>>) undefine(<<UNI>>) undefine(<<AXIS>>)
+undefine(<<INDEX>>) undefine(<<DATA>>) undefine(<<UNI>>)
 
 define(<<INDEX>>, <<5>>) define(<<DATA>>, <<power_pin>>) define(<<AXIS>>, <<x>>)
 PARSE_DATA_AXIS()
@@ -1189,13 +1065,6 @@ define(<<INDEX>>, <<12>>) define(<<DATA>>, <<power_pin>>) define(<<AXIS>>, <<y>>
 PARSE_DATA_AXIS()
 undefine(<<INDEX>>) undefine(<<DATA>>) undefine(<<AXIS>>)
 
-define(<<INDEX>>, <<13>>) define(<<DATA>>, <<frz_fax_x>>) define(<<UNI>>, <<>>) define(<<AXIS>>, <<x>>)
-PARSE_DATA_AXIS()
-undefine(<<INDEX>>) undefine(<<DATA>>) undefine(<<UNI>>) undefine(<<AXIS>>)
-define(<<INDEX>>, <<14>>) define(<<DATA>>, <<frz_fax_y>>) define(<<UNI>>, <<>>) define(<<AXIS>>, <<y>>)
-PARSE_DATA_AXIS()
-undefine(<<INDEX>>) undefine(<<DATA>>) undefine(<<UNI>>) undefine(<<AXIS>>)
-
 undefine(<<PARSE_DATA_AXIS>>)
 
         return parsed_settings
@@ -1213,7 +1082,7 @@ undefine(<<PARSE_DATA_AXIS>>)
         if plotting:
             no_blending_data = {}
 
-        for i in range(15):
+        for i in range(13):
             smoothed_data[i] \
                 = np.zeros_like(data[i])
             if plotting:
@@ -1373,7 +1242,6 @@ undefine(<<PARSE_DATA_AXIS>>)
         #         aae_power_pin_0003 : list[str]
         #         aae_power_pin_0004 : list[str]
         #         aae_power_pin_0005 : list[str]
-        #         aae_frz_fax : list[str]
 
         import numpy as np
 
@@ -1407,7 +1275,6 @@ undefine(<<PARSE_DATA_AXIS>>)
         aae_power_pin_0003 = []
         aae_power_pin_0004 = []
         aae_power_pin_0005 = []
-        aae_frz_fax = []
 
         for frame in range(data[0].shape[0]):
             if not np.isnan(data[0][frame]):
@@ -1421,16 +1288,13 @@ undefine(<<PARSE_DATA_AXIS>>)
                 aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(frame + 1, data[7][frame], data[8][frame]))
                 aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(frame + 1, data[9][frame], data[10][frame]))
                 aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".<<format>>(frame + 1, data[11][frame], data[12][frame]))
-            if not np.isnan(data[13][frame]):
-                aae_frz_fax.append("\t{:d}\t{:f}\t{:f}".<<format>>(frame + 1, data[13][frame], data[14][frame]))
 
         return aae_position, aae_scale, aae_rotation, \
-               aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
-               aae_frz_fax
+               aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
         
     @staticmethod
     def _plot_result_plot(data, smoothed_data, no_blending_data, \
-                          settings, clip_settings):
+                          clip_settings):
         import matplotlib.pyplot as plt
         import numpy as np
         import PIL
@@ -1467,25 +1331,6 @@ define(<<RESULT_COLOR>>, <<orange>>)
             axs[y, x + 2].legend()
             axs[y, x + 2].set_xlabel("Frame")
             axs[y, x + 2].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y" + (" (Remapped)" if power_pin_remapped else ""))
-
-        def plot_two(axs, y, x, i, j, label_i, label_j):
-            axs[y, x].axis("off")
-
-            axs[y, x + 1].scatter(np.arange(1, data[i].shape[0] + 1), data[i], color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label_i.lower())), zorder=2.001)
-            if no_blending_data[i] is not None:
-                axs[y, x + 1].plot(np.arange(1, data[i].shape[0] + 1), no_blending_data[i], color="NO_BLENDING_COLOR", lw=NO_BLENDING_LW, label="_".join(["no_blending"] + re.split(" |_", label_i.lower())), zorder=2.002)
-            axs[y, x + 1].plot(np.arange(1, data[i].shape[0] + 1), smoothed_data[i], color="RESULT_COLOR", lw=RESULT_LW, label="_".join(["result"] + re.split(" |_", label_i.lower())), zorder=2.003)
-            axs[y, x + 1].legend()
-            axs[y, x + 1].set_xlabel("Frame")
-            axs[y, x + 1].set_ylabel(label_i)
-
-            axs[y, x + 2].scatter(np.arange(1, data[i].shape[0] + 1), data[j], color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label_j.lower())), zorder=2.001)
-            if no_blending_data[i] is not None:
-                axs[y, x + 2].plot(np.arange(1, data[i].shape[0] + 1), no_blending_data[j], color="NO_BLENDING_COLOR", lw=NO_BLENDING_LW, label="_".join(["no_blending"] + re.split(" |_", label_j.lower())), zorder=2.002)
-            axs[y, x + 2].plot(np.arange(1, data[i].shape[0] + 1), smoothed_data[j], color="RESULT_COLOR", lw=RESULT_LW, label="_".join(["result"] + re.split(" |_", label_j.lower())), zorder=2.003)
-            axs[y, x + 2].legend()
-            axs[y, x + 2].set_xlabel("Frame")
-            axs[y, x + 2].set_ylabel(label_j)
         
         def plot_univariate(axs, y, x, i, label):
             axs[y, x].axis("off")
@@ -1515,38 +1360,11 @@ undefine(<<RESULT_COLOR>>)
         plot_x_y(axs, 0, 0, 0, 1, "position")
         plot_x_y(axs, 0, 3, 2, 3, "scale")
         plot_univariate(axs, 1, 0, 4, "rotation")
-        if settings.do_includes_frz_fax:
-            plot_two(axs, 1, 3, 13, 14, "frz", "fax")
-        else:
-            plot_emptyness(axs, 1, 3)
-define(<<REMAP>>, <<
-        match clip_settings.power_pin_remap_<<>>POWER_PIN:
-            case "0002":
-                remapped_0002 = "POWER_PIN"
-            case "0003":
-                remapped_0003 = "POWER_PIN"
-            case "0004":
-                remapped_0004 = "POWER_PIN"
-            case "0005":
-                remapped_0005 = "POWER_PIN"
->>)
-define(<<POWER_PIN>>, <<0002>>)
-REMAP()
-undefine(<<POWER_PIN>>)
-define(<<POWER_PIN>>, <<0003>>)
-REMAP()
-undefine(<<POWER_PIN>>)
-define(<<POWER_PIN>>, <<0004>>)
-REMAP()
-undefine(<<POWER_PIN>>)
-define(<<POWER_PIN>>, <<0005>>)
-REMAP()
-undefine(<<POWER_PIN>>)
-undefine(<<REMAP>>)
-        plot_x_y(axs, 2, 0, 5, 6, "power_pin_" + remapped_0002, remapped_0002 != "0002")
-        plot_x_y(axs, 2, 3, 7, 8, "power_pin_" + remapped_0003, remapped_0003 != "0003")
-        plot_x_y(axs, 3, 0, 9, 10, "power_pin_" + remapped_0004, remapped_0004 != "0004")
-        plot_x_y(axs, 3, 3, 11, 12, "power_pin_" + remapped_0005, remapped_0005 != "0005")
+        plot_emptyness(axs, 1, 3)
+        plot_x_y(axs, 2, 0, 5, 6, "power_pin_" + clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0002 != "0002")
+        plot_x_y(axs, 2, 3, 7, 8, "power_pin_" + clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0003 != "0003")
+        plot_x_y(axs, 3, 0, 9, 10, "power_pin_" + clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0004 != "0004")
+        plot_x_y(axs, 3, 3, 11, 12, "power_pin_" + clip_settings.power_pin_remap_0005, clip_settings.power_pin_remap_0005 != "0005")
 
         fig.canvas.draw()
         with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
@@ -1555,7 +1373,7 @@ undefine(<<REMAP>>)
 
     @staticmethod
     def _plot_section_plot(data, smoothed_data, \
-                           settings, section_settings):
+                           section_settings):
         import matplotlib.pyplot as plt
         import numpy as np
         import PIL
@@ -1617,49 +1435,6 @@ define(<<SMOOTHED_LW>>, <<1.4>>)
             else:
                 row[4].axis("off")
 
-        def plot_two(row, i, j, label_i, label_j):
-            def test_z_score(data):
-                # Iglewicz and Hoaglin's modified Z-score
-                return np.nonzero(0.6745 * (d := np.absolute(data - np.median(data))) / np.median(d) >= 3)[0]
-
-            row[0].axis("off")
-
-            row[1].scatter((frames := np.arange(section_settings["start_frame"], section_settings["end_frame"])), data[i], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label_i.lower())), zorder=2.001)
-            if smoothed_data[i] is not None:
-                row[1].plot(frames, smoothed_data[i], color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label_i.lower())), zorder=2.002)
-            row[1].legend()
-            row[1].set_xlabel("Frame")
-            row[1].set_ylabel(label_i)
-
-            if smoothed_data[i] is not None:
-                row[2].plot(frames, np.zeros_like(data[i]), color="SCATTER_COLOR", lw=SCATTER_LW, label="_".join(re.split(" |_", label_i.lower())), zorder=2.002)
-                row[2].plot(frames, (p := data[i] - smoothed_data[i]), color="SMOOTHED_COLOR", lw=SMOOTHED_LW, label="_".join(["smoothed"] + re.split(" |_", label_i.lower())), zorder=2.001)
-                for i in test_z_score(p):
-                    row[2].annotate(i + section_settings["start_frame"], (i + section_settings["start_frame"], p[i]))
-                row[2].legend()
-                row[2].set_xlabel("Frame")
-                row[2].set_ylabel("Residual of " + label_i)
-            else:
-                row[2].axis("off")
-
-            row[3].scatter(frames, data[j], marker="+", color="SCATTER_COLOR", s=SCATTER_SIZE, label="_".join(re.split(" |_", label_j.lower())), zorder=2.001)
-            if smoothed_data[j] is not None:
-                row[3].plot(frames, smoothed_data[j], color="SMOOTHED_COLOR", lw=SMOOTHED_LW_ON_SCATTER_GRAPH, label="_".join(["smoothed"] + re.split(" |_", label_j.lower())), zorder=2.002)
-            row[3].legend()
-            row[3].set_xlabel("Frame")
-            row[3].set_ylabel(label_j)
-
-            if smoothed_data[j] is not None:
-                row[4].plot(frames, np.zeros_like(data[j]), color="SCATTER_COLOR", lw=SCATTER_LW, label="_".join(re.split(" |_", label_j.lower())), zorder=2.002)
-                row[4].plot(frames, (p := data[j] - smoothed_data[j]), color="SMOOTHED_COLOR", lw=SMOOTHED_LW, label="_".join(["smoothed"] + re.split(" |_", label_j.lower())), zorder=2.001)
-                for i in test_z_score(p):
-                    row[4].annotate(i + section_settings["start_frame"], (i + section_settings["start_frame"], p[i]))
-                row[4].legend()
-                row[4].set_xlabel("Frame")
-                row[4].set_ylabel("Residual of " + label_j)
-            else:
-                row[4].axis("off")
-        
         def plot_univariate(row, i, label):
             row[0].axis("off")
             
@@ -1689,24 +1464,14 @@ undefine(<<SMOOTHED_LW_ON_SCATTER_GRAPH>>)
 undefine(<<SCATTER_LW>>)
 undefine(<<SMOOTHED_LW>>)
         
-        if settings.do_includes_frz_fax:
-            fig, axs = plt.subplots(ncols=5, nrows=8, figsize=(5 * 5.4, 8 * 4.05), dpi=250, layout="constrained")
-        else:
-            fig, axs = plt.subplots(ncols=5, nrows=7, figsize=(5 * 5.4, 7 * 4.05), dpi=250, layout="constrained")
+        fig, axs = plt.subplots(ncols=5, nrows=7, figsize=(5 * 5.4, 7 * 4.05), dpi=250, layout="constrained")
         plot_x_y(axs[0], 0, 1, "position")
         plot_x_y(axs[1], 2, 3, "scale")
         plot_univariate(axs[2], 4, "rotation")
-        if settings.do_includes_frz_fax:
-            plot_two(axs[3], 13, 14, "frz", "fax")
-            plot_x_y(axs[4], 5, 6, "power_pin_0002")
-            plot_x_y(axs[5], 7, 8, "power_pin_0003")
-            plot_x_y(axs[6], 9, 10, "power_pin_0004")
-            plot_x_y(axs[7], 11, 12, "power_pin_0005")
-        else:
-            plot_x_y(axs[3], 5, 6, "power_pin_0002")
-            plot_x_y(axs[4], 7, 8, "power_pin_0003")
-            plot_x_y(axs[5], 9, 10, "power_pin_0004")
-            plot_x_y(axs[6], 11, 12, "power_pin_0005")
+        plot_x_y(axs[3], 5, 6, "power_pin_0002")
+        plot_x_y(axs[4], 7, 8, "power_pin_0003")
+        plot_x_y(axs[5], 9, 10, "power_pin_0004")
+        plot_x_y(axs[6], 11, 12, "power_pin_0005")
 
         fig.canvas.draw()
         with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
@@ -1911,13 +1676,13 @@ undefine(<<SMOOTHED_LW>>)
 define(<<REMAP>>, <<
         match power_pin_remap_<<>>POWER_PIN:
             case "0002":
-                return_0002 = power_pin_<<>>POWER_PIN
+                return_<<>>POWER_PIN = power_pin_0002
             case "0003":
-                return_0003 = power_pin_<<>>POWER_PIN
+                return_<<>>POWER_PIN = power_pin_0003
             case "0004":
-                return_0004 = power_pin_<<>>POWER_PIN
+                return_<<>>POWER_PIN = power_pin_0004
             case "0005":
-                return_0005 = power_pin_<<>>POWER_PIN
+                return_<<>>POWER_PIN = power_pin_0005
 >>)
 define(<<POWER_PIN>>, <<0002>>)
 REMAP()
@@ -1938,7 +1703,6 @@ undefine(<<REMAP>>)
     def _combine_aae(clip, \
                      aae_position, aae_scale, aae_rotation, \
                      aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
-                     aae_frz_fax, \
                      do_includes_power_pin):
         # returns aae : str
 
@@ -1980,11 +1744,6 @@ undefine(<<REMAP>>)
             aae += "Effects	CC Power Pin #1	CC Power Pin-0005\n"
             aae += "\tFrame\tX pixels\tY pixels\n"
             aae += "\n".join(aae_power_pin_0005) + "\n\n"
-
-        if aae_frz_fax:
-            aae += "Aegisub-Orthographic-Motion Data\n"
-            aae += "\tFrame\tX radians\tY radians\n"
-            aae += "\n".join(aae_frz_fax) + "\n\n"
 
         aae += "End of Keyframe Data\n"
 
@@ -2225,7 +1984,6 @@ class AAEExportOptions(bpy.types.Panel):
         layout.use_property_decorate = False
         
         settings = context.screen.AAEExportSettings
-        clip_settings = context.edit_movieclip.AAEExportSettingsClip
         
         # box = layout.box()
         # column = box.column(heading="Export")
@@ -2236,32 +1994,15 @@ class AAEExportOptions(bpy.types.Panel):
         column.prop(settings, "do_also_export")
         column.prop(settings, "do_do_not_overwrite")
 
-        if is_smoothing_modules_available:
-            box = layout.box()
-            column = box.column()
-            row = column.row()
-            row.alignment = "CENTER"
-            row.label(text="Power Pin Remap")
-            column.separator(factor=0.06)
-            sub_column = column.column(align=True)
-            sub_column.use_property_split = False
-            row = sub_column.row(align=True)
-            row.prop(clip_settings, "power_pin_remap_0002", text="")
-            row.prop(clip_settings, "power_pin_remap_0003", text="")
-            row = sub_column.row(align=True)
-            row.prop(clip_settings, "power_pin_remap_0004", text="")
-            row.prop(clip_settings, "power_pin_remap_0005", text="")
-
-            box = layout.box()
-            column = box.column(heading="Export")
-            column.prop(settings, "do_includes_frz_fax")
-
         box = layout.box()
         if is_smoothing_modules_available:
 define(<<DRAW_SMOOTHING__ABOVE_HEADER_SRPARATOR_FACTOR>>, <<0.44>>)
 define(<<DRAW_SMOOTHING__BELOW_HEADER_SRPARATOR_FACTOR>>, <<0.40>>)
 define(<<DRAW_SMOOTHING__ABOVE_ADVANCED_SRPARATOR_FACTOR>>, <<0.22>>)
 define(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>, <<0.0>>)
+
+            clip_settings = context.edit_movieclip.AAEExportSettingsClip
+            
             selected_plane_tracks = 0
             for plane_track in context.edit_movieclip.tracking.plane_tracks:
                 if plane_track.select == True:
@@ -2367,41 +2108,6 @@ define(<<DRAW_SMOOTHING>>, <<dnl SETTINGS, ENABLED
 define(<<DATA>>, <<DATA NOT INITIALISED>>)
 define(<<DISPLAY_NAME>>, <<DISPLAY_NAME NOT INITIALISED>>)
 
-define(<<DRAW_SMOOTHING__DATA_SMOOTHING>>, <<
-                    sub_column = column.column(heading="DISPLAY_NAME")
-                    sub_column.enabled = $2 and not $1.disable_section
-ifdef(<<UNI>>, <<
-                    sub_column.prop($1, "smoothing_do_<<>>DATA<<>>")
-                    if $1.smoothing_do_<<>>DATA<<>> or $1.smoothing_extrapolate:
-                        if $1.smoothing_use_different_x_y and not $1.smoothing_use_different_model:
-                            row = sub_column.row(align=True)
-                            row.prop($1, "smoothing_<<>>DATA<<>>_degree")
-                            row.prop(settings, "null_property")
-                        else:
-                            sub_column.prop($1, "smoothing_<<>>DATA<<>>_degree")
->>, <<
-                    if $1.smoothing_use_different_x_y<<>>ifelse(DATA, <<frz_fax>>, << or True>>, <<>>):
-                        row = sub_column.row(align=True)
-                        row.prop($1, "smoothing_do_<<>>DATA<<>>_x")
-                        row.prop($1, "smoothing_do_<<>>DATA<<>>_y")
-                        if $1.smoothing_do_<<>>DATA<<>>_x == $1.smoothing_do_<<>>DATA<<>>_y == True or $1.smoothing_extrapolate:
-                            row = sub_column.row(align=True)
-                            row.prop($1, "smoothing_<<>>DATA<<>>_x_degree")
-                            row.prop($1, "smoothing_<<>>DATA<<>>_y_degree", text="")
-                        elif $1.smoothing_do_<<>>DATA<<>>_x:
-                            row = sub_column.row(align=True)
-                            row.prop($1, "smoothing_<<>>DATA<<>>_x_degree")
-                            row.prop(settings, "null_property")
-                        elif $1.smoothing_do_<<>>DATA<<>>_y:
-                            row = sub_column.row(align=True)
-                            row.prop(settings, "null_property", text="Max Degree")
-                            row.prop($1, "smoothing_<<>>DATA<<>>_y_degree", text="")
-                    else:
-                        sub_column.prop($1, "smoothing_do_<<>>DATA<<>>")
-                        if $1.smoothing_do_<<>>DATA<<>> or $1.smoothing_extrapolate:
-                            sub_column.prop($1, "smoothing_<<>>DATA<<>>_degree")
->>)dnl UNI
->>)
 define(<<DRAW_SMOOTHING__DATA_REGRESSION>>, <<
 define(<<UNDERSCORE_DATA>>, <<<<>>ifelse(DATA, <<>>, <<>>, <<_<<>>DATA>>)>>)
 ifdef(<<UNI>>, <<
@@ -2413,15 +2119,13 @@ ifdef(<<UNI>>, <<
                         elif $1.smoothing<<>>UNDERSCORE_DATA<<>>_regressor == "LASSO":
                             sub_column.prop($1, "smoothing<<>>UNDERSCORE_DATA<<>>_lasso_alpha")
 >>, <<
-                    if $1.smoothing_use_different_x_y<<>>ifelse(DATA, <<frz_fax>>, << or True>>, <<>>):
+                    if $1.smoothing_use_different_x_y:
                         row = sub_column.row(align=True)
 define(<<X_YES>>, <<\
 ifelse(DATA, <<>>, <<dnl
                                ((($1.smoothing_do_position_x or $1.smoothing_extrapolate) and $1.smoothing_position_x_degree != 0) or \
                                 (($1.smoothing_do_scale_x or $1.smoothing_extrapolate) and $1.smoothing_scale_x_degree != 0) or \
                                 (($1.smoothing_do_rotation or $1.smoothing_extrapolate) and $1.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 (($1.smoothing_do_frz_fax_x or $1.smoothing_extrapolate) and $1.smoothing_frz_fax_x_degree != 0)) or \
                                 (($1.smoothing_do_power_pin_x or $1.smoothing_extrapolate) and $1.smoothing_power_pin_x_degree != 0)) \
 >>, <<dnl
                                (($1.smoothing_do<<>>UNDERSCORE_DATA<<>>_x or $1.smoothing_extrapolate) and $1.smoothing<<>>UNDERSCORE_DATA<<>>_x_degree != 0) \
@@ -2431,8 +2135,6 @@ define(<<Y_YES>>, <<\
 ifelse(DATA, <<>>, <<dnl
                                ((($1.smoothing_do_position_y or $1.smoothing_extrapolate) and $1.smoothing_position_y_degree != 0) or \
                                 (($1.smoothing_do_scale_y or $1.smoothing_extrapolate) and $1.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 (($1.smoothing_do_frz_fax_y or $1.smoothing_extrapolate) and $1.smoothing_frz_fax_y_degree != 0)) or \
                                 (($1.smoothing_do_power_pin_y or $1.smoothing_extrapolate) and $1.smoothing_power_pin_y_degree != 0)) \
 >>, <<dnl
                                (($1.smoothing_do<<>>UNDERSCORE_DATA<<>>_y or $1.smoothing_extrapolate) and $1.smoothing<<>>UNDERSCORE_DATA<<>>_y_degree != 0) \
@@ -2484,9 +2186,6 @@ ifelse(<<$1>>, <<clip_settings>>, <<
                         if (($1.smoothing_do_position or $1.smoothing_extrapolate) and $1.smoothing_position_degree != 0) or \
                            (($1.smoothing_do_scale or $1.smoothing_extrapolate) and $1.smoothing_scale_degree != 0) or \
                            (($1.smoothing_do_rotation or $1.smoothing_extrapolate) and $1.smoothing_rotation_degree != 0) or \
-                           (settings.do_includes_frz_fax and \
-                            ((($1.smoothing_do_frz_fax_x or $1.smoothing_extrapolate) and $1.smoothing_frz_fax_x_degree != 0) or \
-                             (($1.smoothing_do_frz_fax_y or $1.smoothing_extrapolate) and $1.smoothing_frz_fax_y_degree != 0))) or \
                            (($1.smoothing_do_power_pin or $1.smoothing_extrapolate) and $1.smoothing_power_pin_degree != 0):
 >>)
 >>, <<
@@ -2500,11 +2199,41 @@ ifelse(<<$1>>, <<clip_settings>>, <<
 >>)dnl UNI
 undefine(<<UNDERSCORE_DATA>>)
 >>)
-
 define(<<DRAW_SMOOTHING__DATA>>, <<
-                if True<<>>ifelse(DATA, <<frz_fax>>, << and settings.do_includes_frz_fax>>, <<>>):
-DRAW_SMOOTHING__DATA_SMOOTHING()
-                if $1.smoothing_use_different_model<<>>ifelse(DATA, <<frz_fax>>, << and settings.do_includes_frz_fax>>, <<>>):
+                sub_column = column.column(heading="DISPLAY_NAME")
+                sub_column.enabled = $2 and not $1.disable_section
+ifdef(<<UNI>>, <<
+                sub_column.prop($1, "smoothing_do_<<>>DATA<<>>")
+                if $1.smoothing_do_<<>>DATA<<>> or $1.smoothing_extrapolate:
+                    if $1.smoothing_use_different_x_y and not $1.smoothing_use_different_model:
+                        row = sub_column.row(align=True)
+                        row.prop($1, "smoothing_<<>>DATA<<>>_degree")
+                        row.prop(settings, "null_property")
+                    else:
+                        sub_column.prop($1, "smoothing_<<>>DATA<<>>_degree")
+>>, <<
+                if $1.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop($1, "smoothing_do_<<>>DATA<<>>_x")
+                    row.prop($1, "smoothing_do_<<>>DATA<<>>_y")
+                    if $1.smoothing_do_<<>>DATA<<>>_x == $1.smoothing_do_<<>>DATA<<>>_y == True or $1.smoothing_extrapolate:
+                        row = sub_column.row(align=True)
+                        row.prop($1, "smoothing_<<>>DATA<<>>_x_degree")
+                        row.prop($1, "smoothing_<<>>DATA<<>>_y_degree", text="")
+                    elif $1.smoothing_do_<<>>DATA<<>>_x:
+                        row = sub_column.row(align=True)
+                        row.prop($1, "smoothing_<<>>DATA<<>>_x_degree")
+                        row.prop(settings, "null_property")
+                    elif $1.smoothing_do_<<>>DATA<<>>_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop($1, "smoothing_<<>>DATA<<>>_y_degree", text="")
+                else:
+                    sub_column.prop($1, "smoothing_do_<<>>DATA<<>>")
+                    if $1.smoothing_do_<<>>DATA<<>> or $1.smoothing_extrapolate:
+                        sub_column.prop($1, "smoothing_<<>>DATA<<>>_degree")
+>>)dnl UNI
+                if $1.smoothing_use_different_model:
 DRAW_SMOOTHING__DATA_REGRESSION()
 >>)
 
@@ -2521,10 +2250,6 @@ define(<<DATA>>, <<rotation>>)
 define(<<DISPLAY_NAME>>, <<Rotation>>)
 DRAW_SMOOTHING__DATA()
 undefine(<<UNI>>)
-
-define(<<DATA>>, <<frz_fax>>)
-define(<<DISPLAY_NAME>>, <<frz fax>>)
-DRAW_SMOOTHING__DATA()
 
 define(<<DATA>>, <<power_pin>>)
 define(<<DISPLAY_NAME>>, <<Power Pin>>)
@@ -2573,21 +2298,20 @@ undefine(<<DRAW_SMOOTHING__BOX_SRPARATOR_FACTOR>>)
             column.enabled = False
             column.prop(clip_settings, "do_smoothing_fake")
 
-        if not is_smoothing_modules_available:
-            box = layout.box()
-            column = box.column()
-            row = column.row()
-            row.alignment = "CENTER"
-            row.label(text="Power Pin Remap")
-            column.separator(factor=0.06)
-            sub_column = column.column(align=True)
-            sub_column.use_property_split = False
-            row = sub_column.row(align=True)
-            row.prop(clip_settings, "power_pin_remap_0002", text="")
-            row.prop(clip_settings, "power_pin_remap_0003", text="")
-            row = sub_column.row(align=True)
-            row.prop(clip_settings, "power_pin_remap_0004", text="")
-            row.prop(clip_settings, "power_pin_remap_0005", text="")
+        box = layout.box()
+        column = box.column()
+        row = column.row()
+        row.alignment = "CENTER"
+        row.label(text="Power Pin Remap")
+        column.separator(factor=0.06)
+        sub_column = column.column(align=True)
+        sub_column.use_property_split = False
+        row = sub_column.row(align=True)
+        row.prop(clip_settings, "power_pin_remap_0002", text="")
+        row.prop(clip_settings, "power_pin_remap_0003", text="")
+        row = sub_column.row(align=True)
+        row.prop(clip_settings, "power_pin_remap_0004", text="")
+        row.prop(clip_settings, "power_pin_remap_0005", text="")
 
     @classmethod
     def poll(cls, context):

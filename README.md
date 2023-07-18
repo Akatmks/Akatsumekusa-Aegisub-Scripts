@@ -29,8 +29,6 @@
 – [aka.unicode](#akaunicode)  
 ***Thirdparty Modules***  
 – [effil](#effil)  
-– [ljsyscall](#mmapfile--ljsyscall)  
-– [mmapfile](#mmapfile--ljsyscall)  
 – [request](#request)  
   
 </td>
@@ -206,16 +204,6 @@ It is recommended to use the synced module [aka.threads](#akathreads) for the nu
 
 *License Information*  
 – *effil is copyrighted to Mikhail Kupriyanov and Ilia Udalov and is licensed under MIT License.*  
-
-## mmapfile & ljsyscall
-
-[lua-mmapfile](https://github.com/geoffleyland/lua-mmapfile) is a mmap interface for LuaJIT. [ljsyscall](https://github.com/justincormack/ljsyscall) is a system call interface for LuaJIT. ljsyscall is a dependency of lua-mmapfile on Unix environments.  
-
-Add `aka.mmapfile` to DependencyControl's required modules to use mmapfile. View the documents at the [original repository](https://github.com/geoffleyland/lua-mmapfile).  
-
-*License Information*  
-– *lua-mmapfile is copyrighted to Incremental IP Limited and is licensed under MIT License.*  
-– *ljsyscall is copyrighted to Justin Cormack and is licensed under MIT License.*  
 
 ## request
 

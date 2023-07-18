@@ -50,7 +50,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 3, 0),
+    "version": (1, 2, 1),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -169,10 +169,6 @@ class AAEExportSettings(bpy.types.PropertyGroup):
                                                   description="Includes Power Pin data in the export for tracks and plane tracks.\nIf Aegisub-Perspective-Motion is unable to recognise the data, please update Aegisub-Perspective-Motion to the newest version.\nThis option will be removed by late January and Power Pin data will be included by default",
                                                   default=True)
 
-    do_includes_frz_fax: bpy.props.BoolProperty(name="Includes frz fax",
-                                                description="Includes frz and fax data for Aegisub-Orthographic-Motion in the export for tracks and plane tracks.\nThis requires at least one Power Pin to be selected as Power Pin 0002, 0004, and 0005 respectively in Power Pin Remap function",
-                                                default=True)
-
     do_do_not_overwrite: bpy.props.BoolProperty(name="Do not overwrite",
                                                 description="Generate unique filename every time",
                                                 default=False)
@@ -215,14 +211,14 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                               description="Perform smoothing on tracking data.\nThis feature requires additional packages to be installed. Please head to „Edit > Preference > Add-ons > Video Tools: AAE Export > Preferences“ to install the dependencies",
                                               default=False)
     do_smoothing: bpy.props.BoolProperty(name="Enable",
-                                         description="Perform smoothing on tracking data.\nThis uses the track's position, scale, rotation, Power Pin, frz and fax data to fit polynomial regression models, and then uses the fit models to generate smoothed data",
+                                         description="Perform smoothing on tracking data.\nThis uses the track's position, scale, rotation and Power Pin data to fit polynomial regression models, and then uses the fit models to generate smoothed data",
                                          default=False,
                                          update=_do_smoothing_update)
 
     def _do_predictive_smoothing_update(self, context):
         context.edit_movieclip.AAEExportSettingsSectionL[0].smoothing_extrapolate = self.do_predictive_smoothing
     do_predictive_smoothing: bpy.props.BoolProperty(name="Extrapolate",
-                                                    description="Generate position, scale, rotation, Power Pin, frz and fax data over the whole length of the clip, even if the track is disabled on some of the frames.\n\nThe five options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“, „Smooth Power Pin“ and „Smooth frz fax“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
+                                                    description="Generate position, scale, rotation and Power Pin data over the whole length of the clip, even if the track is disabled on some of the frames.\n\nThe four options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                     default=False,
                                                     update=_do_predictive_smoothing_update)
                                          
@@ -253,28 +249,28 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                                              step=50,
                                                              precision=1)
 
-    power_pin_remap_0002: bpy.props.EnumProperty(items=(("0002", "(0002 (Upper-left))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
+    power_pin_remap_0002: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
                                                         ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
                                                         ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track"),
                                                         ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-left corner of the track")),
                                                name="0002 (Upper-left)",
                                                default="0002")
     power_pin_remap_0003: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
-                                                        ("0003", "(0003 (Upper-right))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
+                                                        ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
                                                         ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track"),
                                                         ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select target Power Pin for the upper-right corner of the track")),
                                                name="0003 (Upper-right)",
                                                default="0003")
     power_pin_remap_0004: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
                                                         ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
-                                                        ("0004", "(0004 (Lower-left))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
+                                                        ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track"),
                                                         ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-left corner of the track")),
                                                name="0004 (Lower-left)",
                                                default="0004")
     power_pin_remap_0005: bpy.props.EnumProperty(items=(("0002", "0002 (Upper-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
                                                         ("0003", "0003 (Upper-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
                                                         ("0004", "0004 (Lower-left)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track"),
-                                                        ("0005", "(0005 (Lower-right))", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track")),
+                                                        ("0005", "0005 (Lower-right)", "The four Power Pin data, Power Pin-0002 to 0005, follows the order of upper-left, upper-right, lower-left, lower-right.\nTo remap, select the target Power Pin for the lower-right corner of the track")),
                                                name="0005 (Lower-right)",
                                                default="0005")
 
@@ -304,11 +300,11 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
     smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
-                                                          description="Use different regression models for position, scale, rotation, Power Pin, and frz and fax data",
+                                                          description="Use different regression models for position, scale, rotation and Power Pin data",
                                                           default=False)
                                                           
     smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
-                                                  description="Generate position, scale, rotation, Power Pin, frz and fax data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe five options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“, „Smooth Power Pin“ and „Smooth frz fax“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
+                                                  description="Generate position, scale, rotation and Power Pin data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                   default=False)
 
 
@@ -329,7 +325,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
         self.smoothing_rotation_regressor = self.smoothing_regressor
 
         self.smoothing_power_pin_regressor = self.smoothing_regressor
-        self.smoothing_frz_fax_regressor = self.smoothing_regressor
 
 
         pass
@@ -351,7 +346,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
         self.smoothing_rotation_huber_epsilon = self.smoothing_huber_epsilon
 
         self.smoothing_power_pin_huber_epsilon = self.smoothing_huber_epsilon
-        self.smoothing_frz_fax_huber_epsilon = self.smoothing_huber_epsilon
 
 
         pass
@@ -375,7 +369,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
         self.smoothing_rotation_lasso_alpha = self.smoothing_lasso_alpha
 
         self.smoothing_power_pin_lasso_alpha = self.smoothing_lasso_alpha
-        self.smoothing_frz_fax_lasso_alpha = self.smoothing_lasso_alpha
 
 
         pass
@@ -503,7 +496,7 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
 
     smoothing_do_power_pin: bpy.props.BoolProperty(
                 name="Smooth",
-                description="Perform smoothing on power_pin data",
+                description="Perform smoothing on Power Pin data",
                 default=True,
                 update=_smoothing_do_power_pin_update)
 
@@ -521,70 +514,6 @@ class AAEExportSettingsClip(bpy.types.PropertyGroup):
                 min=0,
                 soft_max=16,
                 update=_smoothing_power_pin_degree_update)
-
-
-
-
-
-
-
-
-    def _smoothing_do_frz_fax_x_update(self, context):
-
-        pass
-
-    smoothing_do_frz_fax_x: bpy.props.BoolProperty(
-                name="Smooth",
-                description="Perform smoothing on frz data",
-                default=True,
-                update=_smoothing_do_frz_fax_x_update)
-
-
-
-    def _smoothing_frz_fax_x_degree_update(self, context):
-
-
-        pass
-
-    smoothing_frz_fax_x_degree: bpy.props.IntProperty(
-                name="Max Degree",
-                description="The maximal polynomial degree for frz data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                default=0,
-                min=0,
-                soft_max=16,
-                update=_smoothing_frz_fax_x_degree_update)
-
-
-
-
-
-
-
-
-    def _smoothing_do_frz_fax_y_update(self, context):
-
-        pass
-
-    smoothing_do_frz_fax_y: bpy.props.BoolProperty(
-                name="Smooth",
-                description="Perform smoothing on fax data",
-                default=True,
-                update=_smoothing_do_frz_fax_y_update)
-
-
-
-    def _smoothing_frz_fax_y_degree_update(self, context):
-
-
-        pass
-
-    smoothing_frz_fax_y_degree: bpy.props.IntProperty(
-                name="Max Degree",
-                description="The maximal polynomial degree for fax data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                default=0,
-                min=0,
-                soft_max=16,
-                update=_smoothing_frz_fax_y_degree_update)
 
 
 
@@ -723,11 +652,11 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
                                                         description="Use different regression settings for x and y axes of position, scale and Power Pin data",
                                                         default=False)
     smoothing_use_different_model: bpy.props.BoolProperty(name="Data",
-                                                          description="Use different regression models for position, scale, rotation, Power Pin, and frz and fax data",
+                                                          description="Use different regression models for position, scale, rotation and Power Pin data",
                                                           default=False)
                                                           
     smoothing_extrapolate: bpy.props.BoolProperty(name="Extrapolate",
-                                                  description="Generate position, scale, rotation, Power Pin, frz and fax data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe five options above, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“, „Smooth Power Pin“ and „Smooth frz fax“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
+                                                  description="Generate position, scale, rotation and Power Pin data over the whole length of the section, even if the track is disabled on some of the frames.\n\nThe four options below, „Smooth Position“, „Smooth Scale“, „Smooth Rotation“ and „Smooth Power Pin“, decides whether to use predicted data to replace the existing data on frames where the track is enabled, while this option decides whether to use predicted data to fill the gaps in frames where the track is not enabled",
                                                   default=False)
 
 
@@ -748,7 +677,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_regressor = self.smoothing_regressor
 
         self.smoothing_power_pin_regressor = self.smoothing_regressor
-        self.smoothing_frz_fax_regressor = self.smoothing_regressor
 
 
         self.smoothing_x_regressor = self.smoothing_regressor
@@ -773,7 +701,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_huber_epsilon = self.smoothing_huber_epsilon
 
         self.smoothing_power_pin_huber_epsilon = self.smoothing_huber_epsilon
-        self.smoothing_frz_fax_huber_epsilon = self.smoothing_huber_epsilon
 
 
         self.smoothing_x_huber_epsilon = self.smoothing_huber_epsilon
@@ -800,7 +727,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_lasso_alpha = self.smoothing_lasso_alpha
 
         self.smoothing_power_pin_lasso_alpha = self.smoothing_lasso_alpha
-        self.smoothing_frz_fax_lasso_alpha = self.smoothing_lasso_alpha
 
 
         self.smoothing_x_lasso_alpha = self.smoothing_lasso_alpha
@@ -839,7 +765,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_regressor = self.smoothing_x_regressor
 
         self.smoothing_power_pin_x_regressor = self.smoothing_x_regressor
-        self.smoothing_frz_fax_x_regressor = self.smoothing_x_regressor
 
         pass
 
@@ -860,7 +785,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_huber_epsilon = self.smoothing_x_huber_epsilon
 
         self.smoothing_power_pin_x_huber_epsilon = self.smoothing_x_huber_epsilon
-        self.smoothing_frz_fax_x_huber_epsilon = self.smoothing_x_huber_epsilon
 
         pass
 
@@ -883,7 +807,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_rotation_lasso_alpha = self.smoothing_x_lasso_alpha
 
         self.smoothing_power_pin_x_lasso_alpha = self.smoothing_x_lasso_alpha
-        self.smoothing_frz_fax_x_lasso_alpha = self.smoothing_x_lasso_alpha
 
         pass
 
@@ -916,7 +839,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_scale_y_regressor = self.smoothing_y_regressor
 
         self.smoothing_power_pin_y_regressor = self.smoothing_y_regressor
-        self.smoothing_frz_fax_y_regressor = self.smoothing_y_regressor
 
         pass
 
@@ -935,7 +857,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_scale_y_huber_epsilon = self.smoothing_y_huber_epsilon
 
         self.smoothing_power_pin_y_huber_epsilon = self.smoothing_y_huber_epsilon
-        self.smoothing_frz_fax_y_huber_epsilon = self.smoothing_y_huber_epsilon
 
         pass
 
@@ -956,7 +877,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
         self.smoothing_scale_y_lasso_alpha = self.smoothing_y_lasso_alpha
 
         self.smoothing_power_pin_y_lasso_alpha = self.smoothing_y_lasso_alpha
-        self.smoothing_frz_fax_y_lasso_alpha = self.smoothing_y_lasso_alpha
 
         pass
 
@@ -1852,267 +1772,6 @@ class AAEExportSettingsSectionL(bpy.types.PropertyGroup):
 
 
 
-    def _smoothing_do_frz_fax_update(self, context):
-
-        self.smoothing_do_frz_fax_x = self.smoothing_do_frz_fax
-        self.smoothing_do_frz_fax_y = self.smoothing_do_frz_fax
-
-        pass
-
-    smoothing_do_frz_fax: bpy.props.BoolProperty(
-                name="Smooth",
-                description="Perform smoothing on frz and fax data",
-                default=True,
-                update=_smoothing_do_frz_fax_update)
-
-
-
-    def _smoothing_frz_fax_degree_update(self, context):
-
-
-        self.smoothing_frz_fax_x_degree = self.smoothing_frz_fax_degree
-        self.smoothing_frz_fax_y_degree = self.smoothing_frz_fax_degree
-
-        pass
-
-    smoothing_frz_fax_degree: bpy.props.IntProperty(
-                name="Max Degree",
-                description="The maximal polynomial degree for frz and fax data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                default=1,
-                min=0,
-                soft_max=16,
-                update=_smoothing_frz_fax_degree_update)
-
-
-
-
-    def _smoothing_frz_fax_regressor_update(self, context):
-
-
-        self.smoothing_frz_fax_x_regressor = self.smoothing_frz_fax_regressor
-        self.smoothing_frz_fax_y_regressor = self.smoothing_frz_fax_regressor
-
-        pass
-
-    smoothing_frz_fax_regressor: bpy.props.EnumProperty(
-                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                name="Linear Model",
-                default="LINEAR",
-                update=_smoothing_frz_fax_regressor_update)
-
-
-
-    def _smoothing_frz_fax_huber_epsilon_update(self, context):
-
-
-        self.smoothing_frz_fax_x_huber_epsilon = self.smoothing_frz_fax_huber_epsilon
-        self.smoothing_frz_fax_y_huber_epsilon = self.smoothing_frz_fax_huber_epsilon
-
-        pass
-
-    smoothing_frz_fax_huber_epsilon: bpy.props.FloatProperty(
-                name="Epsilon",
-                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                default=1.50,
-                min=1.00,
-                soft_max=10.00,
-                step=1,
-                precision=2,
-                update=_smoothing_frz_fax_huber_epsilon_update)
-
-
-
-    def _smoothing_frz_fax_lasso_alpha_update(self, context):
-
-
-        self.smoothing_frz_fax_x_lasso_alpha = self.smoothing_frz_fax_lasso_alpha
-        self.smoothing_frz_fax_y_lasso_alpha = self.smoothing_frz_fax_lasso_alpha
-
-        pass
-
-    smoothing_frz_fax_lasso_alpha: bpy.props.FloatProperty(
-                name="Alpha",
-                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                default=0.10,
-                min=0.00,
-                soft_max=100.0,
-                step=1,
-                precision=2,
-                update=_smoothing_frz_fax_lasso_alpha_update)
-
-
-
-
-
-
-
-
-
-
-
-    def _smoothing_do_frz_fax_x_update(self, context):
-        pass
-
-    smoothing_do_frz_fax_x: bpy.props.BoolProperty(
-                name="Smooth",
-                description="Perform smoothing on frz data",
-                default=True,
-                update=_smoothing_do_frz_fax_x_update)
-
-
-
-    def _smoothing_frz_fax_x_degree_update(self, context):
-
-        pass
-
-    smoothing_frz_fax_x_degree: bpy.props.IntProperty(
-                name="Max Degree",
-                description="The maximal polynomial degree for frz data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                default=1,
-                min=0,
-                soft_max=16,
-                update=_smoothing_frz_fax_x_degree_update)
-
-
-
-
-    def _smoothing_frz_fax_x_regressor_update(self, context):
-
-        pass
-
-    smoothing_frz_fax_x_regressor: bpy.props.EnumProperty(
-                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                name="Linear Model",
-                default="LINEAR",
-                update=_smoothing_frz_fax_x_regressor_update)
-
-
-
-    def _smoothing_frz_fax_x_huber_epsilon_update(self, context):
-
-        pass
-
-    smoothing_frz_fax_x_huber_epsilon: bpy.props.FloatProperty(
-                name="Epsilon",
-                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                default=1.50,
-                min=1.00,
-                soft_max=10.00,
-                step=1,
-                precision=2,
-                update=_smoothing_frz_fax_x_huber_epsilon_update)
-
-
-
-    def _smoothing_frz_fax_x_lasso_alpha_update(self, context):
-
-        pass
-
-    smoothing_frz_fax_x_lasso_alpha: bpy.props.FloatProperty(
-                name="Alpha",
-                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                default=0.10,
-                min=0.00,
-                soft_max=100.0,
-                step=1,
-                precision=2,
-                update=_smoothing_frz_fax_x_lasso_alpha_update)
-
-
-
-
-
-
-
-
-
-
-
-    def _smoothing_do_frz_fax_y_update(self, context):
-        pass
-
-    smoothing_do_frz_fax_y: bpy.props.BoolProperty(
-                name="Smooth",
-                description="Perform smoothing on fax data",
-                default=True,
-                update=_smoothing_do_frz_fax_y_update)
-
-
-
-    def _smoothing_frz_fax_y_degree_update(self, context):
-
-        pass
-
-    smoothing_frz_fax_y_degree: bpy.props.IntProperty(
-                name="Max Degree",
-                description="The maximal polynomial degree for fax data.\nSet degree to 0 to average the data in the section, 1 to perform linear regression on the data, 2 to perform quadratic regression on the data, and 3 to perform cubic regression on the data.\n\nSetting this too high may cause overfitting.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#polynomial-regression-extending-linear-models-with-basis-functions“ and „https://en.wikipedia.org/wiki/Polynomial_regression“",
-                default=1,
-                min=0,
-                soft_max=16,
-                update=_smoothing_frz_fax_y_degree_update)
-
-
-
-
-    def _smoothing_frz_fax_y_regressor_update(self, context):
-
-        pass
-
-    smoothing_frz_fax_y_regressor: bpy.props.EnumProperty(
-                items=(("HUBER", "Huber Regressor", "Huber Regressor is an L2-regularised regression model that is robust to outliers.\n\nFor more information, visit „https://scikit-learn.org/stable/modules/linear_model.html#robustness-regression-outliers-and-modeling-errors“ and „https://en.wikipedia.org/wiki/Huber_loss“"),
-                       ("LASSO", "Lasso Regressor", "Lasso Regressor is an L1-regularised regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#lasso“ and „https://en.wikipedia.org/wiki/Lasso_(statistics)“"),
-                       ("LINEAR", "Linear Regressor", "Ordinary least squares regression model.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares“ and „https://en.wikipedia.org/wiki/Ordinary_least_squares“")),
-                name="Linear Model",
-                default="LINEAR",
-                update=_smoothing_frz_fax_y_regressor_update)
-
-
-
-    def _smoothing_frz_fax_y_huber_epsilon_update(self, context):
-
-        pass
-
-    smoothing_frz_fax_y_huber_epsilon: bpy.props.FloatProperty(
-                name="Epsilon",
-                description="The epsilon of a Huber Regressor controls the number of samples that should be classified as outliers. The smaller the epsilon, the more robust it is to outliers.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.HuberRegressor.html“",
-                default=1.50,
-                min=1.00,
-                soft_max=10.00,
-                step=1,
-                precision=2,
-                update=_smoothing_frz_fax_y_huber_epsilon_update)
-
-
-
-    def _smoothing_frz_fax_y_lasso_alpha_update(self, context):
-
-        pass
-
-    smoothing_frz_fax_y_lasso_alpha: bpy.props.FloatProperty(
-                name="Alpha",
-                description="The alpha of a Lasso Regressor controls the regularisation strength.\n\nFor more information, please visit „https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html“",
-                default=0.10,
-                min=0.00,
-                soft_max=100.0,
-                step=1,
-                precision=2,
-                update=_smoothing_frz_fax_y_lasso_alpha_update)
-
-
-
-
-
-
-
-
-
-
-
-
 class AAEExportExportAll(bpy.types.Operator):
     bl_label = "Export"
     bl_description = "Export all tracking markers and plane tracks to AAE files next to the original movie clip"
@@ -2148,10 +1807,10 @@ class AAEExportExportAll(bpy.types.Operator):
         # If smoothing modules are installed, the logic is as follows:
         #   _calculate_aspect_ratio() calculates the ratio for
         #       converting 1920 × 1080 to 1.778 × 1.
-        #   _prepare_data() read and calculate all 15 data streams from
+        #   _prepare_data() read and calculate all 13 data streams from
         #       track.
-        #   _unlimit_rotation_and_frz_fax() unwrap the rotations from
-        #       30° 10° 350° to 30° 10° -10°.
+        #   _unlimit_rotation() unwrap the rotations from for example
+        #       30° - 10° - 350° to 30° - 10° - -10°.
         #   _parse_section_settings() parse settings into an array of
         #       dicts, away from the madness of Blender.
         #   _smoothing_main() gets the data after smoothing.
@@ -2169,12 +1828,10 @@ class AAEExportExportAll(bpy.types.Operator):
 
             data \
                 = AAEExportExportAll._prepare_data( \
-                      clip, track, ratio, \
-                      settings.do_includes_frz_fax, \
-                      clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0005)
+                      clip, track, ratio)
 
             if clip_settings.do_smoothing:
-                AAEExportExportAll._unlimit_rotation_and_frz_fax( \
+                AAEExportExportAll._unlimit_rotation( \
                     data)
 
                 parsed_section_settings \
@@ -2186,13 +1843,13 @@ class AAEExportExportAll(bpy.types.Operator):
                           data, \
                           clip, clip_settings, parsed_section_settings, section_settings_ll)
 
-                AAEExportExportAll._limit_rotation_and_frz_fax( \
+                AAEExportExportAll._limit_rotation( \
                     data)
             else:
-                AAEExportExportAll._limit_rotation_and_frz_fax( \
+                AAEExportExportAll._limit_rotation( \
                     data)
 
-            aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, aae_frz_fax \
+            aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
                 = AAEExportExportAll._generate_aae( \
                       data, multiplier)
 
@@ -2200,9 +1857,6 @@ class AAEExportExportAll(bpy.types.Operator):
             aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
                 = AAEExportExportAll._generate_aae_non_numpy( \
                       clip, track)
-
-            aae_frz_fax \
-                = None
 
         aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005 \
             = AAEExportExportAll._remap_power_pin( \
@@ -2212,7 +1866,7 @@ class AAEExportExportAll(bpy.types.Operator):
         aae \
             = AAEExportExportAll._combine_aae( \
                   clip, \
-                  aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, aae_frz_fax, \
+                  aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
                   settings.do_includes_power_pin)
 
         return aae
@@ -2229,11 +1883,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
         data \
             = AAEExportExportAll._prepare_data( \
-                  clip, track, ratio, \
-                  settings.do_includes_frz_fax, \
-                  clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0005)
+                  clip, track, ratio)
 
-        AAEExportExportAll._unlimit_rotation_and_frz_fax( \
+        AAEExportExportAll._unlimit_rotation( \
             data)
 
         parsed_section_settings \
@@ -2252,7 +1904,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
             AAEExportExportAll._plot_result_plot( \
                 data, smoothed_data, no_blending_data, \
-                settings, clip_settings)
+                clip_settings)
         else:
             smoothed_data \
                 = AAEExportExportAll._smoothing_main( \
@@ -2260,8 +1912,8 @@ class AAEExportExportAll(bpy.types.Operator):
                       clip, clip_settings, parsed_section_settings, section_settings_ll)
 
             AAEExportExportAll._plot_result_plot( \
-                data, smoothed_data, [None] * 15, \
-                settings, clip_settings)
+                data, smoothed_data, [None] * 13, \
+                clip_settings)
 
     @staticmethod
     def _plot_section(clip, track, \
@@ -2275,11 +1927,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
         data \
             = AAEExportExportAll._prepare_data( \
-                  clip, track, ratio, \
-                  settings.do_includes_frz_fax, \
-                  clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0005)
+                  clip, track, ratio)
 
-        AAEExportExportAll._unlimit_rotation_and_frz_fax( \
+        AAEExportExportAll._unlimit_rotation( \
             data)
 
         parsed_section_settings \
@@ -2287,7 +1937,7 @@ class AAEExportExportAll(bpy.types.Operator):
                 section_settings_l, section_settings_ll)
 
         smoothed_data = {}
-        for i in range(15):
+        for i in range(13):
             data[i] = \
                 data[i][parsed_section_settings[section_settings_li]["start_frame"]:parsed_section_settings[section_settings_li]["end_frame"]]
             if parsed_section_settings[section_settings_li][i]["smoothing"] or \
@@ -2302,7 +1952,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
         AAEExportExportAll._plot_section_plot( \
             data, smoothed_data, \
-            settings, parsed_section_settings[section_settings_li])
+            parsed_section_settings[section_settings_li])
 
     @staticmethod
     def _calculate_aspect_ratio(clip):
@@ -2324,9 +1974,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _prepare_data(clip, track, \
-                      ratio, \
-                      do_includes_frz_fax, \
-                      power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
+                      ratio):
         # returns data : dict[npt.NDArray[float64]]
 
         # data
@@ -2336,16 +1984,14 @@ class AAEExportExportAll(bpy.types.Operator):
         #      2: scale_x,
         #      3: scale_y,
         #      4: rotation,
-        #      5: power_pin_0002_x (relative to position_x),
-        #      6: power_pin_0002_y (relative to position_y),
+        #      5: power_pin_0002_x, (relative to position_x),
+        #      6: power_pin_0002_y, (relative to position_y),
         #      7: power_pin_0003_x,
         #      8: power_pin_0003_y,
         #      9: power_pin_0004_x,
         #     10: power_pin_0004_y,
         #     11: power_pin_0005_x,
-        #     12: power_pin_0005_y,
-        #     13: frz axis,
-        #     14: fax axis
+        #     12: power_pin_0005_y
         # }
         data = {}
 
@@ -2360,11 +2006,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
         AAEExportExportAll._prepare_scale_and_semilimited_rotation( \
             data)
-
-        AAEExportExportAll._prepare_frz_fax( \
-            data, \
-            do_includes_frz_fax, \
-            power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005)
 
         return data
 
@@ -2517,186 +2158,22 @@ class AAEExportExportAll(bpy.types.Operator):
 
         data[4] = np.arctan2(data[5] + data[7], -data[6] - data[8])
 
-
     @staticmethod
-    def _prepare_frz_fax(data, \
-                         do_includes_frz_fax, \
-                         power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
+    def _unlimit_rotation(data):
         import numpy as np
 
-        if do_includes_frz_fax:
-            power_pin_data = {}
-            power_pin_data[0] = None
-            power_pin_data[1] = None
-            power_pin_data[2] = None
-            power_pin_data[3] = None
-            power_pin_data[4] = None
-            power_pin_data[5] = None
+        diff = np.diff(data[4])
 
-
-
-
-
-            match power_pin_remap_0002:
-                case "0002":
-
-                    pass
-
-                case "0003":
-                    pass
-                case "0004":
-
-                    if power_pin_data[2] is None:
-                        power_pin_data[2] = data[5]
-                        power_pin_data[3] = data[6]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0004")
-
-                case "0005":
-
-                    if power_pin_data[4] is None:
-                        power_pin_data[4] = data[5]
-                        power_pin_data[5] = data[6]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0005")
-
-
-
-
-
-
-            match power_pin_remap_0003:
-                case "0002":
-
-                    if power_pin_data[0] is None:
-                        power_pin_data[0] = data[7]
-                        power_pin_data[1] = data[8]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0002")
-
-                case "0003":
-                    pass
-                case "0004":
-
-                    if power_pin_data[2] is None:
-                        power_pin_data[2] = data[7]
-                        power_pin_data[3] = data[8]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0004")
-
-                case "0005":
-
-                    if power_pin_data[4] is None:
-                        power_pin_data[4] = data[7]
-                        power_pin_data[5] = data[8]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0005")
-
-
-
-
-
-
-            match power_pin_remap_0004:
-                case "0002":
-
-                    if power_pin_data[0] is None:
-                        power_pin_data[0] = data[9]
-                        power_pin_data[1] = data[10]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0002")
-
-                case "0003":
-                    pass
-                case "0004":
-
-                    pass
-
-                case "0005":
-
-                    if power_pin_data[4] is None:
-                        power_pin_data[4] = data[9]
-                        power_pin_data[5] = data[10]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0005")
-
-
-
-
-
-
-            match power_pin_remap_0005:
-                case "0002":
-
-                    if power_pin_data[0] is None:
-                        power_pin_data[0] = data[11]
-                        power_pin_data[1] = data[12]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0002")
-
-                case "0003":
-                    pass
-                case "0004":
-
-                    if power_pin_data[2] is None:
-                        power_pin_data[2] = data[11]
-                        power_pin_data[3] = data[12]
-                    else:
-                        raise ValueError("frz fax requires exactly one Power Pin to be specified as Power Pin 0004")
-
-                case "0005":
-
-                    pass
-
-
-
-
-
-
-            if power_pin_data[0] is None and power_pin_remap_0002 == "0002":
-                power_pin_data[0] = data[5]
-                power_pin_data[1] = data[6]
-            if power_pin_data[2] is None and power_pin_remap_0004 == "0004":
-                power_pin_data[2] = data[9]
-                power_pin_data[3] = data[10]
-            if power_pin_data[4] is None and power_pin_remap_0005 == "0005":
-                power_pin_data[4] = data[11]
-                power_pin_data[5] = data[12]
-
-            if power_pin_data[0] is None:
-                raise ValueError("frz fax requires at least one Power Pin to be specified as Power Pin 0002")
-            if power_pin_data[2] is None:
-                raise ValueError("frz fax requires at least one Power Pin to be specified as Power Pin 0004")
-            if power_pin_data[4] is None:
-                raise ValueError("frz fax requires at least one Power Pin to be specified as Power Pin 0005")
-
-            data[13] = np.arctan2(-power_pin_data[5] + power_pin_data[3], power_pin_data[4] - power_pin_data[2])
-            data[14] = np.arctan2(-power_pin_data[1] + power_pin_data[3], power_pin_data[0] - power_pin_data[2])
-
-        else:
-            data[13] = np.full_like(data[0], np.nan, dtype=np.float64)
-            data[14] = np.full_like(data[0], np.nan, dtype=np.float64)
+        for i in np.nonzero(diff > np.pi)[0]:
+            data[4][i+1:] -= 2 * np.pi
+        for i in np.nonzero(diff <= -np.pi)[0]:
+            data[4][i+1:] += 2 * np.pi
 
     @staticmethod
-    def _unlimit_rotation_and_frz_fax(data):
+    def _limit_rotation(data):
         import numpy as np
 
-        for i in (4, 13, 14):
-            diff = np.diff(data[i])
-
-            for j in np.nonzero(diff > np.pi)[0]:
-                data[i][j+1:] -= 2 * np.pi
-            for j in np.nonzero(diff <= -np.pi)[0]:
-                data[i][j+1:] += 2 * np.pi
-
-    @staticmethod
-    def _limit_rotation_and_frz_fax(data):
-        # Limit the rotation to 0 to 2π
-
-        import numpy as np
-
-        for i in (4, 13, 14):
-            np.remainder(data[i], 2 * np.pi, out=data[i])
+        np.remainder(data[4], 2 * np.pi, out=data[4])
 
     @staticmethod
     def _parse_section_settings(section_settings_l, section_settings_ll):
@@ -2708,7 +2185,7 @@ class AAEExportExportAll(bpy.types.Operator):
         #     (Section) 0: {
         #         start_frame: 0
         #
-        #         (Type) 0..14: {
+        #         (Type) 0..12: {
         #             degree: 2
         #
         #         }
@@ -2869,7 +2346,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
   
 
-   
+  
 
             parsed_settings[i][4] = {}
 
@@ -2903,7 +2380,7 @@ class AAEExportExportAll(bpy.types.Operator):
                     parsed_settings[i][4]["lasso_alpha"] = section_settings_l[i].smoothing_rotation_lasso_alpha
 
 
-   
+  
 
   
 
@@ -3186,77 +2663,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
   
 
-   
-
-            parsed_settings[i][13] = {}
-
-            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
-                case 0b00:
-                    parsed_settings[i][13]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_x
-                    parsed_settings[i][13]["degree"] = section_settings_l[i].smoothing_frz_fax_x_degree
-                    parsed_settings[i][13]["regressor"] = section_settings_l[i].smoothing_regressor
-                    parsed_settings[i][13]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
-                    parsed_settings[i][13]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
-                case 0b01:
-                    parsed_settings[i][13]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_x
-                    parsed_settings[i][13]["degree"] = section_settings_l[i].smoothing_frz_fax_x_degree
-                    parsed_settings[i][13]["regressor"] = section_settings_l[i].smoothing_frz_fax_x_regressor
-                    parsed_settings[i][13]["huber_epsilon"] = section_settings_l[i].smoothing_frz_fax_x_huber_epsilon
-                    parsed_settings[i][13]["lasso_alpha"] = section_settings_l[i].smoothing_frz_fax_x_lasso_alpha
-                case 0b10:
-
-                    parsed_settings[i][13]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_x
-                    parsed_settings[i][13]["degree"] = section_settings_l[i].smoothing_frz_fax_x_degree
-                    parsed_settings[i][13]["regressor"] = section_settings_l[i].smoothing_x_regressor
-                    parsed_settings[i][13]["huber_epsilon"] = section_settings_l[i].smoothing_x_huber_epsilon
-                    parsed_settings[i][13]["lasso_alpha"] = section_settings_l[i].smoothing_x_lasso_alpha
-
-                case 0b11:
-
-                    parsed_settings[i][13]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_x
-                    parsed_settings[i][13]["degree"] = section_settings_l[i].smoothing_frz_fax_x_degree
-                    parsed_settings[i][13]["regressor"] = section_settings_l[i].smoothing_frz_fax_x_regressor
-                    parsed_settings[i][13]["huber_epsilon"] = section_settings_l[i].smoothing_frz_fax_x_huber_epsilon
-                    parsed_settings[i][13]["lasso_alpha"] = section_settings_l[i].smoothing_frz_fax_x_lasso_alpha
-
-
-   
-   
-
-            parsed_settings[i][14] = {}
-
-            match (section_settings_l[i].smoothing_use_different_x_y * 2) + section_settings_l[i].smoothing_use_different_model:
-                case 0b00:
-                    parsed_settings[i][14]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_y
-                    parsed_settings[i][14]["degree"] = section_settings_l[i].smoothing_frz_fax_y_degree
-                    parsed_settings[i][14]["regressor"] = section_settings_l[i].smoothing_regressor
-                    parsed_settings[i][14]["huber_epsilon"] = section_settings_l[i].smoothing_huber_epsilon
-                    parsed_settings[i][14]["lasso_alpha"] = section_settings_l[i].smoothing_lasso_alpha
-                case 0b01:
-                    parsed_settings[i][14]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_y
-                    parsed_settings[i][14]["degree"] = section_settings_l[i].smoothing_frz_fax_y_degree
-                    parsed_settings[i][14]["regressor"] = section_settings_l[i].smoothing_frz_fax_y_regressor
-                    parsed_settings[i][14]["huber_epsilon"] = section_settings_l[i].smoothing_frz_fax_y_huber_epsilon
-                    parsed_settings[i][14]["lasso_alpha"] = section_settings_l[i].smoothing_frz_fax_y_lasso_alpha
-                case 0b10:
-
-                    parsed_settings[i][14]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_y
-                    parsed_settings[i][14]["degree"] = section_settings_l[i].smoothing_frz_fax_y_degree
-                    parsed_settings[i][14]["regressor"] = section_settings_l[i].smoothing_y_regressor
-                    parsed_settings[i][14]["huber_epsilon"] = section_settings_l[i].smoothing_y_huber_epsilon
-                    parsed_settings[i][14]["lasso_alpha"] = section_settings_l[i].smoothing_y_lasso_alpha
-
-                case 0b11:
-
-                    parsed_settings[i][14]["smoothing"] = section_settings_l[i].smoothing_do_frz_fax_y
-                    parsed_settings[i][14]["degree"] = section_settings_l[i].smoothing_frz_fax_y_degree
-                    parsed_settings[i][14]["regressor"] = section_settings_l[i].smoothing_frz_fax_y_regressor
-                    parsed_settings[i][14]["huber_epsilon"] = section_settings_l[i].smoothing_frz_fax_y_huber_epsilon
-                    parsed_settings[i][14]["lasso_alpha"] = section_settings_l[i].smoothing_frz_fax_y_lasso_alpha
-
-
-   
-
 
 
         return parsed_settings
@@ -3274,7 +2680,7 @@ class AAEExportExportAll(bpy.types.Operator):
         if plotting:
             no_blending_data = {}
 
-        for i in range(15):
+        for i in range(13):
             smoothed_data[i] \
                 = np.zeros_like(data[i])
             if plotting:
@@ -3434,7 +2840,6 @@ class AAEExportExportAll(bpy.types.Operator):
         #         aae_power_pin_0003 : list[str]
         #         aae_power_pin_0004 : list[str]
         #         aae_power_pin_0005 : list[str]
-        #         aae_frz_fax : list[str]
 
         import numpy as np
 
@@ -3468,7 +2873,6 @@ class AAEExportExportAll(bpy.types.Operator):
         aae_power_pin_0003 = []
         aae_power_pin_0004 = []
         aae_power_pin_0005 = []
-        aae_frz_fax = []
 
         for frame in range(data[0].shape[0]):
             if not np.isnan(data[0][frame]):
@@ -3482,16 +2886,13 @@ class AAEExportExportAll(bpy.types.Operator):
                 aae_power_pin_0003.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[7][frame], data[8][frame]))
                 aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[9][frame], data[10][frame]))
                 aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[11][frame], data[12][frame]))
-            if not np.isnan(data[13][frame]):
-                aae_frz_fax.append("\t{:d}\t{:f}\t{:f}".format(frame + 1, data[13][frame], data[14][frame]))
 
         return aae_position, aae_scale, aae_rotation, \
-               aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
-               aae_frz_fax
+               aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
         
     @staticmethod
     def _plot_result_plot(data, smoothed_data, no_blending_data, \
-                          settings, clip_settings):
+                          clip_settings):
         import matplotlib.pyplot as plt
         import numpy as np
         import PIL
@@ -3528,25 +2929,6 @@ class AAEExportExportAll(bpy.types.Operator):
             axs[y, x + 2].legend()
             axs[y, x + 2].set_xlabel("Frame")
             axs[y, x + 2].set_ylabel(" ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y" + (" (Remapped)" if power_pin_remapped else ""))
-
-        def plot_two(axs, y, x, i, j, label_i, label_j):
-            axs[y, x].axis("off")
-
-            axs[y, x + 1].scatter(np.arange(1, data[i].shape[0] + 1), data[i], color="lightgrey", s=0.7, label="_".join(re.split(" |_", label_i.lower())), zorder=2.001)
-            if no_blending_data[i] is not None:
-                axs[y, x + 1].plot(np.arange(1, data[i].shape[0] + 1), no_blending_data[i], color="wheat", lw=1.0, label="_".join(["no_blending"] + re.split(" |_", label_i.lower())), zorder=2.002)
-            axs[y, x + 1].plot(np.arange(1, data[i].shape[0] + 1), smoothed_data[i], color="orange", lw=1.4, label="_".join(["result"] + re.split(" |_", label_i.lower())), zorder=2.003)
-            axs[y, x + 1].legend()
-            axs[y, x + 1].set_xlabel("Frame")
-            axs[y, x + 1].set_ylabel(label_i)
-
-            axs[y, x + 2].scatter(np.arange(1, data[i].shape[0] + 1), data[j], color="lightgrey", s=0.7, label="_".join(re.split(" |_", label_j.lower())), zorder=2.001)
-            if no_blending_data[i] is not None:
-                axs[y, x + 2].plot(np.arange(1, data[i].shape[0] + 1), no_blending_data[j], color="wheat", lw=1.0, label="_".join(["no_blending"] + re.split(" |_", label_j.lower())), zorder=2.002)
-            axs[y, x + 2].plot(np.arange(1, data[i].shape[0] + 1), smoothed_data[j], color="orange", lw=1.4, label="_".join(["result"] + re.split(" |_", label_j.lower())), zorder=2.003)
-            axs[y, x + 2].legend()
-            axs[y, x + 2].set_xlabel("Frame")
-            axs[y, x + 2].set_ylabel(label_j)
         
         def plot_univariate(axs, y, x, i, label):
             axs[y, x].axis("off")
@@ -3576,68 +2958,11 @@ class AAEExportExportAll(bpy.types.Operator):
         plot_x_y(axs, 0, 0, 0, 1, "position")
         plot_x_y(axs, 0, 3, 2, 3, "scale")
         plot_univariate(axs, 1, 0, 4, "rotation")
-        if settings.do_includes_frz_fax:
-            plot_two(axs, 1, 3, 13, 14, "frz", "fax")
-        else:
-            plot_emptyness(axs, 1, 3)
-
-
-
-        match clip_settings.power_pin_remap_0002:
-            case "0002":
-                remapped_0002 = "0002"
-            case "0003":
-                remapped_0003 = "0002"
-            case "0004":
-                remapped_0004 = "0002"
-            case "0005":
-                remapped_0005 = "0002"
-
-
-
-
-        match clip_settings.power_pin_remap_0003:
-            case "0002":
-                remapped_0002 = "0003"
-            case "0003":
-                remapped_0003 = "0003"
-            case "0004":
-                remapped_0004 = "0003"
-            case "0005":
-                remapped_0005 = "0003"
-
-
-
-
-        match clip_settings.power_pin_remap_0004:
-            case "0002":
-                remapped_0002 = "0004"
-            case "0003":
-                remapped_0003 = "0004"
-            case "0004":
-                remapped_0004 = "0004"
-            case "0005":
-                remapped_0005 = "0004"
-
-
-
-
-        match clip_settings.power_pin_remap_0005:
-            case "0002":
-                remapped_0002 = "0005"
-            case "0003":
-                remapped_0003 = "0005"
-            case "0004":
-                remapped_0004 = "0005"
-            case "0005":
-                remapped_0005 = "0005"
-
-
-
-        plot_x_y(axs, 2, 0, 5, 6, "power_pin_" + remapped_0002, remapped_0002 != "0002")
-        plot_x_y(axs, 2, 3, 7, 8, "power_pin_" + remapped_0003, remapped_0003 != "0003")
-        plot_x_y(axs, 3, 0, 9, 10, "power_pin_" + remapped_0004, remapped_0004 != "0004")
-        plot_x_y(axs, 3, 3, 11, 12, "power_pin_" + remapped_0005, remapped_0005 != "0005")
+        plot_emptyness(axs, 1, 3)
+        plot_x_y(axs, 2, 0, 5, 6, "power_pin_" + clip_settings.power_pin_remap_0002, clip_settings.power_pin_remap_0002 != "0002")
+        plot_x_y(axs, 2, 3, 7, 8, "power_pin_" + clip_settings.power_pin_remap_0003, clip_settings.power_pin_remap_0003 != "0003")
+        plot_x_y(axs, 3, 0, 9, 10, "power_pin_" + clip_settings.power_pin_remap_0004, clip_settings.power_pin_remap_0004 != "0004")
+        plot_x_y(axs, 3, 3, 11, 12, "power_pin_" + clip_settings.power_pin_remap_0005, clip_settings.power_pin_remap_0005 != "0005")
 
         fig.canvas.draw()
         with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
@@ -3646,7 +2971,7 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _plot_section_plot(data, smoothed_data, \
-                           settings, section_settings):
+                           section_settings):
         import matplotlib.pyplot as plt
         import numpy as np
         import PIL
@@ -3708,49 +3033,6 @@ class AAEExportExportAll(bpy.types.Operator):
             else:
                 row[4].axis("off")
 
-        def plot_two(row, i, j, label_i, label_j):
-            def test_z_score(data):
-                # Iglewicz and Hoaglin's modified Z-score
-                return np.nonzero(0.6745 * (d := np.absolute(data - np.median(data))) / np.median(d) >= 3)[0]
-
-            row[0].axis("off")
-
-            row[1].scatter((frames := np.arange(section_settings["start_frame"], section_settings["end_frame"])), data[i], marker="+", color="lightslategrey", s=7.3, label="_".join(re.split(" |_", label_i.lower())), zorder=2.001)
-            if smoothed_data[i] is not None:
-                row[1].plot(frames, smoothed_data[i], color="dodgerblue", lw=1.0, label="_".join(["smoothed"] + re.split(" |_", label_i.lower())), zorder=2.002)
-            row[1].legend()
-            row[1].set_xlabel("Frame")
-            row[1].set_ylabel(label_i)
-
-            if smoothed_data[i] is not None:
-                row[2].plot(frames, np.zeros_like(data[i]), color="lightslategrey", lw=0.9, label="_".join(re.split(" |_", label_i.lower())), zorder=2.002)
-                row[2].plot(frames, (p := data[i] - smoothed_data[i]), color="dodgerblue", lw=1.4, label="_".join(["smoothed"] + re.split(" |_", label_i.lower())), zorder=2.001)
-                for i in test_z_score(p):
-                    row[2].annotate(i + section_settings["start_frame"], (i + section_settings["start_frame"], p[i]))
-                row[2].legend()
-                row[2].set_xlabel("Frame")
-                row[2].set_ylabel("Residual of " + label_i)
-            else:
-                row[2].axis("off")
-
-            row[3].scatter(frames, data[j], marker="+", color="lightslategrey", s=7.3, label="_".join(re.split(" |_", label_j.lower())), zorder=2.001)
-            if smoothed_data[j] is not None:
-                row[3].plot(frames, smoothed_data[j], color="dodgerblue", lw=1.0, label="_".join(["smoothed"] + re.split(" |_", label_j.lower())), zorder=2.002)
-            row[3].legend()
-            row[3].set_xlabel("Frame")
-            row[3].set_ylabel(label_j)
-
-            if smoothed_data[j] is not None:
-                row[4].plot(frames, np.zeros_like(data[j]), color="lightslategrey", lw=0.9, label="_".join(re.split(" |_", label_j.lower())), zorder=2.002)
-                row[4].plot(frames, (p := data[j] - smoothed_data[j]), color="dodgerblue", lw=1.4, label="_".join(["smoothed"] + re.split(" |_", label_j.lower())), zorder=2.001)
-                for i in test_z_score(p):
-                    row[4].annotate(i + section_settings["start_frame"], (i + section_settings["start_frame"], p[i]))
-                row[4].legend()
-                row[4].set_xlabel("Frame")
-                row[4].set_ylabel("Residual of " + label_j)
-            else:
-                row[4].axis("off")
-        
         def plot_univariate(row, i, label):
             row[0].axis("off")
             
@@ -3780,24 +3062,14 @@ class AAEExportExportAll(bpy.types.Operator):
 
 
         
-        if settings.do_includes_frz_fax:
-            fig, axs = plt.subplots(ncols=5, nrows=8, figsize=(5 * 5.4, 8 * 4.05), dpi=250, layout="constrained")
-        else:
-            fig, axs = plt.subplots(ncols=5, nrows=7, figsize=(5 * 5.4, 7 * 4.05), dpi=250, layout="constrained")
+        fig, axs = plt.subplots(ncols=5, nrows=7, figsize=(5 * 5.4, 7 * 4.05), dpi=250, layout="constrained")
         plot_x_y(axs[0], 0, 1, "position")
         plot_x_y(axs[1], 2, 3, "scale")
         plot_univariate(axs[2], 4, "rotation")
-        if settings.do_includes_frz_fax:
-            plot_two(axs[3], 13, 14, "frz", "fax")
-            plot_x_y(axs[4], 5, 6, "power_pin_0002")
-            plot_x_y(axs[5], 7, 8, "power_pin_0003")
-            plot_x_y(axs[6], 9, 10, "power_pin_0004")
-            plot_x_y(axs[7], 11, 12, "power_pin_0005")
-        else:
-            plot_x_y(axs[3], 5, 6, "power_pin_0002")
-            plot_x_y(axs[4], 7, 8, "power_pin_0003")
-            plot_x_y(axs[5], 9, 10, "power_pin_0004")
-            plot_x_y(axs[6], 11, 12, "power_pin_0005")
+        plot_x_y(axs[3], 5, 6, "power_pin_0002")
+        plot_x_y(axs[4], 7, 8, "power_pin_0003")
+        plot_x_y(axs[5], 9, 10, "power_pin_0004")
+        plot_x_y(axs[6], 11, 12, "power_pin_0005")
 
         fig.canvas.draw()
         with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
@@ -4006,48 +3278,48 @@ class AAEExportExportAll(bpy.types.Operator):
             case "0002":
                 return_0002 = power_pin_0002
             case "0003":
-                return_0003 = power_pin_0002
+                return_0002 = power_pin_0003
             case "0004":
-                return_0004 = power_pin_0002
+                return_0002 = power_pin_0004
             case "0005":
-                return_0005 = power_pin_0002
+                return_0002 = power_pin_0005
 
 
 
 
         match power_pin_remap_0003:
             case "0002":
-                return_0002 = power_pin_0003
+                return_0003 = power_pin_0002
             case "0003":
                 return_0003 = power_pin_0003
             case "0004":
-                return_0004 = power_pin_0003
+                return_0003 = power_pin_0004
             case "0005":
-                return_0005 = power_pin_0003
+                return_0003 = power_pin_0005
 
 
 
 
         match power_pin_remap_0004:
             case "0002":
-                return_0002 = power_pin_0004
+                return_0004 = power_pin_0002
             case "0003":
-                return_0003 = power_pin_0004
+                return_0004 = power_pin_0003
             case "0004":
                 return_0004 = power_pin_0004
             case "0005":
-                return_0005 = power_pin_0004
+                return_0004 = power_pin_0005
 
 
 
 
         match power_pin_remap_0005:
             case "0002":
-                return_0002 = power_pin_0005
+                return_0005 = power_pin_0002
             case "0003":
-                return_0003 = power_pin_0005
+                return_0005 = power_pin_0003
             case "0004":
-                return_0004 = power_pin_0005
+                return_0005 = power_pin_0004
             case "0005":
                 return_0005 = power_pin_0005
 
@@ -4059,7 +3331,6 @@ class AAEExportExportAll(bpy.types.Operator):
     def _combine_aae(clip, \
                      aae_position, aae_scale, aae_rotation, \
                      aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
-                     aae_frz_fax, \
                      do_includes_power_pin):
         # returns aae : str
 
@@ -4101,11 +3372,6 @@ class AAEExportExportAll(bpy.types.Operator):
             aae += "Effects	CC Power Pin #1	CC Power Pin-0005\n"
             aae += "\tFrame\tX pixels\tY pixels\n"
             aae += "\n".join(aae_power_pin_0005) + "\n\n"
-
-        if aae_frz_fax:
-            aae += "Aegisub-Orthographic-Motion Data\n"
-            aae += "\tFrame\tX radians\tY radians\n"
-            aae += "\n".join(aae_frz_fax) + "\n\n"
 
         aae += "End of Keyframe Data\n"
 
@@ -4346,7 +3612,6 @@ class AAEExportOptions(bpy.types.Panel):
         layout.use_property_decorate = False
         
         settings = context.screen.AAEExportSettings
-        clip_settings = context.edit_movieclip.AAEExportSettingsClip
         
         # box = layout.box()
         # column = box.column(heading="Export")
@@ -4357,32 +3622,15 @@ class AAEExportOptions(bpy.types.Panel):
         column.prop(settings, "do_also_export")
         column.prop(settings, "do_do_not_overwrite")
 
-        if is_smoothing_modules_available:
-            box = layout.box()
-            column = box.column()
-            row = column.row()
-            row.alignment = "CENTER"
-            row.label(text="Power Pin Remap")
-            column.separator(factor=0.06)
-            sub_column = column.column(align=True)
-            sub_column.use_property_split = False
-            row = sub_column.row(align=True)
-            row.prop(clip_settings, "power_pin_remap_0002", text="")
-            row.prop(clip_settings, "power_pin_remap_0003", text="")
-            row = sub_column.row(align=True)
-            row.prop(clip_settings, "power_pin_remap_0004", text="")
-            row.prop(clip_settings, "power_pin_remap_0005", text="")
-
-            box = layout.box()
-            column = box.column(heading="Export")
-            column.prop(settings, "do_includes_frz_fax")
-
         box = layout.box()
         if is_smoothing_modules_available:
 
 
 
 
+
+            clip_settings = context.edit_movieclip.AAEExportSettingsClip
+            
             selected_plane_tracks = 0
             for plane_track in context.edit_movieclip.tracking.plane_tracks:
                 if plane_track.select == True:
@@ -4497,34 +3745,29 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
+                sub_column = column.column(heading="Position")
+                sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
 
-
-                if True:
-
-                    sub_column = column.column(heading="Position")
-                    sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
-
-                    if section_settings.smoothing_use_different_x_y:
+                if section_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(section_settings, "smoothing_do_position_x")
+                    row.prop(section_settings, "smoothing_do_position_y")
+                    if section_settings.smoothing_do_position_x == section_settings.smoothing_do_position_y == True or section_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
-                        row.prop(section_settings, "smoothing_do_position_x")
-                        row.prop(section_settings, "smoothing_do_position_y")
-                        if section_settings.smoothing_do_position_x == section_settings.smoothing_do_position_y == True or section_settings.smoothing_extrapolate:
-                            row = sub_column.row(align=True)
-                            row.prop(section_settings, "smoothing_position_x_degree")
-                            row.prop(section_settings, "smoothing_position_y_degree", text="")
-                        elif section_settings.smoothing_do_position_x:
-                            row = sub_column.row(align=True)
-                            row.prop(section_settings, "smoothing_position_x_degree")
-                            row.prop(settings, "null_property")
-                        elif section_settings.smoothing_do_position_y:
-                            row = sub_column.row(align=True)
-                            row.prop(settings, "null_property", text="Max Degree")
-                            row.prop(section_settings, "smoothing_position_y_degree", text="")
-                    else:
-                        sub_column.prop(section_settings, "smoothing_do_position")
-                        if section_settings.smoothing_do_position or section_settings.smoothing_extrapolate:
-                            sub_column.prop(section_settings, "smoothing_position_degree")
-
+                        row.prop(section_settings, "smoothing_position_x_degree")
+                        row.prop(section_settings, "smoothing_position_y_degree", text="")
+                    elif section_settings.smoothing_do_position_x:
+                        row = sub_column.row(align=True)
+                        row.prop(section_settings, "smoothing_position_x_degree")
+                        row.prop(settings, "null_property")
+                    elif section_settings.smoothing_do_position_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(section_settings, "smoothing_position_y_degree", text="")
+                else:
+                    sub_column.prop(section_settings, "smoothing_do_position")
+                    if section_settings.smoothing_do_position or section_settings.smoothing_extrapolate:
+                        sub_column.prop(section_settings, "smoothing_position_degree")
                 if section_settings.smoothing_use_different_model:
 
 
@@ -4607,32 +3850,29 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
-                if True:
+                sub_column = column.column(heading="Scale")
+                sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
 
-                    sub_column = column.column(heading="Scale")
-                    sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
-
-                    if section_settings.smoothing_use_different_x_y:
+                if section_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(section_settings, "smoothing_do_scale_x")
+                    row.prop(section_settings, "smoothing_do_scale_y")
+                    if section_settings.smoothing_do_scale_x == section_settings.smoothing_do_scale_y == True or section_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
-                        row.prop(section_settings, "smoothing_do_scale_x")
-                        row.prop(section_settings, "smoothing_do_scale_y")
-                        if section_settings.smoothing_do_scale_x == section_settings.smoothing_do_scale_y == True or section_settings.smoothing_extrapolate:
-                            row = sub_column.row(align=True)
-                            row.prop(section_settings, "smoothing_scale_x_degree")
-                            row.prop(section_settings, "smoothing_scale_y_degree", text="")
-                        elif section_settings.smoothing_do_scale_x:
-                            row = sub_column.row(align=True)
-                            row.prop(section_settings, "smoothing_scale_x_degree")
-                            row.prop(settings, "null_property")
-                        elif section_settings.smoothing_do_scale_y:
-                            row = sub_column.row(align=True)
-                            row.prop(settings, "null_property", text="Max Degree")
-                            row.prop(section_settings, "smoothing_scale_y_degree", text="")
-                    else:
-                        sub_column.prop(section_settings, "smoothing_do_scale")
-                        if section_settings.smoothing_do_scale or section_settings.smoothing_extrapolate:
-                            sub_column.prop(section_settings, "smoothing_scale_degree")
-
+                        row.prop(section_settings, "smoothing_scale_x_degree")
+                        row.prop(section_settings, "smoothing_scale_y_degree", text="")
+                    elif section_settings.smoothing_do_scale_x:
+                        row = sub_column.row(align=True)
+                        row.prop(section_settings, "smoothing_scale_x_degree")
+                        row.prop(settings, "null_property")
+                    elif section_settings.smoothing_do_scale_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(section_settings, "smoothing_scale_y_degree", text="")
+                else:
+                    sub_column.prop(section_settings, "smoothing_do_scale")
+                    if section_settings.smoothing_do_scale or section_settings.smoothing_extrapolate:
+                        sub_column.prop(section_settings, "smoothing_scale_degree")
                 if section_settings.smoothing_use_different_model:
 
 
@@ -4716,20 +3956,17 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
-                if True:
+                sub_column = column.column(heading="Rotation")
+                sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
 
-                    sub_column = column.column(heading="Rotation")
-                    sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
-
-                    sub_column.prop(section_settings, "smoothing_do_rotation")
-                    if section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate:
-                        if section_settings.smoothing_use_different_x_y and not section_settings.smoothing_use_different_model:
-                            row = sub_column.row(align=True)
-                            row.prop(section_settings, "smoothing_rotation_degree")
-                            row.prop(settings, "null_property")
-                        else:
-                            sub_column.prop(section_settings, "smoothing_rotation_degree")
-
+                sub_column.prop(section_settings, "smoothing_do_rotation")
+                if section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate:
+                    if section_settings.smoothing_use_different_x_y and not section_settings.smoothing_use_different_model:
+                        row = sub_column.row(align=True)
+                        row.prop(section_settings, "smoothing_rotation_degree")
+                        row.prop(settings, "null_property")
+                    else:
+                        sub_column.prop(section_settings, "smoothing_rotation_degree")
                 if section_settings.smoothing_use_different_model:
 
 
@@ -4749,140 +3986,29 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
-                if True and settings.do_includes_frz_fax:
+                sub_column = column.column(heading="Power Pin")
+                sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
 
-                    sub_column = column.column(heading="frz fax")
-                    sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
-
-                    if section_settings.smoothing_use_different_x_y or True:
+                if section_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(section_settings, "smoothing_do_power_pin_x")
+                    row.prop(section_settings, "smoothing_do_power_pin_y")
+                    if section_settings.smoothing_do_power_pin_x == section_settings.smoothing_do_power_pin_y == True or section_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
-                        row.prop(section_settings, "smoothing_do_frz_fax_x")
-                        row.prop(section_settings, "smoothing_do_frz_fax_y")
-                        if section_settings.smoothing_do_frz_fax_x == section_settings.smoothing_do_frz_fax_y == True or section_settings.smoothing_extrapolate:
-                            row = sub_column.row(align=True)
-                            row.prop(section_settings, "smoothing_frz_fax_x_degree")
-                            row.prop(section_settings, "smoothing_frz_fax_y_degree", text="")
-                        elif section_settings.smoothing_do_frz_fax_x:
-                            row = sub_column.row(align=True)
-                            row.prop(section_settings, "smoothing_frz_fax_x_degree")
-                            row.prop(settings, "null_property")
-                        elif section_settings.smoothing_do_frz_fax_y:
-                            row = sub_column.row(align=True)
-                            row.prop(settings, "null_property", text="Max Degree")
-                            row.prop(section_settings, "smoothing_frz_fax_y_degree", text="")
-                    else:
-                        sub_column.prop(section_settings, "smoothing_do_frz_fax")
-                        if section_settings.smoothing_do_frz_fax or section_settings.smoothing_extrapolate:
-                            sub_column.prop(section_settings, "smoothing_frz_fax_degree")
-
-                if section_settings.smoothing_use_different_model and settings.do_includes_frz_fax:
-
-
-
-                    if section_settings.smoothing_use_different_x_y or True:
+                        row.prop(section_settings, "smoothing_power_pin_x_degree")
+                        row.prop(section_settings, "smoothing_power_pin_y_degree", text="")
+                    elif section_settings.smoothing_do_power_pin_x:
                         row = sub_column.row(align=True)
-
-
-                        if \
-                               ((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0) \
-                                or \
-                               ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0) \
-                               :
-                            if \
-                               ((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0) \
-                               :
-                                row.prop(section_settings, "smoothing_frz_fax_x_regressor")
-                            else:
-                                row.prop(settings, "null_property", text="Linear Model")
-                            if \
-                               ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0) \
-                               :
-                                row.prop(section_settings, "smoothing_frz_fax_y_regressor", text="")
-                            else:
-                                row.prop(settings, "null_property")
-
-                            if section_settings.smoothing_frz_fax_x_regressor == section_settings.smoothing_frz_fax_y_regressor and \
-                               ((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0) \
-                                and \
-                               ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0) \
-                               :
-                                if section_settings.smoothing_frz_fax_x_regressor == "HUBER":
-                                    row = sub_column.row(align=True)
-                                    row.prop(section_settings, "smoothing_frz_fax_x_huber_epsilon")
-                                    row.prop(section_settings, "smoothing_frz_fax_y_huber_epsilon", text="")
-                                elif section_settings.smoothing_frz_fax_x_regressor == "LASSO":
-                                    row = sub_column.row(align=True)
-                                    row.prop(section_settings, "smoothing_frz_fax_x_lasso_alpha")
-                                    row.prop(section_settings, "smoothing_frz_fax_y_lasso_alpha", text="")
-                            else:
-                                if section_settings.smoothing_frz_fax_x_regressor == "HUBER" and \
-                               ((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0) \
-                               :
-                                    row = sub_column.row(align=True)
-                                    row.prop(section_settings, "smoothing_frz_fax_x_huber_epsilon")
-                                    row.prop(settings, "null_property")
-                                elif section_settings.smoothing_frz_fax_x_regressor == "LASSO" and \
-                               ((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0) \
-                               :
-                                    row = sub_column.row(align=True)
-                                    row.prop(section_settings, "smoothing_frz_fax_x_lasso_alpha")
-                                    row.prop(settings, "null_property")
-                                if section_settings.smoothing_frz_fax_y_regressor == "HUBER" and \
-                               ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0) \
-                               :
-                                    row = sub_column.row(align=True)
-                                    row.prop(settings, "null_property", text="Epsilon")
-                                    row.prop(section_settings, "smoothing_frz_fax_y_huber_epsilon", text="")
-                                elif section_settings.smoothing_frz_fax_y_regressor == "LASSO" and \
-                               ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0) \
-                               :
-                                    row = sub_column.row(align=True)
-                                    row.prop(settings, "null_property", text="Alpha")
-                                    row.prop(section_settings, "smoothing_frz_fax_y_lasso_alpha", text="")
-
-
-                    else:
-
-                        if (section_settings.smoothing_do_frz_fax or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_degree != 0:
-
-                            sub_column.prop(section_settings, "smoothing_frz_fax_regressor")
-                            if section_settings.smoothing_frz_fax_regressor == "HUBER":
-                                sub_column.prop(section_settings, "smoothing_frz_fax_huber_epsilon")
-                            elif section_settings.smoothing_frz_fax_regressor == "LASSO":
-                                sub_column.prop(section_settings, "smoothing_frz_fax_lasso_alpha")
-
-
-
-
-
-
-
-                if True:
-
-                    sub_column = column.column(heading="Power Pin")
-                    sub_column.enabled = clip_settings.do_smoothing and not section_settings.disable_section
-
-                    if section_settings.smoothing_use_different_x_y:
+                        row.prop(section_settings, "smoothing_power_pin_x_degree")
+                        row.prop(settings, "null_property")
+                    elif section_settings.smoothing_do_power_pin_y:
                         row = sub_column.row(align=True)
-                        row.prop(section_settings, "smoothing_do_power_pin_x")
-                        row.prop(section_settings, "smoothing_do_power_pin_y")
-                        if section_settings.smoothing_do_power_pin_x == section_settings.smoothing_do_power_pin_y == True or section_settings.smoothing_extrapolate:
-                            row = sub_column.row(align=True)
-                            row.prop(section_settings, "smoothing_power_pin_x_degree")
-                            row.prop(section_settings, "smoothing_power_pin_y_degree", text="")
-                        elif section_settings.smoothing_do_power_pin_x:
-                            row = sub_column.row(align=True)
-                            row.prop(section_settings, "smoothing_power_pin_x_degree")
-                            row.prop(settings, "null_property")
-                        elif section_settings.smoothing_do_power_pin_y:
-                            row = sub_column.row(align=True)
-                            row.prop(settings, "null_property", text="Max Degree")
-                            row.prop(section_settings, "smoothing_power_pin_y_degree", text="")
-                    else:
-                        sub_column.prop(section_settings, "smoothing_do_power_pin")
-                        if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
-                            sub_column.prop(section_settings, "smoothing_power_pin_degree")
-
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(section_settings, "smoothing_power_pin_y_degree", text="")
+                else:
+                    sub_column.prop(section_settings, "smoothing_do_power_pin")
+                    if section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate:
+                        sub_column.prop(section_settings, "smoothing_power_pin_degree")
                 if section_settings.smoothing_use_different_model:
 
 
@@ -4976,22 +4102,16 @@ class AAEExportOptions(bpy.types.Panel):
                                (((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) or \
                                 ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) or \
                                 ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0)) or \
                                 ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0)) \
                                 or \
                                (((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) or \
                                 ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0)) or \
                                 ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                             if \
                                (((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) or \
                                 ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) or \
                                 ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0)) or \
                                 ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                 row.prop(section_settings, "smoothing_x_regressor")
@@ -5000,8 +4120,6 @@ class AAEExportOptions(bpy.types.Panel):
                             if \
                                (((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) or \
                                 ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0)) or \
                                 ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                 row.prop(section_settings, "smoothing_y_regressor", text="")
@@ -5012,14 +4130,10 @@ class AAEExportOptions(bpy.types.Panel):
                                (((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) or \
                                 ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) or \
                                 ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0)) or \
                                 ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0)) \
                                 and \
                                (((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) or \
                                 ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0)) or \
                                 ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                 if section_settings.smoothing_x_regressor == "HUBER":
@@ -5035,8 +4149,6 @@ class AAEExportOptions(bpy.types.Panel):
                                (((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) or \
                                 ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) or \
                                 ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0)) or \
                                 ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
@@ -5046,8 +4158,6 @@ class AAEExportOptions(bpy.types.Panel):
                                (((section_settings.smoothing_do_position_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_x_degree != 0) or \
                                 ((section_settings.smoothing_do_scale_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_x_degree != 0) or \
                                 ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0)) or \
                                 ((section_settings.smoothing_do_power_pin_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
@@ -5056,8 +4166,6 @@ class AAEExportOptions(bpy.types.Panel):
                                 if section_settings.smoothing_y_regressor == "HUBER" and \
                                (((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) or \
                                 ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0)) or \
                                 ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
@@ -5066,8 +4174,6 @@ class AAEExportOptions(bpy.types.Panel):
                                 elif section_settings.smoothing_y_regressor == "LASSO" and \
                                (((section_settings.smoothing_do_position_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_y_degree != 0) or \
                                 ((section_settings.smoothing_do_scale_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0)) or \
                                 ((section_settings.smoothing_do_power_pin_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
@@ -5081,9 +4187,6 @@ class AAEExportOptions(bpy.types.Panel):
                         if ((section_settings.smoothing_do_position or section_settings.smoothing_extrapolate) and section_settings.smoothing_position_degree != 0) or \
                            ((section_settings.smoothing_do_scale or section_settings.smoothing_extrapolate) and section_settings.smoothing_scale_degree != 0) or \
                            ((section_settings.smoothing_do_rotation or section_settings.smoothing_extrapolate) and section_settings.smoothing_rotation_degree != 0) or \
-                           (settings.do_includes_frz_fax and \
-                            (((section_settings.smoothing_do_frz_fax_x or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_x_degree != 0) or \
-                             ((section_settings.smoothing_do_frz_fax_y or section_settings.smoothing_extrapolate) and section_settings.smoothing_frz_fax_y_degree != 0))) or \
                            ((section_settings.smoothing_do_power_pin or section_settings.smoothing_extrapolate) and section_settings.smoothing_power_pin_degree != 0):
 
 
@@ -5177,34 +4280,29 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
+                sub_column = column.column(heading="Position")
+                sub_column.enabled = False and not clip_settings.disable_section
 
-
-                if True:
-
-                    sub_column = column.column(heading="Position")
-                    sub_column.enabled = False and not clip_settings.disable_section
-
-                    if clip_settings.smoothing_use_different_x_y:
+                if clip_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(clip_settings, "smoothing_do_position_x")
+                    row.prop(clip_settings, "smoothing_do_position_y")
+                    if clip_settings.smoothing_do_position_x == clip_settings.smoothing_do_position_y == True or clip_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
-                        row.prop(clip_settings, "smoothing_do_position_x")
-                        row.prop(clip_settings, "smoothing_do_position_y")
-                        if clip_settings.smoothing_do_position_x == clip_settings.smoothing_do_position_y == True or clip_settings.smoothing_extrapolate:
-                            row = sub_column.row(align=True)
-                            row.prop(clip_settings, "smoothing_position_x_degree")
-                            row.prop(clip_settings, "smoothing_position_y_degree", text="")
-                        elif clip_settings.smoothing_do_position_x:
-                            row = sub_column.row(align=True)
-                            row.prop(clip_settings, "smoothing_position_x_degree")
-                            row.prop(settings, "null_property")
-                        elif clip_settings.smoothing_do_position_y:
-                            row = sub_column.row(align=True)
-                            row.prop(settings, "null_property", text="Max Degree")
-                            row.prop(clip_settings, "smoothing_position_y_degree", text="")
-                    else:
-                        sub_column.prop(clip_settings, "smoothing_do_position")
-                        if clip_settings.smoothing_do_position or clip_settings.smoothing_extrapolate:
-                            sub_column.prop(clip_settings, "smoothing_position_degree")
-
+                        row.prop(clip_settings, "smoothing_position_x_degree")
+                        row.prop(clip_settings, "smoothing_position_y_degree", text="")
+                    elif clip_settings.smoothing_do_position_x:
+                        row = sub_column.row(align=True)
+                        row.prop(clip_settings, "smoothing_position_x_degree")
+                        row.prop(settings, "null_property")
+                    elif clip_settings.smoothing_do_position_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(clip_settings, "smoothing_position_y_degree", text="")
+                else:
+                    sub_column.prop(clip_settings, "smoothing_do_position")
+                    if clip_settings.smoothing_do_position or clip_settings.smoothing_extrapolate:
+                        sub_column.prop(clip_settings, "smoothing_position_degree")
                 if clip_settings.smoothing_use_different_model:
 
 
@@ -5287,32 +4385,29 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
-                if True:
+                sub_column = column.column(heading="Scale")
+                sub_column.enabled = False and not clip_settings.disable_section
 
-                    sub_column = column.column(heading="Scale")
-                    sub_column.enabled = False and not clip_settings.disable_section
-
-                    if clip_settings.smoothing_use_different_x_y:
+                if clip_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(clip_settings, "smoothing_do_scale_x")
+                    row.prop(clip_settings, "smoothing_do_scale_y")
+                    if clip_settings.smoothing_do_scale_x == clip_settings.smoothing_do_scale_y == True or clip_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
-                        row.prop(clip_settings, "smoothing_do_scale_x")
-                        row.prop(clip_settings, "smoothing_do_scale_y")
-                        if clip_settings.smoothing_do_scale_x == clip_settings.smoothing_do_scale_y == True or clip_settings.smoothing_extrapolate:
-                            row = sub_column.row(align=True)
-                            row.prop(clip_settings, "smoothing_scale_x_degree")
-                            row.prop(clip_settings, "smoothing_scale_y_degree", text="")
-                        elif clip_settings.smoothing_do_scale_x:
-                            row = sub_column.row(align=True)
-                            row.prop(clip_settings, "smoothing_scale_x_degree")
-                            row.prop(settings, "null_property")
-                        elif clip_settings.smoothing_do_scale_y:
-                            row = sub_column.row(align=True)
-                            row.prop(settings, "null_property", text="Max Degree")
-                            row.prop(clip_settings, "smoothing_scale_y_degree", text="")
-                    else:
-                        sub_column.prop(clip_settings, "smoothing_do_scale")
-                        if clip_settings.smoothing_do_scale or clip_settings.smoothing_extrapolate:
-                            sub_column.prop(clip_settings, "smoothing_scale_degree")
-
+                        row.prop(clip_settings, "smoothing_scale_x_degree")
+                        row.prop(clip_settings, "smoothing_scale_y_degree", text="")
+                    elif clip_settings.smoothing_do_scale_x:
+                        row = sub_column.row(align=True)
+                        row.prop(clip_settings, "smoothing_scale_x_degree")
+                        row.prop(settings, "null_property")
+                    elif clip_settings.smoothing_do_scale_y:
+                        row = sub_column.row(align=True)
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(clip_settings, "smoothing_scale_y_degree", text="")
+                else:
+                    sub_column.prop(clip_settings, "smoothing_do_scale")
+                    if clip_settings.smoothing_do_scale or clip_settings.smoothing_extrapolate:
+                        sub_column.prop(clip_settings, "smoothing_scale_degree")
                 if clip_settings.smoothing_use_different_model:
 
 
@@ -5396,20 +4491,17 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
-                if True:
+                sub_column = column.column(heading="Rotation")
+                sub_column.enabled = False and not clip_settings.disable_section
 
-                    sub_column = column.column(heading="Rotation")
-                    sub_column.enabled = False and not clip_settings.disable_section
-
-                    sub_column.prop(clip_settings, "smoothing_do_rotation")
-                    if clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate:
-                        if clip_settings.smoothing_use_different_x_y and not clip_settings.smoothing_use_different_model:
-                            row = sub_column.row(align=True)
-                            row.prop(clip_settings, "smoothing_rotation_degree")
-                            row.prop(settings, "null_property")
-                        else:
-                            sub_column.prop(clip_settings, "smoothing_rotation_degree")
-
+                sub_column.prop(clip_settings, "smoothing_do_rotation")
+                if clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate:
+                    if clip_settings.smoothing_use_different_x_y and not clip_settings.smoothing_use_different_model:
+                        row = sub_column.row(align=True)
+                        row.prop(clip_settings, "smoothing_rotation_degree")
+                        row.prop(settings, "null_property")
+                    else:
+                        sub_column.prop(clip_settings, "smoothing_rotation_degree")
                 if clip_settings.smoothing_use_different_model:
 
 
@@ -5429,140 +4521,29 @@ class AAEExportOptions(bpy.types.Panel):
 
 
 
-                if True and settings.do_includes_frz_fax:
+                sub_column = column.column(heading="Power Pin")
+                sub_column.enabled = False and not clip_settings.disable_section
 
-                    sub_column = column.column(heading="frz fax")
-                    sub_column.enabled = False and not clip_settings.disable_section
-
-                    if clip_settings.smoothing_use_different_x_y or True:
+                if clip_settings.smoothing_use_different_x_y:
+                    row = sub_column.row(align=True)
+                    row.prop(clip_settings, "smoothing_do_power_pin_x")
+                    row.prop(clip_settings, "smoothing_do_power_pin_y")
+                    if clip_settings.smoothing_do_power_pin_x == clip_settings.smoothing_do_power_pin_y == True or clip_settings.smoothing_extrapolate:
                         row = sub_column.row(align=True)
-                        row.prop(clip_settings, "smoothing_do_frz_fax_x")
-                        row.prop(clip_settings, "smoothing_do_frz_fax_y")
-                        if clip_settings.smoothing_do_frz_fax_x == clip_settings.smoothing_do_frz_fax_y == True or clip_settings.smoothing_extrapolate:
-                            row = sub_column.row(align=True)
-                            row.prop(clip_settings, "smoothing_frz_fax_x_degree")
-                            row.prop(clip_settings, "smoothing_frz_fax_y_degree", text="")
-                        elif clip_settings.smoothing_do_frz_fax_x:
-                            row = sub_column.row(align=True)
-                            row.prop(clip_settings, "smoothing_frz_fax_x_degree")
-                            row.prop(settings, "null_property")
-                        elif clip_settings.smoothing_do_frz_fax_y:
-                            row = sub_column.row(align=True)
-                            row.prop(settings, "null_property", text="Max Degree")
-                            row.prop(clip_settings, "smoothing_frz_fax_y_degree", text="")
-                    else:
-                        sub_column.prop(clip_settings, "smoothing_do_frz_fax")
-                        if clip_settings.smoothing_do_frz_fax or clip_settings.smoothing_extrapolate:
-                            sub_column.prop(clip_settings, "smoothing_frz_fax_degree")
-
-                if clip_settings.smoothing_use_different_model and settings.do_includes_frz_fax:
-
-
-
-                    if clip_settings.smoothing_use_different_x_y or True:
+                        row.prop(clip_settings, "smoothing_power_pin_x_degree")
+                        row.prop(clip_settings, "smoothing_power_pin_y_degree", text="")
+                    elif clip_settings.smoothing_do_power_pin_x:
                         row = sub_column.row(align=True)
-
-
-                        if \
-                               ((clip_settings.smoothing_do_frz_fax_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_x_degree != 0) \
-                                or \
-                               ((clip_settings.smoothing_do_frz_fax_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_y_degree != 0) \
-                               :
-                            if \
-                               ((clip_settings.smoothing_do_frz_fax_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_x_degree != 0) \
-                               :
-                                row.prop(clip_settings, "smoothing_frz_fax_x_regressor")
-                            else:
-                                row.prop(settings, "null_property", text="Linear Model")
-                            if \
-                               ((clip_settings.smoothing_do_frz_fax_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_y_degree != 0) \
-                               :
-                                row.prop(clip_settings, "smoothing_frz_fax_y_regressor", text="")
-                            else:
-                                row.prop(settings, "null_property")
-
-                            if clip_settings.smoothing_frz_fax_x_regressor == clip_settings.smoothing_frz_fax_y_regressor and \
-                               ((clip_settings.smoothing_do_frz_fax_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_x_degree != 0) \
-                                and \
-                               ((clip_settings.smoothing_do_frz_fax_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_y_degree != 0) \
-                               :
-                                if clip_settings.smoothing_frz_fax_x_regressor == "HUBER":
-                                    row = sub_column.row(align=True)
-                                    row.prop(clip_settings, "smoothing_frz_fax_x_huber_epsilon")
-                                    row.prop(clip_settings, "smoothing_frz_fax_y_huber_epsilon", text="")
-                                elif clip_settings.smoothing_frz_fax_x_regressor == "LASSO":
-                                    row = sub_column.row(align=True)
-                                    row.prop(clip_settings, "smoothing_frz_fax_x_lasso_alpha")
-                                    row.prop(clip_settings, "smoothing_frz_fax_y_lasso_alpha", text="")
-                            else:
-                                if clip_settings.smoothing_frz_fax_x_regressor == "HUBER" and \
-                               ((clip_settings.smoothing_do_frz_fax_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_x_degree != 0) \
-                               :
-                                    row = sub_column.row(align=True)
-                                    row.prop(clip_settings, "smoothing_frz_fax_x_huber_epsilon")
-                                    row.prop(settings, "null_property")
-                                elif clip_settings.smoothing_frz_fax_x_regressor == "LASSO" and \
-                               ((clip_settings.smoothing_do_frz_fax_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_x_degree != 0) \
-                               :
-                                    row = sub_column.row(align=True)
-                                    row.prop(clip_settings, "smoothing_frz_fax_x_lasso_alpha")
-                                    row.prop(settings, "null_property")
-                                if clip_settings.smoothing_frz_fax_y_regressor == "HUBER" and \
-                               ((clip_settings.smoothing_do_frz_fax_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_y_degree != 0) \
-                               :
-                                    row = sub_column.row(align=True)
-                                    row.prop(settings, "null_property", text="Epsilon")
-                                    row.prop(clip_settings, "smoothing_frz_fax_y_huber_epsilon", text="")
-                                elif clip_settings.smoothing_frz_fax_y_regressor == "LASSO" and \
-                               ((clip_settings.smoothing_do_frz_fax_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_y_degree != 0) \
-                               :
-                                    row = sub_column.row(align=True)
-                                    row.prop(settings, "null_property", text="Alpha")
-                                    row.prop(clip_settings, "smoothing_frz_fax_y_lasso_alpha", text="")
-
-
-                    else:
-
-                        if (clip_settings.smoothing_do_frz_fax or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_degree != 0:
-
-                            sub_column.prop(clip_settings, "smoothing_frz_fax_regressor")
-                            if clip_settings.smoothing_frz_fax_regressor == "HUBER":
-                                sub_column.prop(clip_settings, "smoothing_frz_fax_huber_epsilon")
-                            elif clip_settings.smoothing_frz_fax_regressor == "LASSO":
-                                sub_column.prop(clip_settings, "smoothing_frz_fax_lasso_alpha")
-
-
-
-
-
-
-
-                if True:
-
-                    sub_column = column.column(heading="Power Pin")
-                    sub_column.enabled = False and not clip_settings.disable_section
-
-                    if clip_settings.smoothing_use_different_x_y:
+                        row.prop(clip_settings, "smoothing_power_pin_x_degree")
+                        row.prop(settings, "null_property")
+                    elif clip_settings.smoothing_do_power_pin_y:
                         row = sub_column.row(align=True)
-                        row.prop(clip_settings, "smoothing_do_power_pin_x")
-                        row.prop(clip_settings, "smoothing_do_power_pin_y")
-                        if clip_settings.smoothing_do_power_pin_x == clip_settings.smoothing_do_power_pin_y == True or clip_settings.smoothing_extrapolate:
-                            row = sub_column.row(align=True)
-                            row.prop(clip_settings, "smoothing_power_pin_x_degree")
-                            row.prop(clip_settings, "smoothing_power_pin_y_degree", text="")
-                        elif clip_settings.smoothing_do_power_pin_x:
-                            row = sub_column.row(align=True)
-                            row.prop(clip_settings, "smoothing_power_pin_x_degree")
-                            row.prop(settings, "null_property")
-                        elif clip_settings.smoothing_do_power_pin_y:
-                            row = sub_column.row(align=True)
-                            row.prop(settings, "null_property", text="Max Degree")
-                            row.prop(clip_settings, "smoothing_power_pin_y_degree", text="")
-                    else:
-                        sub_column.prop(clip_settings, "smoothing_do_power_pin")
-                        if clip_settings.smoothing_do_power_pin or clip_settings.smoothing_extrapolate:
-                            sub_column.prop(clip_settings, "smoothing_power_pin_degree")
-
+                        row.prop(settings, "null_property", text="Max Degree")
+                        row.prop(clip_settings, "smoothing_power_pin_y_degree", text="")
+                else:
+                    sub_column.prop(clip_settings, "smoothing_do_power_pin")
+                    if clip_settings.smoothing_do_power_pin or clip_settings.smoothing_extrapolate:
+                        sub_column.prop(clip_settings, "smoothing_power_pin_degree")
                 if clip_settings.smoothing_use_different_model:
 
 
@@ -5656,22 +4637,16 @@ class AAEExportOptions(bpy.types.Panel):
                                (((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) or \
                                 ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) or \
                                 ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((clip_settings.smoothing_do_frz_fax_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_x_degree != 0)) or \
                                 ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0)) \
                                 or \
                                (((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) or \
                                 ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((clip_settings.smoothing_do_frz_fax_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_y_degree != 0)) or \
                                 ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                             if \
                                (((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) or \
                                 ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) or \
                                 ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((clip_settings.smoothing_do_frz_fax_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_x_degree != 0)) or \
                                 ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                 row.prop(clip_settings, "smoothing_x_regressor")
@@ -5680,8 +4655,6 @@ class AAEExportOptions(bpy.types.Panel):
                             if \
                                (((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) or \
                                 ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((clip_settings.smoothing_do_frz_fax_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_y_degree != 0)) or \
                                 ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                 row.prop(clip_settings, "smoothing_y_regressor", text="")
@@ -5692,14 +4665,10 @@ class AAEExportOptions(bpy.types.Panel):
                                (((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) or \
                                 ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) or \
                                 ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((clip_settings.smoothing_do_frz_fax_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_x_degree != 0)) or \
                                 ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0)) \
                                 and \
                                (((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) or \
                                 ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((clip_settings.smoothing_do_frz_fax_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_y_degree != 0)) or \
                                 ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                 if clip_settings.smoothing_x_regressor == "HUBER":
@@ -5715,8 +4684,6 @@ class AAEExportOptions(bpy.types.Panel):
                                (((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) or \
                                 ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) or \
                                 ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((clip_settings.smoothing_do_frz_fax_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_x_degree != 0)) or \
                                 ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
@@ -5726,8 +4693,6 @@ class AAEExportOptions(bpy.types.Panel):
                                (((clip_settings.smoothing_do_position_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_x_degree != 0) or \
                                 ((clip_settings.smoothing_do_scale_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_x_degree != 0) or \
                                 ((clip_settings.smoothing_do_rotation or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_rotation_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((clip_settings.smoothing_do_frz_fax_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_x_degree != 0)) or \
                                 ((clip_settings.smoothing_do_power_pin_x or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_x_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
@@ -5736,8 +4701,6 @@ class AAEExportOptions(bpy.types.Panel):
                                 if clip_settings.smoothing_y_regressor == "HUBER" and \
                                (((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) or \
                                 ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((clip_settings.smoothing_do_frz_fax_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_y_degree != 0)) or \
                                 ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
@@ -5746,8 +4709,6 @@ class AAEExportOptions(bpy.types.Panel):
                                 elif clip_settings.smoothing_y_regressor == "LASSO" and \
                                (((clip_settings.smoothing_do_position_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_position_y_degree != 0) or \
                                 ((clip_settings.smoothing_do_scale_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_scale_y_degree != 0) or \
-                                (settings.do_includes_frz_fax and \
-                                 ((clip_settings.smoothing_do_frz_fax_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_frz_fax_y_degree != 0)) or \
                                 ((clip_settings.smoothing_do_power_pin_y or clip_settings.smoothing_extrapolate) and clip_settings.smoothing_power_pin_y_degree != 0)) \
                                :
                                     row = sub_column.row(align=True)
@@ -5801,21 +4762,20 @@ class AAEExportOptions(bpy.types.Panel):
             column.enabled = False
             column.prop(clip_settings, "do_smoothing_fake")
 
-        if not is_smoothing_modules_available:
-            box = layout.box()
-            column = box.column()
-            row = column.row()
-            row.alignment = "CENTER"
-            row.label(text="Power Pin Remap")
-            column.separator(factor=0.06)
-            sub_column = column.column(align=True)
-            sub_column.use_property_split = False
-            row = sub_column.row(align=True)
-            row.prop(clip_settings, "power_pin_remap_0002", text="")
-            row.prop(clip_settings, "power_pin_remap_0003", text="")
-            row = sub_column.row(align=True)
-            row.prop(clip_settings, "power_pin_remap_0004", text="")
-            row.prop(clip_settings, "power_pin_remap_0005", text="")
+        box = layout.box()
+        column = box.column()
+        row = column.row()
+        row.alignment = "CENTER"
+        row.label(text="Power Pin Remap")
+        column.separator(factor=0.06)
+        sub_column = column.column(align=True)
+        sub_column.use_property_split = False
+        row = sub_column.row(align=True)
+        row.prop(clip_settings, "power_pin_remap_0002", text="")
+        row.prop(clip_settings, "power_pin_remap_0003", text="")
+        row = sub_column.row(align=True)
+        row.prop(clip_settings, "power_pin_remap_0004", text="")
+        row.prop(clip_settings, "power_pin_remap_0005", text="")
 
     @classmethod
     def poll(cls, context):

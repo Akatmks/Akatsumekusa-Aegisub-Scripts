@@ -24,7 +24,7 @@
 versioning =
   name: "Cycles"
   description: "Cycles tags on selected lines"
-  version: "1.0.5"
+  version: "1.0.6"
   author: "Akatsumekusa and contributors"
   namespace: "aka.Cycles"
   requireModules: "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }]"
@@ -152,8 +152,8 @@ Cycles = (sub, sel, act, tag) ->
         with \andThen prepare_config
           config = \unwrap!
   if not config[tag]
-    aegisub.debug.out("[aka.Cycles] No config found for \\" .. tag .. "\n")
-    aegisub.debug.out("[aka.Cycles] To setup config for \\" .. tag .. ", click „Edit config“ and add a new line" .. "\n")
+    aegisub.debug.out "[aka.Cycles] No config found for \\" .. tag .. "\n"
+    aegisub.debug.out "[aka.Cycles] To setup config for \\" .. tag .. ", click „Edit config“ and add a new line" .. "\n"
     aegisub.cancel()
 
   seq = config[tag]
@@ -183,18 +183,18 @@ Cycles = (sub, sel, act, tag) ->
 
         for i = 1, seq.n
           if tags[tag]\get! == seq[i]
-            set_next_after(i)
+            set_next_after i
             return
 
         if tags[tag]\get! < seq[seq.min] or
            tags[tag]\get! > seq[seq.min - 1]
-          set_next(seq.min - 1)
+          set_next seq.min - 1
           return
             
         for i = seq.min, seq.min + seq.n - 2
           if tags[tag]\get! > seq[i] and
              tags[tag]\get! < seq[i + 1]
-            set_next(i)
+            set_next i
             return
       )!
     data\commit!
