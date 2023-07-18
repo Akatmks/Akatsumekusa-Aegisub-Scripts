@@ -170,37 +170,6 @@
             "name": "Dupe and Not Comment",
             "description": "Duplicate selected line line by line",
             "url": "@{baseUrl}"
-        },
-        "aka.ortho-mo": {
-            "channels": {
-                "rc": {
-                    "files": [
-                        {
-                            "name": ".lua",
-                            "url": "@{fileBaseUrl}/macros/aka.ortho-mo.lua",
-                            "sha1": "f7480fbb02c1ef46e6d22458f7b7a7199f94eb79"
-                        }
-                    ],
-                    "version": "1.0.6",
-                    "default": true,
-                    "requireModules": [
-                        {
-                            "moduleName": "aka.outcome"
-                        },
-                        {
-                            "moduleName": "aegisub.clipboard"
-                        },
-                        {
-                            "moduleName": "aka.config2"
-                        }
-                    ],
-                    "released": "2023-07-17"
-                }
-            },
-            "author": "Akatsumekusa and contributors",
-            "name": "Aegisub-Orthographic-Motion",
-            "description": "Apply \\\\frz and \\\\fax to subtitle lines from AAE data",
-            "url": "@{baseUrl}"
         }
     },
     "modules": {

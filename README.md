@@ -7,7 +7,6 @@
 `https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json`  
 ***Motion Tracking***  
 – [aae-export](#aae-export)  
-– [ortho-mo](#ortho-mo)  
 ***Typesetting Aid***  
 – [aka.BackupSection](#akabackupsection--akadupe-and-not-comment)  
 – [aka.BoundingBox](#akaboundingbox)  
@@ -69,16 +68,6 @@ Thanks to
 – *aae-export was originally released by Martin Herkt under ISC License. Since then, aae-export has been completely rewritten, with every original line replaced. It is now released under a single MIT License.*  
 – *[aae-export-install-dependencies](tools/aae-export-install-dependencies) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. The tool is released under MIT License, using [Qt](https://www.qt.io/) libraries under LGPLv3.*  
 – *[aae-export-base122](tools/aae-export-base122) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. It is a wrapper of Kevin Albertson's [libbase122](https://github.com/kevinAlbs/libbase122) library, and is released under Apache License.*  
-
-## ortho-mo
-
-<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/aced909e-aba6-4a84-8b5f-a98e76c2e5e2" alt="ortho-mo Function Preview" width="238" align="right" />
-
-Aegisub-Orthographic-Motion is a macro to apply `\frz` and `\fax` to subtitle lines. It works with either frz fax data from [aae-export](#aae-export) or Power Pin data.  
-
-To use ortho-mo, apply position and scale with [a-mo](https://github.com/TypesettingTools/Aegisub-Motion) first, and then apply `\frz\fax` with ortho-mo.  
-
-<br clear="right" />
 
 ## aka.BackupSection & aka.dupe-and-not-comment
 
