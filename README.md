@@ -148,7 +148,7 @@ Detailed tutorial is available at [docs/Using aka.config and aka.config2.md](doc
 
 ## aka.singlesimple
 
-aka.singlesimple is a synced config module. It stores one enum per config and the enum is synced across all scrips requesting the same config.  
+aka.singlesimple is a config module. It stores one enum per config and the enum is synced\* across all scrips requesting the same config.  
 
 ```lua
 -- Create a config
@@ -158,6 +158,8 @@ config:value()
 -- Set the value
 config:setValue(value)
 ```
+
+\*: Loosely.  
 
 Detailed tutorial is available at [docs/Using aka.singlesimple.md](docs/Using%20aka.singlesimple.md).  
 

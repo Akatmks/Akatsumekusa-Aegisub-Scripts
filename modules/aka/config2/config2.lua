@@ -78,7 +78,7 @@ config_dir = aegisub.decode_path(hasDepCtrl and DepCtrl.config.c.configDir or "?
 -- @param str config [nil]: The subfolder where the config is in
 -- @param str config_supp: The name for the config file without the file extension
 -- 
--- @returns outcome.result<table, string>
+-- @return outcome.result<table, string>
 read_config = function(config, config_supp)
     if config_supp == nil then config_supp = config config = nil end
     return
@@ -92,7 +92,7 @@ end
 -- @param str config [nil]: The subfolder where the config is in
 -- @param str config_supp: The name for the config file without the file extension
 -- 
--- @returns outcome.result<string, string>
+-- @return outcome.result<string, string>
 read_config_string = function(config, config_supp)
     if config_supp == nil then config_supp = config config = nil end
     return
@@ -112,7 +112,7 @@ end
 -- @param str config_supp: The name for the config file without the file extension
 -- @param table config_data: The table to save to the config
 -- 
--- @returns outcome.result<table, string>: Return the same config table back if success
+-- @return outcome.result<table, string>: Return the same config table back if success
 write_config = function(config, config_supp, config_data)
     if type(config_supp) == "table" then config_data = config_supp config_supp = config config = nil end
     return
@@ -131,7 +131,7 @@ end
 -- @param str config_supp: The name for the config file without the file extension
 -- @param table config_string: The string to save to the config
 -- 
--- @returns outcome.result<table, string>: Return the same config string back if success
+-- @return outcome.result<table, string>: Return the same config string back if success
 write_config_string = function(config, config_supp, config_string)
     if config_string == nil then config_string = config_supp config_supp = config config = nil end
     return

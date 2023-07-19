@@ -43,7 +43,7 @@ setmetatable(config_methods, { __index = config })
 --     presets: Every presets in a key-value table
 --     default: THe name (key) of the default preset
 -- 
--- @returns table: an instance of config with GUI functions
+-- @return table: an instance of config with GUI functions
 config.make_editor = function(param)
     local codepoint
     
@@ -80,7 +80,7 @@ end
 -- @param outcome.Option<string, string> error: Errors probably coming from validation function
 -- @param function validation_func [optional]: Validation function
 -- 
--- @returns outcome.result<string, string>: Return the new config_string
+-- @return outcome.result<string, string>: Return the new config_string
 config_methods.edit_config = function(self, config_string, error, validation_func)
     local dialog
     local buttons
@@ -169,7 +169,7 @@ end end end
 -- @param str config_supp: The name for the config file without the file extension
 -- @param function validation_func: The validation function that takes the config_data and returns either ok(config_data) or err(error_message)
 -- 
--- @returns outcome.result<table, string>: Return the config table back if success, or return err() if the user cancel the option
+-- @return outcome.result<table, string>: Return the config table back if success, or return err() if the user cancel the option
 --
 -- @aegisub.debug.out: This will print message to aegisub.debug.out and return ok(config_data) if the save process failed
 config_methods.read_edit_validate_and_save_config = function(self, config, config_supp, validation_func)
@@ -212,7 +212,7 @@ end
 -- @param str config_supp: The name for the config file without the file extension
 -- @param function validation_func: The validation function that takes the config_data and returns either ok(config_data) or err(error_message)
 -- 
--- @returns outcome.result<table, string>: Return the config table back if success, or return err() if the user cancel the option
+-- @return outcome.result<table, string>: Return the config table back if success, or return err() if the user cancel the option
 --
 -- @aegisub.debug.out: This will print message to aegisub.debug.out and return ok(config_data) if the save process failed
 config_methods.read_and_validate_config_or_else_edit_and_save = function(self, config, config_supp, validation_func)
@@ -260,7 +260,7 @@ end
 -- @param str config_supp: The name for the config file without the file extension
 -- @param function validation_func: The validation function that takes the config_data and returns either ok(config_data) or err(error_message)
 -- 
--- @returns outcome.result<table, string>: Return the config table back if success, or return err() if the user cancel the option
+-- @return outcome.result<table, string>: Return the config table back if success, or return err() if the user cancel the option
 --
 -- @aegisub.debug.out: This will print message to aegisub.debug.out and return ok(config_data) if the save process failed
 config_methods.read_and_validate_config_if_empty_then_default_or_else_edit_and_save = function(self, config, config_supp, validation_func)

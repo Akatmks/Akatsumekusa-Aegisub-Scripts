@@ -1,6 +1,8 @@
 ## Using aka.singlesimple
 
-aka.singlesimple introduces a much simpler config interface than [aka.config](Using%20aka.config%20and%20aka.config2.md). It stores one enum per config and the enum is synced across all scrips requesting the same config.  
+aka.singlesimple introduces a much simpler config interface than [aka.config](Using%20aka.config%20and%20aka.config2.md). It stores one enum per config.  
+
+The config is loosely synced by having a timestamp in the memory and updating the value from file every second. For the sync to fail, the user would have to use value in script A, change the value from script B, and then immediately use the value in script A, all within a second, which is possible but unlikely.  
 
 To use the aka.singlesimple, you can call `make_config` at the start of your script:
 ```lua
@@ -31,4 +33,4 @@ config:setValue("Effect")
 config\setValue "Effect"
 ```
 
-Note that there are some rare situations when some procedures may fail, in which case aka.singlesimple will print a message to `aegisub.debug.out` and occasionally `aegisub.cancel`. If you want to handle the error yourself, you can call `Config.value2` and `Config.setValue2`, which will return a `Result` table from [aka.outcome](Using%20aka.outcome.md).  
+Note that `Config.setValue` may fail if the value given is not presented in the list of possible values, in which case aka.singlesimple will print a message to `aegisub.debug.out` and `aegisub.cancel`. If you want to handle the error yourself, you can call `Config.setValue2`, which will return a `Result` table from [aka.outcome](Using%20aka.outcome.md).  

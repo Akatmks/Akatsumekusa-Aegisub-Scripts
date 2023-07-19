@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "farnhuah"
 versioning.description = "farn huah jeau been"
-versioning.version = "1.0.6"
+versioning.version = "1.0.7"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.farnhuah"
 
@@ -348,17 +348,13 @@ ApplyLinesApply = function(sub, sel, act, ctarget, lines, farnhuah, i, j)
     for k = i, j do
         if ctarget == "chs" then
             lines[k][aactor.field:value()] = "cht"
-            comment_ = lines[k].comment
             lines[k].comment = true
             sub[sel[k]] = lines[k]
-            lines[k].comment = comment_
 
         elseif ctarget == "cht" then
             lines[k][aactor.field:value()] = "chs"
-            comment_ = lines[k].comment
             lines[k].comment = true
             sub[sel[k]] = lines[k]
-            lines[k].comment = comment_
     end end
     
     farnhuahs = {}
@@ -375,6 +371,7 @@ ApplyLinesApply = function(sub, sel, act, ctarget, lines, farnhuah, i, j)
             lines[k][aactor.field:value()] = "cht"
         end
         lines[k].text = farnhuahs[k]
+        lines[k].comment = false
         
         sub[-sel[j]-1] = lines[k]
     end

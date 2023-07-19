@@ -14,10 +14,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/NN.farnhuah.lua",
-                            "sha1": "0da02183ec6a57b45a95436664284d3e467670c0"
+                            "sha1": "4aca99907c6ecd88d97375031985cbcf4fd98d6e"
                         }
                     ],
-                    "version": "1.0.6",
+                    "version": "1.0.7",
                     "default": true,
                     "requireModules": [
                         {
@@ -43,7 +43,7 @@
                             "optional": true
                         }
                     ],
-                    "released": "2023-07-15"
+                    "released": "2023-07-19"
                 }
             },
             "author": "Akatsumekusa",
@@ -208,15 +208,15 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "17377970df54d6301b3b2d3fc4fef544152937d5"
+                            "sha1": "47ad0bee50bc8505bcc3fa84b00de302849d40f9"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "82c0bf438283bfa61423e2ffd268f971d4619f26"
+                            "sha1": "3871271e808cf855bc58ff6bc826e07ac627dd3e"
                         }
                     ],
-                    "version": "1.0.6",
+                    "version": "1.0.7",
                     "default": true,
                     "requireModules": [
                         {
@@ -232,7 +232,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-07-16"
+                    "released": "2023-07-19"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -247,12 +247,12 @@
                         {
                             "name": "/config2.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config2/config2.lua",
-                            "sha1": "0b9ae3294ded07d5a8afd10a287c8b4beb624724"
+                            "sha1": "1df0f92294cd5e5493bf43ab7e215664c3d6bc46"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config2/init.lua",
-                            "sha1": "8dd34ada61ffdc3bee5feeb0f1e39adb75fafb13"
+                            "sha1": "f8da8ac752ce7257e131dfa0bd0c766bef99e14d"
                         },
                         {
                             "name": "/json.lua",
@@ -260,7 +260,7 @@
                             "sha1": "66004f9373847d877fe0aae5ad8a02bf7e161fef"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requireModules": [
                         {
@@ -276,7 +276,7 @@
                             "moduleName": "lfs"
                         }
                     ],
-                    "released": "2023-07-11"
+                    "released": "2023-07-19"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -456,10 +456,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
-                            "sha1": "cbc761d1cfd4d0752a27216600fba4f332379319"
+                            "sha1": "e88dcaf9d7c10939800e1ad2447a62162d3a2798"
                         }
                     ],
-                    "version": "1.0.6",
+                    "version": "1.0.8",
                     "default": true,
                     "requireModules": [
                         {
@@ -469,16 +469,10 @@
                             "moduleName": "aka.outcome"
                         },
                         {
-                            "moduleName": "aka.mmapfile"
-                        },
-                        {
                             "moduleName": "aka.effil"
-                        },
-                        {
-                            "moduleName": "ffi"
                         }
                     ],
-                    "released": "2023-07-16"
+                    "released": "2023-07-19"
                 }
             },
             "author": "Akatsumekusa and contributors",
