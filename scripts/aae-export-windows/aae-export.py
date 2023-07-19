@@ -50,7 +50,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 2, 0),
+    "version": (1, 2, 1),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -62,6 +62,79 @@ bl_info = {
 
 import bpy
 import bpy_extras.io_utils
+
+# -------------------------------------
+# Top-level functions and classes layout
+# -------------------------------------
+# First, a small section for smoothing modules:
+#   smoothing_modules.
+#   is_smoothing_modules_available.
+#   get_smoothing_modules_install_description().
+# -------------------------------------
+# There are three bpy.types.PropertyGroup for settings:
+#   AAEExportSettings, registered to bpy.types.Screen for general
+#       settings like whether save a copy of AAE data to file.
+#   AAEExportSettingsClip, registered to bpy.types.MovieClip for clip-
+#       wise settings, such as Power Pin remap and section blending.
+#       It also contains a fake set of AAEExportSettingsSectionL for
+#       placeholding before section settings are initialised in
+#       AAEExportSettingsClip._do_smoothing_update().
+#   AAEExportSettingsSectionL, registered as
+#       bpy.props.CollectionProperty to bpy.types.MovieClip. Contains
+#       section-wise smoothing settings.
+# -------------------------------------
+# After the settings are three bpy.types.Operator for export:
+#   AAEExportExportAll for the All tracks > Export button. This class
+#       also contains all the actual export functions, the entrance
+#       point of which is AAEExportExportAll._generate(),
+#       AAEExportExportAll._plot_result(),
+#       AAEExportExportAll._plot_section(), and also
+#       AAEExportExportAll._copy_to_clipboard() and
+#       AAEExportExportAll._export_to_file()
+#   AAEExportCopySingleTrack for
+#       Selected track > Selected track > Copy.
+#   AAEExportCopyPlaneTrack for
+#       Selected track > Selected plane track > Copy.
+#   AAEExportPlotResult for Export Options > Smoothing > Plot Result
+#       when AAEExportSettings.do_advanced_smoothing.
+#   AAEExportPlotSection for Export Options > Smoothing > Plot Section
+#       when AAEExportSettings.do_advanced_smoothing.
+#   AAEExportPlot for Export Options > Smoothing > Plot when
+#       not AAEExportSettings.do_advanced_smoothing.
+# -------------------------------------
+# After the operators are the bpy.types.Panel classes for UI:
+#   AAEExport.
+#   AAEExportSelectedTrack.
+#   AAEExportAllTracks.
+#   AAEExportOptions.
+# A bpy.types.UIList and two operators for sections:
+#   AAEExportSectionL.
+#   AAEExportSectionAddS.
+#   AAEExportSectionRemoveS.
+# -------------------------------------
+# At last the legacy File > Export bpy.types.Operator:
+#   AAEExportLegacy.
+# -------------------------------------
+# This is all the main classes and it is collected in a tuple:
+#   classes.
+# -------------------------------------
+# After the main classes are the preference classes related to
+# installing dependencies:
+#   AAEExportRegisterSettings as bpy.types.PropertyGroup.
+#   AAEExportRegisterSmoothingID as bpy.types.Operator.
+#   AAEExportRegisterPreferencePanel as bpy.types.AddonPreferences.
+#   register_classes as tuple.
+#   is_register_classes_registered as bool
+# -------------------------------------
+# The last is the standard Blender register functions:
+#   register
+#   register_export_legacy
+#   register_main_classes
+#   register_register_classes
+#   unregister
+#   unregister_main_classes
+#   unregister_register_classes
+# -------------------------------------
 
 # ("import name", "PyPI name", "minimum version")
 smoothing_modules = (("numpy", "numpy", ""),
@@ -1726,26 +1799,28 @@ class AAEExportExportAll(bpy.types.Operator):
         return { "FINISHED" }
 
     @staticmethod
-    def _generate(clip, track, settings, clip_settings, section_settings_l, section_settings_ll):
-        """
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        settings : AAEExportSettings
-            AAEExportSettings.
-        clip_settings : AAEExportSettingsClip
-            AAEExportSettingsClip.
-        section_settings_l : AAEExportSettingsSectionL
-            AAEExportSettingsSectionL.
-        section_settings_ll : bpy.props.IntProperty
-            AAEExportSettingsSectionLL.
+    def _generate(clip, track, \
+                  settings, clip_settings, section_settings_l, section_settings_ll):
+        # returns aae : str
 
-        Returns
-        -------
-        aae : str
+        # This is the main logic of aae generating
+        # If smoothing modules are installed, the logic is as follows:
+        #   _calculate_aspect_ratio() calculates the ratio for
+        #       converting 1920 × 1080 to 1.778 × 1.
+        #   _prepare_data() read and calculate all 13 data streams from
+        #       track.
+        #   _unlimit_rotation() unwrap the rotations from for example
+        #       30° - 10° - 350° to 30° - 10° - -10°.
+        #   _parse_section_settings() parse settings into an array of
+        #       dicts, away from the madness of Blender.
+        #   _smoothing_main() gets the data after smoothing.
+        #   _limit_rotation_and_frz_fax() limit the data again to 0° to
+        #       360°.
+        #   _generate_aae() to convert the data into aae strings.
+        #
+        # The _plot_result() and _plot_section() are largerly similar
+        # to this functions and plot the result with matplotlib.
 
-        """
         if is_smoothing_modules_available:
             ratio, multiplier \
                 = AAEExportExportAll._calculate_aspect_ratio( \
@@ -1797,22 +1872,8 @@ class AAEExportExportAll(bpy.types.Operator):
         return aae
 
     @staticmethod
-    def _plot_result(clip, track, settings, clip_settings, section_settings_l, section_settings_ll):
-        """
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        settings : AAEExportSettings
-            AAEExportSettings.
-        clip_settings : AAEExportSettingsClip
-            AAEExportSettingsClip.
-        section_settings_l : AAEExportSettingsSectionL
-            AAEExportSettingsSectionL.
-        section_settings_ll : bpy.props.IntProperty
-            AAEExportSettingsSectionLL.
-
-        """
+    def _plot_result(clip, track, \
+                     settings, clip_settings, section_settings_l, section_settings_ll):
         import collections
         import numpy as np
         
@@ -1855,24 +1916,8 @@ class AAEExportExportAll(bpy.types.Operator):
                 clip_settings)
 
     @staticmethod
-    def _plot_section(clip, track, settings, clip_settings, section_settings_l, section_settings_li, section_settings_ll):
-        """
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        settings : AAEExportSettings
-            AAEExportSettings.
-        clip_settings : AAEExportSettingsClip
-            AAEExportSettingsClip.
-        section_settings_l : AAEExportSettingsSectionL
-            AAEExportSettingsSectionL.
-        section_settings_li : bpy.props.IntProperty
-            AAEExportSettingsSectionLI.
-        section_settings_ll : bpy.props.IntProperty
-            AAEExportSettingsSectionLL.
-
-        """
+    def _plot_section(clip, track, \
+                      settings, clip_settings, section_settings_l, section_settings_li, section_settings_ll):
         import collections
         import numpy as np
         
@@ -1911,19 +1956,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _calculate_aspect_ratio(clip):
-        """
-        Calculate aspect ratio.
+        # returns ratio : tuple[float64]
+        #         multiplier : float
 
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-
-        Returns
-        -------
-        ratio : tuple[float64]
-        multiplier: float
-
-        """
         import numpy as np
 
         ar = clip.size[0] / clip.size[1]
@@ -1938,21 +1973,10 @@ class AAEExportExportAll(bpy.types.Operator):
             return (1.81, 1.81 / ar), clip.size[0] / 1.81
 
     @staticmethod
-    def _prepare_data(clip, track, ratio):
-        """
-        Create position, scale, rotation and Power Pin array from tracking markers. [Step 04]
+    def _prepare_data(clip, track, \
+                      ratio):
+        # returns data : dict[npt.NDArray[float64]]
 
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-        ratio : tuple[float64]
-
-        Returns
-        -------
-        data : dict[npt.NDArray[float64]]
-
-        """
         # data
         # {
         #      0: position_x,
@@ -1960,8 +1984,8 @@ class AAEExportExportAll(bpy.types.Operator):
         #      2: scale_x,
         #      3: scale_y,
         #      4: rotation,
-        #      5: power_pin_0002_x,
-        #      6: power_pin_0002_y,
+        #      5: power_pin_0002_x, (relative to position_x),
+        #      6: power_pin_0002_y, (relative to position_y),
         #      7: power_pin_0003_x,
         #      8: power_pin_0003_y,
         #      9: power_pin_0004_x,
@@ -1987,17 +2011,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _prepare_position_and_power_pin_marker_track(data, clip, track, ratio):
-        """
-        Create position and Power Pin array from marker track.
-
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack
-        ratio : tuple[float64]
-
-        """
         import numpy as np
 
         if not clip.frame_duration >= 1:
@@ -2050,17 +2063,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _prepare_position_and_power_pin_plane_track(data, clip, track, ratio):
-        """
-        Create position and Power Pin array from plane track.
-
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack
-        ratio : tuple[float64]
-
-        """
         import numpy as np
         import numpy.linalg as LA
 
@@ -2137,17 +2139,9 @@ class AAEExportExportAll(bpy.types.Operator):
             #         return np.mean(slice.reshape((4, 2)), axis=0)
             #     else:
             #         return (1 - t) * slice[0:2] + t * slice[6:8]
-        
+
     @staticmethod
     def _prepare_scale_and_semilimited_rotation(data):
-        """
-        Create scale and rotation array.
-
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-
-        """
         import numpy as np
         import numpy.linalg as LA
 
@@ -2166,14 +2160,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _unlimit_rotation(data):
-        """
-        Unlimit the rotation.
-
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-
-        """
         import numpy as np
 
         diff = np.diff(data[4])
@@ -2185,35 +2171,14 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _limit_rotation(data):
-        """
-        Limit the rotation.
-
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-
-        """
         import numpy as np
 
         np.remainder(data[4], 2 * np.pi, out=data[4])
 
     @staticmethod
     def _parse_section_settings(section_settings_l, section_settings_ll):
-        """
-        Deal with the messy Blender and output an easy to use section settings.
+        # returns parsed_settings : dict[dict[dict[]]]
 
-        Parameters
-        ----------
-        section_settings_l : AAEExportSettingsSectionL
-            AAEExportSettingsSectionL.
-        section_settings_ll : bpy.props.IntProperty
-            AAEExportSettingsSectionLL.
-
-        Returns
-        -------
-        parsed_settings : dict[dict[dict[]]]
-
-        """
         # parsed_settings structure
         #
         # {
@@ -2703,25 +2668,11 @@ class AAEExportExportAll(bpy.types.Operator):
         return parsed_settings
 
     @staticmethod
-    def _smoothing_main(data, clip, clip_settings, section_settings, section_settings_ll, plotting=False):
-        """
-        The main logic for smoothing.
+    def _smoothing_main(data, clip, \
+                        clip_settings, section_settings, section_settings_ll, \
+                        plotting=False):
+        # returns smoothed_data : dict[npt.NDArray[float64]]
 
-        Parameters
-        ----------
-        data : dict[npt.NDArray[float64]]
-        clip : bpy.types.MovieClip
-        clip_settings : AAEExportSettingsClip
-            AAEExportSettingsClip.
-        section_settings : dict[dict[dict[]]]
-        section_settings_ll : bpy.props.IntProperty
-            AAEExportSettingsSectionLL.
-
-        Returns
-        -------
-        smoothed_data : dict[npt.NDArray[float64]]
-
-        """
         import collections
         import numpy as np
 
@@ -2786,22 +2737,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _smoothing(data, section_settings):
-        """
-        Perform smoothing depending on the smoothing settings.
+        # returns predicted_data : npt.NDArray[float64]
+        #                          data with all frames filled with predicted value
 
-        Parameters
-        ----------
-        data : npt.NDArray[float64]
-            univariate data
-        section_settings : dict[]
-            Parsed settings for the section and data
-
-        Returns
-        -------
-        predicted_data : npt.NDArray[float64]
-            data with all frames filled with predicted value
-
-        """
         import numpy as np
         from sklearn.preprocessing import PolynomialFeatures
         from sklearn.linear_model import HuberRegressor, Lasso, LinearRegression
@@ -2833,24 +2771,9 @@ class AAEExportExportAll(bpy.types.Operator):
             raise ValueError("regressor " + section_settings["regressor"] + " not recognised")
 
     @staticmethod
-    def _smoothing_append_section(smoothed_data, data, clip, clip_settings, section_settings, carryover):
-        """
-        The main logic for smoothing.
-
-        Parameters
-        ----------
-        smoothed_data : npt.NDArray[float64]
-            smoothed_data created in _smoothing_main()
-        data : npt.NDArray[float64]
-            data after smoothed in _smoothing_main()
-        clip : bpy.types.MovieClip
-        clip_settings : AAEExportSettingsClip
-        section_settings : dict[dict[]]
-            Parsed settings for the section
-        carryover : npt.NDArray[float64]
-            Carryover. Initialised in _smoothing_main()
-
-        """
+    def _smoothing_append_section(smoothed_data, data, \
+                                  clip, clip_settings, section_settings, \
+                                  carryover):
         import numpy as np
 
         match clip_settings.smoothing_blending:
@@ -2910,32 +2833,21 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _generate_aae(data, multiplier):
-        """
-        Finalised and stringify the data.
+        # returns aae_position : list[str]
+        #         aae_scale : list[str]
+        #         aae_rotation : list[str]
+        #         aae_power_pin_0002 : list[str]
+        #         aae_power_pin_0003 : list[str]
+        #         aae_power_pin_0004 : list[str]
+        #         aae_power_pin_0005 : list[str]
 
-        Parameters
-        ----------
-        data : data : dict[npt.NDArray[float64]]
-        multiplier: float
-
-        Returns
-        -------
-        aae_position : list[str]
-        aae_scale : list[str]
-        aae_rotation : list[str]
-        aae_power_pin_0002 : list[str]
-        aae_power_pin_0003 : list[str]
-        aae_power_pin_0004 : list[str]
-        aae_power_pin_0005 : list[str]
-
-        """
         import numpy as np
 
         data[0] *= multiplier
         data[1] *= multiplier
         data[2] *= 100
         data[3] *= 100
-        data[4] *= 180.0 / np.pi
+        data[4] = np.degrees(data[4])
         data[4][data[4] >= 359.9995] = 0.0
         data[5] *= multiplier
         data[5] += data[0]
@@ -2975,21 +2887,12 @@ class AAEExportExportAll(bpy.types.Operator):
                 aae_power_pin_0004.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[9][frame], data[10][frame]))
                 aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(frame + 1, data[11][frame], data[12][frame]))
 
-        return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
+        return aae_position, aae_scale, aae_rotation, \
+               aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
         
     @staticmethod
-    def _plot_result_plot(data, smoothed_data, no_blending_data, clip_settings):
-        """
-        Plot the data.
-
-        Parameters
-        ----------
-        data : list[npt.NDArray[float64]]
-        smoothed_data : list[npt.NDArray[float64]]
-        no_blending_data : list[npt.NDArray[float64] or None]
-        clip_settings : AAEExportSettingsClip
-
-        """
+    def _plot_result_plot(data, smoothed_data, no_blending_data, \
+                          clip_settings):
         import matplotlib.pyplot as plt
         import numpy as np
         import PIL
@@ -3067,17 +2970,8 @@ class AAEExportExportAll(bpy.types.Operator):
         plt.close(fig)
 
     @staticmethod
-    def _plot_section_plot(data, smoothed_data, section_settings):
-        """
-        Plot the data.
-
-        Parameters
-        ----------
-        data : list[npt.NDArray[float64]]
-        smoothed_data : list[npt.NDArray[float64] or None]
-        section_settings :  AAEExportSettingsSectionL
-            AAEExportSettingsSectionL[AAEExportSettingsSectionLI]
-        """
+    def _plot_section_plot(data, smoothed_data, \
+                           section_settings):
         import matplotlib.pyplot as plt
         import numpy as np
         import PIL
@@ -3138,7 +3032,7 @@ class AAEExportExportAll(bpy.types.Operator):
                 row[4].set_ylabel("Residual of " + " ".join(list(map(lambda w : w.capitalize(), re.split(" |_", label)))) + " Y")
             else:
                 row[4].axis("off")
-        
+
         def plot_univariate(row, i, label):
             row[0].axis("off")
             
@@ -3184,25 +3078,14 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _generate_aae_non_numpy(clip, track):
-        """
-        Generate aae without numpy.
+        # returns aae_position : list[str]
+        #         aae_scale : list[str]
+        #         aae_rotation : list[str]
+        #         aae_power_pin_0002 : list[str]
+        #         aae_power_pin_0003 : list[str]
+        #         aae_power_pin_0004 : list[str]
+        #         aae_power_pin_0005 : list[str]
 
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or bpy.types.MovieTrackingPlaneTrack
-
-        Returns
-        -------
-        aae_position : list[str]
-        aae_scale : list[str]
-        aae_rotation : list[str]
-        aae_power_pin_0002 : list[str]
-        aae_power_pin_0003 : list[str]
-        aae_power_pin_0004 : list[str]
-        aae_power_pin_0005 : list[str]
-
-        """
         aae_position = []
         aae_scale = []
         aae_rotation = []
@@ -3250,30 +3133,20 @@ class AAEExportExportAll(bpy.types.Operator):
         else:
             raise ValueError("track.__class__.__name__ \"" + track.__class__.__name__ + "\" not recognised")
 
-        return aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
+        return aae_position, aae_scale, aae_rotation, \
+               aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005
 
     @staticmethod
     def _calculate_marker_track_per_frame_non_numpy(clip, marker, scale_base):
-        """
-        Generate data without numpy.
+        # returns position : tuple[float]
+        #         scale : tuple[float]
+        #         rotate : float
+        #         power_pin_0002 : tuple[float]
+        #         power_pin_0003 : tuple[float]
+        #         power_pin_0004 : tuple[float]
+        #         power_pin_0005 : tuple[float]
+        #         scale_base : tuple[float]
 
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        marker : bpy.types.MovieTrackingMarker
-        scale_base : tuple[float] or None
-
-        Returns
-        -------
-        position : tuple[float]
-        scale : tuple[float]
-        rotate : float
-        power_pin_0002 : tuple[float]
-        power_pin_0003 : tuple[float]
-        power_pin_0004 : tuple[float]
-        power_pin_0005 : tuple[float]
-        scale_base : tuple[float]
-        """
         import math
 
         position = (float(marker.co[0]) * clip.size[0],
@@ -3310,26 +3183,15 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _calculate_plane_track_per_frame_non_numpy(clip, marker, scale_base):
-        """
-        Generate data without numpy.
+        # returns position : tuple[float]
+        #         scale : tuple[float]
+        #         rotate : float
+        #         power_pin_0002 : tuple[float]
+        #         power_pin_0003 : tuple[float]
+        #         power_pin_0004 : tuple[float]
+        #         power_pin_0005 : tuple[float]
+        #         scale_base : tuple[float]
 
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        marker : bpy.types.MovieTrackingPlaneMarker
-        scale_base : tuple[float] or None
-
-        Returns
-        -------
-        position : tuple[float]
-        scale : tuple[float]
-        rotate : float
-        power_pin_0002 : tuple[float]
-        power_pin_0003 : tuple[float]
-        power_pin_0004 : tuple[float]
-        power_pin_0005 : tuple[float]
-        scale_base : tuple[float]
-        """
         import math
 
         power_pin_0002 = (float(marker.corners[3][0]) * clip.size[0],
@@ -3362,20 +3224,9 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _calculate_centre_plane_track_per_frame_non_numpy(power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005):
-        """
-        Parameters
-        ----------
-        power_pin_0002 : tuple[float]
-        power_pin_0003 : tuple[float]
-        power_pin_0004 : tuple[float]
-        power_pin_0005 : tuple[float]
+        # returns i : tuple[float]
+        #             The centre of plane track. Never None.
 
-        Returns
-        -------
-        i : tuple[float]
-            The centre of plane track. Never None.
-
-        """
         # LU decomposition thanks to arch1t3cht
         def calculate_coef_(a, b):
             return ((a[1] - b[1], b[0] - a[0]), b[0] * a[1] - a[0] * b[1])
@@ -3397,29 +3248,11 @@ class AAEExportExportAll(bpy.types.Operator):
                     (power_pin_0002[1] + power_pin_0003[1] + power_pin_0004[1] + power_pin_0005[1]) / 4)
 
     @staticmethod
-    def _generate_aae_per_frame_non_numpy(marker, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, position, scale, rotation, power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005):
-        """
-        Generate aae per frame without numpy.
-
-        Parameters
-        ----------
-        marker : bpy.types.MovieTrackingMarker or bpy.types.MovieTrackingPlaneMarker
-        aae_position : list[str]
-        aae_scale : list[str]
-        aae_rotation : list[str]
-        aae_power_pin_0002 : list[str]
-        aae_power_pin_0003 : list[str]
-        aae_power_pin_0004 : list[str]
-        aae_power_pin_0005 : list[str]
-        position : tuple[float]
-        scale : tuple[float]
-        rotate : float
-        power_pin_0002 : tuple[float]
-        power_pin_0003 : tuple[float]
-        power_pin_0004 : tuple[float]
-        power_pin_0005 : tuple[float]
-
-        """
+    def _generate_aae_per_frame_non_numpy(marker, \
+                                          aae_position, aae_scale, aae_rotation, \
+                                          aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
+                                          position, scale, rotation, \
+                                          power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005):
         aae_position.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(marker.frame, *position, 0.0))
         aae_scale.append("\t{:d}\t{:.3f}\t{:.3f}\t{:.3f}".format(marker.frame, *scale, 100.0))
         if rotation >= 359.9995:
@@ -3431,29 +3264,13 @@ class AAEExportExportAll(bpy.types.Operator):
         aae_power_pin_0005.append("\t{:d}\t{:.3f}\t{:.3f}".format(marker.frame, *power_pin_0005))
 
     @staticmethod
-    def _remap_power_pin(power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
-        """
-        Remap Power Pin
-        
-        Parameters
-        ----------
-        power_pin_0002 : object
-        power_pin_0003 : object
-        power_pin_0004 : object
-        power_pin_0005 : object
-        power_pin_remap_0002 : str
-        power_pin_remap_0003 : str
-        power_pin_remap_0004 : str
-        power_pin_remap_0005 : str
+    def _remap_power_pin(power_pin_0002, power_pin_0003, power_pin_0004, power_pin_0005, \
+                         power_pin_remap_0002, power_pin_remap_0003, power_pin_remap_0004, power_pin_remap_0005):
+        # returns return_0002 : object
+        #         return_0003 : object
+        #         return_0004 : object
+        #         return_0005 : object
 
-        Returns
-        -------
-        return_0002 : object
-        return_0003 : object
-        return_0004 : object
-        return_0005 : object
-
-        """
 
 
 
@@ -3511,26 +3328,12 @@ class AAEExportExportAll(bpy.types.Operator):
         return return_0002, return_0003, return_0004, return_0005
 
     @staticmethod
-    def _combine_aae(clip, aae_position, aae_scale, aae_rotation, aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, do_includes_power_pin):
-        """
-        Combine and finish aae.
+    def _combine_aae(clip, \
+                     aae_position, aae_scale, aae_rotation, \
+                     aae_power_pin_0002, aae_power_pin_0003, aae_power_pin_0004, aae_power_pin_0005, \
+                     do_includes_power_pin):
+        # returns aae : str
 
-        Parameters
-        ----------
-        clip : clip : bpy.types.MovieClip
-        aae_position : list[str]
-        aae_scale : list[str]
-        aae_rotation : list[str]
-        aae_power_pin_0002 : list[str]
-        aae_power_pin_0003 : list[str]
-        aae_power_pin_0004 : list[str]
-        aae_power_pin_0005 : list[str]
-
-        Returns
-        -------
-        aae : str
-
-        """
         aae = ""
 
         aae += "Adobe After Effects 6.0 Keyframe Data\n\n"
@@ -3576,18 +3379,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _export_to_file(clip, track, aae, prefix, do_do_not_overwrite):
-        """
-        Parameters
-        ----------
-        clip : bpy.types.MovieClip
-        track : bpy.types.MovieTrackingTrack or MovieTrackingPlaneTrack
-        aae : str
-            Likely coming from _generated().
-        prefix : None or str
-        do_do_not_overwrite : bool
-            AAEExportSettings.do_do_not_overwrite.
-
-        """
         from datetime import datetime
         from pathlib import Path
 
@@ -3617,14 +3408,6 @@ class AAEExportExportAll(bpy.types.Operator):
 
     @staticmethod
     def _copy_to_clipboard(context, aae):
-        """
-        Parameters
-        ----------
-        context : bpy.context
-        aae : str
-            Likely coming from _generated().
-            
-        """
         context.window_manager.clipboard = aae
 
 class AAEExportCopySingleTrack(bpy.types.Operator):
@@ -5486,7 +5269,3 @@ def unregister_register_class():
 
     for class_ in register_classes:
         bpy.utils.unregister_class(class_)
-
-if __name__ == "__main__":
-    register()
-#    unregister() 
