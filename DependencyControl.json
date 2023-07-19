@@ -14,10 +14,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/NN.farnhuah.lua",
-                            "sha1": "4aca99907c6ecd88d97375031985cbcf4fd98d6e"
+                            "sha1": "8104f99f55c1f7c8e9646ba2a2dd62a952218e1b"
                         }
                     ],
-                    "version": "1.0.7",
+                    "version": "1.0.8",
                     "default": true,
                     "requireModules": [
                         {

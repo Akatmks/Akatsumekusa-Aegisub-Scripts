@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "farnhuah"
 versioning.description = "farn huah jeau been"
-versioning.version = "1.0.7"
+versioning.version = "1.0.8"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.farnhuah"
 
@@ -413,13 +413,13 @@ end end
 if hasDepCtrl then
     DepCtrl:registerMacros({
         { "farnhuah/farn huah", "farnhuah selected lines", Fanhua },
-        { "farnhuah/chie huann chs her cht", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST },
+        { "farnhuah/chie huann chs cht harng juh shyh", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST },
         { "farnhuah/zhconvert sheh dinq", "Edit zhconvert settings", EditConfig },
         { "farnhuah/chs cht chyi biau sheh dinq", "Change where chs and cht flags are placed", Field }
     })
 else
     aegisub.register_macro("farnhuah/farn huah", "farnhuah selected lines", Fanhua)
-    aegisub.register_macro("farnhuah/chie huann chs her cht", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST)
+    aegisub.register_macro("farnhuah/chie huann chs cht harng juh shyh", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST)
     aegisub.register_macro("farnhuah/zhconvert sheh dinq", "Edit zhconvert settings", EditConfig)
     aegisub.register_macro("farnhuah/chs cht chyi biau sheh dinq", "Change where chs and cht flags are placed", Field)
 end
