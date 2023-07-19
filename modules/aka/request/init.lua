@@ -28,7 +28,7 @@ local versioning = {}
 
 versioning.name = "request"
 versioning.description = "Module request"
-versioning.version = "1.0.10"
+versioning.version = "1.0.11"
 versioning.author = "Lucien Greathouse, adapted to Aegisub environment by Akatsumekusa"
 versioning.namespace = "aka.request"
 
