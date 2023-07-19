@@ -8,7 +8,7 @@ If you are familiar with some other languages, these are equivalents of `Result`
 *　Swift: [Optional](https://developer.apple.com/documentation/swift/result) and [Result](https://developer.apple.com/documentation/swift/result)  
 *　Kotlin: [Nullable](https://kotlinlang.org/docs/null-safety.html)  
 
-aka.outcome is forked from [mtdowling/outcome](https://github.com/mtdowling/outcome). You can read mtdowling/outcome's [document](https://mtdowling.com/outcome/) but note these major changes in aka.outcome:  
+aka.outcome is forked from [mtdowling/outcome](https://github.com/mtdowling/outcome). You can read mtdowling/outcome's [document](https://mtdowling.com/outcome/) or the documentations in the [file](../modules/aka/outcome/init.lua) but note these major in aka.outcome:  
 
 1. `Result:andThen(f)` and `Option:andThen(f)` is introduced. This method alongside `Result:orElseOther(f)` and `Option:orElseOther(f)` should be the most convenient way to write logics with the absence of Rust's `match`.  
 
