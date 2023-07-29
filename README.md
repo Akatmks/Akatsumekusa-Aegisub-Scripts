@@ -14,7 +14,7 @@
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
-**Aegisub VapourSynth**  
+***Aegisub VapourSynth***  
 – [tkinter_alternatives](#tkinter_alternatives)  
 
 </td>
