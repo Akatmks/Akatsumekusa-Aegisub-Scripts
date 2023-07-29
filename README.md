@@ -220,7 +220,7 @@ Add `aka.request` to DependencyControl's required modules. View the documents at
 
 ## tkinter_alternatives
 
-tkinter_alternatives.py is a fix for Aegisub VapourSynth Default Video Script if you don't have Tkinter in your Python installation.
+tkinter_alternatives.py is a fix for Aegisub VapourSynth Default Video Script if your Python installation does not come with Tkinter.
 
 [Download](vapoursynth/tkinter_alternatives.py) the file and put it in `automation/vapoursynth` in your Aegisub install location.  
 You will also find a `aegisub_vs.py` file in the folder. [Download](https://github.com/arch1t3cht/Aegisub/blob/vapoursynth/automation/vapoursynth/aegisub_vs.py) the updated script from arch1t3cht/Aegisub and replace the existing `aegisub_vs.py` file.  

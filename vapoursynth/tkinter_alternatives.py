@@ -24,8 +24,8 @@
 # ---------------------------------------------------------------------
 
 # ---------------------------------------------------------------------
-# This is a fix for Aegisub VapourSynth Default Video Script if you
-# don't have Tkinter in your Python installation.
+# This is a fix for Aegisub VapourSynth Default Video Script if your
+# Python installation does not come with Tkinter.
 #
 # Put this file in `?data/automation/vapoursynth`` and edit your video
 # script.
@@ -143,7 +143,7 @@ def askyesno(title: str, message: str, default: bool = True):
 def callback(_):
     """
     A callback function for ask_callback in aegisub_vs.get_keyframes
-    Fix the problem if you don't have Tkinter in your Python installation.
+    Fix the problem if your Python installation does not come with Tkinter.
     """
     return askyesno("Generate Keyframes", \
                     "No keyframes file was found for this video file.\nShould Aegisub detect keyframes from the video?\nThis will take a while", \
