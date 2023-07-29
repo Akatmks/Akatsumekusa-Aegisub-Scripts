@@ -37,7 +37,7 @@
 #   __aegi_keyframes = a.get_keyframes(filename, clip, __aegi_keyframes, generate=a.GenKeyframesMode.ASK, ask_callback=ask.callback)
 # ---------------------------------------------------------------------
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 def _askyesno_windows(title: str, message: str, _):
     """
@@ -70,6 +70,7 @@ def _askyesno_linux(title: str, message: str, default: bool = True):
             process = subprocess.run(["dialog", "--title", title, "--backtitle", title, "--yesno", message, 8, 20, 60])
         else:
             process = subprocess.run(["dialog", "--defaultno",  "--title", title, "--backtitle", title, "--yesno", message, 8, 20, 60])
+
         if process.returncode == 0:
             return True
         elif process.returncode == 1:
@@ -77,7 +78,41 @@ def _askyesno_linux(title: str, message: str, default: bool = True):
         else:
             return None
     except:
-        return None
+        try:
+            """
+echo MESSAGE
+switch yn in Yes No
+do
+    case $yn in
+        Yes ) exit 0;;
+        No ) exit 1;;
+    esac
+done
+            """
+            process = subprocess.run(["terminal", "-e", "bash -c \"echo MESSAGE; select yn in Yes No; do case \\$yn in Yes ) exit 0;; No ) exit 1;; esac; done;\""])
+            if process.returncode == 0: return True
+            elif process.returncode == 1: return False
+            else: return None
+        except:
+            try:
+                process = subprocess.run(["gnome-terminal", "-e", "bash -c \"echo MESSAGE; select yn in Yes No; do case \\$yn in Yes ) exit 0;; No ) exit 1;; esac; done;\""])
+                if process.returncode == 0: return True
+                elif process.returncode == 1: return False
+                else: return None
+            except:
+                try:
+                    process = subprocess.run(["konsole", "-e", "bash -c \"echo MESSAGE; select yn in Yes No; do case \\$yn in Yes ) exit 0;; No ) exit 1;; esac; done;\""])
+                    if process.returncode == 0: return True
+                    elif process.returncode == 1: return False
+                    else: return None
+                except:
+                    try:
+                        process = subprocess.run(["xterm", "-e", "bash -c \"echo MESSAGE; select yn in Yes No; do case \\$yn in Yes ) exit 0;; No ) exit 1;; esac; done;\""])
+                        if process.returncode == 0: return True
+                        elif process.returncode == 1: return False
+                        else: return None
+                    except:
+                        return None
 
 def _askyesno_darwin(title: str, message: str, default: bool = True):
     """
