@@ -14,6 +14,8 @@
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
+**Aegisub VapourSynth**  
+– [tkinter_alternatives](#tkinter_alternatives)  
 
 </td>
 <td>
@@ -215,3 +217,27 @@ Add `aka.request` to DependencyControl's required modules. View the documents at
 
 *License Information*  
 – *LuaJIT-Request is copyrighted to Lucien Greathouse and is licensed under zlib License. It is adapted to Aegisub environment with minimum modifications.*  
+
+## tkinter_alternatives
+
+tkinter_alternatives.py is a fix for Aegisub VapourSynth Default Video Script if you don't have Tkinter in your Python installation.
+
+[Download](vapoursynth/tkinter_alternatives.py) the file and put it in `automation/vapoursynth` in your Aegisub install location.  
+You will also find a `aegisub_vs.py` file in the folder. [Download](https://github.com/arch1t3cht/Aegisub/blob/vapoursynth/automation/vapoursynth/aegisub_vs.py) the updated script from arch1t3cht/Aegisub and replace the existing `aegisub_vs.py` file.  
+
+Open Aegisub, open „View > Options“ and select „VapourSynth“. In the Default Video Script window, find the import aegisub_vs line:  
+```python
+import aegisub_vs as a
+```
+Add the following line below import aegisub_vs line:  
+```python
+import tkinter_alternatives as ask
+```
+Find the line to generate keyframe:  
+```python
+__aegi_keyframes = a.get_keyframes(filename, clip, __aegi_keyframes, generate=a.GenKeyframesMode.ASK)
+```
+Replace the line with:  
+```python
+__aegi_keyframes = a.get_keyframes(filename, clip, __aegi_keyframes, generate=a.GenKeyframesMode.ASK, ask_callback=ask.callback)
+```
