@@ -151,6 +151,37 @@
             "description": "Cycles tags on selected lines",
             "url": "@{baseUrl}"
         },
+        "aka.UnwhiteDialogue": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": ".moon",
+                            "url": "@{fileBaseUrl}/macros/aka.UnwhiteDialogue.moon",
+                            "sha1": "80b3523c6ef5ae3e16054964506ed832dca5405d"
+                        }
+                    ],
+                    "version": "0.0.8",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.config"
+                        },
+                        {
+                            "moduleName": "aka.outcome"
+                        },
+                        {
+                            "moduleName": "aka.unwhite_dialogue"
+                        }
+                    ],
+                    "released": "2023-07-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "UnwhiteDialogue",
+            "description": "Automatically select shade and unwhite the dialogues",
+            "url": "@{baseUrl}"
+        },
         "aka.dupe-and-not-comment": {
             "channels": {
                 "master": {
@@ -173,6 +204,94 @@
         }
     },
     "modules": {
+        "NN.CJCharacter": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": "/characters.ansi",
+                            "url": "@{fileBaseUrl}/modules/NN/CJCharacter/characters.ansi",
+                            "sha1": "7f29e15761fa4588777438305a470cec5528aca2"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/NN/CJCharacter/init.lua",
+                            "sha1": "6ba3b2425af52c0d04cbcec92c59e53bfd56c7f5"
+                        }
+                    ],
+                    "version": "0.1.12",
+                    "default": true,
+                    "released": "2023-07-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "NN.CJCharacter",
+            "description": "Module NN.CJCharacter",
+            "url": "@{baseUrl}"
+        },
+        "NN.CJSpacing": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/NN/CJSpacing/init.lua",
+                            "sha1": "def30ce826521ad81b2d9cc3882acd5e7c96d8da"
+                        }
+                    ],
+                    "version": "0.1.6",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "NN.CJCharacter"
+                        },
+                        {
+                            "moduleName": "aegisub.unicode"
+                        }
+                    ],
+                    "released": "2023-07-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "NN.CJSpacing",
+            "description": "Module NN.CJSpacing",
+            "url": "@{baseUrl}"
+        },
+        "aka.CIELab": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": "/colours.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/CIELab/colours.lua",
+                            "sha1": "bc4a713fb0ced892c6b3647ca308106e66b44fb2"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/CIELab/init.lua",
+                            "sha1": "e13fb0acb2ba2a9cb72625e9d77a50a8dedd3da2"
+                        },
+                        {
+                            "name": "/interface.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/CIELab/interface.lua",
+                            "sha1": "cbe82bda438ecba68b52c25793ca48e310fe4ef3"
+                        }
+                    ],
+                    "version": "0.0.5",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ffi"
+                        }
+                    ],
+                    "released": "2023-07-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.CIELab",
+            "description": "Module aka.CIELab",
+            "url": "@{baseUrl}"
+        },
         "aka.actor": {
             "channels": {
                 "master": {
@@ -534,6 +653,42 @@
             "author": "Akatsumekusa and contributors",
             "name": "aka.unicode",
             "description": "Module aka.unicode",
+            "url": "@{baseUrl}"
+        },
+        "aka.unwhite_dialogue": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/unwhite_dialogue/init.lua",
+                            "sha1": "93851d4dca60b6399aeb7f03d60e2f8538d56212"
+                        },
+                        {
+                            "name": "/samples.lua",
+                            "url": "@{fileBaseUrl}/modules/aka/unwhite_dialogue/samples.lua",
+                            "sha1": "fb89bf777e32689ecfb1b491afa6de00fda0beeb"
+                        }
+                    ],
+                    "version": "0.0.5",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "ILL.ILL"
+                        },
+                        {
+                            "moduleName": "aka.CIELab"
+                        },
+                        {
+                            "moduleName": "aka.outcome"
+                        }
+                    ],
+                    "released": "2023-07-30"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.unwhite_dialogue",
+            "description": "Module aka.unwhite_dialogue",
             "url": "@{baseUrl}"
         }
     }
