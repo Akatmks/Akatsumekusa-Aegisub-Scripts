@@ -45,8 +45,6 @@ repo = Repo(".")
 
 
 dependency_control = True
-master_branch = "master"
-dev_branch = "dev"
 DependencyControl = {
     "dependencyControlFeedFormatVersion": "0.3.0",
 
@@ -65,7 +63,7 @@ DependencyControl = {
         #     description
         #     url
         #     "channels": {
-        #         branch: {
+        #         "naster": {
         #             version
         #             released
         #             default
@@ -179,9 +177,6 @@ def getNameForFilesFile(p):
 
 
 if __name__ == "__main__":
-    # if not repo.active_branch.name == dev_branch:
-    #     dependency_control = dependency_control and False
-
     p = Path("DependencyControl.json")
     if not p.exists():
         dependency_control = dependency_control and False
@@ -233,20 +228,20 @@ if __name__ == "__main__":
                 DependencyControl[mtype][namespace] = {}
             if "channels" not in DependencyControl[mtype][namespace]:
                 DependencyControl[mtype][namespace]["channels"] = {}
-            if repo.active_branch.name not in DependencyControl[mtype][namespace]["channels"]:
-                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name] = {}
-            if "files" not in DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]:
-                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["files"] = []
+            if "master" not in DependencyControl[mtype][namespace]["channels"]:
+                DependencyControl[mtype][namespace]["channels"]["master"] = {}
+            if "files" not in DependencyControl[mtype][namespace]["channels"]["master"]:
+                DependencyControl[mtype][namespace]["channels"]["master"]["files"] = []
             if p.as_posix() in platform_dependent_files:
                 for platform in platform_dependent_files[p.as_posix()]:
-                    DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["files"].append({
+                    DependencyControl[mtype][namespace]["channels"]["master"]["files"].append({
                         "name": getNameForFilesFile(p),
                         "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
                         "sha1": sha1sum(p),
                         "platform": platform
                     })
             else:
-                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["files"].append({
+                DependencyControl[mtype][namespace]["channels"]["master"]["files"].append({
                     "name": getNameForFilesFile(p),
                     "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
                     "sha1": sha1sum(p)
@@ -264,24 +259,24 @@ if __name__ == "__main__":
                 DependencyControl[mtype][namespace]["description"] = d["description"]
                 DependencyControl[mtype][namespace]["url"] = "@{baseUrl}"
 
-                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["version"] = d["version"]
-                DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["default"] = True
+                DependencyControl[mtype][namespace]["channels"]["master"]["version"] = d["version"]
+                DependencyControl[mtype][namespace]["channels"]["master"]["default"] = True
                 if d["requireModules"]:
-                    DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["requireModules"] = eval(d["requireModules"])
+                    DependencyControl[mtype][namespace]["channels"]["master"]["requireModules"] = eval(d["requireModules"])
                 if previousDependencyControl and \
                    namespace in previousDependencyControl[mtype] and \
                    "channels" in previousDependencyControl[mtype][namespace] and \
-                   repo.active_branch.name in DependencyControl[mtype][namespace]["channels"]:
-                    previousVersion = Version(previousDependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["version"])
+                   "master" in DependencyControl[mtype][namespace]["channels"]:
+                    previousVersion = Version(previousDependencyControl[mtype][namespace]["channels"]["master"]["version"])
                     currentVersion = Version(d["version"])
                     if previousVersion == currentVersion:
-                        DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["released"] = previousDependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["released"]
+                        DependencyControl[mtype][namespace]["channels"]["master"]["released"] = previousDependencyControl[mtype][namespace]["channels"]["master"]["released"]
                     elif previousVersion < currentVersion:
-                        DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["released"] = datetime.now(timezone.utc).date().isoformat()
+                        DependencyControl[mtype][namespace]["channels"]["master"]["released"] = datetime.now(timezone.utc).date().isoformat()
                     else:
                         raise ValueError(str(p))
                 else:
-                    DependencyControl[mtype][namespace]["channels"][repo.active_branch.name]["released"] = datetime.now(timezone.utc).date().isoformat()
+                    DependencyControl[mtype][namespace]["channels"]["master"]["released"] = datetime.now(timezone.utc).date().isoformat()
 
                 moduleRegisterPathList[namespace] = p
 
@@ -322,27 +317,27 @@ if __name__ == "__main__":
         for p in added + changed:
             if p.is_relative_to("macros"):
                 namespace = getNamespace(p)
-                currentVersion = Version(DependencyControl["macros"][namespace]["channels"][repo.active_branch.name]["version"])
+                currentVersion = Version(DependencyControl["macros"][namespace]["channels"]["master"]["version"])
                 currentVersion.patch += 1
                 writeVersion(p, currentVersion)
-                DependencyControl["macros"][namespace]["channels"][repo.active_branch.name]["files"][0]["sha1"] = sha1sum(p)
+                DependencyControl["macros"][namespace]["channels"]["master"]["files"][0]["sha1"] = sha1sum(p)
 
-                DependencyControl["macros"][namespace]["channels"][repo.active_branch.name]["version"] = str(currentVersion)
-                DependencyControl["macros"][namespace]["channels"][repo.active_branch.name]["released"] = datetime.now(timezone.utc).date().isoformat()
+                DependencyControl["macros"][namespace]["channels"]["master"]["version"] = str(currentVersion)
+                DependencyControl["macros"][namespace]["channels"]["master"]["released"] = datetime.now(timezone.utc).date().isoformat()
             if p.is_relative_to("modules"):
                 namespace = getNamespace(p)
                 if namespace not in changedModules:
                     changedModules[namespace] = True
 
-                    currentVersion = Version(DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["version"])
+                    currentVersion = Version(DependencyControl["modules"][namespace]["channels"]["master"]["version"])
                     currentVersion.patch += 1
                     writeVersion(moduleRegisterPathList[namespace], currentVersion)
-                    for file in DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["files"]:
+                    for file in DependencyControl["modules"][namespace]["channels"]["master"]["files"]:
                         if file["name"] == getNameForFilesFile(moduleRegisterPathList[namespace]):
                             file["sha1"] = sha1sum(moduleRegisterPathList[namespace])
 
-                    DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["version"] = str(currentVersion)
-                    DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["released"] = datetime.now(timezone.utc).date().isoformat()
+                    DependencyControl["modules"][namespace]["channels"]["master"]["version"] = str(currentVersion)
+                    DependencyControl["modules"][namespace]["channels"]["master"]["released"] = datetime.now(timezone.utc).date().isoformat()
         for p in removed:
             if p.is_relative_to("macros"):
                 pass
@@ -351,15 +346,15 @@ if __name__ == "__main__":
                 if namespace in moduleRegisterPathList and namespace not in changedModules:
                     changedModules[namespace] = True
 
-                    currentVersion = Version(DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["version"])
+                    currentVersion = Version(DependencyControl["modules"][namespace]["channels"]["master"]["version"])
                     currentVersion.patch += 1
                     writeVersion(moduleRegisterPathList[namespace], currentVersion)
-                    for file in DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["files"]:
+                    for file in DependencyControl["modules"][namespace]["channels"]["master"]["files"]:
                         if file["name"] == getNameForFilesFile(moduleRegisterPathList[namespace]):
                             file["sha1"] = sha1sum(moduleRegisterPathList[namespace])
 
-                    DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["version"] = str(currentVersion)
-                    DependencyControl["modules"][namespace]["channels"][repo.active_branch.name]["released"] = datetime.now(timezone.utc).date().isoformat()
+                    DependencyControl["modules"][namespace]["channels"]["master"]["version"] = str(currentVersion)
+                    DependencyControl["modules"][namespace]["channels"]["master"]["released"] = datetime.now(timezone.utc).date().isoformat()
 
         p = Path("DependencyControl.json")
         with p.open("w", encoding="utf-8", newline="\n") as f:
