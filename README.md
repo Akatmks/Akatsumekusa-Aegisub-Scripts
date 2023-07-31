@@ -109,6 +109,30 @@ NN.farnhuah is an Aegisub frontend for [zhconvert](https://zhconvert.org/).
 To use NN.farnhuah, select the line for farnhuah and click „farn huah“. To switch between chs and cht subtitles, click „chie huann chs her cht“.  
 On first launch, NN.farnhuah will show a configuration window. Create your own configuration from zhconvert's [documentation](https://docs.zhconvert.org/api/convert/), or click „Apply Preset“ to use the default config from SweetSub.  
 
+## tkinter_alternatives
+
+tkinter_alternatives.py is a fix for Aegisub VapourSynth Default Video Script if your Python installation does not come with Tkinter.
+
+[Download](vapoursynth/tkinter_alternatives.py) the file and put it in `automation/vapoursynth` in your Aegisub install location.  
+You will also find a `aegisub_vs.py` file in the folder. [Download](https://github.com/arch1t3cht/Aegisub/blob/vapoursynth/automation/vapoursynth/aegisub_vs.py) the updated script from arch1t3cht/Aegisub and replace the existing `aegisub_vs.py` file.  
+
+Open Aegisub, open „View > Options“ and select „VapourSynth“. In „Default Video Script“, find the import aegisub_vs line:  
+```python
+import aegisub_vs as a
+```
+Add the following line below import aegisub_vs line:  
+```python
+import tkinter_alternatives as ask
+```
+Find the line to generate keyframe:  
+```python
+__aegi_keyframes = a.get_keyframes(filename, clip, __aegi_keyframes, generate=a.GenKeyframesMode.ASK)
+```
+Replace the line with:  
+```python
+__aegi_keyframes = a.get_keyframes(filename, clip, __aegi_keyframes, generate=a.GenKeyframesMode.ASK, ask_callback=ask.callback)
+```
+
 ## aka.actor
 
 aka.actor is a flag system visible to the user.  
@@ -217,27 +241,3 @@ Add `aka.request` to DependencyControl's required modules. View the documents at
 
 *License Information*  
 – *LuaJIT-Request is copyrighted to Lucien Greathouse and is licensed under zlib License. It is adapted to Aegisub environment with minimum modifications.*  
-
-## tkinter_alternatives
-
-tkinter_alternatives.py is a fix for Aegisub VapourSynth Default Video Script if your Python installation does not come with Tkinter.
-
-[Download](vapoursynth/tkinter_alternatives.py) the file and put it in `automation/vapoursynth` in your Aegisub install location.  
-You will also find a `aegisub_vs.py` file in the folder. [Download](https://github.com/arch1t3cht/Aegisub/blob/vapoursynth/automation/vapoursynth/aegisub_vs.py) the updated script from arch1t3cht/Aegisub and replace the existing `aegisub_vs.py` file.  
-
-Open Aegisub, open „View > Options“ and select „VapourSynth“. In „Default Video Script“, find the import aegisub_vs line:  
-```python
-import aegisub_vs as a
-```
-Add the following line below import aegisub_vs line:  
-```python
-import tkinter_alternatives as ask
-```
-Find the line to generate keyframe:  
-```python
-__aegi_keyframes = a.get_keyframes(filename, clip, __aegi_keyframes, generate=a.GenKeyframesMode.ASK)
-```
-Replace the line with:  
-```python
-__aegi_keyframes = a.get_keyframes(filename, clip, __aegi_keyframes, generate=a.GenKeyframesMode.ASK, ask_callback=ask.callback)
-```
