@@ -56,6 +56,8 @@ config.make_editor = function(param)
             codepoint = codepoint + 0x1D593
         elseif 0x0061 <= codepoint and codepoint <= 0x007A then
             codepoint = codepoint + 0x1D58D
+        elseif 0x0030 <= codepoint and codepoint <= 0x0039 then
+            codepoint = codepoint + 0x1D7BC
         end
         self.display_name_b = self.display_name_b .. unicode.char(codepoint)
     end

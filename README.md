@@ -8,6 +8,7 @@
 ***Motion Tracking***  
 – [aae-export](#aae-export)  
 ***Typesetting Aid***  
+– [aka.99PercentTags](#aka99percenttags)  
 – [aka.BackupSection](#akabackupsection--akadupe-and-not-comment)  
 – [aka.BoundingBox](#akaboundingbox)  
 – [aka.Cycles](#akacycles)  
@@ -68,6 +69,10 @@ Thanks to
 – *aae-export was originally released by Martin Herkt under ISC License. Since then, aae-export has been completely rewritten, with every original line replaced. It is now released under a single MIT License.*  
 – *[aae-export-install-dependencies](tools/aae-export-install-dependencies) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. The tool is released under MIT License, using [Qt](https://www.qt.io/) libraries under LGPLv3.*  
 – *[aae-export-base122](tools/aae-export-base122) is a helper tool with its binary included in Linux x86_64 and Mac version of aae-export. It is a wrapper of Kevin Albertson's [libbase122](https://github.com/kevinAlbs/libbase122) library, and is released under Apache License.*  
+
+## aka.99PercentTags
+
+99%Tags is a script for adding and editing tags on subtitle lines. It combines the base functions of [ua.HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [phos.edittags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [ua.Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [ua.NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [lyger.LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, ua.HYDRA-like interface.  
 
 ## aka.BackupSection & aka.dupe-and-not-comment
 

@@ -51,6 +51,46 @@
             "description": "farn huah jeau been",
             "url": "@{baseUrl}"
         },
+        "aka.99PercentTags": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}/macros/aka.99PercentTags.lua",
+                            "sha1": "53fd31e357c2b1f5d765882a7b51a705710565a5"
+                        }
+                    ],
+                    "version": "0.1.1",
+                    "default": true,
+                    "requireModules": [
+                        {
+                            "moduleName": "aka.config2"
+                        },
+                        {
+                            "moduleName": "aka.outcome"
+                        },
+                        {
+                            "moduleName": "ILL.ILL"
+                        },
+                        {
+                            "moduleName": "aegisub.util"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        },
+                        {
+                            "moduleName": "aka.unicode"
+                        }
+                    ],
+                    "released": "2023-08-01"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "99% Tags",
+            "description": "Add or modify tags on selected lines",
+            "url": "@{baseUrl}"
+        },
         "aka.BackupSelection": {
             "channels": {
                 "master": {
@@ -327,15 +367,15 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
-                            "sha1": "47ad0bee50bc8505bcc3fa84b00de302849d40f9"
+                            "sha1": "758cabb6f2d7354ffc33474a355766634411c090"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
-                            "sha1": "3bce239686d9d82f960f4974dfab594d6370afbd"
+                            "sha1": "58311aca5a2b4f7a61a0de79a16b620db929ff04"
                         }
                     ],
-                    "version": "1.0.8",
+                    "version": "1.0.9",
                     "default": true,
                     "requireModules": [
                         {
@@ -351,7 +391,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-07-19"
+                    "released": "2023-08-01"
                 }
             },
             "author": "Akatsumekusa and contributors",
