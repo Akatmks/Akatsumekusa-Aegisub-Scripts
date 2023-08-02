@@ -23,9 +23,9 @@
 
 local versioning = {}
 
-versioning.name = "99% Tags"
+versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "0.1.1"
+versioning.version = "0.1.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -60,7 +60,7 @@ if hasDepCtrl then
 end
 local aconfig = require("aka.config2")
 local outcome = require("aka.outcome")
-local ok, err = outcome.ok, outcome.err
+local o, ok, err, some, none = outcome.o, outcome.ok, outcome.err, outcome.some, outcome.none
 local ILL = require("ILL.ILL")
 local Ass, Line, Table = ILL.Ass, ILL.Line, ILL.Table
 local autil = require("aegisub.util")
@@ -71,11 +71,13 @@ local unicode = require("aka.unicode")
 
 local all_tags
 local single_tags
+local single_tags_wo_an
 local alpha_tags
 local double_tags
 local colour_tags
 local move_tags
 local auto_dialog_tags
+local eval_tags
 local parse_tags
 local parse_other_data
 
@@ -83,19 +85,22 @@ local main
 local re_tagsBlock_selected
 local show_dialog
 local generate_dialog
-
-
+local apply_data
+local re_extra_spaces
+local re_if_omitted
+local re_match_underscore
+local re_match_invalid_varnames
+local process_data
+local execute_tags
+local apply_tags
 
 
 
 --[[
 Select mode:
-[ Generate data from active line once and apply to all s ]
-Edit line data:
-layer 0   [      ]  start [          ]  end   [          ]
-Style [          ]  Actor [          ]  Effect [         ]
-Select tags block:
-TagsBlock           [       1        ]
+[ Generate data from active line once and apply to al... ]
+Select tags block:  
+[ 1 (Selected)                                           ] 
 Preprocess tag data:
 [                                                        ]
 [                                                        ]
@@ -117,24 +122,34 @@ fay   0   [      ]  i     0   [      ]  1a    255 [      ]
 fscx  100 [      ]  u     0   [      ]  3a    255 [      ]
 fscy  100 [      ]  s     0   [      ]  4a    255 [      ]
 q     0   [      ]  be    0   [      ]
-Load Preset                  Save As Preset
+Edit line data:
+layer 0   [      ]  start [          ]  end   [          ]
+Style [          ]  Actor [          ]  Effect [         ]
+Load Preset:                 Save As Preset:
 [           Last            ][                           ]
 ]]
-all_tags = { "layer", "start", "end",
-             "Style", "Actor", "Effect",
-             "prepro",
+all_tags = { "prepro",
              "an", "posx", "posy", "move2x", "move2y", "orgx", "orgy", "frx", "fry", "frz", "fax", "fay", "fscx", "fscy", "q",
              "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "be",
-             "cr", "cg", "cb", "3cr", "3cg", "3cb", "4cr", "4cg", "4cb", "alpha", "1a", "3a", "4a" }
+             "cr", "cg", "cb", "3cr", "3cg", "3cb", "4cr", "4cg", "4cb", "alpha", "1a", "3a", "4a",
+             "layer", "start", "end",
+             "Style", "Actor", "Effect" }
 single_tags = { "an", "frx", "fry", "frz", "fax", "fay", "fscx", "fscy",
                 "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "q", "be" }
+single_tags_wo_an = { "frx", "fry", "frz", "fax", "fay", "fscx", "fscy",
+                      "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "q", "be" }
 alpha_tags = { "alpha", "1a", "3a", "4a" }
 double_tags = { ["pos"] = { "posx", "posy" }, ["org"] = { "orgx", "orgy" } }
 colour_tags = { ["c"] = { "cr", "cg", "cb" }, ["3c"] = { "3cr", "3cg", "3cb" }, ["4c"] = { "4cr", "4cg", "4cb" } }
-move_tags = { "posx", "posy", "move2x", "move2y" }
+move_tags = { ["move"] = { "posx", "posy", "move2x", "move2y" } }
 auto_dialog_tags = { "an", "posx", "posy", "move2x", "move2y", "orgx", "orgy", "frx", "fry", "frz", "fax", "fay", "fscx", "fscy", "q",
                      "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "be",
                      "cr", "cg", "cb", "3cr", "3cg", "3cb", "4cr", "4cg", "4cb", "alpha", "1a", "3a", "4a" }
+eval_tags = { "an", "posx", "posy", "move2x", "move2y", "orgx", "orgy", "frx", "fry", "frz", "fax", "fay", "fscx", "fscy", "q",
+              "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "be",
+              "cr", "cg", "cb", "3cr", "3cg", "3cb", "4cr", "4cg", "4cb", "alpha", "1a", "3a", "4a",
+              "layer", "start", "end",
+              "Style", "Actor", "Effect" }
 
 parse_tags = function(data, line, ILL_data)
     local ILL_data_tag
@@ -159,7 +174,7 @@ parse_tags = function(data, line, ILL_data)
         data[names[1]], data[names[2]], data[names[3]], _ = autil.extract_color(ILL_data_tag(ILL_data, tag))
     end
     if ILL_data_tag(ILL_data, "move") then
-        _, _, data[move_tags[3]], data[move_tags[4]], _, _ = table.unpack(ILL_data_tag(ILL_data, "move"))
+        _, _, data[move_tags["move"][3]], data[move_tags["move"][4]], _, _ = table.unpack(ILL_data_tag(ILL_data, "move"))
     end
 end
 parse_other_data = function(data, line, width, height)
@@ -170,7 +185,7 @@ parse_other_data = function(data, line, width, height)
     data["Actor"] = line.actor
     data["Effect"] = line.effect
 
-    -- data["line"] = line
+    data["line"] = line
     data["width"] = width
     data["height"] = height
 end
@@ -181,14 +196,21 @@ logger = DepCtrl:getLogger() -- TODO
 dumper = logger -- TODO
 main = function(sub, sel, act)
     local ass
+    local dialog_data
+    local act_data
     
     ass = Ass(sub, sel, act)
 
-    dumper:dump(show_dialog(ass, sub, act))
+    dialog_data, act_data = show_dialog(ass, sub, act)
+
+    apply_data(ass, dialog_data, act_data)
+
+    return ass:getNewSelection()
 end
 
---                                  (\d+) \(Selected\)
-re_tagsBlock_selected = re.compile("(\\d+) \\(Selected\\)")
+
+
+re_tagsBlock_selected = re.compile[[(\d+) \(Selected\)]]
 show_dialog = function(ass, sub, act)
     local dialog_base
     local dialog_data
@@ -270,7 +292,11 @@ show_dialog = function(ass, sub, act)
         end
 
         dialog = generate_dialog(dialog_base, act_data, dialog_data)
-        buttons = { "&Apply", "Select &Tags Block", "&Load Pre.", "&Del. Pre.", "&Save As Pre.", "&Help", "Cancel" }
+        if not dialog_base["help"] then
+            buttons = { "&Apply", "Select &Tags Block", "&Load Pre.", "&Del. Pre.", "&Save As Pre.", "&Help", "Cancel" }
+        else
+            buttons = { "&Apply", "Select &Tags Block", "&Load Preset", "&Delete Preset", "&Save As Preset", "&Help", "Cancel" }
+        end
         button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Cancel", no = "Cancel", cancel = "Cancel" }
 
         button, dialog_data = aegisub.dialog.display(dialog, buttons, button_ids)
@@ -306,31 +332,51 @@ show_dialog = function(ass, sub, act)
             presets["(Recall last)"] = dialog_data
             aconfig.write_config("aka.99PercentTags", presets)
 
-            return dialog_data
+            return dialog_data, act_data
         elseif button == "Select &Tags Block" then
             -- pass
-        elseif button == "&Load Pre." then
-            new_dialog_data = Table.copy(presets[dialog_data["preset"]])
+        elseif button == "&Load Pre." or button == "&Load Preset" then
+            if dialog_data["preset"] then
+                new_dialog_data = Table.copy(presets[dialog_data["preset"]])
 
-            for k, v in pairs(dialog_data) do
-                if type(new_dialog_data[k]) == "nil" then
-                    new_dialog_data[k] = v
-            end end
+                for k, v in pairs(dialog_data) do
+                    if type(new_dialog_data[k]) == "nil" then
+                        new_dialog_data[k] = v
+                end end
 
-            dialog_data = new_dialog_data
-        elseif button == "&Del. Pre." then
-            presets[dialog_data["preset"]] = nil
-            aconfig.write_config("aka.99PercentTags", presets)
-            
-            for k, _ in pairs(presets) do
-                dialog_data["preset"] = k
-                break
+                dialog_data = new_dialog_data
             end
-        elseif button == "&Save As Pre." then
+        elseif button == "&Del. Pre." or button == "&Delete Preset" then
+            if dialog_data["preset"] then
+                presets[dialog_data["preset"]] = nil
+                aconfig.write_config("aka.99PercentTags", presets)
+                
+                dialog_base["presets"] = {}
+                for k, _ in pairs(presets) do
+                    table.insert(dialog_base["presets"], k)
+                end
+                dialog_data["preset"] = nil
+                for k, _ in pairs(presets) do
+                    dialog_data["preset"] = k
+                    break
+                end
+            end
+        elseif button == "&Save As Pre." or button == "&Save As Preset" then
             presets[dialog_data["preset_new"]] = Table.copy(dialog_data)
             presets[dialog_data["preset_new"]]["preset"] = nil
             presets[dialog_data["preset_new"]]["preset_new"] = nil
             aconfig.write_config("aka.99PercentTags", presets)
+            
+            match = false
+            for _, v in ipairs(dialog_base["presets"]) do
+                if v == dialog_base["preset_new"] then
+                    match = true
+                    break
+            end end
+            if not match then
+                table.insert(dialog_base["presets"], dialog_base["preset_new"])
+            end
+            dialog_data["preset"] = dialog_base["preset_new"]
         elseif button == "&Help" then
             dialog_base["help"] = true
 end end end
@@ -343,20 +389,20 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
     local onefull = name + value + arrow + edit
     local twofull = 2 * onefull
     local threefull = 3 * onefull
-    local help = 18
+    local help = 48
 
     local mode_text = 0
     local mode = 1
-    local line_text = 2
-    local layer = 3
-    local tagsBlock_text = 5
-    local tagsBlock = 6
-    local prepro_text = 7
-    local prepro = 8
-    local tags_text = 13 local prepro_next = tags_text
-    local tags = 14
-    local preset_text = 29 local tags_next = preset_text
-    local preset = 30 local help_height = preset
+    local tagsBlock_text = 2
+    local tagsBlock = 3
+    local prepro_text = 4
+    local prepro = 5
+    local tags_text = 10 local prepro_next = tags_text
+    local tags = 11
+    local line_text = 26 local tags_next = line_text
+    local layer = 27
+    local preset_text = 29
+    local preset = 30 local help_height = preset + 2 -- Why?
 
     local B
     local dialog
@@ -384,34 +430,34 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
 
 --[[
  0  Select mode:
- 1  [ Generate data from active line once and apply to all s ]
- 2  Edit line data:
- 3  layer 0   [      ]  start [          ]  end   [          ]
- 4  Style [          ]  Actor [          ]  Effect [         ]
- 5  Select tags block:
- 6  TagsBlock           [       1        ]
- 7  Preprocess tag data:
+ 1  [ Generate data from active line once and apply to al... ]
+ 2  Select tags block:  
+ 3  [ 1 (Selected)                                           ] 
+ 4  Preprocess tag data:
+ 5  [                                                        ]
+ 6  [                                                        ]
+ 7  [                                                        ]
  8  [                                                        ]
- 9  [                                                        ]
-10  [                                                        ]
-11  [                                                        ]
-12  Edit tag data:
-13  an    5   [      ]  fn    Nunito          [              ]
-14  posx  960 [      ]  fs    60  [      ]  cr    255 [      ]
-15  posy  480 [      ]  fsp   0   [      ]  cg    255 [      ]
-16  move2x -  [      ]  blur  0.5 [      ]  cb    255 [      ]
-17  move2y -  [      ]  bord  2.5 [      ]  3cr   0   [      ]
-18  orgx  960 [      ]  xbord 0   [      ]  3cg   0   [      ]
-19  orgy  480 [      ]  ybord 0   [      ]  3cb   0   [      ]
-20  frx   0   [      ]  shad  0   [      ]  4cr   0   [      ]
-21  fry   0   [      ]  xshad 0   [      ]  4cg   0   [      ]
-22  frz   0   [      ]  yshad 0   [      ]  4cb   0   [      ]
-23  fax   0   [      ]  b     0   [      ]  alpha 255 [      ]
-24  fay   0   [      ]  i     0   [      ]  1a    255 [      ]
-25  fscx  100 [      ]  u     0   [      ]  3a    255 [      ]
-26  fscy  100 [      ]  s     0   [      ]  4a    255 [      ]
-27  q     0   [      ]  be    0   [      ]
-28  Load preset                  Save as preset
+ 9  Edit tag data:
+10  an    5   [      ]  fn    Nunito          [              ]
+11  posx  960 [      ]  fs    60  [      ]  cr    255 [      ]
+12  posy  480 [      ]  fsp   0   [      ]  cg    255 [      ]
+13  move2x -  [      ]  blur  0.5 [      ]  cb    255 [      ]
+14  move2y -  [      ]  bord  2.5 [      ]  3cr   0   [      ]
+15  orgx  960 [      ]  xbord 0   [      ]  3cg   0   [      ]
+16  orgy  480 [      ]  ybord 0   [      ]  3cb   0   [      ]
+17  frx   0   [      ]  shad  0   [      ]  4cr   0   [      ]
+18  fry   0   [      ]  xshad 0   [      ]  4cg   0   [      ]
+19  frz   0   [      ]  yshad 0   [      ]  4cb   0   [      ]
+20  fax   0   [      ]  b     0   [      ]  alpha 255 [      ]
+21  fay   0   [      ]  i     0   [      ]  1a    255 [      ]
+22  fscx  100 [      ]  u     0   [      ]  3a    255 [      ]
+23  fscy  100 [      ]  s     0   [      ]  4a    255 [      ]
+24  q     0   [      ]  be    0   [      ]
+25  Edit line data:
+26  layer 0   [      ]  start [          ]  end   [          ]
+27  Style [          ]  Actor [          ]  Effect [         ]
+28  Load Preset:                 Save As Preset:
 29  [           Last            ][                           ]
 ]]
     dialog = { { class = "label",                       x = 0, y = mode_text, width = threefull,
@@ -421,51 +467,6 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
 
 
 
-               { class = "label",                       x = 0, y = line_text, width = threefull,
-                                                        label = "Edit line data:" },
-
-               { class = "label",                       x = 0, y = layer, width = name,
-                                                        label = B"layer" },
-               { class = "label",                       x = name, y = layer, width = value,
-                                                        label = tostring(act_data["layer"]) },
-               { class = "label",                       x = name + value, y = layer, width = arrow,
-                                                        label = "🡢" },
-               { class = "edit", name = "layer",        x = name + value + arrow, y = layer, width = edit,
-                                                        text = dialog_data["layer"] },
-               { class = "label",                       x = onefull, y = layer, width = name,
-                                                        label = B"start" },
-               { class = "label",                       x = onefull + name, y = layer, width = arrow,
-                                                        label = "🡢" },
-               { class = "edit", name = "start",        x = onefull + name + arrow, y = layer, width = value + edit,
-                                                        text = dialog_data["start"] },
-               { class = "label",                       x = twofull, y = layer, width = name,
-                                                        label = B"end" },
-               { class = "label",                       x = twofull + name, y = layer, width = arrow,
-                                                        label = "🡢" },
-               { class = "edit", name = "end",          x = twofull + name + arrow, y = layer, width = value + edit,
-                                                        text = dialog_data["end"] },
-
-               { class = "label",                       x = 0, y = layer + 1, width = name,
-                                                        label = B"Style" },
-               { class = "label",                       x = name, y = layer + 1, width = arrow,
-                                                        label = "🡢" },
-               { class = "edit", name = "Style",        x = name + arrow, y = layer + 1, width = value + edit,
-                                                        text = dialog_data["Style"] },
-               { class = "label",                       x = onefull, y = layer + 1, width = name,
-                                                        label = B"Actor" },
-               { class = "label",                       x = onefull + name, y = layer + 1, width = arrow,
-                                                        label = "🡢" },
-               { class = "edit", name = "Actor",        x = onefull + name + arrow, y = layer + 1, width = value + edit,
-                                                        text = dialog_data["Actor"] },
-               { class = "label",                       x = twofull, y = layer + 1, width = name,
-                                                        label = B"Effect" },
-               { class = "label",                       x = twofull + name, y = layer + 1, width = arrow,
-                                                        label = "🡢" },
-               { class = "edit", name = "Effect",       x = twofull + name + arrow, y = layer + 1, width = value + edit,
-                                                        text = dialog_data["Effect"] },
-
-
-                                                    
                { class = "label",                       x = 0, y = tagsBlock_text, width = threefull,
                                                         label = "Select tags block:" },
                { class = "dropdown", name = "tagsblock", x = 0, y = tagsBlock, width = threefull,
@@ -475,7 +476,7 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
 
                { class = "label",                       x = 0, y = prepro_text, width = threefull,
     --                                                              U+2000 EN QUAD [ ]
-                                                        label = "Preprocess tag data 🡢" },
+                                                        label = "Preprocess data 🡢" },
                { class = "textbox", name = "prepro",    x = 0, y = prepro, width = threefull, height = tags_text - prepro,
                                                         text = dialog_data["prepro"] },
                                                 
@@ -510,26 +511,79 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
                                                         label = "🡢" })
     table.insert(dialog, { class = "edit", name = "fn", x = twofull + arrow, y = tags, width = onefull - arrow,
                                                         text = dialog_data["fn"] })
-
+                            
     for i = tags_next - tags + 2, #auto_dialog_tags do
         tag = auto_dialog_tags[i]
 
         table.insert(dialog, { class = "label",         x = math.floor((i - 3) / (tags_next - tags - 1)) * onefull, y = tags + 1 + math.fmod((i - 3), tags_next - tags - 1), width = name,
                                                         label = B(tag) })
-        table.insert(dialog, { class = "label",         x = math.floor((i - 3) / (tags_next - tags - 1)) * onefull + name, y = tags + 1 + math.fmod((i - 3), tags_next - tags - 1), width = value,
-                                                        label = tostring(act_data[tag]) })
+        if tag == "cr" or tag == "cg" or tag == "cb" or
+           tag == "3cr" or tag == "3cg" or tag == "3cb" or
+           tag == "4cr" or tag == "4cg" or tag == "4cb" or
+           tag == "alpha" or tag == "1a" or tag == "3a" or tag == "4a" then
+            table.insert(dialog, { class = "label",         x = math.floor((i - 3) / (tags_next - tags - 1)) * onefull + name, y = tags + 1 + math.fmod((i - 3), tags_next - tags - 1), width = value,
+                                                            label = string.format("0x%02X", act_data[tag]) })
+        else
+            table.insert(dialog, { class = "label",         x = math.floor((i - 3) / (tags_next - tags - 1)) * onefull + name, y = tags + 1 + math.fmod((i - 3), tags_next - tags - 1), width = value,
+                                                            label = tostring(act_data[tag]) })
+        end
         table.insert(dialog, { class = "label",         x = math.floor((i - 3) / (tags_next - tags - 1)) * onefull + name + value, y = tags + 1 + math.fmod((i - 3), tags_next - tags - 1), width = arrow,
                                                         label = "🡢" })
         table.insert(dialog, { class = "edit", name = tag, x = math.floor((i - 3) / (tags_next - tags - 1)) * onefull + name + value + arrow, y = tags + 1 + math.fmod((i - 3), tags_next - tags - 1), width = edit,
                                                         text = dialog_data[tag] })
     end
+    
+
+
+    table.insert(dialog, { class = "label",             x = 0, y = line_text, width = threefull,
+                                                        label = "Edit line data:" })
+
+    table.insert(dialog, { class = "label",             x = 0, y = layer, width = name,
+                                                        label = B"layer" })
+    table.insert(dialog, { class = "label",             x = name, y = layer, width = value,
+                                                        label = tostring(act_data["layer"]) })
+    table.insert(dialog, { class = "label",             x = name + value, y = layer, width = arrow,
+                                                        label = "🡢" })
+    table.insert(dialog, { class = "edit", name = "layer", x = name + value + arrow, y = layer, width = edit,
+                                                        text = dialog_data["layer"] })
+    table.insert(dialog, { class = "label",             x = onefull, y = layer, width = name,
+                                                        label = B"start" })
+    table.insert(dialog, { class = "label",             x = onefull + name, y = layer, width = arrow,
+                                                        label = "🡢" })
+    table.insert(dialog, { class = "edit", name = "start", x = onefull + name + arrow, y = layer, width = value + edit,
+                                                        text = dialog_data["start"] })
+    table.insert(dialog, { class = "label",             x = twofull, y = layer, width = name,
+                                                        label = B"end" })
+    table.insert(dialog, { class = "label",             x = twofull + name, y = layer, width = arrow,
+                                                        label = "🡢" })
+    table.insert(dialog, { class = "edit", name = "end", x = twofull + name + arrow, y = layer, width = value + edit,
+                                                        text = dialog_data["end"] })
+
+    table.insert(dialog, { class = "label",             x = 0, y = layer + 1, width = name,
+                                                        label = B"Style" })
+    table.insert(dialog, { class = "label",             x = name, y = layer + 1, width = arrow,
+                                                        label = "🡢" })
+    table.insert(dialog, { class = "edit", name = "Style", x = name + arrow, y = layer + 1, width = value + edit,
+                                                        text = dialog_data["Style"] })
+    table.insert(dialog, { class = "label",             x = onefull, y = layer + 1, width = name,
+                                                        label = B"Actor" })
+    table.insert(dialog, { class = "label",             x = onefull + name, y = layer + 1, width = arrow,
+                                                        label = "🡢" })
+    table.insert(dialog, { class = "edit", name = "Actor", x = onefull + name + arrow, y = layer + 1, width = value + edit,
+                                                        text = dialog_data["Actor"] })
+    table.insert(dialog, { class = "label",             x = twofull, y = layer + 1, width = name,
+                                                        label = B"Effect" })
+    table.insert(dialog, { class = "label",             x = twofull + name, y = layer + 1, width = arrow,
+                                                        label = "🡢" })
+    table.insert(dialog, { class = "edit", name = "Effect", x = twofull + name + arrow, y = layer + 1, width = value + edit,
+                                                        text = dialog_data["Effect"] })
 
 
 
     table.insert(dialog, { class = "label",             x = 0, y = preset_text, width = twofull - edit,
-                                                        label = "Load or delete preset" })
+                                                        label = "Load or delete preset:" })
     table.insert(dialog, { class = "label",             x = twofull - edit, y = preset_text, width = onefull + edit,
-                                                        label = "Save as preset" })
+                                                        label = "Save as preset:" })
     table.insert(dialog, { class = "dropdown", name = "preset", x = 0, y = preset, width = twofull - edit,
                                                         items = dialog_base["presets"], value = dialog_data["preset"] })
     table.insert(dialog, { class = "edit", name = "preset_new", x = twofull - edit, y = preset, width = onefull + edit,
@@ -537,20 +591,402 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
 
 
 
-    for i, tag in ipairs(auto_dialog_tags) do
-    end
-    if dialog_data["help"] then
-        table.insert(dialog, { class = "edit",          x = threefull, y = 0, width = help, height = help_height,
-                                                        text = [[]] })
-    end
+    if dialog_base["help"] then
+        table.insert(dialog, { class = "textbox",       x = threefull, y = 0, width = help, height = help_height,
+                                                        text = [[
+The interface of 99%Tags consists of five sections:
+– Mode selector,
+– Tags block selector,
+– Preprocess data,
+– Tag data editor,
+– Line data editor.
 
+To edit tags as in 𝗛𝗬𝗗𝗥𝗔, enter the value you want in the edit fields in tag and line data editor:
+> fs  [ 50 ]
+> fsp [ .1 ]
+In above example, we set \fs to 50 and \fsp to 0.1.
+
+Unlike HYDRA where the edit fields are limited to floating point numbers, edit fields in 99%Tags can be any Lua expressions.
+> cr  [ 0x80 ]
+> frz [ math.deg(math.pi / 2) ]
+In above example, we set cr (Red channel of \c) to &H80& and \frz to `math.deg(math.pi / 2)` which equals to 90.
+> fn  [ "Noto Sans Display" ]
+For fn, Style, Actor and Effect fields, a pair of quotation marks are required.
+
+There are a lot of variables you can refer to in edit fields. First, all tags and data listed in the tag and line data editor are variables under the same name.
+> alpha [ 1a ]
+In above exmaple, we set \1a's current value to \alpha. If you are familiar with Lua, you may noticed that a Lua variable cannot start with digits. 99%Tags will convert these listed tag variables before evaluation.
+
+Second, there is a special variable `_` (one underscore) that represents the current value of the tag itself.
+> frz [ _ ]
+> fax [ _ ]
+In above example, we set \frz and \fax to itself.
+
+Note the mode selector at the top of the interface. which reads „Generate data from active line once and apply to all selected lines“. If we have multiple lines selected, setting tags to `_` essentially copys the value from active line to all selected lines like 𝗡𝗲𝗰𝗿𝗼𝘀𝗖𝗼𝗽𝘆.
+> frz [ _ ]
+> fax [ _ ]
+In above example, provided that we have multiple lines selected and the mode set to „Generate data from active line once and apply to all selected linesuotation“, we copy \frz and \fax value from active line to all selected lines.
+
+The next natural thing with `_` is to do arithmetic operations like in 𝗥𝗲𝗰𝗮𝗹𝗰𝘂𝗹𝗮𝘁𝗼𝗿. Make sure you have select mode to „Generate data from each selected line and apply respectively“ and enter expressions like `_+200`, or to add 200 to the current value. To make things simple, you can omit the first `_` and starts the expression with the operators like `+` or `-`.
+> posx  [ +200 ]
+In above example, we add 200 to posx (the x axis of \pos), shifting the sign to the right. `+200` is the same as `_+200`, as the first `_` in `_+200` is omited.
+> posx  [ (_+200)*0.8 ]
+In above example, we add 200 to posx and then multiply it by 0.8. Note that the first `_` in this case is not omittable because it is inside a pair of parentheses.
+
+Alert! One consequence of allowing the first `_` to be omitted is that you can't assign negative values to tags. In order to set negative values, you need to write it as zero minus the value. This tradeoff is made because there are very few tags in ASS like \pos and \fax that allows negative values.
+> fax [ 0-0.1 ]
+In above example, we set \fax to `0-0.1`, or -0.1.
+
+There is also a special case in edit fields. Setting edit field to `-` (one hyphen) removes the tag from the tags block.
+> bord  [ - ]
+In above example, we remove \bord tag from the tags block and the line will fallback to the bord specified in Style.
+> posx  [ - ]
+For pairing tags like posx and posy (the x and y axis of \pos), removing any one of the variables remove the whole tag.
+> move2x  [ - ]
+For \move tag, removing move2x or move2y will revert \move tag back to \pos.
+
+At last, you can preprocess the data in the big text field above. Unlike edit fields of the tags, this is for Lua commands instead of expressions. The proprocess field shares the same envionment with all the tag fields. They execute in the following order:
+– preprocess → an → posx → … → q → fn → fs → … → be → cr → … → 4a → layer → start → end → Style → Actor → Effect
+
+This allows us to do basic 𝗟𝘂𝗮𝗜𝗻𝘁𝗲𝗿𝗽𝗿𝗲𝘁 works:
+> preprocess [ sw = fscx ]
+> fscx [ fscy ]
+> fscy [ sw ]
+Because the fscy is below fscx, in this example, we assign fscx to a variable named `sw`, we assign fscy to fscx and then assign sw to fscy, essentially swapping \fscx and \fscy value.
+
+In addition to preprocess field and tag fields, all selected lines, provided that „Generate data from each selected line and apply respectively“ is selected, also shares a same environment.
+> preprocess [ i = i or -1 ]
+> preprocess [ i = i + 1 ]
+> layer [ i ]
+This set the layer of each selected line to incremental values starting from 0.
+
+Additionally, line object after `Line.process()` is exposed under `line` and you may modify them directly.
+> preprocess [ line.margin_l = 100 ]
+In this example, we set left margin of selected lines to 100.
+]] })
+    end
 
     return dialog
 end
 
 
+
+apply_data = function(ass, data, act_data)
+    local commands
+    local operations
+    local line_data
+    local tagsBlocks
+
+    commands, operations = process_data(data)
+
+    if data["mode"] == 1 then
+        execute_tags(commands, act_data)
+
+        for line, s, i, n in ass:iterSel(false) do
+            ass:progressLine(s, i, n)
+            Line.process(ass, line)
+
+            if tagsBlocks[data["tagsblock"]] then
+                apply_tags(operations, line.text.tagsBlocks, data["tagsblock"], act_data)
+
+                ass:setLine(line, s)
+            else
+                aegisub.debug.out("[aka.99PercentTags] Skipping line " .. tostring(s) .. " because line " .. tostring(s) .. " does not have tags block " .. tostring(data["tagsblock"]) .. "\n")
+        end end
+    else
+        for line, s, i, n in ass:iterSel(false) do
+            ass:progressLine(s, i, n)
+            line_data = {}
+            tagsBlocks = Line.tagsBlocks(ass, line)
+            parse_tags(line_data, line, tagsBlocks[data["tagsblock"]].data)
+            parse_other_data(line_data, line, tagsBlocks.width, tagsBlocks.height)
+
+            execute_tags(commands, line_data)
+            if tagsBlocks[data["tagsblock"]] then
+                apply_tags(operations, line.text.tagsBlocks, data["tagsblock"], line_data)
+                
+                ass:setLine(line, s)
+            else
+                aegisub.debug.out("[aka.99PercentTags] Skipping line " .. tostring(s) .. " because line " .. tostring(s) .. " does not have tags block " .. tostring(data["tagsblock"]) .. "\n")
+        end end
+    end
+end
+
+re_extra_spaces = re.compile[[^ *(.+?) *$]]
+re_if_omitted = re.compile[[^(?:(?:\+|\-|\*|\/|%|\^|==|~=|<|>|<=|>=|\.\.)[^\+\-\*\/%\^=~<>\.]|and |or )]]
+re_match_underscore = re.compile[[^(.*[^\w]|)_([^\w].*|)$]]
+re_match_invalid_varnames = re.compile[[^((?:[^"']*(?:"(?:[^"]*(?<!\\)(?:\\\\)*\\")*?[^"]*(?<!\\)(?:\\\\)*"|'(?:[^']*(?<!\\)(?:\\\\)*\\')*?[^']*(?<!\\)(?:\\\\)*'))*(?:[^"']*[^\w"']|)|)(3cr|3cg|3cb|4cr|4cg|4cb|1a|2a|3a|4a)([^\w].*|)$]]
+process_data = function(data)
+    local commands
+    local operations
+    local command
+    local match
+
+    operations = {}
+
+    match = re_extra_spaces:match(data["prepro"])
+    if match then
+        command = match[2]["str"]
+
+        while true do
+            match = re_match_invalid_varnames:match(command)
+            if match then
+                command = match[2]["str"] .. "_G[\"" .. match[3]["str"] .. "\"]" .. match[4]["str"]
+            else
+                break
+        end end
+
+        commands = commands and (commands .. "\n" .. command) or command
+    end 
+
+    for _, tag in ipairs(eval_tags) do
+        match = re_extra_spaces:match(data[tag])
+        if match then
+            command = match[2]["str"]
+
+            if command == "-" then
+                table.insert(operations, { "Clear", tag })
+            elseif command == "_" then
+                table.insert(operations, { "Set", tag })
+            else
+                if re_if_omitted:find(command) then
+                    command = tag .. " " .. command
+                end
+
+                while true do
+                    match = re_match_underscore:match(command)
+                    if match then
+                        command = match[2]["str"] .. tag .. match[4]["str"]
+                    else
+                        break
+                end end
+
+                while true do
+                    match = re_match_invalid_varnames:match(command)
+                    if match then
+                        command = match[2]["str"] .. "_G[\"" .. match[3]["str"] .. "\"]" .. match[4]["str"]
+                    else
+                        break
+                end end
+
+                commands = commands and (commands .. "\ntag = " .. command) or command
+                table.insert(operations, { "Set", tag })
+    end end end
+
+    return commands, operations
+end
+
+execute_tags = function(commands, line_data)
+    if commands then
+        setmetatable(line_data, { __index = _G })
+        commands = o(loadstring(commands))
+            :ifErr(function(err)
+                aegisub.debug.out("[aka.99PercentTags] Invalid Lua commands or expressions\n")
+                aegisub.debug.out("[aka.99PercentTags] The following commands are collected from dialog and fed to loadstring():\n")
+                aegisub.debug.out(commands .. "\n")
+                aegisub.debug.out("[aka.99PercentTags] The following error occurs during loadstring():\n")
+                aegisub.debug.out(err .. "\n")
+                aegisub.cancel() end)
+            :unwrap()
+        setfenv(commands, line_data)
+        commands()
+end end
+
+apply_tags = function(operations, tagsBlocks, i, data)
+    local single_find
+    local deep_find
+    local messy_set
+    local confirm_clear
+
+    single_find = function(table, value)
+        for _, v in ipairs(table) do
+            if value == v then return v end
+        end
+        for k, _ in pairs(table) do
+            if value == k then return k end
+    end end
+    deep_find = function(table, value)
+        for k, v in pairs(table) do
+            for j, v in ipairs(v) do
+                if value == v then return { k, j } end
+    end end end
+
+    -- some() Set
+    -- none() Clear
+    -- nil Unchanged
+    messy_set = {}
+
+    for _, v in ipairs(operations) do
+        if v[1] == "Set" then
+            o(single_find(single_tags_wo_an, v[2]))
+                :ifOk(function(tag)
+                    tagsBlocks[i]:insert({ { tag, data[tag] } }) end)
+
+                :orElseOther(function() return
+                    if v[2] == "an" then
+                        for _, v in ipairs(tagsBlocks) do
+                            v:remove("an")
+                        end
+                        tagsBlocks[1]:insert({ { "an", data["an"] } }) return
+                        ok()
+                    end return
+                    err() end)
+
+                :orElseOther(function() return
+                    o(single_find(alpha_tags, v[2]))
+                        :ifOk(function(tag)
+                            tagsBlocks[i]:insert({ { tag, string.format("&H%X&", data[tag]) } }) end) end)
+
+                :orElseOther(function()
+                    for j, w in double_tags["org"] do 
+                        if v[2] == w then
+                            if not messy_set["org"] then
+                                messy_set["org"] = {}
+                            end
+                            messy_set["org"][j] = some(data[v[2]])
+                            return
+                            ok()
+                    end end return
+                    err() end)
+
+                :orElseOther(function() return
+                    o(deep_find(colour_tags, v[2]))
+                        :ifOk(function(ki)
+                            local tag
+                            local j
+                            
+                            tag, j = table.unpack(ki)
+                            if not messy_set[tag] then
+                                messy_set[tag] = {}
+                            end
+                            messy_set[tag][j] = some(data[v[2]]) end) end)
+
+                :orElseOther(function() return
+                    o(deep_find(move_tags, v[2]))
+                        :ifOk(function(ki)
+                            local tag
+                            local j
+                            
+                            tag, j = table.unpack(ki)
+                            if not messy_set[tag] then
+                                messy_set[tag] = {}
+                            end
+                            messy_set[tag][j] = some(data[v[2]]) end) end)
+                
+                :unwrap()
+
+        elseif v[1] == "Clear" then
+            o(single_find(single_tags_wo_an, v[2]))
+                :ifOk(function(tag)
+                    for j = i, 1, -1 do
+                        if tagsBlocks[j]:existsTag(tag) then
+                            tagsBlocks[j]:remove(tag)
+                            return
+                    end end end)
+
+                :orElseOther(function() return
+                    if v[2] == "an" then
+                        for _, v in ipairs(tagsBlocks) do
+                            v:remove("an")
+                        end return
+                        ok()
+                    end return
+                    err() end)
+
+                :orElseOther(function() return
+                    o(single_find(alpha_tags, v[2]))
+                        :ifOk(function(tag)
+                            for j = i, 1, -1 do
+                                if tagsBlocks[j]:existsTag(tag) then
+                                    tagsBlocks[j]:remove(tag)
+                                    return
+                            end end end)
+
+                :orElseOther(function() return
+                    for j, w in double_tags["org"] do 
+                        if v[2] == w then
+                            if not messy_set["org"] then
+                                messy_set["org"] = {}
+                            end
+                            messy_set["org"][j] = none()
+                            return
+                            ok()
+                    end end return
+                    err() end)
+
+                :orElseOther(function() return
+                    o(deep_find(colour_tags, v[2]))
+                        :ifOk(function(ki)
+                            local tag
+                            local j
+                            
+                            tag, j = table.unpack(ki)
+                            if not messy_set[tag] then
+                                messy_set[tag] = {}
+                            end
+                            messy_set[tag][j] = none() end) end)
+
+                :orElseOther(function() return
+                    o(deep_find(move_tags, v[2]))
+                        :ifOk(function(ki)
+                            local tag
+                            local j
+                            
+                            tag, j = table.unpack(ki)
+                            if not messy_set[tag] then
+                                messy_set[tag] = {}
+                            end
+                            messy_set[tag][j] = none() end) end)
+                
+                :unwrap()
+    end end
+
+    for tag, v in pairs(messy_set) do
+        -- COLOUR
+        if single_find(colour_tags, tag) then
+            if messy_set[tag][1] and messy_set[tag][1]:isNone() and messy_set[tag][2] and messy_set[tag][2]:isNone() and messy_set[tag][3] and messy_set[tag][3]:isNone() then
+                tagsBlocks[i]:remove(tag)
+            elseif messy_set["org"][1] and messy_set["org"][1]:isSome() and messy_set["org"][2] and messy_set["org"][2]:isSome() then
+                tagsBlocks[i]:insert({ { tag, { messy_set["org"][1]:unwrap(), messy_set["org"][2]:unwrap() } } })
+            else
+                for j = 1, 2 do
+                    if not messy_set["org"][j]
+                end
+            end
+        elseif tag == "move" then
+    end
+
+    for tag, v in pairs(messy_set) do
+        if tag == "org" then
+            if messy_set["org"][1] and messy_set["org"][1]:isNone() and messy_set["org"][2] and messy_set["org"][2]:isNone() then
+                for _, v in ipairs(tagsBlocks) do
+                    v:remove("an")
+                end
+            else
+                if messy_set["org"][1] and messy_set["org"][1]:isSome() and messy_set["org"][2] and messy_set["org"][2]:isSome() then
+                    messy_set["org"] = { messy_set["org"][1]:unwrap(), messy_set["org"][2]:unwrap() }
+                else
+                    for j = 1, 2 do
+                        if not messy_set["org"][j] then
+                            messy_set["org"][j] = data[double_tags["org"][j]] -- NO!
+                        elseif messy_set["org"][j]:isSome() then
+                            messy_set["org"][j] = messy_set["org"][j]:unwrap()
+                        elseif messy_set["org"][j]:isNone() then
+                            if tagsBlocks[1]:existsTag ...............
+                            messy_set["org"][j] = tagsBlocks[1]:getTag("pos")[j] -- MOVE???
+                end end end
+
+                for _, v in ipairs(tagsBlocks) do
+                    v:remove("an")
+                end
+                tagsBlocks[1]:insert({ { tag, messy_set["org"] } })
+end end end end
+
+
+
+
 if hasDepCtrl then
     DepCtrl:registerMacro(main)
 else
-    aegisub.register_macro("99% Tags", "Add or modify tags on selected lines", main)
+    aegisub.register_macro("99%Tags", "Add or modify tags on selected lines", main)
 end

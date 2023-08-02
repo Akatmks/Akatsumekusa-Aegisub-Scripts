@@ -72,7 +72,7 @@ Thanks to
 
 ## aka.99PercentTags
 
-99%Tags is a script for adding and editing tags on subtitle lines. It combines the base functions of [ua.HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [phos.edittags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [ua.Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [ua.NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [lyger.LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, ua.HYDRA-like interface.  
+99%Tags is a script for adding and editing tags on subtitle lines. It combines the base functions of [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, ua.HYDRA-like interface.  
 
 ## aka.BackupSection & aka.dupe-and-not-comment
 

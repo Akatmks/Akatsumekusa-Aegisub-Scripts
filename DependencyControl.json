@@ -58,10 +58,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}/macros/aka.99PercentTags.lua",
-                            "sha1": "53fd31e357c2b1f5d765882a7b51a705710565a5"
+                            "sha1": "bcab57ea96baf85e977b6d0829e3ca2000672686"
                         }
                     ],
-                    "version": "0.1.1",
+                    "version": "0.1.2",
                     "default": true,
                     "requireModules": [
                         {
@@ -83,11 +83,11 @@
                             "moduleName": "aka.unicode"
                         }
                     ],
-                    "released": "2023-08-01"
+                    "released": "2023-08-02"
                 }
             },
             "author": "Akatsumekusa and contributors",
-            "name": "99% Tags",
+            "name": "99%Tags",
             "description": "Add or modify tags on selected lines",
             "url": "@{baseUrl}"
         },
