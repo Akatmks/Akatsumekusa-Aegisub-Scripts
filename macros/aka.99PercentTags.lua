@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "0.1.2"
+versioning.version = "0.1.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -60,7 +60,7 @@ if hasDepCtrl then
 end
 local aconfig = require("aka.config2")
 local outcome = require("aka.outcome")
-local o, ok, err, some, none = outcome.o, outcome.ok, outcome.err, outcome.some, outcome.none
+local o, ok, err, some, none, opcall = outcome.o, outcome.ok, outcome.err, outcome.some, outcome.none, outcome.pcall
 local ILL = require("ILL.ILL")
 local Ass, Line, Table = ILL.Ass, ILL.Line, ILL.Table
 local autil = require("aegisub.util")
@@ -69,15 +69,20 @@ local unicode = require("aka.unicode")
 
 
 
-local all_tags
-local single_tags
-local single_tags_wo_an
-local alpha_tags
-local double_tags
-local colour_tags
+local table_concat
+local single_tagsBlock_tags
+local an_tags
+local pos_tags
 local move_tags
+local org_tags
+local alpha_tags
+local single_tags
+local colour_tags
 local auto_dialog_tags
+local non_tag_tags
 local eval_tags
+local prepro_tags
+local all_tags
 local parse_tags
 local parse_other_data
 
@@ -96,6 +101,17 @@ local apply_tags
 
 
 
+table_concat = function(...)
+    local new
+    
+    new = {}
+    for _, t in ipairs({...}) do
+        for _, v in ipairs(t) do
+            table.insert(new, v)
+    end end
+
+    return new
+end
 --[[
 Select mode:
 [ Generate data from active line once and apply to al... ]
@@ -128,28 +144,27 @@ Style [          ]  Actor [          ]  Effect [         ]
 Load Preset:                 Save As Preset:
 [           Last            ][                           ]
 ]]
-all_tags = { "prepro",
-             "an", "posx", "posy", "move2x", "move2y", "orgx", "orgy", "frx", "fry", "frz", "fax", "fay", "fscx", "fscy", "q",
-             "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "be",
-             "cr", "cg", "cb", "3cr", "3cg", "3cb", "4cr", "4cg", "4cb", "alpha", "1a", "3a", "4a",
-             "layer", "start", "end",
-             "Style", "Actor", "Effect" }
-single_tags = { "an", "frx", "fry", "frz", "fax", "fay", "fscx", "fscy",
-                "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "q", "be" }
-single_tags_wo_an = { "frx", "fry", "frz", "fax", "fay", "fscx", "fscy",
-                      "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "q", "be" }
-alpha_tags = { "alpha", "1a", "3a", "4a" }
-double_tags = { ["pos"] = { "posx", "posy" }, ["org"] = { "orgx", "orgy" } }
+an_tags = { "an" }
+single_tagsBlock_tags = { "frx", "fry", "frz", "fax", "fay", "fscx", "fscy", "q",
+                          "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "be" }
+single_tags = table_concat(an_tags, single_tagsBlock_tags)
+
+pos_tags = { "posx", "posy" }
+move_tags = table_concat(pos_tags, { "move2x", "move2y" })
+org_tags = { "orgx", "orgy" }
+
 colour_tags = { ["c"] = { "cr", "cg", "cb" }, ["3c"] = { "3cr", "3cg", "3cb" }, ["4c"] = { "4cr", "4cg", "4cb" } }
-move_tags = { ["move"] = { "posx", "posy", "move2x", "move2y" } }
-auto_dialog_tags = { "an", "posx", "posy", "move2x", "move2y", "orgx", "orgy", "frx", "fry", "frz", "fax", "fay", "fscx", "fscy", "q",
-                     "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "be",
-                     "cr", "cg", "cb", "3cr", "3cg", "3cb", "4cr", "4cg", "4cb", "alpha", "1a", "3a", "4a" }
-eval_tags = { "an", "posx", "posy", "move2x", "move2y", "orgx", "orgy", "frx", "fry", "frz", "fax", "fay", "fscx", "fscy", "q",
-              "fn", "fs", "fsp", "blur", "bord", "xbord", "ybord", "shad", "xshad", "yshad", "b", "i", "u", "s", "be",
-              "cr", "cg", "cb", "3cr", "3cg", "3cb", "4cr", "4cg", "4cb", "alpha", "1a", "3a", "4a",
-              "layer", "start", "end",
-              "Style", "Actor", "Effect" }
+alpha_tags = { "alpha", "1a", "3a", "4a" }
+auto_dialog_tags = table_concat(an_tags, move_tags, org_tags, single_tagsBlock_tags,
+                                colour_tags["c"], colour_tags["3c"], colour_tags["4c"],
+                                alpha_tags)
+
+non_tag_tags = { "layer", "start", "end",
+                 "Style", "Actor", "Effect" }
+eval_tags = table_concat(auto_dialog_tags, non_tag_tags)
+
+prepro_tags = { "prepro" }
+all_tags = table_concat(prepro_tags, eval_tags)
 
 parse_tags = function(data, line, ILL_data)
     local ILL_data_tag
@@ -164,19 +179,20 @@ parse_tags = function(data, line, ILL_data)
     for _, tag in ipairs(single_tags) do
         data[tag] = ILL_data_tag(ILL_data, tag)
     end
-    for _, tag in ipairs(alpha_tags) do
-        _, _, _, data[tag] = autil.extract_color(ILL_data_tag(ILL_data, tag))
+
+    data[pos_tags[1]], data[pos_tags[2]] = table.unpack(ILL_data_tag(ILL_data, "pos"))
+    if ILL_data_tag(ILL_data, "move") then
+        _, _, data[move_tags[3]], data[move_tags[4]], _, _ = table.unpack(ILL_data_tag(ILL_data, "move"))
     end
-    for tag, names in pairs(double_tags) do
-        data[names[1]], data[names[2]] = table.unpack(ILL_data_tag(ILL_data, tag))
-    end
+    data[org_tags[1]], data[org_tags[2]] = table.unpack(ILL_data_tag(ILL_data, "org"))
+
     for tag, names in pairs(colour_tags) do
         data[names[1]], data[names[2]], data[names[3]], _ = autil.extract_color(ILL_data_tag(ILL_data, tag))
     end
-    if ILL_data_tag(ILL_data, "move") then
-        _, _, data[move_tags["move"][3]], data[move_tags["move"][4]], _, _ = table.unpack(ILL_data_tag(ILL_data, "move"))
-    end
-end
+    for _, tag in ipairs(alpha_tags) do
+        _, _, _, data[tag] = autil.extract_color(ILL_data_tag(ILL_data, tag))
+end end
+
 parse_other_data = function(data, line, width, height)
     data["layer"] = line.layer
     data["start"] = line.start_time
@@ -203,7 +219,7 @@ main = function(sub, sel, act)
 
     dialog_data, act_data = show_dialog(ass, sub, act)
 
-    apply_data(ass, dialog_data, act_data)
+    apply_data(ass, sub, act, dialog_data, act_data)
 
     return ass:getNewSelection()
 end
@@ -606,8 +622,13 @@ To edit tags as in 𝗛𝗬𝗗𝗥𝗔, enter the value you want in the edit fi
 > fsp [ .1 ]
 In above example, we set \fs to 50 and \fsp to 0.1.
 
+You can switch the tags block using the tags block selector at the top and then click „Select Tags Block“ button to load the data at the new tags block.
+> Select tags block [ 2 ]
+After clicking „Select Tags Block“ button:
+> Select tags block [ 2 (Selected) ]
+
 Unlike HYDRA where the edit fields are limited to floating point numbers, edit fields in 99%Tags can be any Lua expressions.
-> cr  [ 0x80 ]
+> cr  [ 0b10000000 ]
 > frz [ math.deg(math.pi / 2) ]
 In above example, we set cr (Red channel of \c) to &H80& and \frz to `math.deg(math.pi / 2)` which equals to 90.
 > fn  [ "Noto Sans Display" ]
@@ -615,9 +636,9 @@ For fn, Style, Actor and Effect fields, a pair of quotation marks are required.
 
 There are a lot of variables you can refer to in edit fields. First, all tags and data listed in the tag and line data editor are variables under the same name.
 > alpha [ 1a ]
-In above exmaple, we set \1a's current value to \alpha. If you are familiar with Lua, you may noticed that a Lua variable cannot start with digits. 99%Tags will convert these listed tag variables before evaluation.
+In above exmaple, we set \1a's current value to \alpha. You may noticed that a`1a` shouldn't be a valid Lua variable because variable cannot start with digits. For the listed tag names, 99%Tags will convert these identifiers before evaluation.
 
-Second, there is a special variable `_` (one underscore) that represents the current value of the tag itself.
+Second, there is a special variable `_` (one underscore) that represents the current tag itself.
 > frz [ _ ]
 > fax [ _ ]
 In above example, we set \frz and \fax to itself.
@@ -627,7 +648,7 @@ Note the mode selector at the top of the interface. which reads „Generate data
 > fax [ _ ]
 In above example, provided that we have multiple lines selected and the mode set to „Generate data from active line once and apply to all selected linesuotation“, we copy \frz and \fax value from active line to all selected lines.
 
-The next natural thing with `_` is to do arithmetic operations like in 𝗥𝗲𝗰𝗮𝗹𝗰𝘂𝗹𝗮𝘁𝗼𝗿. Make sure you have select mode to „Generate data from each selected line and apply respectively“ and enter expressions like `_+200`, or to add 200 to the current value. To make things simple, you can omit the first `_` and starts the expression with the operators like `+` or `-`.
+The next natural thing with `_` is to do arithmetic operations like in 𝗥𝗲𝗰𝗮𝗹𝗰𝘂𝗹𝗮𝘁𝗼𝗿. Select mode to „Generate data from each selected line and apply respectively“ and enter expressions like `_+200`, or to add 200 to the current value. To make things simple, you can omit the first `_` and starts the expression with the operators like `+` or `-`.
 > posx  [ +200 ]
 In above example, we add 200 to posx (the x axis of \pos), shifting the sign to the right. `+200` is the same as `_+200`, as the first `_` in `_+200` is omited.
 > posx  [ (_+200)*0.8 ]
@@ -637,22 +658,32 @@ Alert! One consequence of allowing the first `_` to be omitted is that you can't
 > fax [ 0-0.1 ]
 In above example, we set \fax to `0-0.1`, or -0.1.
 
-There is also a special case in edit fields. Setting edit field to `-` (one hyphen) removes the tag from the tags block.
+There is also a special case in edit fields. Setting edit field to `-` (one hyphen) removes the active tag and revert it to Style value. Depending on the situation, this may remove the tag or add the tag with the value of Style.
 > bord  [ - ]
-In above example, we remove \bord tag from the tags block and the line will fallback to the bord specified in Style.
+In above example, we set \bord to the value specified in Style.
 > posx  [ - ]
-For pairing tags like posx and posy (the x and y axis of \pos), removing any one of the variables remove the whole tag.
+For pairing tags like posx and posy (the x and y axis of \pos), removing one of the axis will only revert that axis to Style.
+> orgx  [ - ]
+For \org tags, removing one of the axis will revert the axis back to \pos instead of Style.
 > move2x  [ - ]
-For \move tag, removing move2x or move2y will revert \move tag back to \pos.
+For \move tags, removing one of the axis will set the axis to the axis' starting position. Removing both axes will revert \move back to \pos.
 
 At last, you can preprocess the data in the big text field above. Unlike edit fields of the tags, this is for Lua commands instead of expressions. The proprocess field shares the same envionment with all the tag fields. They execute in the following order:
 – preprocess → an → posx → … → q → fn → fs → … → be → cr → … → 4a → layer → start → end → Style → Actor → Effect
+If during the execution of a earlier field a tag has been modified, it will stay modified in the execution of later field.
 
 This allows us to do basic 𝗟𝘂𝗮𝗜𝗻𝘁𝗲𝗿𝗽𝗿𝗲𝘁 works:
 > preprocess [ sw = fscx ]
 > fscx [ fscy ]
 > fscy [ sw ]
-Because the fscy is below fscx, in this example, we assign fscx to a variable named `sw`, we assign fscy to fscx and then assign sw to fscy, essentially swapping \fscx and \fscy value.
+Because the fscy is below fscx, in this example, we assign fscx to a new variable named `sw`, we assign fscy to fscx and then assign sw to fscy, essentially swapping \fscx and \fscy value.
+
+> preprocess [ sw = fscx ]
+> preprocess [ fscx = fscy ]
+> preprocess [ fscy = sw ]
+> fscx [ _ ]
+> fscy [ _ ]
+You could, however, put every calculations in preprocess and put a `_` in edit fields of the tags to apply the changes. A tag modification will only be applied if there are expressions in the tag edit field.
 
 In addition to preprocess field and tag fields, all selected lines, provided that „Generate data from each selected line and apply respectively“ is selected, also shares a same environment.
 > preprocess [ i = i or -1 ]
@@ -671,23 +702,33 @@ end
 
 
 
-apply_data = function(ass, data, act_data)
+apply_data = function(ass, sub, act, data, act_data)
     local commands
     local operations
+    local line
+    local style_data
+    local original_data
     local line_data
     local tagsBlocks
 
     commands, operations = process_data(data)
 
+    line = sub[act]
+    line.text = ""
+    style_data = {}
+    Line.process(ass, line)
+    parse_tags(style_data, line, line.data)
+
     if data["mode"] == 1 then
         execute_tags(commands, act_data)
-
         for line, s, i, n in ass:iterSel(false) do
             ass:progressLine(s, i, n)
-            Line.process(ass, line)
+            line_data = {}
+            tagsBlocks = Line.tagsBlocks(ass, line)
+            parse_tags(line_data, line, tagsBlocks[data["tagsblock"]].data)
 
             if tagsBlocks[data["tagsblock"]] then
-                apply_tags(operations, line.text.tagsBlocks, data["tagsblock"], act_data)
+                apply_tags(operations, line, line.text.tagsBlocks, data["tagsblock"], act_data, line_data, style_data)
 
                 ass:setLine(line, s)
             else
@@ -701,9 +742,10 @@ apply_data = function(ass, data, act_data)
             parse_tags(line_data, line, tagsBlocks[data["tagsblock"]].data)
             parse_other_data(line_data, line, tagsBlocks.width, tagsBlocks.height)
 
+            original_data = Table.copy(line_data)
             execute_tags(commands, line_data)
             if tagsBlocks[data["tagsblock"]] then
-                apply_tags(operations, line.text.tagsBlocks, data["tagsblock"], line_data)
+                apply_tags(operations, line, line.text.tagsBlocks, data["tagsblock"], line_data, original_data, style_data)
                 
                 ass:setLine(line, s)
             else
@@ -769,7 +811,7 @@ process_data = function(data)
                         break
                 end end
 
-                commands = commands and (commands .. "\ntag = " .. command) or command
+                commands = commands and (commands .. "\ntag = " .. command) or ("tag = " .. command)
                 table.insert(operations, { "Set", tag })
     end end end
 
@@ -777,9 +819,11 @@ process_data = function(data)
 end
 
 execute_tags = function(commands, line_data)
+    local run
+
     if commands then
         setmetatable(line_data, { __index = _G })
-        commands = o(loadstring(commands))
+        run = o(loadstring(commands))
             :ifErr(function(err)
                 aegisub.debug.out("[aka.99PercentTags] Invalid Lua commands or expressions\n")
                 aegisub.debug.out("[aka.99PercentTags] The following commands are collected from dialog and fed to loadstring():\n")
@@ -788,15 +832,22 @@ execute_tags = function(commands, line_data)
                 aegisub.debug.out(err .. "\n")
                 aegisub.cancel() end)
             :unwrap()
-        setfenv(commands, line_data)
-        commands()
+        setfenv(run, line_data)
+        opcall(run)
+            :ifErr(function(err)
+                aegisub.debug.out("[aka.99PercentTags] Error during command execution\n")
+                aegisub.debug.out("[aka.99PercentTags] The following commands are collected from dialog and executed:\n")
+                aegisub.debug.out(commands .. "\n")
+                aegisub.debug.out("[aka.99PercentTags] The following error occurs:\n")
+                aegisub.debug.out(err .. "\n")
+                aegisub.cancel() end)
 end end
 
-apply_tags = function(operations, tagsBlocks, i, data)
+apply_tags = function(operations, line, tagsBlocks, i, data, original_data, style_data)
     local single_find
     local deep_find
     local messy_set
-    local confirm_clear
+    local ch
 
     single_find = function(table, value)
         for _, v in ipairs(table) do
@@ -807,181 +858,245 @@ apply_tags = function(operations, tagsBlocks, i, data)
     end end
     deep_find = function(table, value)
         for k, v in pairs(table) do
-            for j, v in ipairs(v) do
-                if value == v then return { k, j } end
+            for j, w in ipairs(v) do
+                if value == w then return { k, j } end
     end end end
 
-    -- some() Set
-    -- none() Clear
-    -- nil Unchanged
+    -- some():  Set
+    -- none():  Clear
+    -- nil:     Original
     messy_set = {}
 
     for _, v in ipairs(operations) do
-        if v[1] == "Set" then
-            o(single_find(single_tags_wo_an, v[2]))
-                :ifOk(function(tag)
-                    tagsBlocks[i]:insert({ { tag, data[tag] } }) end)
+        o(single_find(single_tagsBlock_tags, v[2]))
+            :ifOk(function(tag)
+                if v[1] == "Set" then
+                    tagsBlocks[i]:insert({ { tag, data[tag] } })
 
-                :orElseOther(function() return
-                    if v[2] == "an" then
-                        for _, v in ipairs(tagsBlocks) do
-                            v:remove("an")
+                elseif v[1] == "Clear" then
+                    if i == 1 then
+                        tagsBlocks[1]:remove(tag)
+                    else
+                        ch = false
+                        for j = i, 1, -1 do
+                            if tagsBlocks[j]:existsTag(tag) then
+                                tagsBlocks[i]:insert({ { tag, style_data[tag] } })
+                                ch = true
+                        end end
+                        if not ch then
+                            tagsBlocks[i]:remove(tag)
+                end end end end)
+
+            :orElseOther(function() return
+                o(single_find(alpha_tags, v[2]))
+                    :ifOk(function(tag)
+                        if v[1] == "Set" then
+                            tagsBlocks[i]:insert({ { tag, string.format("&H%X&", data[tag]) } })
+
+                        elseif v[1] == "Clear" then
+                            if i == 1 then
+                                tagsBlocks[1]:remove(tag)
+                            else
+                                ch = false
+                                for j = i, 1, -1 do
+                                    if tagsBlocks[j]:existsTag(tag) then
+                                        tagsBlocks[i]:insert({ { tag, string.format("&H%X&", style_data[tag]) } })
+                                        ch = true
+                                end end
+                                if not ch then
+                                    tagsBlocks[i]:remove(tag)
+                        end end end end) end)
+
+            :orElseOther(function() return
+                o(v[2] == "an")
+                    :ifOk(function(tag)
+                        for _, b in ipairs(tagsBlocks) do
+                            b:remove("an")
                         end
-                        tagsBlocks[1]:insert({ { "an", data["an"] } }) return
+                        if v[1] == "Set" then
+                            tagsBlocks[1]:insert({ { "an", data["an"] } })
+                        end end) end)
+
+            :orElseOther(function()
+                for j, w in ipairs(move_tags) do
+                    if v[2] == w then
+                        if not messy_set["move"] then
+                            messy_set["move"] = {}
+                        end
+
+                        if v[1] == "Set" then
+                            messy_set["move"][j] = some(data[v[2]])
+                        elseif v[1] == "Clear" then
+                            messy_set["move"][j] = none()
+                        end
+                        return
                         ok()
-                    end return
-                    err() end)
+                end end return
+                err() end)
 
-                :orElseOther(function() return
-                    o(single_find(alpha_tags, v[2]))
-                        :ifOk(function(tag)
-                            tagsBlocks[i]:insert({ { tag, string.format("&H%X&", data[tag]) } }) end) end)
+            :orElseOther(function()
+                for j, w in ipairs(org_tags) do
+                    if v[2] == w then
+                        if not messy_set["org"] then
+                            messy_set["org"] = {}
+                        end
 
-                :orElseOther(function()
-                    for j, w in double_tags["org"] do 
-                        if v[2] == w then
-                            if not messy_set["org"] then
-                                messy_set["org"] = {}
-                            end
+                        if v[1] == "Set" then
                             messy_set["org"][j] = some(data[v[2]])
-                            return
-                            ok()
-                    end end return
-                    err() end)
-
-                :orElseOther(function() return
-                    o(deep_find(colour_tags, v[2]))
-                        :ifOk(function(ki)
-                            local tag
-                            local j
-                            
-                            tag, j = table.unpack(ki)
-                            if not messy_set[tag] then
-                                messy_set[tag] = {}
-                            end
-                            messy_set[tag][j] = some(data[v[2]]) end) end)
-
-                :orElseOther(function() return
-                    o(deep_find(move_tags, v[2]))
-                        :ifOk(function(ki)
-                            local tag
-                            local j
-                            
-                            tag, j = table.unpack(ki)
-                            if not messy_set[tag] then
-                                messy_set[tag] = {}
-                            end
-                            messy_set[tag][j] = some(data[v[2]]) end) end)
-                
-                :unwrap()
-
-        elseif v[1] == "Clear" then
-            o(single_find(single_tags_wo_an, v[2]))
-                :ifOk(function(tag)
-                    for j = i, 1, -1 do
-                        if tagsBlocks[j]:existsTag(tag) then
-                            tagsBlocks[j]:remove(tag)
-                            return
-                    end end end)
-
-                :orElseOther(function() return
-                    if v[2] == "an" then
-                        for _, v in ipairs(tagsBlocks) do
-                            v:remove("an")
-                        end return
-                        ok()
-                    end return
-                    err() end)
-
-                :orElseOther(function() return
-                    o(single_find(alpha_tags, v[2]))
-                        :ifOk(function(tag)
-                            for j = i, 1, -1 do
-                                if tagsBlocks[j]:existsTag(tag) then
-                                    tagsBlocks[j]:remove(tag)
-                                    return
-                            end end end)
-
-                :orElseOther(function() return
-                    for j, w in double_tags["org"] do 
-                        if v[2] == w then
-                            if not messy_set["org"] then
-                                messy_set["org"] = {}
-                            end
+                        elseif v[1] == "Clear" then
                             messy_set["org"][j] = none()
-                            return
-                            ok()
-                    end end return
-                    err() end)
+                        end
+                        return
+                        ok()
+                end end return
+                err() end)
 
-                :orElseOther(function() return
-                    o(deep_find(colour_tags, v[2]))
-                        :ifOk(function(ki)
-                            local tag
-                            local j
-                            
-                            tag, j = table.unpack(ki)
-                            if not messy_set[tag] then
-                                messy_set[tag] = {}
-                            end
-                            messy_set[tag][j] = none() end) end)
+            :orElseOther(function() return
+                o(deep_find(colour_tags, v[2]))
+                    :ifOk(function(tj)
+                        local tag
+                        local j
+                        
+                        tag, j = table.unpack(tj)
+                        if not messy_set[tag] then
+                            messy_set[tag] = {}
+                        end
+                        
+                        if v[1] == "Set" then
+                            messy_set[tag][j] = some(data[v[2]])
+                        elseif v[1] == "Clear" then
+                            messy_set[tag][j] = none()
+                        end end) end)
 
-                :orElseOther(function() return
-                    o(deep_find(move_tags, v[2]))
-                        :ifOk(function(ki)
-                            local tag
-                            local j
-                            
-                            tag, j = table.unpack(ki)
-                            if not messy_set[tag] then
-                                messy_set[tag] = {}
-                            end
-                            messy_set[tag][j] = none() end) end)
-                
-                :unwrap()
-    end end
+            :orElseOther(function()
+                if v[2] == "layer" then
+                    if v[1] == "Set" then
+                        line.layer = data["layer"]
+                    elseif v[1] == "Clear" then
+                        line.layer = 0
+                    end
+                elseif v[2] == "start" then
+                    if v[1] == "Set" then
+                        line.start_time = data["start"]
+                    elseif v[1] == "Clear" then
+                        aegisub.debug.out("[aka.99PercentTags] Skipping settings line start time to \"-\"\n")
+                    end
+                elseif v[2] == "end" then
+                    if v[1] == "Set" then
+                        line.end_time = data["end"]
+                    elseif v[1] == "Clear" then
+                        aegisub.debug.out("[aka.99PercentTags] Skipping settings line end time to \"-\"\n")
+                    end
+                elseif v[2] == "Style" then
+                    if v[1] == "Set" then
+                        line.style = data["Style"]
+                    elseif v[1] == "Clear" then
+                        aegisub.debug.out("[aka.99PercentTags] Skipping settings line Style to \"-\"\n")
+                    end
+                elseif v[2] == "Actor" then
+                    if v[1] == "Set" then
+                        line.actor = data["Actor"]
+                    elseif v[1] == "Clear" then
+                        line.actor = ""
+                    end
+                elseif v[2] == "Effect" then
+                    if v[1] == "Set" then
+                        line.effect = data["Effect"]
+                    elseif v[1] == "Clear" then
+                        line.effect = ""
+                    end
+                else return
+                    err()
+                end return
+                ok() end)
 
-    for tag, v in pairs(messy_set) do
-        -- COLOUR
-        if single_find(colour_tags, tag) then
-            if messy_set[tag][1] and messy_set[tag][1]:isNone() and messy_set[tag][2] and messy_set[tag][2]:isNone() and messy_set[tag][3] and messy_set[tag][3]:isNone() then
-                tagsBlocks[i]:remove(tag)
-            elseif messy_set["org"][1] and messy_set["org"][1]:isSome() and messy_set["org"][2] and messy_set["org"][2]:isSome() then
-                tagsBlocks[i]:insert({ { tag, { messy_set["org"][1]:unwrap(), messy_set["org"][2]:unwrap() } } })
-            else
-                for j = 1, 2 do
-                    if not messy_set["org"][j]
-                end
-            end
-        elseif tag == "move" then
+            :unwrap()
     end
+    
 
-    for tag, v in pairs(messy_set) do
-        if tag == "org" then
-            if messy_set["org"][1] and messy_set["org"][1]:isNone() and messy_set["org"][2] and messy_set["org"][2]:isNone() then
-                for _, v in ipairs(tagsBlocks) do
-                    v:remove("an")
+    for tag, tag_data in pairs(messy_set) do
+        if tag == "move" then
+            if (tag_data[3] and tag_data[3]:isNone() and tag_data[4] and tag_data[4]:isNone()) or
+               (not tag_data[3] and not original_data[move_tags[3]] and not tag_data[4] and not original_data[move_tags[4]]) then
+                for _, b in ipairs(tagsBlocks) do
+                    b:remove("pos")
+                    b:remove("move")
                 end
-            else
-                if messy_set["org"][1] and messy_set["org"][1]:isSome() and messy_set["org"][2] and messy_set["org"][2]:isSome() then
-                    messy_set["org"] = { messy_set["org"][1]:unwrap(), messy_set["org"][2]:unwrap() }
+                
+                if tag_data[1] and tag_data[1]:isNone() and tag_data[2] and tag_data[2]:isNone() then
+                    messy_set["move"] = { style_data[move_tags[1]], style_data[move_tags[2]] }
                 else
                     for j = 1, 2 do
-                        if not messy_set["org"][j] then
-                            messy_set["org"][j] = data[double_tags["org"][j]] -- NO!
-                        elseif messy_set["org"][j]:isSome() then
-                            messy_set["org"][j] = messy_set["org"][j]:unwrap()
-                        elseif messy_set["org"][j]:isNone() then
-                            if tagsBlocks[1]:existsTag ...............
-                            messy_set["org"][j] = tagsBlocks[1]:getTag("pos")[j] -- MOVE???
-                end end end
-
-                for _, v in ipairs(tagsBlocks) do
-                    v:remove("an")
+                        if not tag_data[j] then
+                            tag_data[j] = original_data[move_tags[j]]
+                        elseif tag_data[j]:isSome() then
+                            tag_data[j] = tag_data[j]:unwrap()
+                        elseif tag_data[j]:isNone() then
+                            tag_data[j] = style_data[move_tags[j]]
+                    end end
+                    tagsBlocks[1]:insert({ { "pos", { tag_data[1], tag_data[2] } } })
                 end
-                tagsBlocks[1]:insert({ { tag, messy_set["org"] } })
-end end end end
+            else
+                for _, b in ipairs(tagsBlocks) do
+                    b:remove("pos")
+                    b:remove("move")
+                end
 
+                if tag_data[1] and tag_data[1]:isNone() and tag_data[2] and tag_data[2]:isNone() and
+                   tag_data[3] and tag_data[3]:isNone() and tag_data[4] and tag_data[4]:isNone() then
+                    messy_set["move"] = { style_data[move_tags[1]], style_data[move_tags[2]] }
+                else
+                    for j = 1, 4 do
+                        if not tag_data[j] then
+                            tag_data[j] = original_data[move_tags[j]]
+                        elseif tag_data[j]:isSome() then
+                            tag_data[j] = tag_data[j]:unwrap()
+                        elseif tag_data[j]:isNone() then
+                            tag_data[j] = style_data[move_tags[j]]
+                    end end
+                    tagsBlocks[1]:insert({ { "move", { tag_data[1], tag_data[2], tag_data[3], tag_data[4] } } })
+            end end
+
+        elseif single_find(colour_tags, tag) then
+            ch = false
+            if tag_data[1] and tag_data[1]:isNone() and tag_data[2] and tag_data[2]:isNone() and tag_data[3] and tag_data[3]:isNone() then
+                ch = true
+                for j = i, 1, -1 do
+                    if tagsBlocks[j]:existsTag(tag) then
+                        ch = false
+                end end
+                if ch then
+                    tagsBlocks[i]:remove(tag)
+            end end
+            
+            if not ch then
+                for j = 1, 3 do
+                    if not tag_data[j] then
+                        tag_data[j] = original_data[colour_tags[tag][j]]
+                    elseif tag_data[j]:isSome() then
+                        tag_data[j] = tag_data[j]:unwrap()
+                    elseif tag_data[j]:isNone() then
+                        tag_data[j] = style_data[colour_tags[tag][j]]
+                end end
+                tagsBlocks[i]:insert({ { tag, string.format("&H%X%X%X&", tag_data[3], tag_data[1], tag_data[2]) } })
+    end end end
+
+    if messy_set["org"] then
+        for _, b in ipairs(tagsBlocks) do
+            b:remove("org")
+        end
+
+        if not (messy_set["org"][1] and messy_set["org"][1]:isNone() and messy_set["org"][2] and messy_set["org"][2]:isNone()) then
+            for j = 1, 2 do
+                if not messy_set["org"][j] then
+                    messy_set["org"][j] = messy_set["move"] and messy_set["move"][j] or original_data[org_tags[j]]
+                elseif messy_set["org"]:isSome() then
+                    messy_set["org"][j] = messy_set["org"][j]:unwrap()
+                elseif messy_set["org"]:isNone() then
+                    messy_set["org"][j] = style_data[org_tags[j]]
+            end end
+            tagsBlocks[1]:insert({ { "org", { messy_set["org"][1], messy_set["org"][2] } } })
+end end end
 
 
 
