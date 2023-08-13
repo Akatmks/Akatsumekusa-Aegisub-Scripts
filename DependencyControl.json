@@ -5,7 +5,7 @@
     "maintainer": "Akatsumekusa",
     "baseUrl": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     "url": "@{baseUrl}",
-    "fileBaseUrl": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}",
+    "fileBaseUrl": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}/",
     "macros": {
         "NN.farnhuah": {
             "channels": {
@@ -13,7 +13,7 @@
                     "files": [
                         {
                             "name": ".lua",
-                            "url": "@{fileBaseUrl}/macros/NN.farnhuah.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "8104f99f55c1f7c8e9646ba2a2dd62a952218e1b"
                         }
                     ],
@@ -49,7 +49,8 @@
             "author": "Akatsumekusa",
             "name": "farnhuah",
             "description": "farn huah jeau been",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.BackupSelection": {
             "channels": {
@@ -57,7 +58,7 @@
                     "files": [
                         {
                             "name": ".lua",
-                            "url": "@{fileBaseUrl}/macros/aka.BackupSelection.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "36d49ce48854e830c4531b05c5b623a86b8b74a4"
                         }
                     ],
@@ -81,7 +82,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "BackupSelection",
             "description": "Backup selected lines",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.BoundingBox": {
             "channels": {
@@ -89,7 +91,7 @@
                     "files": [
                         {
                             "name": ".moon",
-                            "url": "@{fileBaseUrl}/macros/aka.BoundingBox.moon",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "9bb29e202dbdb49973b0e01c4292b3ed2179f7fc"
                         }
                     ],
@@ -112,7 +114,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "BoundingBox",
             "description": "Create a clip of the bounding box of the subtitle line",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.Cycles": {
             "channels": {
@@ -120,7 +123,7 @@
                     "files": [
                         {
                             "name": ".moon",
-                            "url": "@{fileBaseUrl}/macros/aka.Cycles.moon",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "8bb2d24dda1b1a77729e545bf8da8b2be14922ad"
                         }
                     ],
@@ -149,7 +152,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "Cycles",
             "description": "Cycles tags on selected lines",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.dupe-and-not-comment": {
             "channels": {
@@ -157,7 +161,7 @@
                     "files": [
                         {
                             "name": ".lua",
-                            "url": "@{fileBaseUrl}/macros/aka.dupe-and-not-comment.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "6c7440d8cd1fff060c63b1d96e6fbec542a1b158"
                         }
                     ],
@@ -169,7 +173,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "Dupe and Not Comment",
             "description": "Duplicate selected line line by line",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         }
     },
     "modules": {
@@ -179,7 +184,7 @@
                     "files": [
                         {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/actor/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "a54ba91b26ffad702b0fd93a17c4da2eef76b7ad"
                         }
                     ],
@@ -199,7 +204,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "aka.actor",
             "description": "Module aka.actor",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespace}"
         },
         "aka.config": {
             "channels": {
@@ -207,12 +213,12 @@
                     "files": [
                         {
                             "name": "/config.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/config/config.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "47ad0bee50bc8505bcc3fa84b00de302849d40f9"
                         },
                         {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/config/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "3bce239686d9d82f960f4974dfab594d6370afbd"
                         }
                     ],
@@ -238,7 +244,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "aka.config",
             "description": "Module aka.config",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespace}"
         },
         "aka.config2": {
             "channels": {
@@ -246,17 +253,17 @@
                     "files": [
                         {
                             "name": "/config2.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/config2/config2.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "1df0f92294cd5e5493bf43ab7e215664c3d6bc46"
                         },
                         {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/config2/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "5986a9604e25335c4862a0cf74b6d179f920b3e2"
                         },
                         {
                             "name": "/json.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/config2/json.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "66004f9373847d877fe0aae5ad8a02bf7e161fef"
                         }
                     ],
@@ -282,7 +289,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "aka.config2",
             "description": "Module aka.config2",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespace}"
         },
         "aka.effil": {
             "channels": {
@@ -290,49 +298,49 @@
                     "files": [
                         {
                             "name": "/effil-osx.so",
-                            "url": "@{fileBaseUrl}/modules/aka/effil/effil-osx.so",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "8a689d202a8457f7f35f236e3b1afabed00b7551",
                             "platform": "OSX-x64"
                         },
                         {
                             "name": "/effil-osx.so",
-                            "url": "@{fileBaseUrl}/modules/aka/effil/effil-osx.so",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "8a689d202a8457f7f35f236e3b1afabed00b7551",
                             "platform": "OSX-arm"
                         },
                         {
                             "name": "/effil.dll",
-                            "url": "@{fileBaseUrl}/modules/aka/effil/effil.dll",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "eddc636e421a72f7de7164124828ffc65f065559",
                             "platform": "Windows-x64"
                         },
                         {
                             "name": "/effil.dll",
-                            "url": "@{fileBaseUrl}/modules/aka/effil/effil.dll",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "eddc636e421a72f7de7164124828ffc65f065559",
                             "platform": "Windows-arm"
                         },
                         {
                             "name": "/effil.so",
-                            "url": "@{fileBaseUrl}/modules/aka/effil/effil.so",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "40aa226581acd5dd7d28d0758cdff61f4ed41bc9",
                             "platform": "Linux-x64"
                         },
                         {
                             "name": "/effil.so",
-                            "url": "@{fileBaseUrl}/modules/aka/effil/effil.so",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "40aa226581acd5dd7d28d0758cdff61f4ed41bc9",
                             "platform": "BSD-x64"
                         },
                         {
                             "name": "/effil.so",
-                            "url": "@{fileBaseUrl}/modules/aka/effil/effil.so",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "40aa226581acd5dd7d28d0758cdff61f4ed41bc9",
                             "platform": "POSIX-x64"
                         },
                         {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/effil/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "540f75827d26c86a6961409ba3cdb0f220a76a50"
                         }
                     ],
@@ -353,7 +361,8 @@
             "author": "Mikhail Kupriyanov, Ilia Udalov",
             "name": "effil",
             "description": "Module effil",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespace}"
         },
         "aka.optimising": {
             "channels": {
@@ -361,7 +370,7 @@
                     "files": [
                         {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/optimising/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "cf7f5d2b8dd46664a6a53a94e35b8f88c375a9aa"
                         }
                     ],
@@ -381,7 +390,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "aka.optimising",
             "description": "Module aka.optimising",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespace}"
         },
         "aka.outcome": {
             "channels": {
@@ -389,7 +399,7 @@
                     "files": [
                         {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/outcome/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "99dd60e7e1506f29a382e14e09a9bc528093a66b"
                         }
                     ],
@@ -401,7 +411,8 @@
             "author": "Michael Dowling, modified by Akatsumekusa",
             "name": "aka.outcome",
             "description": "Module aka.outcome",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespace}"
         },
         "aka.request": {
             "channels": {
@@ -409,24 +420,24 @@
                     "files": [
                         {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/request/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "113fdbceca698ab41323f0e25207c2c1bf11d6d7"
                         },
                         {
                             "name": "/libcurl.dll",
-                            "url": "@{fileBaseUrl}/modules/aka/request/libcurl.dll",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "14bfd8c54e87ec8f1ae9bd029b2771bbc086caa0",
                             "platform": "Windows-x64"
                         },
                         {
                             "name": "/libcurl.dll",
-                            "url": "@{fileBaseUrl}/modules/aka/request/libcurl.dll",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "14bfd8c54e87ec8f1ae9bd029b2771bbc086caa0",
                             "platform": "Windows-arm"
                         },
                         {
                             "name": "/luajit-curl.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/request/luajit-curl.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "53d19b0c540146d96b21f099b71e57a0252dd6e0"
                         }
                     ],
@@ -447,7 +458,8 @@
             "author": "Lucien Greathouse, adapted to Aegisub environment by Akatsumekusa",
             "name": "request",
             "description": "Module request",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespace}"
         },
         "aka.singlesimple": {
             "channels": {
@@ -455,7 +467,7 @@
                     "files": [
                         {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/singlesimple/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "953c0cd83b0182fefffbfa32db6e014204d917fb"
                         }
                     ],
@@ -478,7 +490,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "aka.singlesimple",
             "description": "Module aka.singlesimple",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespace}"
         },
         "aka.threads": {
             "channels": {
@@ -486,7 +499,7 @@
                     "files": [
                         {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/threads/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "3be718e9a76d9b811e7f966de3f6831ad418ac43"
                         }
                     ],
@@ -506,7 +519,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "aka.threads",
             "description": "Module aka.threads",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespace}"
         },
         "aka.unicode": {
             "channels": {
@@ -514,7 +528,7 @@
                     "files": [
                         {
                             "name": "/init.lua",
-                            "url": "@{fileBaseUrl}/modules/aka/unicode/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "1fe930e848623f0594cc1552c2492e4fe04a9c7d"
                         }
                     ],
@@ -534,7 +548,8 @@
             "author": "Akatsumekusa and contributors",
             "name": "aka.unicode",
             "description": "Module aka.unicode",
-            "url": "@{baseUrl}"
+            "url": "@{baseUrl}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespace}"
         }
     }
 }

@@ -38,7 +38,6 @@ from pathlib import Path, PurePosixPath
 import re
 from semantic_version import Version
 import subprocess
-import sys
 
 
 repo = Repo(".")
@@ -53,7 +52,7 @@ DependencyControl = {
     "maintainer": "Akatsumekusa",
     "baseUrl": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     "url": "@{baseUrl}",
-    "fileBaseUrl": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}",
+    "fileBaseUrl": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}/",
 
     "macros": {},
     "modules": {}
@@ -236,14 +235,14 @@ if __name__ == "__main__":
                 for platform in platform_dependent_files[p.as_posix()]:
                     DependencyControl[mtype][namespace]["channels"]["master"]["files"].append({
                         "name": getNameForFilesFile(p),
-                        "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
+                        "url": "@{fileBaseUrl}@{fileName}",
                         "sha1": sha1sum(p),
                         "platform": platform
                     })
             else:
                 DependencyControl[mtype][namespace]["channels"]["master"]["files"].append({
                     "name": getNameForFilesFile(p),
-                    "url": PurePosixPath("@{fileBaseUrl}", p).as_posix(),
+                    "url": "@{fileBaseUrl}@{fileName}",
                     "sha1": sha1sum(p)
                 })
 
@@ -258,6 +257,7 @@ if __name__ == "__main__":
                 DependencyControl[mtype][namespace]["name"] = d["name"]
                 DependencyControl[mtype][namespace]["description"] = d["description"]
                 DependencyControl[mtype][namespace]["url"] = "@{baseUrl}"
+                DependencyControl[mtype][namespace]["fileBaseUrl"] = "@{fileBaseUrl}" + mtype + "/@{namespace}"
 
                 DependencyControl[mtype][namespace]["channels"]["master"]["version"] = d["version"]
                 DependencyControl[mtype][namespace]["channels"]["master"]["default"] = True
