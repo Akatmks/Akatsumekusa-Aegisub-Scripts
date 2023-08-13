@@ -5,7 +5,7 @@
     "maintainer": "Akatsumekusa",
     "baseUrl": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     "url": "@{baseUrl}",
-    "fileBaseUrl": "raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}",
+    "fileBaseUrl": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}",
     "macros": {
         "NN.farnhuah": {
             "channels": {
