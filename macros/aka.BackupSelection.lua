@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "BackupSelection"
 versioning.description = "Backup selected lines"
-versioning.version = "1.0.11"
+versioning.version = "1.0.12"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.BackupSelection"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.optimising\", \"optional\": True }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.optimising\", \"optional\": True }]"
 
 script_name = versioning.name
 script_description = versioning.description

@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.unicode"
 versioning.description = "Module aka.unicode"
-versioning.version = "1.0.3"
+versioning.version = "1.0.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.unicode"
 
-versioning.requireModules = "[{ \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"bit\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"bit\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then

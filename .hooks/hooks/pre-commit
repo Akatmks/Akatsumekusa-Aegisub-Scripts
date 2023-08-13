@@ -53,6 +53,15 @@ DependencyControl = {
     "baseUrl": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     "url": "@{baseUrl}",
     "fileBaseUrl": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}/",
+    "knownFeeds": {
+        "aka": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+        "a-mo": "https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json",
+        "ILL": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json",
+        "l0": "https://raw.githubusercontent.com/TypesettingTools/line0-Aegisub-Scripts/master/DependencyControl.json",
+        "PT": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json",
+        "requireffi": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json",
+        "SubInspector": "https://raw.githubusercontent.com/TypesettingTools/SubInspector/master/DependencyControl.json"
+    },
 
     "macros": {},
     "modules": {}
@@ -109,12 +118,12 @@ def search(p):
     with p.open("r", encoding="utf-8") as f:
         s = f.read()
         
-    for key in ["name", "description", "version", "author", "namespace", "requireModules"]:
+    for key in ["name", "description", "version", "author", "namespace", "requiredModules"]:
         match = re.search(getSearchPattern[p.suffix](key), s)
         if match:
             d[key] = re.sub("\\\\([\"\'])", "\\1", match.group(2))
         else:
-            if key == "requireModules":
+            if key == "requiredModules":
                 d[key] = None
             else:
                 return None
@@ -261,8 +270,11 @@ if __name__ == "__main__":
 
                 DependencyControl[mtype][namespace]["channels"]["master"]["version"] = d["version"]
                 DependencyControl[mtype][namespace]["channels"]["master"]["default"] = True
-                if d["requireModules"]:
-                    DependencyControl[mtype][namespace]["channels"]["master"]["requiredModules"] = eval(d["requireModules"])
+                if d["requiredModules"]:
+                    DependencyControl[mtype][namespace]["channels"]["master"]["requiredModules"] = eval(d["requiredModules"])
+                    for m in DependencyControl[mtype][namespace]["channels"]["master"]["requiredModules"]:
+                        if (m_name := m["moduleName"].split(".", maxsplit=1)[0]) in DependencyControl["knownFeeds"]:
+                            m["feed"] = "@{feed:" + m_name + "}"
                 if previousDependencyControl and \
                    namespace in previousDependencyControl[mtype] and \
                    "channels" in previousDependencyControl[mtype][namespace] and \

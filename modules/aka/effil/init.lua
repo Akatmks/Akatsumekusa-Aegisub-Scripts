@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "effil"
 versioning.description = "Module effil"
-versioning.version = "1.0.5"
+versioning.version = "1.0.6"
 versioning.author = "Mikhail Kupriyanov, Ilia Udalov"
 versioning.namespace = "aka.effil"
 
-versioning.requireModules = "[{ \"moduleName\": \"ffi\" }, { \"moduleName\": \"requireffi.requireffi\", \"version\": \"0.1.2\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"ffi\" }, { \"moduleName\": \"requireffi.requireffi\", \"version\": \"0.1.2\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then

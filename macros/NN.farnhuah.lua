@@ -20,11 +20,11 @@ local versioning = {}
 
 versioning.name = "farnhuah"
 versioning.description = "farn huah jeau been"
-versioning.version = "1.0.8"
+versioning.version = "1.0.9"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.farnhuah"
 
-versioning.requireModules = "[{ \"moduleName\": \"json\" }, { \"moduleName\": \"aka.request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.optimising\", \"optional\": True }]"
+versioning.requiredModules = "[{ \"moduleName\": \"json\" }, { \"moduleName\": \"aka.request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.optimising\", \"optional\": True }]"
 
 script_name = versioning.name
 script_description = versioning.description

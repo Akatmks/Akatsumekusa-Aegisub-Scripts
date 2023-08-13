@@ -38,11 +38,11 @@ local versioning = {}
 --                 ‎aka.config
 versioning.name = "aka.config"
 versioning.description = "Module aka.config"
-versioning.version = "1.0.8"
+versioning.version = "1.0.9"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.re\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.re\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then

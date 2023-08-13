@@ -28,11 +28,11 @@ local versioning = {}
 
 versioning.name = "request"
 versioning.description = "Module request"
-versioning.version = "1.0.11"
+versioning.version = "1.0.12"
 versioning.author = "Lucien Greathouse, adapted to Aegisub environment by Akatsumekusa"
 versioning.namespace = "aka.request"
 
-versioning.requireModules = "[{ \"moduleName\": \"ffi\" }, { \"moduleName\": \"requireffi.requireffi\", \"version\": \"0.1.2\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"ffi\" }, { \"moduleName\": \"requireffi.requireffi\", \"version\": \"0.1.2\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
