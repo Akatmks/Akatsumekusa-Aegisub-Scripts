@@ -65,7 +65,7 @@
                     "No changelog"
                 ]
             },
-            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespacePath}"
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.BackupSelection": {
             "channels": {
@@ -107,7 +107,7 @@
                     "No changelog"
                 ]
             },
-            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespacePath}"
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.BoundingBox": {
             "channels": {
@@ -133,7 +133,7 @@
                     "No changelog"
                 ]
             },
-            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespacePath}"
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.Cycles": {
             "channels": {
@@ -159,7 +159,7 @@
                     "No changelog"
                 ]
             },
-            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespacePath}"
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.dupe-and-not-comment": {
             "channels": {
@@ -185,7 +185,7 @@
                     "No changelog"
                 ]
             },
-            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespacePath}"
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         }
     },
     "modules": {
