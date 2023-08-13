@@ -257,7 +257,7 @@ if __name__ == "__main__":
                 DependencyControl[mtype][namespace]["name"] = d["name"]
                 DependencyControl[mtype][namespace]["description"] = d["description"]
                 DependencyControl[mtype][namespace]["url"] = "@{baseUrl}#@{namespace}"
-                DependencyControl[mtype][namespace]["fileBaseUrl"] = "@{fileBaseUrl}" + mtype + "/@{namespace}"
+                DependencyControl[mtype][namespace]["fileBaseUrl"] = "@{fileBaseUrl}" + mtype + "/@{namespacePath}"
 
                 DependencyControl[mtype][namespace]["channels"]["master"]["version"] = d["version"]
                 DependencyControl[mtype][namespace]["channels"]["master"]["default"] = True
