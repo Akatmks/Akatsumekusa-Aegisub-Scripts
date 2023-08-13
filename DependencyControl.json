@@ -521,14 +521,17 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "ef669dc2c90c7633dacbc362e027632c6e6af959"
+                            "sha1": "a965310abe8e097223465f0464cf70e22baa7fc1"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requiredModules": [
                         {
                             "moduleName": "aegisub.unicode"
+                        },
+                        {
+                            "moduleName": "bit"
                         }
                     ],
                     "released": "2023-08-13"
