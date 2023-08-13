@@ -6,15 +6,6 @@
     "baseUrl": "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     "url": "@{baseUrl}",
     "fileBaseUrl": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/@{channel}/",
-    "knownFeeds": {
-        "aka": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        "a-mo": "https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json",
-        "ILL": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json",
-        "l0": "https://raw.githubusercontent.com/TypesettingTools/line0-Aegisub-Scripts/master/DependencyControl.json",
-        "PT": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json",
-        "requireffi": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json",
-        "SubInspector": "https://raw.githubusercontent.com/TypesettingTools/SubInspector/master/DependencyControl.json"
-    },
     "macros": {
         "NN.farnhuah": {
             "channels": {
@@ -34,27 +25,27 @@
                         },
                         {
                             "moduleName": "aka.request",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.config",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
                         },
                         {
                             "moduleName": "aka.actor",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.optimising",
                             "optional": true,
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
                     "released": "2023-08-13"
@@ -81,7 +72,7 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.actor",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
@@ -89,7 +80,7 @@
                         {
                             "moduleName": "aka.optimising",
                             "optional": true,
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
                     "released": "2023-08-13"
@@ -181,7 +172,7 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.singlesimple",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
@@ -216,15 +207,15 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.config2",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.unicode",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
@@ -264,7 +255,7 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
@@ -346,7 +337,7 @@
                         {
                             "moduleName": "requireffi.requireffi",
                             "version": "0.1.2",
-                            "feed": "@{feed:requireffi}"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
                     "released": "2023-08-13"
@@ -373,11 +364,11 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.singlesimple",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "PT.PreciseTimer",
-                            "feed": "@{feed:PT}"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
                     "released": "2023-08-13"
@@ -446,7 +437,7 @@
                         {
                             "moduleName": "requireffi.requireffi",
                             "version": "0.1.2",
-                            "feed": "@{feed:requireffi}"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
                     "released": "2023-08-13"
@@ -473,15 +464,15 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.config2",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.effil",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
                     "released": "2023-08-13"
@@ -508,7 +499,7 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.singlesimple",
-                            "feed": "@{feed:aka}"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "ffi"
