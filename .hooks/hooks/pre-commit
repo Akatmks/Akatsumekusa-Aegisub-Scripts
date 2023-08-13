@@ -68,7 +68,7 @@ DependencyControl = {
         #             released
         #             default
         #             "files": [], # name url sha1
-        #             "requireModules": [] # moduleName
+        #             "requiredModules": [] # moduleName
         #         }
         #     }
         # }
@@ -262,7 +262,7 @@ if __name__ == "__main__":
                 DependencyControl[mtype][namespace]["channels"]["master"]["version"] = d["version"]
                 DependencyControl[mtype][namespace]["channels"]["master"]["default"] = True
                 if d["requireModules"]:
-                    DependencyControl[mtype][namespace]["channels"]["master"]["requireModules"] = eval(d["requireModules"])
+                    DependencyControl[mtype][namespace]["channels"]["master"]["requiredModules"] = eval(d["requireModules"])
                 if previousDependencyControl and \
                    namespace in previousDependencyControl[mtype] and \
                    "channels" in previousDependencyControl[mtype][namespace] and \

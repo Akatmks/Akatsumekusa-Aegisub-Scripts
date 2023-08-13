@@ -19,7 +19,7 @@
                     ],
                     "version": "1.0.8",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "json"
                         },
@@ -63,7 +63,7 @@
                     ],
                     "version": "1.0.11",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "aka.actor"
                         },
@@ -95,7 +95,7 @@
                     ],
                     "version": "1.0.3",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "ILL.ILL"
                         },
@@ -126,7 +126,7 @@
                     ],
                     "version": "1.0.6",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "a-mo.LineCollection"
                         },
@@ -185,7 +185,7 @@
                     ],
                     "version": "1.0.4",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "aka.singlesimple"
                         },
@@ -218,7 +218,7 @@
                     ],
                     "version": "1.0.8",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "aka.config2"
                         },
@@ -262,7 +262,7 @@
                     ],
                     "version": "1.0.4",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "aka.outcome"
                         },
@@ -338,7 +338,7 @@
                     ],
                     "version": "1.0.5",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "ffi"
                         },
@@ -367,7 +367,7 @@
                     ],
                     "version": "1.0.4",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "aka.singlesimple"
                         },
@@ -432,7 +432,7 @@
                     ],
                     "version": "1.0.11",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "ffi"
                         },
@@ -461,7 +461,7 @@
                     ],
                     "version": "1.0.9",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "aka.config2"
                         },
@@ -492,7 +492,7 @@
                     ],
                     "version": "1.0.2",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "aka.singlesimple"
                         },
@@ -520,7 +520,7 @@
                     ],
                     "version": "1.0.3",
                     "default": true,
-                    "requireModules": [
+                    "requiredModules": [
                         {
                             "moduleName": "aegisub.unicode"
                         },
