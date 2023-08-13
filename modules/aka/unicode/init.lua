@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.unicode"
 versioning.description = "Module aka.unicode"
-versioning.version = "1.0.4"
+versioning.version = "1.0.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.unicode"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"bit\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aegisub.unicode\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -42,8 +42,7 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
-            { "aegisub.unicode" },
-            { "bit" }
+            { "aegisub.unicode" }
         }
     }):requireModules()
 end
