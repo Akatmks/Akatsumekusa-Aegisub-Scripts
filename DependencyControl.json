@@ -60,6 +60,11 @@
             "name": "farnhuah",
             "description": "farn huah jeau been",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.9": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespacePath}"
         },
         "aka.BackupSelection": {
@@ -97,6 +102,11 @@
             "name": "BackupSelection",
             "description": "Backup selected lines",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.12": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespacePath}"
         },
         "aka.BoundingBox": {
@@ -118,6 +128,11 @@
             "name": "BoundingBox",
             "description": "Create a clip of the bounding box of the subtitle line",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.3": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespacePath}"
         },
         "aka.Cycles": {
@@ -139,6 +154,11 @@
             "name": "Cycles",
             "description": "Cycles tags on selected lines",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.6": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespacePath}"
         },
         "aka.dupe-and-not-comment": {
@@ -160,6 +180,11 @@
             "name": "Dupe and Not Comment",
             "description": "Duplicate selected line line by line",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.3": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespacePath}"
         }
     },
@@ -193,6 +218,11 @@
             "name": "aka.actor",
             "description": "Module aka.actor",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.5": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.config": {
@@ -239,6 +269,11 @@
             "name": "aka.config",
             "description": "Module aka.config",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.9": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.config2": {
@@ -286,6 +321,11 @@
             "name": "aka.config2",
             "description": "Module aka.config2",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.5": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.effil": {
@@ -359,6 +399,11 @@
             "name": "effil",
             "description": "Module effil",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.6": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.optimising": {
@@ -392,6 +437,11 @@
             "name": "aka.optimising",
             "description": "Module aka.optimising",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.5": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.outcome": {
@@ -413,6 +463,11 @@
             "name": "aka.outcome",
             "description": "Module aka.outcome",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.7": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.request": {
@@ -461,6 +516,11 @@
             "name": "request",
             "description": "Module request",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.12": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.singlesimple": {
@@ -499,6 +559,11 @@
             "name": "aka.singlesimple",
             "description": "Module aka.singlesimple",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.10": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.threads": {
@@ -530,6 +595,11 @@
             "name": "aka.threads",
             "description": "Module aka.threads",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.3": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.unicode": {
@@ -559,6 +629,11 @@
             "name": "aka.unicode",
             "description": "Module aka.unicode",
             "url": "@{baseUrl}#@{namespace}",
+            "changelog": {
+                "1.0.6": [
+                    "No changelog"
+                ]
+            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         }
     }
