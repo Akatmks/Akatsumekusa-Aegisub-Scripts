@@ -144,10 +144,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "c2a957a9dfd86da3416ec5230d0d2b395182fd5a"
+                            "sha1": "af7275bfc9b79aaa29cb269c450440b39d87a796"
                         }
                     ],
-                    "version": "1.0.9",
+                    "version": "1.0.10",
                     "default": true,
                     "requiredModules": [
                         {
@@ -180,7 +180,7 @@
                 }
             },
             "author": "Akatsumekusa and contributors",
-            "name": "Cycles.aka",
+            "name": "Cycles.a",
             "description": "Cycles tags on selected lines",
             "url": "@{baseUrl}#@{namespace}",
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
