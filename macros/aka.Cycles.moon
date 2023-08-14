@@ -24,10 +24,10 @@
 versioning =
   name: "Cycles"
   description: "Cycles tags on selected lines"
-  version: "1.0.6"
+  version: "1.0.7"
   author: "Akatsumekusa and contributors"
   namespace: "aka.Cycles"
-  requireModules: "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }]"
+  requiredModules: "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }]"
 
 export script_name = versioning.name
 export script_description = versioning.description

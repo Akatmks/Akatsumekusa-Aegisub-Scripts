@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "effil"
 versioning.description = "Module effil"
-versioning.version = "1.0.6"
+versioning.version = "1.0.7"
 versioning.author = "Mikhail Kupriyanov, Ilia Udalov"
 versioning.namespace = "aka.effil"
 
@@ -45,7 +45,7 @@ if hasDepCtrl then
             { "ffi" },
             { "requireffi.requireffi", version = "0.1.2" }
         }
-    })
+    }):requireModules()
 end
 local ffi = require("ffi")
 local requireffi = require("requireffi.requireffi")

@@ -116,12 +116,29 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "9bb29e202dbdb49973b0e01c4292b3ed2179f7fc"
+                            "sha1": "286383b5c1eaa151ad1c3e08a9ac4096179fa2ff"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.4",
                     "default": true,
-                    "released": "2023-07-12"
+                    "requiredModules": [
+                        {
+                            "moduleName": "ILL.ILL",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "SubInspector.Inspector",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/SubInspector/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "aka.outcome",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        }
+                    ],
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -142,12 +159,39 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "8bb2d24dda1b1a77729e545bf8da8b2be14922ad"
+                            "sha1": "89255e4f1b38cb0c071d2d7c03a72a3a40a66c88"
                         }
                     ],
-                    "version": "1.0.6",
+                    "version": "1.0.7",
                     "default": true,
-                    "released": "2023-07-18"
+                    "requiredModules": [
+                        {
+                            "moduleName": "a-mo.LineCollection",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "l0.ASSFoundation",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/line0-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "aka.actor",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "aka.config",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "aka.outcome",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        }
+                    ],
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -377,10 +421,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "7ed9f6d7a93a0b5e03aea40cc64a7da1b493fdc3"
+                            "sha1": "da8998162cb34be980f9d5dcf6d54cc5ee2eaf0e"
                         }
                     ],
-                    "version": "1.0.6",
+                    "version": "1.0.7",
                     "default": true,
                     "requiredModules": [
                         {
@@ -392,7 +436,7 @@
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Mikhail Kupriyanov, Ilia Udalov",
