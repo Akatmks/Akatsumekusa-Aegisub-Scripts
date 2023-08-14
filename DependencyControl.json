@@ -146,7 +146,7 @@
             "description": "Create a clip of the bounding box of the subtitle line",
             "url": "@{baseUrl}#@{namespace}",
             "changelog": {
-                "1.0.3": [
+                "1.0.4": [
                     "No changelog"
                 ]
             },
@@ -199,7 +199,7 @@
             "description": "Cycles tags on selected lines",
             "url": "@{baseUrl}#@{namespace}",
             "changelog": {
-                "1.0.6": [
+                "1.0.7": [
                     "No changelog"
                 ]
             },
@@ -421,10 +421,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "da8998162cb34be980f9d5dcf6d54cc5ee2eaf0e"
+                            "sha1": "ba3838107673c3298c0c9e00085f77e4d744c7a6"
                         }
                     ],
-                    "version": "1.0.7",
+                    "version": "1.0.8",
                     "default": true,
                     "requiredModules": [
                         {
@@ -444,7 +444,7 @@
             "description": "Module effil",
             "url": "@{baseUrl}#@{namespace}",
             "changelog": {
-                "1.0.6": [
+                "1.0.7": [
                     "No changelog"
                 ]
             },
@@ -574,10 +574,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "51a0faa7226304e2c184a4045548ed4890adcf3d"
+                            "sha1": "77e1ba2d2d40a079559f18ed66063e40a2012e6c"
                         }
                     ],
-                    "version": "1.0.10",
+                    "version": "1.0.11",
                     "default": true,
                     "requiredModules": [
                         {
@@ -596,7 +596,7 @@
                             "version": "0.0.1"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",

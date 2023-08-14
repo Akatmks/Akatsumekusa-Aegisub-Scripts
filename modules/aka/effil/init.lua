@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "effil"
 versioning.description = "Module effil"
-versioning.version = "1.0.7"
+versioning.version = "1.0.8"
 versioning.author = "Mikhail Kupriyanov, Ilia Udalov"
 versioning.namespace = "aka.effil"
 
@@ -57,4 +57,4 @@ else
     effil = requireffi("aka.effil.effil")
 end
 
-return effil
+return function() return effil end

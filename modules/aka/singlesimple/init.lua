@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "1.0.10"
+versioning.version = "1.0.11"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
@@ -52,7 +52,7 @@ end
 local aconfig = require("aka.config2")
 local outcome = require("aka.outcome")
 local ok, err = outcome.ok, outcome.err
-local effil = require("aka.effil")
+local effil = require("aka.effil")()
 
 local make_config
 
