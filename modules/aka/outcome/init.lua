@@ -35,24 +35,19 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "1.0.7"
+versioning.version = "1.0.8"
 versioning.author = "Michael Dowling, modified by Akatsumekusa"
 versioning.namespace = "aka.outcome"
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-  DepCtrl({
-    name = versioning.name,
-    description = versioning.description,
-    version = versioning.version,
-    author = versioning.author,
-    moduleName = versioning.namespace,
-    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-  })
-end
-
-outcome.versioning = versioning
+local version = require("l0.DependencyControl")({
+  name = versioning.name,
+  description = versioning.description,
+  version = versioning.version,
+  author = versioning.author,
+  moduleName = versioning.namespace,
+  url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+  feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+})
 
 local type, error, pcall, string = type, error, pcall, string
 local setmetatable, getmetatable = setmetatable, getmetatable
@@ -1065,4 +1060,7 @@ function outcome.o(...)
   end
 end
 
-return outcome
+outcome.version = version
+outcome.versioning = versioning
+
+return version:register(outcome)

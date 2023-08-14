@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Dupe and Not Comment"
 versioning.description = "Duplicate selected line line by line"
-versioning.version = "1.0.3"
+versioning.version = "1.0.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.dupe-and-not-comment"
 
@@ -35,18 +35,15 @@ script_version = versioning.version
 script_author = versioning.author
 script_namespace = versioning.namespace
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl = DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
-    })
-end
+DepCtrl = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+})
 
 local Dupe
 
@@ -64,10 +61,4 @@ Dupe = function(sub, sel, act)
     return sel, act
 end
 
-if hasDepCtrl then
-    DepCtrl:registerMacros({
-        { "Do", "Duplicate selected line line by line", Dupe }
-    })
-else
-    aegisub.register_macro("Dupe and Not Comment/Do", "Duplicate selected line line by line", Dupe)
-end
+DepCtrl:registerMacro(Dupe)

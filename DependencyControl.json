@@ -14,10 +14,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "e6fa1c3b87151e4ef40f5ec80cdb65055a38dbdd"
+                            "sha1": "26e187c23617c11b3bc81999faa61d5e8a452a4a"
                         }
                     ],
-                    "version": "1.0.9",
+                    "version": "1.0.10",
                     "default": true,
                     "requiredModules": [
                         {
@@ -53,18 +53,13 @@
                             "version": "0.0.1"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa",
             "name": "farnhuah",
             "description": "farn huah jeau been",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.9": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.BackupSelection": {
@@ -74,10 +69,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "7e720e0261e8142a06eb4220c1539dacd9cab32b"
+                            "sha1": "57b6a08fe1aa9ba6233af2a44ac7585eb51cd184"
                         }
                     ],
-                    "version": "1.0.12",
+                    "version": "1.0.13",
                     "default": true,
                     "requiredModules": [
                         {
@@ -95,18 +90,13 @@
                             "version": "0.0.1"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "BackupSelection",
             "description": "Backup selected lines",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.12": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.BoundingBox": {
@@ -116,10 +106,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "286383b5c1eaa151ad1c3e08a9ac4096179fa2ff"
+                            "sha1": "bc9a0b043b95a49b7522e27fa9da10d1b5634c58"
                         }
                     ],
-                    "version": "1.0.4",
+                    "version": "1.0.5",
                     "default": true,
                     "requiredModules": [
                         {
@@ -145,11 +135,6 @@
             "name": "BoundingBox",
             "description": "Create a clip of the bounding box of the subtitle line",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.4": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.Cycles": {
@@ -159,10 +144,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "4eee16784376e71eaaecfd71fec9f60c5c614340"
+                            "sha1": "c2a957a9dfd86da3416ec5230d0d2b395182fd5a"
                         }
                     ],
-                    "version": "1.0.8",
+                    "version": "1.0.9",
                     "default": true,
                     "requiredModules": [
                         {
@@ -198,11 +183,6 @@
             "name": "Cycles.aka",
             "description": "Cycles tags on selected lines",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.7": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
         "aka.dupe-and-not-comment": {
@@ -212,23 +192,18 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "6c7440d8cd1fff060c63b1d96e6fbec542a1b158"
+                            "sha1": "dd22649e067ebf5ec13b87ed08d36171b752189c"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.4",
                     "default": true,
-                    "released": "2023-07-12"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "Dupe and Not Comment",
             "description": "Duplicate selected line line by line",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.3": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         }
     },
@@ -240,10 +215,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "e5dc0bdc96615bb027ab34c394b0959a381acc76"
+                            "sha1": "6e2f9c69a3d4a658a84a9a62855c41ed78f6b08d"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requiredModules": [
                         {
@@ -255,18 +230,13 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.actor",
             "description": "Module aka.actor",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.5": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.config": {
@@ -281,10 +251,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "204fb51008df4f1b3d0614bf7952478871201e8f"
+                            "sha1": "8b146ebec2576cc0e7a04e5fa65408ea5353bb33"
                         }
                     ],
-                    "version": "1.0.9",
+                    "version": "1.0.10",
                     "default": true,
                     "requiredModules": [
                         {
@@ -306,18 +276,13 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.config",
             "description": "Module aka.config",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.9": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.config2": {
@@ -332,7 +297,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "28885fa1cc54f5f2d349b37da87219ff65f6f9a6"
+                            "sha1": "b9fc536bde9f570a9405cd5f7dd91827665bf086"
                         },
                         {
                             "name": "/json.lua",
@@ -340,7 +305,7 @@
                             "sha1": "66004f9373847d877fe0aae5ad8a02bf7e161fef"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requiredModules": [
                         {
@@ -358,18 +323,13 @@
                             "moduleName": "lfs"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.config2",
             "description": "Module aka.config2",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.5": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.effil": {
@@ -421,10 +381,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "ba3838107673c3298c0c9e00085f77e4d744c7a6"
+                            "sha1": "267b15ffdea6b18feb3953af390b69dd9d8e48d5"
                         }
                     ],
-                    "version": "1.0.8",
+                    "version": "1.0.9",
                     "default": true,
                     "requiredModules": [
                         {
@@ -443,11 +403,6 @@
             "name": "effil",
             "description": "Module effil",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.8": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.optimising": {
@@ -457,10 +412,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "7a72ce80108f80820838517679746864f57c14c4"
+                            "sha1": "5b862d7d269b9d8277cfb44e84a427caf8f5eecd"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requiredModules": [
                         {
@@ -474,18 +429,13 @@
                             "version": "0.0.1"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.optimising",
             "description": "Module aka.optimising",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.5": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.outcome": {
@@ -495,23 +445,18 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "99dd60e7e1506f29a382e14e09a9bc528093a66b"
+                            "sha1": "2cee944e465fc8e7f0c4f15e352080eb601a265d"
                         }
                     ],
-                    "version": "1.0.7",
+                    "version": "1.0.8",
                     "default": true,
-                    "released": "2023-07-19"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Michael Dowling, modified by Akatsumekusa",
             "name": "aka.outcome",
             "description": "Module aka.outcome",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.7": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.request": {
@@ -521,7 +466,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "aa49ae43b4cdde72cbd6f210d877a0180c4b2090"
+                            "sha1": "261a44ddd56bf20ec8dac224d2c669187ed4acec"
                         },
                         {
                             "name": "/libcurl.dll",
@@ -541,7 +486,7 @@
                             "sha1": "53d19b0c540146d96b21f099b71e57a0252dd6e0"
                         }
                     ],
-                    "version": "1.0.12",
+                    "version": "1.0.13",
                     "default": true,
                     "requiredModules": [
                         {
@@ -553,18 +498,13 @@
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Lucien Greathouse, adapted to Aegisub environment by Akatsumekusa",
             "name": "request",
             "description": "Module request",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.12": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.singlesimple": {
@@ -574,10 +514,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "77e1ba2d2d40a079559f18ed66063e40a2012e6c"
+                            "sha1": "cfbcc3506f38f4663d3e7f6b986e2363a32f71d8"
                         }
                     ],
-                    "version": "1.0.11",
+                    "version": "1.0.12",
                     "default": true,
                     "requiredModules": [
                         {
@@ -603,11 +543,6 @@
             "name": "aka.singlesimple",
             "description": "Module aka.singlesimple",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.11": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.threads": {
@@ -617,10 +552,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "8ff42b536a4983b66522a2712b576dfe4361d152"
+                            "sha1": "df70c1744fed21e59983dbb137cc2a31e32acc6f"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.4",
                     "default": true,
                     "requiredModules": [
                         {
@@ -632,18 +567,13 @@
                             "moduleName": "ffi"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.threads",
             "description": "Module aka.threads",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.3": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
         "aka.unicode": {
@@ -653,10 +583,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "a965310abe8e097223465f0464cf70e22baa7fc1"
+                            "sha1": "05d494990c5d2574c835f27107a4522a3be6b343"
                         }
                     ],
-                    "version": "1.0.6",
+                    "version": "1.0.7",
                     "default": true,
                     "requiredModules": [
                         {
@@ -666,18 +596,13 @@
                             "moduleName": "bit"
                         }
                     ],
-                    "released": "2023-08-13"
+                    "released": "2023-08-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.unicode",
             "description": "Module aka.unicode",
             "url": "@{baseUrl}#@{namespace}",
-            "changelog": {
-                "1.0.6": [
-                    "No changelog"
-                ]
-            },
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         }
     }

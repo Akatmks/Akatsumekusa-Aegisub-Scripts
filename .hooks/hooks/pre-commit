@@ -266,7 +266,6 @@ if __name__ == "__main__":
                 DependencyControl[mtype][namespace]["name"] = d["name"]
                 DependencyControl[mtype][namespace]["description"] = d["description"]
                 DependencyControl[mtype][namespace]["url"] = "@{baseUrl}#@{namespace}"
-                DependencyControl[mtype][namespace]["changelog"] = { d["version"]: [ "No changelog" ] }
                 if mtype == "macros":
                     DependencyControl[mtype][namespace]["fileBaseUrl"] = "@{fileBaseUrl}" + mtype + "/@{namespace}"
                 else:

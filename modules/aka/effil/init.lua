@@ -25,30 +25,26 @@ local versioning = {}
 
 versioning.name = "effil"
 versioning.description = "Module effil"
-versioning.version = "1.0.8"
+versioning.version = "1.0.9"
 versioning.author = "Mikhail Kupriyanov, Ilia Udalov"
 versioning.namespace = "aka.effil"
 
 versioning.requiredModules = "[{ \"moduleName\": \"ffi\" }, { \"moduleName\": \"requireffi.requireffi\", \"version\": \"0.1.2\" }]"
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "ffi" },
-            { "requireffi.requireffi", version = "0.1.2" }
-        }
-    }):requireModules()
-end
-local ffi = require("ffi")
-local requireffi = require("requireffi.requireffi")
+local version = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "ffi" },
+        { "requireffi.requireffi", version = "0.1.2" }
+    }
+})
+local ffi, requireffi = version:requireModules()
 
 local effil
 if ffi.os == "OSX" then
@@ -57,4 +53,13 @@ else
     effil = requireffi("aka.effil.effil")
 end
 
-return function() return effil end
+local functions = {}
+
+functions.effil = function()
+    return effil
+end
+
+functions.version = version
+functions.versioning = versioning
+
+return version:register(functions)

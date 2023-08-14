@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "BackupSelection"
 versioning.description = "Backup selected lines"
-versioning.version = "1.0.12"
+versioning.version = "1.0.13"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.BackupSelection"
 
@@ -37,27 +37,21 @@ script_version = versioning.version
 script_author = versioning.author
 script_namespace = versioning.namespace
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl = DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "aka.actor" },
-            { "aegisub.re" },
-            { "aka.optimising", optional = true }
-        }
-    })
-    DepCtrl:requireModules()
-end
-local aactor = require("aka.actor")
-local re = require("aegisub.re")
-local hasOptimising, optimising = pcall(require, "aka.optimising")
+DepCtrl = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "aka.actor" },
+        { "aegisub.re" },
+        { "aka.optimising", optional = true }
+    }
+})
+local aactor, re, optimising = DepCtrl:requireModules()
 
 local Backup
 local backup
@@ -69,12 +63,12 @@ Backup = function(sub, sel, act)
     local i
     local j
     
-    if hasOptimising then optimising.start() end
+    if optimising then optimising.start() end
 
     j = #sel repeat
         i = 1 repeat
             if j - i == sel[j] - sel[i] then
-                if hasOptimising then optimising.lap("Backup line " .. tostring(i) .. " to " .. tostring(j)) end
+                if optimising then optimising.lap("Backup line " .. tostring(i) .. " to " .. tostring(j)) end
                 
                 sel, act = backup(sub, sel, act, sel[i], sel[j])
                 j = i - 1
@@ -83,7 +77,7 @@ Backup = function(sub, sel, act)
         until false
     until j == 0
     
-    if hasOptimising then optimising.lap("Backup finished") end
+    if optimising then optimising.lap("Backup finished") end
     return sel, act
 end
 backup = function(sub, sel, act, i, j)
@@ -155,12 +149,7 @@ Field = function()
     end
 end
 
-if hasDepCtrl then
-    DepCtrl:registerMacros({
-        { "Backup", "Backup selected lines", Backup },
-        { "Edit settings", "Edit backup settings", Field }
-    })
-else
-    aegisub.register_macro("BackupSelection/Backup", "Backup selected lines", Backup)
-    aegisub.register_macro("BackupSelection/Edit settings", "Edit backup settings", Field)
-end
+DepCtrl:registerMacros({
+    { "Backup", "Backup selected lines", Backup },
+    { "Edit settings", "Edit backup settings", Field }
+})

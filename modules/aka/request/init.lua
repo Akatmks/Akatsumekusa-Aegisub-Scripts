@@ -28,28 +28,26 @@ local versioning = {}
 
 versioning.name = "request"
 versioning.description = "Module request"
-versioning.version = "1.0.12"
+versioning.version = "1.0.13"
 versioning.author = "Lucien Greathouse, adapted to Aegisub environment by Akatsumekusa"
 versioning.namespace = "aka.request"
 
 versioning.requiredModules = "[{ \"moduleName\": \"ffi\" }, { \"moduleName\": \"requireffi.requireffi\", \"version\": \"0.1.2\" }]"
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "ffi" },
-            { "requireffi.requireffi", version = "0.1.2" }
-        }
-    }):requireModules()
-end
+local version = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "ffi" },
+        { "requireffi.requireffi", version = "0.1.2" }
+    }
+})
+version:requireModules()
 
 local path = (...):gsub("%.init$", ""):match("%.?(.-)$") .. "."
 
@@ -421,6 +419,7 @@ request = {
 
 request.init()
 
+request.version = version
 request.versioning = versioning
 
-return request
+return version:register(request)

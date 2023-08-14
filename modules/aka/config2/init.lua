@@ -29,33 +29,32 @@ local versioning = {}
 
 versioning.name = "aka.config2"
 versioning.description = "Module aka.config2"
-versioning.version = "1.0.5"
+versioning.version = "1.0.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config2"
 
 versioning.requiredModules = "[{ \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"lfs\" }]"
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "aka.outcome" },
-            { "aegisub.re" },
-            { "aegisub.unicode" },
-            { "lfs" }
-        }
-    }):requireModules()
-end
+local version = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "aka.outcome" },
+        { "aegisub.re" },
+        { "aegisub.unicode" },
+        { "lfs" }
+    }
+})
+version:requireModules()
 
 local config2 = require("aka.config2.config2")
 
+config2.version = version
 config2.versioning = versioning
 
-return config2
+return version:register(config2)

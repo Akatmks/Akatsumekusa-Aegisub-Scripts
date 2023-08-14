@@ -25,34 +25,32 @@ local versioning = {}
 
 versioning.name = "aka.singlesimple"
 versioning.description = "Module aka.singlesimple"
-versioning.version = "1.0.11"
+versioning.version = "1.0.12"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.singlesimple"
 
 versioning.requiredModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.effil\" }]"
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "aka.config2" },
-            { "aka.outcome" },
-            { "aka.effil" }
-        }
-    }):requireModules()
-end
+local version = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "aka.config2" },
+        { "aka.outcome" },
+        { "aka.effil" }
+    }
+})
+version:requireModules()
 
 local aconfig = require("aka.config2")
 local outcome = require("aka.outcome")
 local ok, err = outcome.ok, outcome.err
-local effil = require("aka.effil")()
+local effil = require("aka.effil").effil()
 
 local make_config
 
@@ -139,8 +137,9 @@ end
 
 local functions = {}
 
-functions.versioning = versioning
-
 functions.make_config = make_config
 
-return functions
+functions.version = version
+functions.versioning = versioning
+
+return version:register(functions)

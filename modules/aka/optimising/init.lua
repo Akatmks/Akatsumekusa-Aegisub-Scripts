@@ -25,28 +25,26 @@ local versioning = {}
 
 versioning.name = "aka.optimising"
 versioning.description = "Module aka.optimising"
-versioning.version = "1.0.5"
+versioning.version = "1.0.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.optimising"
 
 versioning.requiredModules = "[{ \"moduleName\": \"aka.singlesimple\" }, { \"moduleName\": \"PT.PreciseTimer\" }]"
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "aka.singlesimple" },
-            { "PT.PreciseTimer" }
-        }
-    }):requireModules()
-end
+local version = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "aka.singlesimple" },
+        { "PT.PreciseTimer" }
+    }
+})
+version:requireModules()
 
 local PT = require("PT.PreciseTimer")
 local ssconfig = require("aka.singlesimple").make_config("aka.optimising", { true, false }, false)
@@ -67,11 +65,12 @@ end end
 
 local functions = {}
 
-functions.versioning = versioning
-
 functions.start = start
 functions.lap = lap
 
 functions.ssconfig = ssconfig
 
-return functions
+functions.version = version
+functions.versioning = versioning
+
+return version:register(functions)
