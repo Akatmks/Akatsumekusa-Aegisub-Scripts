@@ -3,8 +3,6 @@
 </tr><tr>
 <td>
 
-***DependencyControl***  
-`https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json`  
 ***Motion Tracking***  
 – [aae-export](#aae-export)  
 ***Typesetting Aid***  
@@ -114,7 +112,6 @@ On first launch, NN.farnhuah will show a configuration window. Create your own c
 tkinter_alternatives.py is a fix for Aegisub VapourSynth Default Video Script if your Python installation does not come with Tkinter.
 
 [Download](vapoursynth/tkinter_alternatives.py) the file and put it in `automation/vapoursynth` in your Aegisub install location.  
-You will also find a `aegisub_vs.py` file in the folder. [Download](https://github.com/arch1t3cht/Aegisub/blob/vapoursynth/automation/vapoursynth/aegisub_vs.py) the updated script from arch1t3cht/Aegisub and replace the existing `aegisub_vs.py` file.  
 
 Open Aegisub, open „View > Options“ and select „VapourSynth“. In „Default Video Script“, find the import aegisub_vs line:  
 ```python
