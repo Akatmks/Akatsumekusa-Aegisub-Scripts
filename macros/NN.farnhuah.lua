@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "farnhuah"
 versioning.description = "farn huah jeau been"
-versioning.version = "1.0.10"
+versioning.version = "1.0.11"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.farnhuah"
 
@@ -50,7 +50,7 @@ DepCtrl = require("l0.DependencyControl")({
         { "aka.optimising", optional = true }
     }
 })
-local json, request, aactor, aconfig, outcome, re, optimising = DepCtrl:requireModules()
+local json, request, aconfig, outcome, re, aactor, optimising = DepCtrl:requireModules()
 local ok, err = outcome.ok, outcome.err
 
 

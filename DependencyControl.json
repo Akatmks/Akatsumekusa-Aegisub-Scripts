@@ -14,10 +14,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "26e187c23617c11b3bc81999faa61d5e8a452a4a"
+                            "sha1": "9aa1fb7116ee713fb6b43cbb530e25dd73da3277"
                         }
                     ],
-                    "version": "1.0.10",
+                    "version": "1.0.11",
                     "default": true,
                     "requiredModules": [
                         {
