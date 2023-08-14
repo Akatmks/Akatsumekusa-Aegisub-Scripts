@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------------
 
 versioning =
-  name: "Cycles"
+  name: "Cycles.aka"
   description: "Cycles tags on selected lines"
-  version: "1.0.7"
+  version: "1.0.8"
   author: "Akatsumekusa and contributors"
   namespace: "aka.Cycles"
   requiredModules: "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }]"

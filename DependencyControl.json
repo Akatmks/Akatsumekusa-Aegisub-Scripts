@@ -159,10 +159,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "89255e4f1b38cb0c071d2d7c03a72a3a40a66c88"
+                            "sha1": "4eee16784376e71eaaecfd71fec9f60c5c614340"
                         }
                     ],
-                    "version": "1.0.7",
+                    "version": "1.0.8",
                     "default": true,
                     "requiredModules": [
                         {
@@ -195,7 +195,7 @@
                 }
             },
             "author": "Akatsumekusa and contributors",
-            "name": "Cycles",
+            "name": "Cycles.aka",
             "description": "Cycles tags on selected lines",
             "url": "@{baseUrl}#@{namespace}",
             "changelog": {
@@ -444,7 +444,7 @@
             "description": "Module effil",
             "url": "@{baseUrl}#@{namespace}",
             "changelog": {
-                "1.0.7": [
+                "1.0.8": [
                     "No changelog"
                 ]
             },
@@ -604,7 +604,7 @@
             "description": "Module aka.singlesimple",
             "url": "@{baseUrl}#@{namespace}",
             "changelog": {
-                "1.0.10": [
+                "1.0.11": [
                     "No changelog"
                 ]
             },
