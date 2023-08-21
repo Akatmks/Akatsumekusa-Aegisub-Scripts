@@ -1,4 +1,4 @@
--- aka.unicode
+-- aka.unsemantic
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -23,13 +23,13 @@
 
 local versioning = {}
 
-versioning.name = "aka.unicode"
-versioning.description = "Module aka.unicode"
-versioning.version = "1.0.8"
+versioning.name = "aka.unsemantic"
+versioning.description = "Module aka.unsemantic"
+versioning.version = "1.0.1"
 versioning.author = "Akatsumekusa and contributors"
-versioning.namespace = "aka.unicode"
+versioning.namespace = "aka.unsemantic"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"bit\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"lpeg\" }]"
 
 local version = require("l0.DependencyControl")({
     name = versioning.name,
@@ -40,42 +40,52 @@ local version = require("l0.DependencyControl")({
     url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
-        { "aegisub.unicode" },
-        { "bit" }
+        { "lpeg" }
     }
 })
-local unicode, bit = version:requireModules()
+local lpeg = version:requireModules()
+local C, P, R = lpeg.C, lpeg.P, lpeg.R
 
-unicode.char = function(codepoint)
-    local byte1
-    local byte2
-    local byte3
-    local byte4
+local version_number_match = C(R"09"^1)/tonumber
+local version_dot = P"."
+local version_match = version_number_match*version_dot*version_number_match*version_dot*version_number_match
 
-    if codepoint < 0 then
-        error("[aka.unicode] Invalid UTF-8 codepoint")
-    elseif codepoint <= 0x7F then
-        return string.char(codepoint)
-    elseif codepoint <= 0x7FF then
-        byte1 = 0xC0 + bit.rshift(codepoint, 6)
-        byte2 = 0x80 + bit.band(codepoint, 0x3F)
-        return string.char(byte1, byte2)
-    elseif codepoint <= 0xFFFF then
-        byte1 = 0xE0 + bit.rshift(codepoint, 12)
-        byte2 = 0x80 + bit.band(bit.rshift(codepoint, 6), 0x3F)
-        byte3 = 0x80 + bit.band(codepoint, 0x3F)
-        return string.char(byte1, byte2, byte3)
-    elseif codepoint <= 0x10FFFF then
-        byte1 = 0xF0 + bit.rshift(codepoint, 18)
-        byte2 = 0x80 + bit.band(bit.rshift(codepoint, 12), 0x3F)
-        byte3 = 0x80 + bit.band(bit.rshift(codepoint, 6), 0x3F)
-        byte4 = 0x80 + bit.band(codepoint, 0x3F)
-        return string.char(byte1, byte2, byte3, byte4)
-    else
-        error("[aka.unicode] Invalid UTF-8 codepoint")
-end end
+local mt
+local V
+mt = {
+    __index = mt,
+    __eq = function(lhs, rhs)
+        return lhs.major == rhs.major and
+               lhs.minor == rhs.minor and
+               lhs.patch == rhs.patch
+    end,
+    __lt = function(lhs, rhs)
+        return lhs.major < rhs.major or
+               lhs.minor < rhs.minor or
+               lhs.patch < rhs.patch
+    end,
+    __le = function(lhs, rhs)
+        return lhs.major <= rhs.major or
+               lhs.minor <= rhs.minor or
+               lhs.patch <= rhs.patch
+    end
+}
+V = function(version_str)
+    local t
 
-unicode.version = version
-unicode.versioning = versioning
+    t = {}
+    t.major, t.minor, t.patch = version_match:match(version_str)
 
-return version:register(unicode)
+    setmetatable(t, mt)
+
+    return t
+end
+
+local unsemantic = {}
+
+unsemantic.V = V
+
+unsemantic.version = version
+unsemantic.versioning = versioning
+
+return version:register(unsemantic)

@@ -106,10 +106,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "bc9a0b043b95a49b7522e27fa9da10d1b5634c58"
+                            "sha1": "b245b051330a979c7715553b1b3a9f62281df1e3"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requiredModules": [
                         {
@@ -128,7 +128,7 @@
                             "version": "0.0.1"
                         }
                     ],
-                    "released": "2023-08-14"
+                    "released": "2023-08-21"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -583,10 +583,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "05d494990c5d2574c835f27107a4522a3be6b343"
+                            "sha1": "72a04774d93b1c1041a55510b764aeedc8db2b51"
                         }
                     ],
-                    "version": "1.0.7",
+                    "version": "1.0.8",
                     "default": true,
                     "requiredModules": [
                         {
@@ -596,12 +596,38 @@
                             "moduleName": "bit"
                         }
                     ],
-                    "released": "2023-08-14"
+                    "released": "2023-08-21"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.unicode",
             "description": "Module aka.unicode",
+            "url": "@{baseUrl}#@{namespace}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
+        },
+        "aka.unsemantic": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "34f756275109c20c325391cacf49019f6308341b"
+                        }
+                    ],
+                    "version": "1.0.1",
+                    "default": true,
+                    "requiredModules": [
+                        {
+                            "moduleName": "lpeg"
+                        }
+                    ],
+                    "released": "2023-08-21"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.unsemantic",
+            "description": "Module aka.unsemantic",
             "url": "@{baseUrl}#@{namespace}",
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         }
