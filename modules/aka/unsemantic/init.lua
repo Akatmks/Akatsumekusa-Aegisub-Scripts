@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.unsemantic"
 versioning.description = "Module aka.unsemantic"
-versioning.version = "1.0.1"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.unsemantic"
 
@@ -46,9 +46,10 @@ local version = require("l0.DependencyControl")({
 local lpeg = version:requireModules()
 local C, P, R = lpeg.C, lpeg.P, lpeg.R
 
-local version_number_match = C(R"09"^1)/tonumber
-local version_dot = P"."
-local version_match = version_number_match*version_dot*version_number_match*version_dot*version_number_match
+local number = C(R"09"^1)/tonumber
+local dot = P"."
+local version_match = number*dot*number*dot*number
+local two_number_version_match = number*dot*number
 
 local mt
 local V
@@ -75,6 +76,13 @@ V = function(version_str)
 
     t = {}
     t.major, t.minor, t.patch = version_match:match(version_str)
+    if not t.major then
+        t.major, t.minor = two_number_version_match:match(version_str)
+        t.patch = -1
+
+        if not t.major then
+            error("[aka.unsemantic] Invalid version format.")
+    end end
 
     setmetatable(t, mt)
 

@@ -3,6 +3,8 @@
 </tr><tr>
 <td>
 
+***DependencyControl***  
+`https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json`  
 ***Motion Tracking***  
 – [aae-export](#aae-export)  
 ***Typesetting Aid***  
@@ -27,6 +29,7 @@
 – [aka.outcome](#akaoutcome)  
 – [aka.threads](#akathreads)  
 – [aka.unicode](#akaunicode)  
+– [aka.unsemantic](#akaunsemantic)  
 ***Thirdparty Modules***  
 – [effil](#effil)  
 – [request](#request)  
@@ -218,6 +221,21 @@ threads.setThreads(8)
 ## aka.unicode
 
 aka.unicode extends aegisub.unicode with a `unicode.char(codepoint)` function to turn codepoints back to characters.  
+
+## aka.unsemantic
+
+aka.unsemantic is a version compare module that supports basic version format with two or three positive numbers separated by periods.  
+
+```lua
+V = require("aka.unsemantic").V
+assert(V"1.1.2" > V"1.0.24")
+```
+
+Two-number version is treated as three-number version with a patch number of `-1``.  
+
+```lua
+assert(V"2.1.0" > V"2.1")
+```
 
 ## effil
 
