@@ -22,12 +22,12 @@
 ------------------------------------------------------------------------------
 
 versioning =
-  name: "Cycles"
+  name: "Cycles.a"
   description: "Cycles tags on selected lines"
-  version: "1.0.6"
+  version: "1.0.11"
   author: "Akatsumekusa and contributors"
   namespace: "aka.Cycles"
-  requireModules: "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }]"
+  requiredModules: "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }]"
 
 export script_name = versioning.name
 export script_description = versioning.description
@@ -35,31 +35,23 @@ export script_version = versioning.version
 export script_author = versioning.author
 export script_namespace = versioning.namespace
 
-hasDepCtrl, DepCtrl = pcall require, "l0.DependencyControl"
-if hasDepCtrl
-  DepCtrl = DepCtrl {
-    name: versioning.name,
-    description: versioning.description,
-    version: versioning.version,
-    author: versioning.author,
-    moduleName: versioning.namespace,
-    url: "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-    feed: "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-    {
-      { "a-mo.LineCollection" },
-      { "l0.ASSFoundation" },
-      { "aka.actor" },
-      { "aka.config" },
-      { "aka.outcome" }
-    }
+DepCtrl = (require "l0.DependencyControl") {
+  name: versioning.name,
+  description: versioning.description,
+  version: versioning.version,
+  author: versioning.author,
+  moduleName: versioning.namespace,
+  url: "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+  feed: "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+  {
+    { "a-mo.LineCollection" },
+    { "l0.ASSFoundation" },
+    { "aka.actor" },
+    { "aka.config" },
+    { "aka.outcome" }
   }
-  DepCtrl\requireModules!
-
-LineCollection = require "a-mo.LineCollection"
-ASS = require "l0.ASSFoundation"
-aactor = require "aka.actor"
-aconfig = require "aka.config"
-outcome = require "aka.outcome"
+}
+LineCollection, ASS, aactor, aconfig, outcome = DepCtrl\requireModules!
 ok = outcome.ok
 err = outcome.err
 
@@ -234,57 +226,30 @@ Cycles_2a    = (sub, sel, act) -> Cycles(sub, sel, act, "\\2a"   )
 Cycles_3a    = (sub, sel, act) -> Cycles(sub, sel, act, "\\3a"   )
 Cycles_4a    = (sub, sel, act) -> Cycles(sub, sel, act, "\\4a"   )
 
-if hasDepCtrl
-    DepCtrl\registerMacros {
-        { "Cycle \\an"   , "Cycle \\an"   , Cycles_an    }
-        { "Cycle \\bord" , "Cycle \\bord" , Cycles_bord  }
-        { "Cycle \\xbord", "Cycle \\xbord", Cycles_xbord }
-        { "Cycle \\ybord", "Cycle \\ybord", Cycles_ybord }
-        { "Cycle \\shad" , "Cycle \\shad" , Cycles_shad  }
-        { "Cycle \\xshad", "Cycle \\xshad", Cycles_xshad }
-        { "Cycle \\yshad", "Cycle \\yshad", Cycles_yshad }
-        { "Cycle \\fs"   , "Cycle \\fs"   , Cycles_fs    }
-        { "Cycle \\fsp"  , "Cycle \\fsp"  , Cycles_fsp   }
-        { "Cycle \\blur" , "Cycle \\blur" , Cycles_blur  }
-        { "Cycle \\be"   , "Cycle \\be"   , Cycles_be    }
-        { "Cycle \\frx"  , "Cycle \\frx"  , Cycles_frx   }
-        { "Cycle \\fry"  , "Cycle \\fry"  , Cycles_fry   }
-        { "Cycle \\frz"  , "Cycle \\frz"  , Cycles_frz   }
-        { "Cycle \\fax"  , "Cycle \\fax"  , Cycles_fax   }
-        { "Cycle \\fay"  , "Cycle \\fay"  , Cycles_fay   }
-        { "Cycle \\fscx" , "Cycle \\fscx" , Cycles_fscx  }
-        { "Cycle \\fscy" , "Cycle \\fscy" , Cycles_fscy  }
-        { "Cycle \\alpha", "Cycle \\alpha", Cycles_alpha }
-        { "Cycle \\1a"   , "Cycle \\1a"   , Cycles_1a    }
-        { "Cycle \\2a"   , "Cycle \\2a"   , Cycles_2a    }
-        { "Cycle \\3a"   , "Cycle \\3a"   , Cycles_3a    }
-        { "Cycle \\4a"   , "Cycle \\4a"   , Cycles_4a    }
-        { "Switch"       , "Switch cycles", Switch       }
-        { "Edit config"  , "Edit config for aka.Cycles", EditConfig }
-    }
-else
-    aegisub.register_macro "Cycles/Cycle \\an"   , "Cycle \\an"   , Cycles_an   
-    aegisub.register_macro "Cycles/Cycle \\bord" , "Cycle \\bord" , Cycles_bord 
-    aegisub.register_macro "Cycles/Cycle \\xbord", "Cycle \\xbord", Cycles_xbord
-    aegisub.register_macro "Cycles/Cycle \\ybord", "Cycle \\ybord", Cycles_ybord
-    aegisub.register_macro "Cycles/Cycle \\shad" , "Cycle \\shad" , Cycles_shad 
-    aegisub.register_macro "Cycles/Cycle \\xshad", "Cycle \\xshad", Cycles_xshad
-    aegisub.register_macro "Cycles/Cycle \\yshad", "Cycle \\yshad", Cycles_yshad
-    aegisub.register_macro "Cycles/Cycle \\fs"   , "Cycle \\fs"   , Cycles_fs   
-    aegisub.register_macro "Cycles/Cycle \\fsp"  , "Cycle \\fsp"  , Cycles_fsp  
-    aegisub.register_macro "Cycles/Cycle \\blur" , "Cycle \\blur" , Cycles_blur 
-    aegisub.register_macro "Cycles/Cycle \\be"   , "Cycle \\be"   , Cycles_be   
-    aegisub.register_macro "Cycles/Cycle \\frx"  , "Cycle \\frx"  , Cycles_frx  
-    aegisub.register_macro "Cycles/Cycle \\fry"  , "Cycle \\fry"  , Cycles_fry  
-    aegisub.register_macro "Cycles/Cycle \\frz"  , "Cycle \\frz"  , Cycles_frz  
-    aegisub.register_macro "Cycles/Cycle \\fax"  , "Cycle \\fax"  , Cycles_fax  
-    aegisub.register_macro "Cycles/Cycle \\fay"  , "Cycle \\fay"  , Cycles_fay  
-    aegisub.register_macro "Cycles/Cycle \\fscx" , "Cycle \\fscx" , Cycles_fscx 
-    aegisub.register_macro "Cycles/Cycle \\fscy" , "Cycle \\fscy" , Cycles_fscy 
-    aegisub.register_macro "Cycles/Cycle \\alpha", "Cycle \\alpha", Cycles_alpha
-    aegisub.register_macro "Cycles/Cycle \\1a"   , "Cycle \\1a"   , Cycles_1a   
-    aegisub.register_macro "Cycles/Cycle \\2a"   , "Cycle \\2a"   , Cycles_2a   
-    aegisub.register_macro "Cycles/Cycle \\3a"   , "Cycle \\3a"   , Cycles_3a   
-    aegisub.register_macro "Cycles/Cycle \\4a"   , "Cycle \\4a"   , Cycles_4a   
-    aegisub.register_macro "Cycles/Switch"       , "Switch cycles", Switch
-    aegisub.register_macro "Cycles/Edit config"  , "Edit config for aka.Cycles", EditConfig
+DepCtrl\registerMacros {
+  { "Cycle \\an"   , "Cycle \\an"   , Cycles_an    }
+  { "Cycle \\bord" , "Cycle \\bord" , Cycles_bord  }
+  { "Cycle \\xbord", "Cycle \\xbord", Cycles_xbord }
+  { "Cycle \\ybord", "Cycle \\ybord", Cycles_ybord }
+  { "Cycle \\shad" , "Cycle \\shad" , Cycles_shad  }
+  { "Cycle \\xshad", "Cycle \\xshad", Cycles_xshad }
+  { "Cycle \\yshad", "Cycle \\yshad", Cycles_yshad }
+  { "Cycle \\fs"   , "Cycle \\fs"   , Cycles_fs    }
+  { "Cycle \\fsp"  , "Cycle \\fsp"  , Cycles_fsp   }
+  { "Cycle \\blur" , "Cycle \\blur" , Cycles_blur  }
+  { "Cycle \\be"   , "Cycle \\be"   , Cycles_be    }
+  { "Cycle \\frx"  , "Cycle \\frx"  , Cycles_frx   }
+  { "Cycle \\fry"  , "Cycle \\fry"  , Cycles_fry   }
+  { "Cycle \\frz"  , "Cycle \\frz"  , Cycles_frz   }
+  { "Cycle \\fax"  , "Cycle \\fax"  , Cycles_fax   }
+  { "Cycle \\fay"  , "Cycle \\fay"  , Cycles_fay   }
+  { "Cycle \\fscx" , "Cycle \\fscx" , Cycles_fscx  }
+  { "Cycle \\fscy" , "Cycle \\fscy" , Cycles_fscy  }
+  { "Cycle \\alpha", "Cycle \\alpha", Cycles_alpha }
+  { "Cycle \\1a"   , "Cycle \\1a"   , Cycles_1a    }
+  { "Cycle \\2a"   , "Cycle \\2a"   , Cycles_2a    }
+  { "Cycle \\3a"   , "Cycle \\3a"   , Cycles_3a    }
+  { "Cycle \\4a"   , "Cycle \\4a"   , Cycles_4a    }
+  { "Switch"       , "Switch cycles", Switch       }
+  { "Edit config"  , "Edit config for aka.Cycles", EditConfig }
+}

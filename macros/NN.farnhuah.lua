@@ -20,11 +20,11 @@ local versioning = {}
 
 versioning.name = "farnhuah"
 versioning.description = "farn huah jeau been"
-versioning.version = "1.0.8"
+versioning.version = "1.0.12"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.farnhuah"
 
-versioning.requireModules = "[{ \"moduleName\": \"json\" }, { \"moduleName\": \"aka.request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.optimising\", \"optional\": True }]"
+versioning.requiredModules = "[{ \"moduleName\": \"json\" }, { \"moduleName\": \"aka.request\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.optimising\", \"optional\": True }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -32,35 +32,26 @@ script_version = versioning.version
 script_author = versioning.author
 script_namespace = versioning.namespace
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "json" },
-            { "aka.request" },
-            { "aka.config" },
-            { "aka.outcome" },
-            { "aegisub.re" },
-            { "aka.actor" },
-            { "aka.optimising", optional = true }
-        }
-    }):requireModules()
-end
-local json = require("json")
-local request = require("aka.request")
-local aactor = require("aka.actor")
-local aconfig = require("aka.config")
-local outcome = require("aka.outcome")
+DepCtrl = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "json" },
+        { "aka.request" },
+        { "aka.config" },
+        { "aka.outcome" },
+        { "aegisub.re" },
+        { "aka.actor" },
+        { "aka.optimising", optional = true }
+    }
+})
+local json, request, aconfig, outcome, re, aactor, optimising = DepCtrl:requireModules()
 local ok, err = outcome.ok, outcome.err
-local re = require("aegisub.re")
-local hasOptimising, optimising = pcall(require, "aka.optimising")
 
 
 local Detect
@@ -234,9 +225,9 @@ Fanhua = function(sub, sel, act)
     local lines
     local farnhuah
 
-    if hasOptimising then optimising.start() end
+    if optimising then optimising.start() end
 
-    if hasOptimising then optimising.lap("Loading config") end
+    if optimising then optimising.lap("Loading config") end
     Config()
 
     ctarget = ConfigTarget()
@@ -248,23 +239,23 @@ Fanhua = function(sub, sel, act)
 
     sel, act = ApplyLines(sub, sel, act, ctarget, lines, farnhuah)
     
-    if hasOptimising then optimising.lap("farnhuah finished") end
+    if optimising then optimising.lap("farnhuah finished") end
     return sel, act
 end
 ProprocessSub = function(sub, ctarget)
-    if hasOptimising then optimising.lap("Detecting target") end
+    if optimising then optimising.lap("Detecting target") end
     if not target then Target(sub) end
     
     if ctarget == "chs" then
         if not target then target = "chs"
         elseif target == "cht" then
-            if hasOptimising then optimising.lap("Switching chs and cht") end
+            if optimising then optimising.lap("Switching chs and cht") end
             SwitchST(sub)
         end
     elseif ctarget == "cht" then
         if not target then target = "cht"
         elseif target == "chs" then
-            if hasOptimising then optimising.lap("Switching chs and cht") end
+            if optimising then optimising.lap("Switching chs and cht") end
             SwitchST(sub)
         end
 end end
@@ -275,7 +266,7 @@ LoadLines = function(sub, sel)
     lines = {}
     farnhuah = ""
     for i = 1, #sel do
-        if hasOptimising then optimising.lap("Loading line " .. tostring(i)) end
+        if optimising then optimising.lap("Loading line " .. tostring(i)) end
 
         lines[i] = sub[sel[i]]
         farnhuah = farnhuah .. lines[i].text .. "\n"
@@ -324,7 +315,7 @@ ApplyLines = function(sub, sel, act, ctarget, lines, farnhuah)
     j = #sel repeat
         i = 1 repeat
             if j - i == sel[j] - sel[i] then
-                if hasOptimising then optimising.lap("Writing line " .. tostring(i) .. " to " .. tostring(j)) end
+                if optimising then optimising.lap("Writing line " .. tostring(i) .. " to " .. tostring(j)) end
                 
                 sel, act = ApplyLinesApply(sub, sel, act, ctarget, lines, farnhuah, i, j)
                 j = i - 1
@@ -410,16 +401,9 @@ Field = function()
 end end
 
 
-if hasDepCtrl then
-    DepCtrl:registerMacros({
-        { "farnhuah/farn huah", "farnhuah selected lines", Fanhua },
-        { "farnhuah/chie huann chs cht harng juh shyh", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST },
-        { "farnhuah/zhconvert sheh dinq", "Edit zhconvert settings", EditConfig },
-        { "farnhuah/chs cht chyi biau sheh dinq", "Change where chs and cht flags are placed", Field }
-    })
-else
-    aegisub.register_macro("farnhuah/farn huah", "farnhuah selected lines", Fanhua)
-    aegisub.register_macro("farnhuah/chie huann chs cht harng juh shyh", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST)
-    aegisub.register_macro("farnhuah/zhconvert sheh dinq", "Edit zhconvert settings", EditConfig)
-    aegisub.register_macro("farnhuah/chs cht chyi biau sheh dinq", "Change where chs and cht flags are placed", Field)
-end
+DepCtrl:registerMacros({
+    { "farn huah", "farnhuah selected lines", Fanhua },
+    { "chie huann chs cht harng juh shyh", "Comment all the chs and uncomment all the cht lines in the subtitle, or vice versa", SwitchST },
+    { "zhconvert sheh dinq", "Edit zhconvert settings", EditConfig },
+    { "chs cht chyi biau sheh dinq", "Change where chs and cht flags are placed", Field }
+})

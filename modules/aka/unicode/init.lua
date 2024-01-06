@@ -1,4 +1,4 @@
--- aka.config
+-- aka.unicode
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -25,31 +25,26 @@ local versioning = {}
 
 versioning.name = "aka.unicode"
 versioning.description = "Module aka.unicode"
-versioning.version = "1.0.3"
+versioning.version = "1.0.9"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.unicode"
 
-versioning.requireModules = "[{ \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"bit\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"bit\" }]"
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "aegisub.unicode" },
-            { "bit" }
-        }
-    }):requireModules()
-end
-
-local unicode = require("aegisub.unicode")
-local bit = require("bit")
+local version = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "aegisub.unicode" },
+        { "bit" }
+    }
+})
+local unicode, bit = version:requireModules()
 
 unicode.char = function(codepoint)
     local byte1
@@ -80,4 +75,7 @@ unicode.char = function(codepoint)
         error("[aka.unicode] Invalid UTF-8 codepoint")
 end end
 
-return unicode
+unicode.version = version
+unicode.versioning = versioning
+
+return version:register(unicode)

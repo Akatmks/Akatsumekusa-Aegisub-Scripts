@@ -27,28 +27,26 @@ local versioning = {}
 
 versioning.name = "aka.actor"
 versioning.description = "Module aka.actor"
-versioning.version = "1.0.4"
+versioning.version = "1.0.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.actor"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.singlesimple\" }, { \"moduleName\": \"aegisub.re\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.singlesimple\" }, { \"moduleName\": \"aegisub.re\" }]"
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "aka.singlesimple" },
-            { "aegisub.re" }
-        }
-    }):requireModules()
-end
+local version = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "aka.singlesimple" },
+        { "aegisub.re" }
+    }
+})
+version:requireModules()
 
 local field = require("aka.singlesimple").make_config("aka.actor", { "actor", "effect", "style" }, "actor")
 local re = require("aegisub.re")
@@ -191,8 +189,6 @@ end
 
 local functions = {}
 
-functions.versioning = versioning
-
 -- Check if a flag is set
 -- Return false if the flag is not set,
 -- Or return an integer for the times the flag is set
@@ -216,4 +212,7 @@ functions.field = field
 
 functions._flags = flags
 
-return functions
+functions.version = version
+functions.versioning = versioning
+
+return version:register(functions)

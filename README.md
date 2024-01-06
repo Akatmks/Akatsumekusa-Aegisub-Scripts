@@ -30,6 +30,7 @@
 – [aka.outcome](#akaoutcome)  
 – [aka.threads](#akathreads)  
 – [aka.unicode](#akaunicode)  
+– [aka.unsemantic](#akaunsemantic)  
 ***Thirdparty Modules***  
 – [effil](#effil)  
 – [request](#request)  
@@ -119,7 +120,6 @@ On first launch, NN.farnhuah will show a configuration window. Create your own c
 tkinter_alternatives.py is a fix for Aegisub VapourSynth Default Video Script if your Python installation does not come with Tkinter.
 
 [Download](vapoursynth/tkinter_alternatives.py) the file and put it in `automation/vapoursynth` in your Aegisub install location.  
-You will also find a `aegisub_vs.py` file in the folder. [Download](https://github.com/arch1t3cht/Aegisub/blob/vapoursynth/automation/vapoursynth/aegisub_vs.py) the updated script from arch1t3cht/Aegisub and replace the existing `aegisub_vs.py` file.  
 
 Open Aegisub, open „View > Options“ and select „VapourSynth“. In „Default Video Script“, find the import aegisub_vs line:  
 ```python
@@ -226,6 +226,21 @@ threads.setThreads(8)
 ## aka.unicode
 
 aka.unicode extends aegisub.unicode with a `unicode.char(codepoint)` function to turn codepoints back to characters.  
+
+## aka.unsemantic
+
+aka.unsemantic is a version compare module that supports basic version format with two or three positive numbers separated by periods.  
+
+```lua
+V = require("aka.unsemantic").V
+assert(V"1.1.2" > V"1.0.24")
+```
+
+Two-number version is treated as three-number version with a patch number of `-1``.  
+
+```lua
+assert(V"2.1.0" > V"2.1")
+```
 
 ## effil
 

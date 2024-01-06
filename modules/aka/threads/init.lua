@@ -25,28 +25,27 @@ local versioning = {}
 
 versioning.name = "aka.threads"
 versioning.description = "Module aka.threads"
-versioning.version = "1.0.2"
+versioning.version = "1.0.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.threads"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.singlesimple\" }, { \"moduleName\": \"ffi\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.singlesimple\" }, { \"moduleName\": \"ffi\" }]"
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "aka.singlesimple" },
-            { "ffi" }
-        }
-    }):requireModules()
-end
+local version = require("l0.DependencyControl")({
+    name = versioning.name,
+    description = versioning.description,
+    version = versioning.version,
+    author = versioning.author,
+    moduleName = versioning.namespace,
+    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "aka.singlesimple" },
+        { "ffi" }
+    }
+})
+version:requireModules()
+
 
 local threadsEnum = {}
 for i=0,512 do
@@ -127,4 +126,7 @@ threads.setThreads = function(threads)
     ss:setValue(threads)
 end
 
-return threads
+threads.version = version
+threads.versioning = versioning
+
+return version:register(threads)

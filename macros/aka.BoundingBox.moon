@@ -24,10 +24,10 @@
 versioning =
     name: "BoundingBox"
     description: "Create a clip of the bounding box of the subtitle line"
-    version: "1.0.3"
+    version: "1.0.7"
     author: "Akatsumekusa and contributors"
     namespace: "aka.BoundingBox"
-    requireModules: "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"SubInspector.Inspector\" }, { \"moduleName\": \"aka.outcome\" }]"
+    requiredModules: "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"SubInspector.Inspector\" }, { \"moduleName\": \"aka.outcome\" }]"
 
 export script_name = versioning.name
 export script_description = versioning.description
@@ -35,30 +35,28 @@ export script_author = versioning.author
 export script_version = versioning.version
 export script_namespace = versioning.namespace
 
-hasDepCtrl, DepCtrl = pcall require, "l0.DependencyControl"
-if hasDepCtrl
-    DepCtrl = DepCtrl {
-        name: versioning.name,
-        description: versioning.description,
-        version: versioning.version,
-        author: versioning.author,
-        moduleName: versioning.namespace,
-        url: "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed: "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "ILL.ILL" },
-            { "SubInspector.Inspector" },
-            { "aka.outcome" }
-        }
+DepCtrl = (require "l0.DependencyControl") {
+    name: versioning.name,
+    description: versioning.description,
+    version: versioning.version,
+    author: versioning.author,
+    moduleName: versioning.namespace,
+    url: "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+    feed: "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "ILL.ILL" },
+        { "SubInspector.Inspector" },
+        { "aka.outcome" }
     }
-    DepCtrl\requireModules!
+}
+DepCtrl\requireModules!
 
 import Ass, Line from require "ILL.ILL"
 Inspector = require "SubInspector.Inspector"
 import o from require "aka.outcome"
 
 text_extents_main = (sub, sel, act) ->
-    ass = Ass sub, sel, activeLine
+    ass = Ass sub, sel, act
 
     for l, line, s, i, n in ass\iterSel true
         ass\progressLine s, i, n
@@ -79,7 +77,7 @@ text_extents_main = (sub, sel, act) ->
     return ass\getNewSelection!
 
 inspector_main = (sub, sel, act) ->
-    ass = Ass sub, sel, activeLine
+    ass = Ass sub, sel, act
     inspector = o(Inspector sub)\unwrap!
 
     for l, line, s, i, n in ass\iterSel true
@@ -95,11 +93,7 @@ inspector_main = (sub, sel, act) ->
 
     return ass\getNewSelection!
 
-if hasDepCtrl
-    DepCtrl\registerMacros {
-        { "text_extents", "Create a rect clip of the bounding box using aegisub.text_extents", text_extents_main },
-        { "SubInspector", "Create a rect clip of the bounding box using SubInspector", inspector_main }
-    }
-else
-    aegisub.register_macro "BoundingBox/text_extents", "Create a rect clip of the bounding box using aegisub.text_extents", text_extents_main
-    aegisub.register_macro "BoundingBox/SubInspector", "Create a rect clip of the bounding box using SubInspector", inspector_main
+DepCtrl\registerMacros {
+    { "text_extents", "Create a rect clip of the bounding box using aegisub.text_extents", text_extents_main },
+    { "SubInspector", "Create a rect clip of the bounding box using SubInspector", inspector_main }
+}

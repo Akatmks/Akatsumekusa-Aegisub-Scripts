@@ -1,4 +1,4 @@
--- aka.config2
+-- aka.unsemantic
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -21,19 +21,15 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-------------------------------------------------------------------------------
--- Tutorials are available at „docs/Using aka.config.md“.
-------------------------------------------------------------------------------
-
 local versioning = {}
 
-versioning.name = "aka.config2"
-versioning.description = "Module aka.config2"
-versioning.version = "1.0.7"
+versioning.name = "aka.unsemantic"
+versioning.description = "Module aka.unsemantic"
+versioning.version = "1.0.3"
 versioning.author = "Akatsumekusa and contributors"
-versioning.namespace = "aka.config2"
+versioning.namespace = "aka.unsemantic"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aegisub.unicode\" }, { \"moduleName\": \"lfs\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"lpeg\" }]"
 
 local version = require("l0.DependencyControl")({
     name = versioning.name,
@@ -44,17 +40,60 @@ local version = require("l0.DependencyControl")({
     url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
-        { "aka.outcome" },
-        { "aegisub.re" },
-        { "aegisub.unicode" },
-        { "lfs" }
+        { "lpeg" }
     }
 })
-version:requireModules()
+local lpeg = version:requireModules()
+local C, P, R = lpeg.C, lpeg.P, lpeg.R
 
-local config2 = require("aka.config2.config2")
+local number = C(R"09"^1)/tonumber
+local dot = P"."
+local version_match = number*dot*number*dot*number
+local two_number_version_match = number*dot*number
 
-config2.version = version
-config2.versioning = versioning
+local mt
+local V
+mt = {
+    __index = mt,
+    __eq = function(lhs, rhs)
+        return lhs.major == rhs.major and
+               lhs.minor == rhs.minor and
+               lhs.patch == rhs.patch
+    end,
+    __lt = function(lhs, rhs)
+        return lhs.major < rhs.major or
+               lhs.minor < rhs.minor or
+               lhs.patch < rhs.patch
+    end,
+    __le = function(lhs, rhs)
+        return lhs.major <= rhs.major or
+               lhs.minor <= rhs.minor or
+               lhs.patch <= rhs.patch
+    end
+}
+V = function(version_str)
+    local t
 
-return version:register(config2)
+    t = {}
+    t.major, t.minor, t.patch = version_match:match(version_str)
+    if not t.major then
+        t.major, t.minor = two_number_version_match:match(version_str)
+        t.patch = -1
+
+        if not t.major then
+            error("[aka.unsemantic] Invalid version format.")
+    end end
+
+    setmetatable(t, mt)
+
+    return t
+end
+
+local unsemantic = {}
+
+unsemantic.V = V
+
+unsemantic.version = version
+unsemantic.versioning = versioning
+
+return version:register(unsemantic)
