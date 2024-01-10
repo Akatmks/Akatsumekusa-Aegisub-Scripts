@@ -696,6 +696,42 @@
             "url": "@{baseUrl}#@{namespace}",
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
+        "aka.uikit": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": "/dialog.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "8f683bc54ee3008d94c255b1d525c75455e25c87"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "05caca1e9b0efd622400a6d32f3b3a49e508f5e9"
+                        }
+                    ],
+                    "version": "1.0.1",
+                    "default": true,
+                    "requiredModules": [
+                        {
+                            "moduleName": "aka.outcome",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        }
+                    ],
+                    "released": "2024-01-10"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.uikit",
+            "description": "Module aka.uikit",
+            "url": "@{baseUrl}#@{namespace}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
+        },
         "aka.unicode": {
             "channels": {
                 "master": {
