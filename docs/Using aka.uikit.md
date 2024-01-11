@@ -178,21 +178,36 @@ subdialog\label { x: 10, y: 10, width: 3, label: "Floating" }
 subdialog\label { x: 10, y: 11, width: 3, label: "Floating" }
 ```
 
-#### `dialog.ifable`
+#### `dialog.ifable` and `dialog.unlessable`
 
-Classes inside an ifable class will only display if the value specified by the name in ifable is truely.
+Classes inside an ifable class will only display if the value specified by the name in ifable is truthy.
 
 ```lua
--- Create a subdialog only when value with the name in dialog data i
--- truely
+-- Create a subdialog only when value with the name in dialog data is
+-- truthy
 --
 -- This method receives parameters in a table.
 -- @key     name        The name for the value in the dialog data.
---                      If the value is truely, classes in the
+--                      If the value is truthy, classes in the
 --                      subdialog will be displayed.
 --
 -- @return  subdialog   Call methods such as `label` from this
 --                      subdialog to add to ifable.
+```
+
+Classes inside an unlessable class will only display if the value specified by the name in unlessable is falsy.
+
+```lua
+-- Create a subdialog only when value with the name in dialog data is
+-- falsy
+--
+-- This method receives parameters in a table.
+-- @key     name        The name for the value in the dialog data.
+--                      If the value is falsy, classes in the
+--                      subdialog will be displayed.
+--
+-- @return  subdialog   Call methods such as `label` from this
+--                      subdialog to add to unlessable.
 ```
 
 An example of using `dialog.ifable` with `display.repeatUntil()` is as below:  

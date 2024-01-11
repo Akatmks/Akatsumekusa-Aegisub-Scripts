@@ -206,6 +206,62 @@
             "url": "@{baseUrl}#@{namespace}",
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
+        "aka.Sandbox": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "74cafb0503295be8aa850dde6a5e66c032e97f68"
+                        }
+                    ],
+                    "version": "1.0.1",
+                    "default": true,
+                    "requiredModules": [
+                        {
+                            "moduleName": "aka.uikit",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "aka.outcome",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "ILL.ILL",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "a-mo.LineCollection",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "l0.ASSFoundation",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/line0-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        },
+                        {
+                            "moduleName": "aka.unicode",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        }
+                    ],
+                    "released": "2024-01-11"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "Sandbox",
+            "description": "LuaInterpret but raw",
+            "url": "@{baseUrl}#@{namespace}",
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
+        },
         "aka.UnwhiteDialogue": {
             "channels": {
                 "master": {
@@ -708,20 +764,20 @@
                         {
                             "name": "/dialog.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "477f94397982046cb116b7ad6057f75df3ddd9db"
+                            "sha1": "af8d7e6a5d44d9cead1ae10ba7b0caecbde8b500"
                         },
                         {
                             "name": "/display.moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "5d96450fe5a57e48427bf877e137226b8b0ec599"
+                            "sha1": "b37f12c32989bfaf1d4eb7465ece69cdc29a8d3a"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "a80bee35d63823b86f5f1935089a28adf12602e5"
+                            "sha1": "0e238188f0c0444f1a6a05d5d106f5486004f046"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requiredModules": [
                         {

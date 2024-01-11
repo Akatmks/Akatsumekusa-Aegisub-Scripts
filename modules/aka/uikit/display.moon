@@ -21,10 +21,9 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-with require "aka.outcome"
-  ok = .ok
-  err = .err
-
+import ok, err from require "aka.outcome"
+read_data = nil
+save_data = nil
 with require "aka.config2"
   read_data = .read_config
   save_data = .write_config

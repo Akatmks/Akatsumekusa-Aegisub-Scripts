@@ -411,12 +411,12 @@ ifable_resolver.resolve = function(item, dialog, x, y, width)
         return y
 end end
 -----------------------------------------------------------------------
--- Create a subdialog only when value with the name in dialog data i
--- truely
+-- Create a subdialog only when value with the name in dialog data is
+-- truthy
 --
 -- This method receives parameters in a table.
 -- @key     name        The name for the value in the dialog data.
---                      If the value is truely, classes in the
+--                      If the value is truthy, classes in the
 --                      subdialog will be displayed.
 --
 -- @return  subdialog   Call methods such as `label` from this
@@ -425,6 +425,33 @@ end end
 dialog.ifable = function(self, item)
     setmetatable(item, { __index = ifable_resolver })
     item.class = "_au_ifable"
+    item.subdialog = subdialog.new()
+    table.insert(self, item)
+    return item.subdialog
+end
+
+local unlessable_resolver = {}
+unlessable_resolver.resolve = function(item, dialog, x, y, width)
+    if item["name"] and dialog["data"][item["name"]] then
+        return y
+    else
+        return item.subdialog:resolve(dialog, x, y, width)
+end end
+-----------------------------------------------------------------------
+-- Create a subdialog only when value with the name in dialog data is
+-- falsy
+--
+-- This method receives parameters in a table.
+-- @key     name        The name for the value in the dialog data.
+--                      If the value is falsy, classes in the
+--                      subdialog will be displayed.
+--
+-- @return  subdialog   Call methods such as `label` from this
+--                      subdialog to add to unlessable.
+-----------------------------------------------------------------------
+dialog.unlessable = function(self, item)
+    setmetatable(item, { __index = unlessable_resolver })
+    item.class = "_au_unlessable"
     item.subdialog = subdialog.new()
     table.insert(self, item)
     return item.subdialog
