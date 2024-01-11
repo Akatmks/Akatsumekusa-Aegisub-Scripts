@@ -16,7 +16,18 @@ with require "aka.uikit"
 
 In this tutorial, what's known otherwise as widgets or controls in Aegisub dialog will be referred to as classes, including vanilla classes such as `edit`, `floatedit` and `dropdown` as well as classes unique to aka.uikit such as `separator` and `grid`. All the options for classes such as `x`, `y`, `name`, `label`, `value` will be referred to as keys.  
 
-### Basics logic
+If you want a glance at a complete example using aka.uikit, see [aka.Sandbox](../macros/aka.Sandbox.lua).  
+
+### Table of Contents
+
+– [`aka.uikit.dialog`, `aka.uikit.buttons` and `aka.uikit.display`](#akauikitdialog-akauikitbuttons-and-akauikitdisplay)  
+– [`aka.uikit.dialog`: Autofill `x`, `y` and `width` key](#akauikitdialog-autofill-x-y-and-width-key)  
+– [`aka.uikit.dialog`: Additional classes](#akauikitdialog-additional-classes)  
+– [`aka.uikit.dialog`: Automatically filling data into dialog](#akauikitdialog-automatically-filling-data-into-dialog)  
+– [`aka.uikit.buttons`: Create buttons with button_ids](#akauikitbuttons-create-buttons-with-button_ids)  
+– [`aka.uikit.display`: Basic use and `display.repeatUntil()`](#akauikitdisplay-basic-use-and-displayrepeatuntil)  
+
+### `aka.uikit.dialog`, `aka.uikit.buttons` and `aka.uikit.display`
 
 aka.uikit has three main components, `aka.uikit.dialog`, `aka.uikit.buttons` and `aka.uikit.display`:  
 
@@ -38,19 +49,17 @@ display = adisplay dialog, buttons
 ```
 * In the first two lines, a dialog is created with width of 6, containing only one class, a label that will display "Hello World!".  
 * In the following three lines, an `"OK"` and a `"Cancel"` button are created.  
-* In the last line, the dialog and buttons are displayed to the user.  
+* In the last line, the dialog and buttons are (ready to be) displayed to the user.  
 
 At every stage, you can call `resolve()` to retrieve a result in vanilla Aegisub.  
 
 ```lua
 vanilla_dialog = dialog:resolve()
 vanilla_buttons, vanilla_button_ids = buttons:resolve()
-aegisub.dialog.display(vanilla_dialog, vanilla_buttons, vanilla_button_ids)
 ```
 ```moon
 vanilla_dialog = dialog\resolve!
 vanilla_buttons, vanilla_button_ids = buttons\resolve!
-aegisub.dialog.display vanilla_dialog, vanilla_buttons, vanilla_button_ids
 ```
 
 Or use it at the end to retrieve the result from display:  
@@ -62,11 +71,11 @@ button, result = adisplay(dialog, buttons):resolve()
 button, result = (adisplay dialog, buttons)\resolve!
 ```
 
-The usage and functions will be explained separately in following sections.  
+The usage and functions of each component will be explained separately in following sections.  
 
 ### `aka.uikit.dialog`: Autofill `x`, `y` and `width` key
 
-The first feature of `aka.uikit.dialog` is that you don't have to manually fill `x`, `y` and `width` key when creating dialog:  
+The first feature of `aka.uikit.dialog` is to autofill `x`, `y` and `width` key when creating dialog:  
 ```lua
 dialog = adialog.new({ width = 5 })
                 :label({ label = "AAE data:" })
@@ -80,11 +89,11 @@ with dialog = adialog { width: 5 }
   \checkbox { name: "expand", label: "Expand", value: true }
 ```
 * `adialog.new({ width = 5 })`: A new dialog table is created with the width of 5. All three child classes will thus have a `width` of 5 and arranged top down in the order they are called. `adialog.new({ width = 5 })` is the same as `adialog({ width = 5 })`.  
-* `dialog:label({ label = "AAE data:" })` creates a label, displaying text `"AAE data:"`. `dialog:label()` and all other class methods do not create a new copy and only returns itself. Both `dialog:label()` and `dialog = dialog:label()` yields the same result.  
+* `dialog:label({ label = "AAE data:" })` creates a label, displaying text `"AAE data:"`. `dialog:label` and all other class methods do not create a new copy and only returns itself. Both `dialog:label()` and `dialog = dialog:label()` yields the same result.  
 * `dialog:textbox({ height = 4, name = "aae_data" })` creates a textbox, with the data name `"aae_data"`. Keys for all vanilla classes is the same as in vanilla dialog table. This also includes `height`, which by default is 1 for all classes. With a multiline class like `textbox`, you need to manually set the `height` key to the intended height.  
 * `dialog:checkbox({ name = "expand", label = "Expand", value = true })` creates a checkbox with data name `expand`, `label` as `"Expand data"`, and default value set to `true`.  
 
-The code in the example creates the same dialog table as following code in vanilla:  
+The code in the example creates the same dialog as following dialog table created in vanilla:  
 ```lua
 dialog = { { class = "label", x = 0, y = 0, width = 5, label = "AAE data" },
            { class = "textbox", x = 0, y = 1, width = 5, height = 4, name = "aae_data" },
@@ -116,9 +125,443 @@ dialog\checkbox
     value: true
 ```
 
-Note that even if you have modified `x` or `y` key, the space the class originally occupies will still be left for it. If you want the class to be floating without occupying space, you could use the additional `dialog:floatable()` method introduced later in [XXX](XXX) section.  
+Note that even if you have modified `x` or `y` key, the space the class originally occupies will still be left for it. If you want the class to be floating without occupying space, you could use [`dialog:floatable`](#dialogfloatable) class. 
 
-### Automatically fill data into dialog
+### `aka.uikit.dialog`: Additional classes
 
+`aka.uikit.dialog` introduces additional classes in addition to vanilla ones.  
+
+#### `dialog.separator`
+
+```lua
+-- Create a separator or an empty space on the dialog.
+-- Note that if there is no more classes below separator, the separator
+-- will not have any effect. To create an empty space at the bottom of
+-- dialog, use an empty label.
+--
+-- This method receives parameters in a table.
+-- @key     [height=1]  vertical height of the separator
+--
+-- @return  self
+```
+
+Example:  
+```lua
+dialog:separator({ height = 2 })
+```
+```moon
+dialog\separator { height: 2 }
+```
+
+#### `dialog.floatable`
+
+Classes inside a floatable class does not occupy spaces in the main dialog.  
+
+```lua
+-- Create a subdialog for floating classes
+--
+-- @return  subdialog   Call methods such as `label` from this
+--                      subdialog to add floating classes.
+--                      All floating classes should specify their `x`,
+--                      `y` and `width` keys.
+```
+
+Example:
+```lua
+subdialog = dialog:floatable()
+subdialog:label({ x = 10, y = 10, width = 3, label = "Floating" })
+subdialog:label({ x = 10, y = 11, width = 3, label = "Floating" })
+```
+```moon
+subdialog = dialog\floatable!
+subdialog\label { x: 10, y: 10, width: 3, label: "Floating" }
+subdialog\label { x: 10, y: 11, width: 3, label: "Floating" }
+```
+
+#### `dialog.ifable`
+
+Classes inside an ifable class will only display if the value specified by the name in ifable is truely.
+
+```lua
+-- Create a subdialog only when value with the name in dialog data i
+-- truely
+--
+-- This method receives parameters in a table.
+-- @key     name        The name for the value in the dialog data.
+--                      If the value is truely, classes in the
+--                      subdialog will be displayed.
+--
+-- @return  subdialog   Call methods such as `label` from this
+--                      subdialog to add to ifable.
+```
+
+An example of using `dialog.ifable` with `display.repeatUntil()` is as below:  
+```lua
+dialog = adialog.new({ width = 5 })
+                :load_data(previous_data)
+-- If err_msg is truely, the label_edit will be displayed with text of err_msg
+subdialog = dialog:ifable({ name = "err_msg" })
+subdialog = subdialog:label_edit({ label = "Error occuried", name = "err_msg" })
+dialog = dialog:label_edit({ label = "URL", name = "url" })
+
+buttons = abuttons.ok("Connect"):close("Cancel")
+
+result = adisplay(dialog, buttons)
+    :repeatUntil(function(button, result)
+        response, err, msg = request.send(result["url"], { method = "GET" })
+        if not response then
+            result["err_msg"] = "No response"
+            return err(result)
+        elseif response.code ~= 200 then
+            result["err_msg"] = "Target responded with code " .. tostring(response.code)
+            return err(result)
+        else
+            return ok(result)
+        end end)
+```
+```moon
+with dialog = adialog.new { width: 5 }
+  \load_data previous_data
+  -- If err_msg is truely, the label_edit will be displayed with text of err_msg
+  with subdialog = \ifable { name: "err_msg" }
+    \label_edit { label: "Error occuried", name: "err_msg" }
+  \label_edit { label: "URL", name: "url" }
+
+with buttons = abuttons.ok "Connect"
+  \close "Cancel"
+
+with result = adisplay display, buttons
+  \repeatUntil (button, result) ->
+    response, err, msg = request.send result["url"], { method: "GET" }
+    if not response
+      result["err_msg"] = "No response"
+      return err result
+    elseif response.code ~= 200
+      result["err_msg"] = "Target responded with code " .. tostring response.code
+      return err result
+    else
+      return ok result
+```
+
+#### `dialog.columns` or `dialog.row`
+
+By default, `aka.uikit.dialog` arranges classes from top to bottom. This method creates columns and enables arranging classes side by side.  
+
+```lua
+-- Create columns to arrange classes side by side
+--
+-- This method receives parameters in a table.
+-- @key     widths      A table of widths for each columns. The number
+--                      of widths in this table determines the number
+--                      of columns created.
+--                      For example, to create three equally divided
+--                      columns in a dialog with a total width of 12:
+--                          dialog:columns({ widths = { 4, 4, 4 } })
+--                      Accepts both number and function. 
+--
+-- @return  subdialogs  For each width in widths param, return a
+--                      subdialog. Call methods such as `label` from
+--                      these subdialog to add classes to each column.
+```
+
+Example:
+```lua
+left, middle, right = dialog:columns({ widths = { 2, 2, 3 } })
+left:label({ label = "Left" })
+middle:label({ label = "Middle" })
+right:edit({ name = "edit", text = "Right" })
+```
+```moon
+left, middle, right = dialog\columns { widths = { 2, 2, 3 } }
+left\label { label: "Left" }
+middle\label { label: "Middle" }
+right\edit { name: "edit", text: "Right" }
+```
+
+#### `label_edit`, `label_intedit`, `label_floatedit`, `label_textbox`, `label_dropdown`, `label_checkbox`, `label_color`, `label_coloralpha` and `label_alpha`
+
+It's common for automation scripts to have a edit, intedit, floatedit, etc with a label on the left. This class is a oneliner combining `dialog:columns` and respected classes.  
+
+```lua
+-- Create an <edit> with a label on the left.
+--
+-- This method receives parameters in a table.
+-- All keys for <edit> are the same as in vanilla Aegisub.
+-- `x`, `y`, and `width` are optional.
+-- Additionally:
+-- @key label   Text to display for the label
+-- @key widths  By default, label and <edit> each takes up half of the
+--              width available.
+--
+-- @return  self
+```
+
+Examples:
+```lua
+dialog:label_edit({ label = "\\fn", name = "fn", text = "Arial" })
+dialog:label_floatedit({ label = "\\frz", name = "frz", value = 0 })
+dialog:label_textbox({ label = "Data:", height = 2, name = "data", text = "Multiline\nContent" })
+dialog:label_checkbox({ label = "Expand", value = true })
+```
+```moon
+dialog\label_edit { label: "\\fn", name: "fn", text: "Arial" }
+dialog\label_floatedit { label: "\\frz", name: "frz", value: 0 }
+dialog\label_textbox { label: "Data:", height: 2, name: "data", text: "Multiline\nContent" }
+dialog\label_checkbox { label: "Expand", value: true }
+```
+
+### `aka.uikit.dialog`: Automatically filling data into dialog
+
+It's common for scripts to prefill the dialog with contents, either data from the active subtitle line, or settings from previous run. In vanilla, this is often performed as below:  
+```lua
+dialog = { { class = "floatedit",   x = 0, y = 0, width = 5,
+                                    name = "frz", value = line_data["frz"] },
+           { class = "textbox",     x = 0, y = 1, width = 5, height = 3,
+                                    name = "command", value = previous_data["command"] } }
+```
+
+`aka.uikit.dialog` makes it easy using the `dialog:load_data()` method:  
+```lua
+dialog = adialog.new({ width = 5 }
+                :load_data(line_data)
+                :load_data(previous_data)
+                :floatedit({ name = "frz" })
+                :textbox({ height = 3, name = "command" })
+)
+```
+```moon
+with dialog = adialog { width: 5 }
+  \load_data line_data
+  \load_data previous_data
+  \floatedit { name: "frz" }
+  \textbox { height: 3, name: "command" }
+```
+
+The parameter data should be key-value pair, in the same format as the second return from vanilla `aegisub.dialog.display`. `dialog:load_data()` overrides the values in the dialog or from previous call of `dialog:load_data()` with the value from the new data.  
+
+A special situation when filling data from previous run is when the script is executed for the first time and a default value is needed. You can directly write the default value to each classes and `dialog:load_data()` will override it when previous data is available:  
+```lua
+dialog = adialog.new({ width = 4 })
+                :load_data(previous_data) -- could be nil
+                :label_floatedit({ label = "Strength", name = "strength", min = 0, value = 2 }) -- Default value
+```
+```moon
+dialog = adialog.new { width: 4 }
+dialog\load_data previous_data -- could be nil
+dialog\label_floatedit { label: "Strength", name: "strength", min: 0, value: 2 } -- Default value
+```
+
+### `aka.uikit.buttons`: Create buttons with button_ids
+
+`aka.uikit.buttons` automates the process of writing button_ids. Instead of this code in vanilla:  
+
+```lua
+buttons = { "Apply", "&Validate", "&Help", "Close" }
+button_ids = { ["ok"] = "Apply", ["close"] = "Close", ["help"] = "Help" }
+```
+
+You can create buttons with `aka.uikit.buttons` as below:  
+
+```lua
+buttons = abuttons.ok("Apply")
+                  :regular("&Validate")
+                  :help("&Help")
+                  :close("Close")
+```
+```moon
+buttons = abuttons!
+buttons\ok "Apply"
+buttons "&Validate"
+buttons\help "&Help"
+buttons\close "Close"
+```
+
+#### `buttons.new()` and `buttons.__call()`
+
+To create a `aka.uikit.buttons` instance, call `new`, call `aka.uikit.buttons` itself, or call any of the buttons using `.` instead of `:` or `\`:  
+
+```lua
+buttons1 = abuttons.new()
+buttons2 = abuttons()
+buttons3 = abuttons.ok("Apply")
+buttons4 = abuttons.regular("L&eft")
+```
+```moon
+buttons1 = abuttons.new!
+buttons2 = abuttons!
+buttons3 = abuttons.ok "Apply"
+buttons4 = abuttons.regular "L&eft"
+```
+
+#### `buttons.ok()`, `buttons.close()`, `buttons.cancel()` and `buttons.help()`
+
+These are different than regular buttons explained below that they have `button_ids` and will be triggers when the user presses, for example, Enter or return on keyboard, in addition to clicking using mouse. For main functional buttons, these should be preferred over regular buttons below.  
+– `buttons.ok()` triggers when the user presses Enter or return.  
+– `buttons.close()` triggers when the user presses escape.  
+– `buttons.cancel()` is mutually exclusive with `buttons.close()`. The difference between the two is that when the user presses escape, in `buttons.close()` the display returns the name of the close button, but in `buttons.cancel()` the display returns `false`.  
+– `buttons.help()` displays a special help button on Mac.  
+
+Buttons are arranged in the order the methods are called.  
+
+```lua
+buttons:ok("Apply")
+buttons:close("Close")
+```
+```lua
+buttons\ok "Apply"
+buttons\close "Close"
+```
+
+#### `buttons.regular()`, `buttons.extra()`, and `buttons.__call()`
+
+To create a regular button, call `buttons.regular()`, `buttons.extra()`, or just call the instance itself.  
+
+```lua
+buttons:regular("Configurate")
+buttons:extra("Configurate")
+buttons("Configurate")
+```
+```moon
+buttons\regular "Configurate"
+buttons\extra "Configurate"
+buttons "Configurate"
+```
+
+Note that direct calling of the instance itself is only available after the instance is initialised. Which means:  
+```lua
+-- This is valid.
+buttons1 = aka.uikit.buttons.ok("Confirm")
+buttons("Extra Button")
+-- This is invalid.
+-- This is not calling a buttons instance but calling the buttons class.
+-- This only creats a buttons instance but do not add any buttons to the instance.
+buttons2 = aka.uikit.buttons("Left Button")
+-- This is valid.
+buttons3 = aka.uikit.buttons.regular("Left button")
+```
+```moon
+-- This is valid.
+buttons1 = aka.uikit.buttons.ok "Confirm"
+buttons "Extra Button"
+-- This is invalid.
+-- This is not calling a buttons instance but calling the buttons class.
+-- This only creats a buttons instance but do not add any buttons to the instance.
+buttons2 = aka.uikit.buttons "Left Button"
+-- This is valid.
+buttons3 = aka.uikit.buttons.regular "Left button"
+```
+
+### `aka.uikit.display`: Basic use and `display.repeatUntil()`
+
+#### `display.resolve()`
+
+To get a `button` and `result` similar to vanilla in `aka.uikit.display`, use `display.resolve()`:  
+
+```moon
+-- Display and dialog and get button and result
+--
+-- @return  button  Same as in vanilla aegisub.dialog.display
+-- @return  result  Same as in vanilla aegisub.dialog.display
+```
+
+Examples:  
+```lua
+button, result = adisplay(dialog, buttons):resolve()
+```
+```moon
+button, result = (adisplay dialog, buttons)\resolve!
+```
+
+#### `display.repeatUntil()`
+
+```moon
+-- Repeatly display the dialog until f returns ok(result)
+-- 
+-- @param   f       function that takes in button and result.
+--                  It shall returns ok() if the dialog is accepted.
+--                  Any contents in the ok() is returns out of
+--                  `repeatUntil()` so you could possibly preprocess
+--                  the data inside this function.
+--                  It shall returns err() if the dialog is rejected
+--                  and the dialog is redisplayed to the user.
+--                  If you want to display an error message or modify
+--                  the dialog, you can pass data inside err() and it
+--                  will be loaded using `dialog:loadData()`.
+--
+-- @return  Result  Ok if the dialog is accepted by f. Contains the
+--                  data returned from f.
+--                  Err if the user cancel the operation.
+```
+
+Examples:  
+```lua
+dialog = adialog.new({ width = 5 })
+                :load_data(previous_data)
+subdialog = dialog:ifable({ name = "err_msg" })
+subdialog = subdialog:label_edit({ label = "Error occuried", name = "err_msg" })
+dialog = dialog:label_edit({ label = "URL", name = "url" })
+
+buttons = abuttons.ok("Connect"):close("Cancel")
+
+result = adisplay(dialog, buttons)
+    :repeatUntil(function(button, result)
+        -- If the user clicked "Cancel", `repeatUntil()`` will return
+        -- without calling this function
+        response, err, msg = request.send(result["url"], { method = "GET" })
+        if not response then
+            result["err_msg"] = "No response"
+            return err(result)
+        elseif response.code ~= 200 then
+            result["err_msg"] = "Target responded with code " .. tostring(response.code)
+            return err(result)
+        else
+            return ok(result)
+        end end)
+```
+```moon
+with dialog = adialog.new { width: 5 }
+  \load_data previous_data
+  with subdialog = \ifable { name: "err_msg" }
+    \label_edit { label: "Error occuried", name: "err_msg" }
+  \label_edit { label: "URL", name: "url" }
+
+with buttons = abuttons.ok "Connect"
+  \close "Cancel"
+
+with result = adisplay display, buttons
+  \repeatUntil (button, result) ->
+    -- If the user clicked "Cancel", `repeatUntil()`` will return
+    -- without calling this function
+    response, err, msg = request.send result["url"], { method: "GET" }
+    if not response
+      result["err_msg"] = "No response"
+      return err result
+    elseif response.code ~= 200
+      result["err_msg"] = "Target responded with code " .. tostring response.code
+      return err result
+    else
+      return ok result
+```
+
+#### `display.loadResolveAndSave()`
+
+```moon
+-- Load the content from previous run, display the dialog and save
+-- the content for next run.
+-- This will only save the content if a button other than close or
+-- cancel is triggered.
+--
+-- @param   name      If you want to save the dialog to a config file
+-- @param   name_supp instead ?config, pass the file name in
+--                    parameter `name`. If you want to save it to a
+--                    subfolder under ?config, pass the folder name
+--                    in parameter `name` and filename in parameter
+--                    `name_supp`
+--
+-- @return  button    Same as in vanilla aegisub.dialog.display
+-- @return  result    Same as in vanilla aegisub.dialog.display
+```
+
+This is for automatical „Recall last“. However, this won't work if the dialog contains data unique to active or selected lines. You won't need this function either if you want to write an advanced preset system as in a lot of lyger's scripts.  
 
 

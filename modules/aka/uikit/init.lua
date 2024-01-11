@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.uikit"
 versioning.description = "Module aka.uikit"
-versioning.version = "1.0.1"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.uikit"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aka.config2\" }]"
 
 local version = require("l0.DependencyControl")({
     name = versioning.name,
@@ -42,7 +42,8 @@ local version = require("l0.DependencyControl")({
     {
         { "aka.outcome" },
         { "aegisub.re" },
-        { "ILL.ILL" }
+        { "ILL.ILL" },
+        { "aka.config2" }
     }
 })
 

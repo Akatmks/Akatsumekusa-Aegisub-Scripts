@@ -61,7 +61,8 @@ dialog_resolver.resolve = function(self)
     return setmetatable(result, {})
 end
 
-local dialog = setmetatable({}, { __index = dialog_resolver })
+local dialog
+dialog = setmetatable({}, { __index = dialog_resolver, __call = dialog.new })
 -----------------------------------------------------------------------
 -- Create a dialog instance.  
 --
@@ -82,11 +83,10 @@ end
 
 local subdialog_mt = {}
 subdialog_mt.__index = function(self, key)
-    if key == "resolve" then
-        return subdialog_resolver["resolve"]
-    else
-        return dialog[key]
-end end
+    local target = rawget(subdialog_resolver, key)
+    if target then return target
+    else return dialog[key] end
+end
 local subdialog = setmetatable({}, subdialog_mt)
 subdialog.new = function()
     local self = setmetatable({}, { __index = subdialog })
@@ -108,9 +108,10 @@ end
 -- @return  self
 -----------------------------------------------------------------------
 dialog.load_data = function(self, data)
-    for k, v in pairs(data) do
-        self["data"][k] = v
-    end
+    if type(data) == "table" then
+        for k, v in pairs(data) do
+            self["data"][k] = v
+    end end
     return self
 end
 
@@ -162,7 +163,7 @@ local vanilla_value_resolver = {}
 vanilla_value_resolver.resolve = function(item, dialog, x, y, width)
     vanilla_resolver.base(item, x, y, width)
     if item["name"] then
-        item["value"] = dialog["data"]["name"] and dialog["data"]["name"] or item["value"]
+        item["value"] = dialog["data"][item["name"]] and dialog["data"][item["name"]] or item["value"]
     end
     table.insert(dialog, item)
     return y + item.height
@@ -171,7 +172,7 @@ local vanilla_text_resolver = {}
 vanilla_text_resolver.resolve = function(item, dialog, x, y, width)
     vanilla_resolver.base(item, x, y, width)
     if item["name"] then
-        item["text"] = dialog["data"]["name"] and dialog["data"]["name"] or item["text"]
+        item["text"] = dialog["data"][item["name"]] and dialog["data"][item["name"]] or item["text"]
     end
     table.insert(dialog, item)
     return y + item.height
@@ -375,11 +376,10 @@ floatable_subdialog_resolver.resolve = function(item, dialog, x, y, width)
 end
 local floatable_subdialog_mt = {}
 floatable_subdialog_mt.__index = function(self, key)
-    if key == "resolve" then
-        return floatable_subdialog_resolver["resolve"]
-    else
-        return subdialog[key]
-end end
+    local target = rawget(floatable_subdialog_resolver, key)
+    if target then return target
+    else return subdialog[key] end
+end
 local floatable_subdialog = setmetatable({}, floatable_subdialog_mt)
 floatable_subdialog.new = function()
     local self = setmetatable({}, { __index = floatable_subdialog })
@@ -403,22 +403,53 @@ dialog.floatable = function(self)
 end
 
 
+local ifable_resolver = {}
+ifable_resolver.resolve = function(item, dialog, x, y, width)
+    if item["name"] and dialog["data"][item["name"]] then
+        return item.subdialog:resolve(dialog, x, y, width)
+    else
+        return y
+end end
+-----------------------------------------------------------------------
+-- Create a subdialog only when value with the name in dialog data i
+-- truely
+--
+-- This method receives parameters in a table.
+-- @key     name        The name for the value in the dialog data.
+--                      If the value is truely, classes in the
+--                      subdialog will be displayed.
+--
+-- @return  subdialog   Call methods such as `label` from this
+--                      subdialog to add to ifable.
+-----------------------------------------------------------------------
+dialog.ifable = function(self, item)
+    setmetatable(item, { __index = ifable_resolver })
+    item.class = "_au_ifable"
+    item.subdialog = subdialog.new()
+    table.insert(self, item)
+    return item.subdialog
+end
+
+
 local columns_resolver = {}
 columns_resolver.resolve = function(item, dialog, x, y, width)
+    vanilla_resolver.base(item, x, y, width)
+
     local current_width
-    local current_x = x
+    local current_x = item.x
     local current_y
     local max_y = 0
+
     for i, v in ipairs(item.widths) do
         if type(v) == "number" then
             current_width = v
         elseif type(v) == "function" then
-            current_width = v(width)
+            current_width = v(item.width)
         else
-            error("[aka.uikit] Invalid key widths passed to dialog.columns()\n[aka.uikit] width should either be a number or function")
+            error("[aka.uikit] Invalid key widths passed to dialog.columns()\n[aka.uikit] widths should either be a table of number or function")
         end
 
-        current_y = item.columns[i]:resolve(dialog, current_x, y, current_width)
+        current_y = item.columns[i]:resolve(dialog, current_x, item.y, current_width)
 
         max_y = math.max(max_y, current_y)
         current_x = current_x + current_width
@@ -450,6 +481,291 @@ dialog.columns = function(self, base)
     end
     table.insert(self, base)
     return table.unpack(base.columns)
+end
+dialog.row = dialog.columns
+
+
+-----------------------------------------------------------------------
+-- Create an edit with a label on the left.
+--
+-- This method receives parameters in a table.
+-- All keys for edit are the same as in vanilla Aegisub.
+-- `x`, `y`, and `width` are optional.
+-- Additionally:
+-- @key label   Text to display for the label
+-- @key widths  By default, label and edit each takes up half of the
+--              width available.
+--
+-- To create this dialog:
+--  \fn  [ Arial ]
+-- Calls:
+--  dialog:label_edit({ label = "\\fn", name = "fn", text = "Arial" })
+--
+-- @return  self
+-----------------------------------------------------------------------
+dialog.label_edit = function(self, item)
+    if item.widths == nil then
+        item.widths = { function(width) return math.ceil(width / 2) end,
+                        function(width) return math.floor(width / 2) end }
+    end
+    local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
+    item.x = nil item.y = nil item.width = nil item.widths = nil
+
+    left:label({ label = item.label })
+    item.label = nil
+    right:edit(item)
+    return self
+end
+-----------------------------------------------------------------------
+-- Create an intedit with a label on the left.
+--
+-- This method receives parameters in a table.
+-- All keys for intedit are the same as in vanilla Aegisub.
+-- `x`, `y`, and `width` are optional.
+-- Additionally:
+-- @key label   Text to display for the label
+-- @key widths  By default, label and intedit each takes up half of the
+--              width available.
+--
+-- To create this dialog:
+--  \frz  [  0.  ]
+-- Calls:
+--  dialog:label_floatedit({ label = "\\frz", name = "frz", value = 0 })
+--
+-- @return  self
+-----------------------------------------------------------------------
+dialog.label_intedit = function(self, item)
+    if item.widths == nil then
+        item.widths = { function(width) return math.ceil(width / 2) end,
+                        function(width) return math.floor(width / 2) end }
+    end
+    local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
+    item.x = nil item.y = nil item.width = nil item.widths = nil
+
+    left:label({ label = item.label })
+    item.label = nil
+    right:intedit(item)
+    return self
+end
+-----------------------------------------------------------------------
+-- Create a floatedit with a label on the left.
+--
+-- This method receives parameters in a table.
+-- All keys for floatedit are the same as in vanilla Aegisub.
+-- `x`, `y`, and `width` are optional.
+-- Additionally:
+-- @key label   Text to display for the label
+-- @key widths  By default, label and floatedit each takes up half of
+--              the width available.
+--
+-- To create this dialog:
+--  \frz  [  0.  ]
+-- Calls:
+--  dialog:label_floatedit({ label = "\\frz", name = "frz", value = 0 })
+--
+-- @return  self
+-----------------------------------------------------------------------
+dialog.label_floatedit = function(self, item)
+    if item.widths == nil then
+        item.widths = { function(width) return math.ceil(width / 2) end,
+                        function(width) return math.floor(width / 2) end }
+    end
+    local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
+    item.x = nil item.y = nil item.width = nil item.widths = nil
+
+    left:label({ label = item.label })
+    item.label = nil
+    right:floatedit(item)
+    return self
+end
+-----------------------------------------------------------------------
+-- Create a textbox with a label on the left.
+--
+-- This method receives parameters in a table.
+-- All keys for textbox are the same as in vanilla Aegisub.
+-- `x`, `y`, and `width` are optional.
+-- Additionally:
+-- @key label   Text to display for the label
+-- @key widths  By default, label and textbox each takes up half of the
+--              width available.
+--
+-- To create this dialog:
+--  Data: [ Multiline ]
+--        [ Content   ]
+-- Calls:
+--  dialog:label_textbox({ label = "Data:",
+--                         height = 2,
+--                         name = "data",
+--                         text = "Multiline\nContent" })
+--
+-- @return  self
+-----------------------------------------------------------------------
+dialog.label_textbox = function(self, item)
+    if item.widths == nil then
+        item.widths = { function(width) return math.ceil(width / 2) end,
+                        function(width) return math.floor(width / 2) end }
+    end
+    local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
+    item.x = nil item.y = nil item.width = nil item.widths = nil
+
+    left:label({ label = item.label })
+    item.label = nil
+    right:textbox(item)
+    return self
+end
+-----------------------------------------------------------------------
+-- Create a dropdown with a label on the left.
+--
+-- This method receives parameters in a table.
+-- All keys for dropdown are the same as in vanilla Aegisub.
+-- `x`, `y`, and `width` are optional.
+-- Additionally:
+-- @key label   Text to display for the label
+-- @key widths  By default, label and dropdown each takes up half of
+--              the width available.
+--
+-- To create this dialog:
+--  \frz  [  0.  ]
+-- Calls:
+--  dialog:label_floatedit({ label = "\\frz", name = "frz", value = 0 })
+--
+-- @return  self
+-----------------------------------------------------------------------
+dialog.label_dropdown = function(self, item)
+    if item.widths == nil then
+        item.widths = { function(width) return math.ceil(width / 2) end,
+                        function(width) return math.floor(width / 2) end }
+    end
+    local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
+    item.x = nil item.y = nil item.width = nil item.widths = nil
+
+    left:label({ label = item.label })
+    item.label = nil
+    right:dropdown(item)
+    return self
+end
+-----------------------------------------------------------------------
+-- Create a checkbox with a label on the left instead of on the right.
+--
+-- This method receives parameters in a table.
+-- All keys for checkbox are the same as in vanilla Aegisub, except
+-- `label` are now for the label on the left.
+-- `x`, `y`, and `width` are optional.
+-- @key widths  By default, label and checkbox each takes up half of
+--              the width available.
+--
+-- To create this dialog:
+--  Expand [x]
+-- Calls:
+--  dialog:label_checkbox({ label = "Expand", value = true })
+--
+-- @return  self
+-----------------------------------------------------------------------
+dialog.label_checkbox = function(self, item)
+    if item.widths == nil then
+        item.widths = { function(width) return math.ceil(width / 2) end,
+                        function(width) return math.floor(width / 2) end }
+    end
+    local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
+    item.x = nil item.y = nil item.width = nil item.widths = nil
+
+    left:label({ label = item.label })
+    item.label = nil
+    right:checkbox(item)
+    return self
+end
+-----------------------------------------------------------------------
+-- Create a color with a label on the left.
+--
+-- This method receives parameters in a table.
+-- All keys for color are the same as in vanilla Aegisub.
+-- `x`, `y`, and `width` are optional.
+-- Additionally:
+-- @key label   Text to display for the label
+-- @key widths  By default, label and color each takes up half of
+--              the width available.
+--
+-- To create this dialog:
+--  \frz  [  0.  ]
+-- Calls:
+--  dialog:label_floatedit({ label = "\\frz", name = "frz", value = 0 })
+--
+-- @return  self
+-----------------------------------------------------------------------
+dialog.label_color = function(self, item)
+    if item.widths == nil then
+        item.widths = { function(width) return math.ceil(width / 2) end,
+                        function(width) return math.floor(width / 2) end }
+    end
+    local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
+    item.x = nil item.y = nil item.width = nil item.widths = nil
+
+    left:label({ label = item.label })
+    item.label = nil
+    right:color(item)
+    return self
+end
+-----------------------------------------------------------------------
+-- Create a coloralpha with a label on the left.
+--
+-- This method receives parameters in a table.
+-- All keys for coloralpha are the same as in vanilla Aegisub.
+-- `x`, `y`, and `width` are optional.
+-- Additionally:
+-- @key label   Text to display for the label
+-- @key widths  By default, label and coloralpha each takes up half of
+--              the width available.
+--
+-- To create this dialog:
+--  \frz  [  0.  ]
+-- Calls:
+--  dialog:label_floatedit({ label = "\\frz", name = "frz", value = 0 })
+--
+-- @return  self
+-----------------------------------------------------------------------
+dialog.label_coloralpha = function(self, item)
+    if item.widths == nil then
+        item.widths = { function(width) return math.ceil(width / 2) end,
+                        function(width) return math.floor(width / 2) end }
+    end
+    local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
+    item.x = nil item.y = nil item.width = nil item.widths = nil
+
+    left:label({ label = item.label })
+    item.label = nil
+    right:coloralpha(item)
+    return self
+end
+-----------------------------------------------------------------------
+-- Create an alpha with a label on the left.
+--
+-- This method receives parameters in a table.
+-- All keys for alpha are the same as in vanilla Aegisub.
+-- `x`, `y`, and `width` are optional.
+-- Additionally:
+-- @key label   Text to display for the label
+-- @key widths  By default, label and alpha each takes up half of
+--              the width available.
+--
+-- To create this dialog:
+--  \frz  [  0.  ]
+-- Calls:
+--  dialog:label_floatedit({ label = "\\frz", name = "frz", value = 0 })
+--
+-- @return  self
+-----------------------------------------------------------------------
+dialog.label_alpha = function(self, item)
+    if item.widths == nil then
+        item.widths = { function(width) return math.ceil(width / 2) end,
+                        function(width) return math.floor(width / 2) end }
+    end
+    local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
+    item.x = nil item.y = nil item.width = nil item.widths = nil
+
+    left:label({ label = item.label })
+    item.label = nil
+    right:alpha(item)
+    return self
 end
 
 

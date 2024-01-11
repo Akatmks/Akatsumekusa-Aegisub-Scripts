@@ -701,17 +701,27 @@
                 "master": {
                     "files": [
                         {
+                            "name": "/buttons.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "17d6bbe52403a6785d4f826d80eda4d3ae1233a5"
+                        },
+                        {
                             "name": "/dialog.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "8f683bc54ee3008d94c255b1d525c75455e25c87"
+                            "sha1": "477f94397982046cb116b7ad6057f75df3ddd9db"
+                        },
+                        {
+                            "name": "/display.moon",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "5d96450fe5a57e48427bf877e137226b8b0ec599"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "05caca1e9b0efd622400a6d32f3b3a49e508f5e9"
+                            "sha1": "a80bee35d63823b86f5f1935089a28adf12602e5"
                         }
                     ],
-                    "version": "1.0.1",
+                    "version": "1.0.2",
                     "default": true,
                     "requiredModules": [
                         {
@@ -721,9 +731,19 @@
                         },
                         {
                             "moduleName": "aegisub.re"
+                        },
+                        {
+                            "moduleName": "ILL.ILL",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "aka.config2",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
                         }
                     ],
-                    "released": "2024-01-10"
+                    "released": "2024-01-11"
                 }
             },
             "author": "Akatsumekusa and contributors",
