@@ -25,32 +25,27 @@
                         },
                         {
                             "moduleName": "aka.request",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.config",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
                         },
                         {
                             "moduleName": "aka.actor",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.optimising",
                             "optional": true,
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
                     "released": "2024-01-06"
@@ -98,8 +93,7 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.actor",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
@@ -107,8 +101,7 @@
                         {
                             "moduleName": "aka.optimising",
                             "optional": true,
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
                     "released": "2024-01-06"
@@ -135,18 +128,15 @@
                     "requiredModules": [
                         {
                             "moduleName": "ILL.ILL",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
                         },
                         {
                             "moduleName": "SubInspector.Inspector",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/SubInspector/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/SubInspector/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
                     "released": "2024-01-06"
@@ -173,28 +163,23 @@
                     "requiredModules": [
                         {
                             "moduleName": "a-mo.LineCollection",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json"
                         },
                         {
                             "moduleName": "l0.ASSFoundation",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/line0-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/line0-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.actor",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.config",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
                     "released": "2024-01-06"
@@ -213,52 +198,48 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "48996cbe1b85a6f698b09684a7f8f3e24355d104"
+                            "sha1": "99731334984de6a371c85bf029853f31fae57d07"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requiredModules": [
                         {
-                            "moduleName": "aka.uikit",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "moduleName": "aegisub.re"
                         },
                         {
                             "moduleName": "aka.config",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aka.uikit",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "ILL.ILL",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
                         },
                         {
                             "moduleName": "moonscript"
                         },
                         {
-                            "moduleName": "aegisub.re"
-                        },
-                        {
-                            "moduleName": "ILL.ILL",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json",
-                            "version": "0.0.1"
-                        },
-                        {
                             "moduleName": "a-mo.LineCollection",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/Aegisub-Motion/DepCtrl/DependencyControl.json"
                         },
                         {
                             "moduleName": "l0.ASSFoundation",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/line0-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/line0-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "Yutils"
                         },
                         {
                             "moduleName": "aka.unicode",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.util"
@@ -410,8 +391,7 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.singlesimple",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
@@ -446,18 +426,15 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.config2",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.unicode",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
@@ -497,8 +474,7 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
@@ -579,7 +555,7 @@
                         },
                         {
                             "moduleName": "requireffi.requireffi",
-                            "version": "0.0.1",
+                            "version": "0.1.2",
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
@@ -607,13 +583,11 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.singlesimple",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "PT.PreciseTimer",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
                     "released": "2024-01-06"
@@ -681,7 +655,7 @@
                         },
                         {
                             "moduleName": "requireffi.requireffi",
-                            "version": "0.0.1",
+                            "version": "0.1.2",
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
@@ -709,18 +683,15 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.config2",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.effil",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
                     "released": "2024-01-06"
@@ -747,8 +718,7 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.singlesimple",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "ffi"
@@ -793,21 +763,18 @@
                     "requiredModules": [
                         {
                             "moduleName": "aka.outcome",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.re"
                         },
                         {
                             "moduleName": "ILL.ILL",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.config2",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-                            "version": "0.0.1"
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
                     "released": "2024-01-13"

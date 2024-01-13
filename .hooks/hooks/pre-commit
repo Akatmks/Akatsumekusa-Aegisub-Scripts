@@ -278,7 +278,7 @@ if __name__ == "__main__":
                     for m in DependencyControl[mtype][namespace]["channels"]["master"]["requiredModules"]:
                         if (m_name := m["moduleName"].split(".", maxsplit=1)[0]) in known_feeds:
                             m["feed"] = known_feeds[m_name]
-                            m["version"] = "0.0.1"
+                            # m["version"] = "0.0.1"
                 if previousDependencyControl and \
                    namespace in previousDependencyControl[mtype] and \
                    "channels" in previousDependencyControl[mtype][namespace] and \

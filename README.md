@@ -13,6 +13,7 @@
 – [aka.BoundingBox](#akaboundingbox)  
 – [aka.Cycles](#akacycles)  
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
+– [aka.SandBox](#akasandbox)  
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
 ***Aegisub VapourSynth***  
@@ -107,6 +108,20 @@ SubInspector:
 ## aka.Cycles
 
 aka.Cycles is largely the same as [ua.Cycles](https://github.com/unanimated/luaegisub) but with a configuration editor inside Aegisub.  
+
+## aka.Sandbox
+
+aka.Sandbox is a script similar to [lyger.LuaInterpret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts/tree/master#user-content-LuaInterpret) but relies on libraries such as [ILL.ILL](https://github.com/TypesettingTools/ILL-Aegisub-Scripts) and [l0.ASSFoundation](https://github.com/TypesettingTools/ASSFoundation) for easy modification of subtitles.  
+
+Unique features:  
+– MoonScript support in addition to Lua.  
+– Commonly used libraries already required and initialised. No need to manually write `require`s.  
+– Builtin import and export of code snippets in addition to an internal preset system.  
+– Better error handling. If an error occurs during execution, the editor window will open back up to make it easier to tweak the code.  
+
+Thanks to  
+– bucket3432 for developing the original `bucket.Sandbox` script.  
+– Zahuczky for suggesting new libraries to be prerequired.  
 
 ## NN.farnhuah
 

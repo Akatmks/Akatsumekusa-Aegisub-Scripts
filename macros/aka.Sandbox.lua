@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.2"
+versioning.version = "1.0.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"Yutils\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -46,27 +46,28 @@ DepCtrl = require("l0.DependencyControl")({
     url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
-        { "aka.uikit" },
+        { "aegisub.re" },
         { "aka.config" },
         { "aka.outcome" },
-        { "moonscript" },
-        { "aegisub.re" },
+        { "aka.uikit" },
         { "ILL.ILL" },
+        { "moonscript" },
         { "a-mo.LineCollection" },
         { "l0.ASSFoundation" },
+        { "Yutils" },
         { "aka.unicode" },
         { "aegisub.util" }
     }
 })
 
-local uikit, config, outcome, moonscript, re, ILL, LineCollection, ASS, unicode, util = DepCtrl:requireModules()
-local adialog, abuttons, adisplay = uikit.dialog, uikit.buttons, uikit.display
+local re, config, outcome, uikit, ILL, moonscript, LineCollection, ASS, yutils, unicode, util = DepCtrl:requireModules()
+local file_extension = re.compile([[.*\.([^\\\/]+)$]])
 local presets_config = config.make_editor({ display_name = "aka.Sandbox/presets",
                                             presets = { ["Default"] = {} },
                                             default = "Default" })
-local o, op, ok, err = outcome.o, outcome.pcall, outcome.ok, outcome.err
-
-local file_extension = re.compile([[.*\.([^\\\/]+)$]])
+local o, ok, err = outcome.o, outcome.ok, outcome.err
+local adialog, abuttons, adisplay = uikit.dialog, uikit.buttons, uikit.display
+local Table = ILL.Table
 
 local Sandbox = function(sub, sel, act)
     local presets = presets_config:read_and_validate_config_if_empty_then_default_or_else_edit_and_save("aka.Sandbox", "presets", function(config)
@@ -224,6 +225,7 @@ local Sandbox = function(sub, sel, act)
                 gt.ASS = ASS
                 gt.aegisub = aegisub
                 gt.logger = DepCtrl:getLogger()
+                gt.yutils = yutils
                 gt.re = re
                 gt.unicode = unicode
                 gt.util = util
@@ -243,6 +245,7 @@ local Sandbox = function(sub, sel, act)
                 setfenv(f, gt)
 
                 r = o(xpcall(f, function(err)
+                    if type(err) ~= "string" then err = Table.view(err) end
                     result["err_msg"] = "Error occuried during execution:\n" ..
                                         debug.traceback(err) end))
                 if r:isOk() then
