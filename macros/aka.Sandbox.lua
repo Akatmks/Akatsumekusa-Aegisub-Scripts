@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.3"
+versioning.version = "1.0.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -245,7 +245,7 @@ local Sandbox = function(sub, sel, act)
                 setfenv(f, gt)
 
                 r = o(xpcall(f, function(err)
-                    if type(err) ~= "string" then err = Table.view(err) end
+                    if err ~= nil and type(err) ~= "string" then err = Table.view(err) end
                     result["err_msg"] = "Error occuried during execution:\n" ..
                                         debug.traceback(err) end))
                 if r:isOk() then

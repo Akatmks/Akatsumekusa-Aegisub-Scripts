@@ -198,10 +198,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "99731334984de6a371c85bf029853f31fae57d07"
+                            "sha1": "acb30c997f8b12dffd858c0d7b3b7372e9971f10"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.4",
                     "default": true,
                     "requiredModules": [
                         {
