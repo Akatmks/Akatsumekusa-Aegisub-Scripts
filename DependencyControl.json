@@ -213,10 +213,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "74cafb0503295be8aa850dde6a5e66c032e97f68"
+                            "sha1": "48996cbe1b85a6f698b09684a7f8f3e24355d104"
                         }
                     ],
-                    "version": "1.0.1",
+                    "version": "1.0.2",
                     "default": true,
                     "requiredModules": [
                         {
@@ -225,9 +225,20 @@
                             "version": "0.0.1"
                         },
                         {
+                            "moduleName": "aka.config",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+                            "version": "0.0.1"
+                        },
+                        {
                             "moduleName": "aka.outcome",
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
                             "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "moonscript"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
                         },
                         {
                             "moduleName": "ILL.ILL",
@@ -245,15 +256,15 @@
                             "version": "0.0.1"
                         },
                         {
-                            "moduleName": "aegisub.re"
-                        },
-                        {
                             "moduleName": "aka.unicode",
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
                             "version": "0.0.1"
+                        },
+                        {
+                            "moduleName": "aegisub.util"
                         }
                     ],
-                    "released": "2024-01-11"
+                    "released": "2024-01-13"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -422,15 +433,15 @@
                         {
                             "name": "/config.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "758cabb6f2d7354ffc33474a355766634411c090"
+                            "sha1": "fbaf6c3f01e1ac82f4f401f7886f0d84f0e2d273"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "c113b17758af7fedcd74fc112f969f7c132b4d08"
+                            "sha1": "8e04400e830cd14e9eb95c5b006a21ecbfe74146"
                         }
                     ],
-                    "version": "1.0.11",
+                    "version": "1.0.12",
                     "default": true,
                     "requiredModules": [
                         {
@@ -452,7 +463,7 @@
                             "moduleName": "aegisub.re"
                         }
                     ],
-                    "released": "2024-01-06"
+                    "released": "2024-01-13"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -468,12 +479,12 @@
                         {
                             "name": "/config2.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "1df0f92294cd5e5493bf43ab7e215664c3d6bc46"
+                            "sha1": "c6816df14833b982512553ea889054a6e1583313"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "1dc4b542a4a73725fa15315d0b401cfb10cbb680"
+                            "sha1": "9c31db8c4ab8b212cb627f2ca847a3698b1da097"
                         },
                         {
                             "name": "/json.lua",
@@ -481,7 +492,7 @@
                             "sha1": "66004f9373847d877fe0aae5ad8a02bf7e161fef"
                         }
                     ],
-                    "version": "1.0.7",
+                    "version": "1.0.8",
                     "default": true,
                     "requiredModules": [
                         {
@@ -499,7 +510,7 @@
                             "moduleName": "lfs"
                         }
                     ],
-                    "released": "2024-01-06"
+                    "released": "2024-01-13"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -759,25 +770,25 @@
                         {
                             "name": "/buttons.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "17d6bbe52403a6785d4f826d80eda4d3ae1233a5"
+                            "sha1": "4a57d528a13ae2d30db9ab4a3b079d2e3e376b03"
                         },
                         {
                             "name": "/dialog.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "af8d7e6a5d44d9cead1ae10ba7b0caecbde8b500"
+                            "sha1": "6232557dd257c7c1ed6f200aece3f9bab89e3501"
                         },
                         {
                             "name": "/display.moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "b37f12c32989bfaf1d4eb7465ece69cdc29a8d3a"
+                            "sha1": "51b88f725c46e127496fa9a8fc43653dac3f54ee"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "0e238188f0c0444f1a6a05d5d106f5486004f046"
+                            "sha1": "629662a473bee3e7b56889d7692cd85c21eee4b1"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.4",
                     "default": true,
                     "requiredModules": [
                         {
@@ -799,7 +810,7 @@
                             "version": "0.0.1"
                         }
                     ],
-                    "released": "2024-01-11"
+                    "released": "2024-01-13"
                 }
             },
             "author": "Akatsumekusa and contributors",

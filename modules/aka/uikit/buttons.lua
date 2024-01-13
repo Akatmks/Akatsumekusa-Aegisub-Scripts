@@ -21,21 +21,12 @@
 -- DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 
-local Table = require("ILL.ILL.Table")
+local Table = require("ILL.ILL.Table").Table
 
 local buttons
 local overloaded_buttons
 
-local buttons_mt = {}
-buttons_mt.__index = function(self, key)
-    local target = rawget(buttons, key)
-    if target then return target end
-
-    local self = setmetatable({}, { __index = overloaded_buttons })
-    return function(...) return rawget(self, key)(self, ...) end
-end
-buttons_mt.__call = buttons.new
-buttons = setmetatable({}, buttons_mt)
+buttons = {}
 buttons.new = function()
     local mt = {}
     mt.__index = overloaded_buttons
@@ -50,10 +41,22 @@ buttons.copy = function(self)
 end
 
 overloaded_buttons = setmetatable({}, { __index = buttons })
-
 overloaded_buttons.resolve = function(self)
     return self.buttons, self.button_ids
 end
+
+local buttons_mt = {}
+buttons_mt.__index = function(self, key)
+    local target = rawget(buttons, key)
+    if target then return target end
+
+    local self = buttons.new()
+    return function(...) return self[key](self, ...) end
+end
+buttons_mt.__call = function(cls, ...)
+    return cls.new(...)
+end
+setmetatable(buttons, buttons_mt)
 
 -----------------------------------------------------------------------
 -- Add an apply, ok and confirm button. This button is triggered when
@@ -149,3 +152,10 @@ overloaded_buttons.is_help = function(self, button)
     end
     return button == self.button_ids["help"]
 end
+
+local functions = {}
+
+functions.buttons = buttons
+functions.overloaded_buttons = overloaded_buttons
+
+return functions

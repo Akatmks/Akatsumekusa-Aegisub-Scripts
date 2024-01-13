@@ -20,14 +20,14 @@ If you want a glance at a complete example using aka.uikit, see [aka.Sandbox](..
 
 ### Table of Contents
 
-– [`aka.uikit.dialog`, `aka.uikit.buttons` and `aka.uikit.display`](#akauikitdialog-akauikitbuttons-and-akauikitdisplay)  
+– [Basic components](#basic-components)  
 – [`aka.uikit.dialog`: Autofill `x`, `y` and `width` key](#akauikitdialog-autofill-x-y-and-width-key)  
 – [`aka.uikit.dialog`: Additional classes](#akauikitdialog-additional-classes)  
 – [`aka.uikit.dialog`: Automatically filling data into dialog](#akauikitdialog-automatically-filling-data-into-dialog)  
 – [`aka.uikit.buttons`: Create buttons with button_ids](#akauikitbuttons-create-buttons-with-button_ids)  
 – [`aka.uikit.display`: Basic use and `display.repeatUntil()`](#akauikitdisplay-basic-use-and-displayrepeatuntil)  
 
-### `aka.uikit.dialog`, `aka.uikit.buttons` and `aka.uikit.display`
+### Basic components
 
 aka.uikit has three main components, `aka.uikit.dialog`, `aka.uikit.buttons` and `aka.uikit.display`:  
 
@@ -62,7 +62,7 @@ vanilla_dialog = dialog\resolve!
 vanilla_buttons, vanilla_button_ids = buttons\resolve!
 ```
 
-Or use it at the end to retrieve the result from display:  
+Or use it at the end to display the dialog to the user and retrieve the result:  
 
 ```lua
 button, result = adisplay(dialog, buttons):resolve()
@@ -316,13 +316,13 @@ Examples:
 dialog:label_edit({ label = "\\fn", name = "fn", text = "Arial" })
 dialog:label_floatedit({ label = "\\frz", name = "frz", value = 0 })
 dialog:label_textbox({ label = "Data:", height = 2, name = "data", text = "Multiline\nContent" })
-dialog:label_checkbox({ label = "Expand", value = true })
+dialog:label_checkbox({ label = "Expand", name = "expand", value = true })
 ```
 ```moon
 dialog\label_edit { label: "\\fn", name: "fn", text: "Arial" }
 dialog\label_floatedit { label: "\\frz", name: "frz", value: 0 }
 dialog\label_textbox { label: "Data:", height: 2, name: "data", text: "Multiline\nContent" }
-dialog\label_checkbox { label: "Expand", value: true }
+dialog\label_checkbox { label: "Expand", name: "expand", value: true }
 ```
 
 ### `aka.uikit.dialog`: Automatically filling data into dialog
@@ -352,9 +352,9 @@ with dialog = adialog { width: 5 }
   \textbox { height: 3, name: "command" }
 ```
 
-The parameter data should be key-value pair, in the same format as the second return from vanilla `aegisub.dialog.display`. `dialog:load_data()` overrides the values in the dialog or from previous call of `dialog:load_data()` with the value from the new data.  
+The data should be in key-value pairs, in the same format as the second return from vanilla `aegisub.dialog.display`.  
 
-A special situation when filling data from previous run is when the script is executed for the first time and a default value is needed. You can directly write the default value to each classes and `dialog:load_data()` will override it when previous data is available:  
+`dialog:load_data()` overrides the default values set in the dialog or values from previous call of `dialog:load_data()`. That means if you want to use values from previous run but also need a default value when the user runs the script for the first time, you can write the default value directly to each classes:  
 ```lua
 dialog = adialog.new({ width = 4 })
                 :load_data(previous_data) -- could be nil
@@ -366,13 +366,32 @@ dialog\load_data previous_data -- could be nil
 dialog\label_floatedit { label: "Strength", name: "strength", min: 0, value: 2 } -- Default value
 ```
 
+Or have a separate default table:  
+```lua
+default_data = { "strength" = 2 }
+
+dialog = adialog.new({ width = 4 })
+                :load_data(default_data)
+                :load_data(previous_data) -- could be nil
+                :label_floatedit({ label = "Strength", name = "strength", min = 0 })
+```
+```moon
+default_data =
+  strength: 2
+
+dialog = adialog.new { width: 4 }
+dialog\load_data default_data
+dialog\load_data previous_data -- could be nil
+dialog\label_floatedit { label: "Strength", name: "strength", min: 0, value: 2 } -- Default value
+```
+
 ### `aka.uikit.buttons`: Create buttons with button_ids
 
 `aka.uikit.buttons` automates the process of writing button_ids. Instead of this code in vanilla:  
 
 ```lua
 buttons = { "Apply", "&Validate", "&Help", "Close" }
-button_ids = { ["ok"] = "Apply", ["close"] = "Close", ["help"] = "Help" }
+button_ids = { ["ok"] = "Apply", ["close"] = "Close", ["help"] = "&Help" }
 ```
 
 You can create buttons with `aka.uikit.buttons` as below:  
@@ -410,7 +429,7 @@ buttons4 = abuttons.regular "L&eft"
 
 #### `buttons.ok()`, `buttons.close()`, `buttons.cancel()` and `buttons.help()`
 
-These are different than regular buttons explained below that they have `button_ids` and will be triggers when the user presses, for example, Enter or return on keyboard, in addition to clicking using mouse. For main functional buttons, these should be preferred over regular buttons below.  
+These are special buttons in Aegisub that they have `button_ids` and will be triggers when the user presses keys such as Enter, return or escape on keyboard, in addition to clicking the button using mouse. For main functional buttons, these should be preferred over regular buttons explained in the next section.  
 – `buttons.ok()` triggers when the user presses Enter or return.  
 – `buttons.close()` triggers when the user presses escape.  
 – `buttons.cancel()` is mutually exclusive with `buttons.close()`. The difference between the two is that when the user presses escape, in `buttons.close()` the display returns the name of the close button, but in `buttons.cancel()` the display returns `false`.  
@@ -446,10 +465,10 @@ Note that direct calling of the instance itself is only available after the inst
 ```lua
 -- This is valid.
 buttons1 = aka.uikit.buttons.ok("Confirm")
-buttons("Extra Button")
+buttons1("Extra Button")
 -- This is invalid.
 -- This is not calling a buttons instance but calling the buttons class.
--- This only creats a buttons instance but do not add any buttons to the instance.
+-- This only creates a buttons instance but do not add any buttons to the instance.
 buttons2 = aka.uikit.buttons("Left Button")
 -- This is valid.
 buttons3 = aka.uikit.buttons.regular("Left button")
@@ -457,10 +476,10 @@ buttons3 = aka.uikit.buttons.regular("Left button")
 ```moon
 -- This is valid.
 buttons1 = aka.uikit.buttons.ok "Confirm"
-buttons "Extra Button"
+buttons1 "Extra Button"
 -- This is invalid.
 -- This is not calling a buttons instance but calling the buttons class.
--- This only creats a buttons instance but do not add any buttons to the instance.
+-- This only creates a buttons instance but do not add any buttons to the instance.
 buttons2 = aka.uikit.buttons "Left Button"
 -- This is valid.
 buttons3 = aka.uikit.buttons.regular "Left button"
@@ -469,6 +488,17 @@ buttons3 = aka.uikit.buttons.regular "Left button"
 ### `aka.uikit.display`: Basic use and `display.repeatUntil()`
 
 #### `display.resolve()`
+
+To start a display, call `aka.uikit.display` or `aka.uikit.display.new`:  
+
+```moon
+-- Start a display
+--
+-- @param   dialog  dialog from aka.uikit.dialog
+-- @param   buttons buttons from aka.uikit.buttons
+--
+-- @return  display
+```
 
 To get a `button` and `result` similar to vanilla in `aka.uikit.display`, use `display.resolve()`:  
 
@@ -543,7 +573,7 @@ with dialog = adialog.new { width: 5 }
 with buttons = abuttons.ok "Connect"
   \close "Cancel"
 
-with result = adisplay display, buttons
+with result = adisplay dialog, buttons
   \repeatUntil (button, result) ->
     -- If the user clicked "Cancel", `repeatUntil()`` will return
     -- without calling this function
@@ -566,17 +596,48 @@ with result = adisplay display, buttons
 -- This will only save the content if a button other than close or
 -- cancel is triggered.
 --
--- @param   name      If you want to save the dialog to a config file
--- @param   name_supp instead ?config, pass the file name in
---                    parameter `name`. If you want to save it to a
---                    subfolder under ?config, pass the folder name
---                    in parameter `name` and filename in parameter
---                    `name_supp`
+-- @param   [name]    The subfolder you would want to put the config
+-- @param   name_supp The name for the config file without the file
+--                    extension.
+--                    The subfolder name is an optional parameter and
+--                    can be ommited in place. Calling the method as
+--                    `display\loadResolveAndSave filename` is A-OK.
 --
 -- @return  button    Same as in vanilla aegisub.dialog.display
 -- @return  result    Same as in vanilla aegisub.dialog.display
 ```
 
-This is for automatical „Recall last“. However, this won't work if the dialog contains data unique to active or selected lines. You won't need this function either if you want to write an advanced preset system as in a lot of lyger's scripts.  
+This will automatically „Recall last“ in every run. However, this won't work if the dialog contains data unique to active or selected lines since the previous data is loaded at the very last, in which case you should write it manually with `dialog.load_data()`. You won't need this function either if you want to write an advanced preset system as in a lot of lyger's scripts.  
 
+#### `display.loadRepeatUntilAndSave()`
 
+```moon
+-- Load the contents from previous run, repeatly display the dialog
+-- until f returns ok(result), and then save the result for next run.
+-- 
+-- @param   [name]    The subfolder you would want to put the config
+-- @param   name_supp The name for the config file without the file
+--                    extension.
+--                    The subfolder name is an optional parameter and
+--                    can be ommited in place. Calling the method as
+--                    `display\loadRepeatUntilAndSave filename, f` is
+--                    A-OK.
+-- @param   f         Function that takes in button and result.
+--                    It shall returns ok(result) if the dialog is
+--                    You may preprocess the data for further use since
+--                    the contents inside ok() will be returned out of
+--                    `loadRepeatUntilAndSave`. However, you also need
+--                    to return the key-value pairs necessay for the
+--                    next dialog run.
+--                    It shall returns err() if the dialog is rejected
+--                    and the dialog is redisplayed to the user.
+--                    If you want to display an error message or modify
+--                    the dialog, you can pass data inside err() and it
+--                    will be loaded using `dialog:loadData()`.
+--
+-- @return  Result    Ok if the dialog is accepted by f. Contains the
+--                    data returned from f.
+--                    Err if the user cancel the operation.
+```
+
+An example of a complete use of aka.uikit is available at [aka.Sandbox](../macros/aka.Sandbox.lua).  

@@ -28,7 +28,15 @@ with require "aka.config2"
   read_data = .read_config
   save_data = .write_config
 
-class Dialog
+class display
+  ---------------------------------------------------------------------
+  -- Start a display
+  --
+  -- @param   dialog  dialog from aka.uikit.dialog
+  -- @param   buttons buttons from aka.uikit.buttons
+  --
+  -- @return  display
+  ---------------------------------------------------------------------
   new: (@dialog, @buttons) =>
 
   ---------------------------------------------------------------------
@@ -46,23 +54,23 @@ class Dialog
   -- This will only save the content if a button other than close or
   -- cancel is triggered.
   --
-  -- @param   name      If you want to save the dialog to a config file
-  -- @param   name_supp instead ?config, pass the file name in
-  --                    parameter `name`. If you want to save it to a
-  --                    subfolder under ?config, pass the folder name
-  --                    in parameter `name` and filename in parameter
-  --                    `name_supp`
+  -- @param   [name]    The subfolder you would want to put the config
+  -- @param   name_supp The name for the config file without the file
+  --                    extension.
+  --                    The subfolder name is an optional parameter and
+  --                    can be ommited in place. Calling the method as
+  --                    `display\loadResolveAndSave filename` is A-OK.
   --
   -- @return  button    Same as in vanilla aegisub.dialog.display
   -- @return  result    Same as in vanilla aegisub.dialog.display
   ---------------------------------------------------------------------
   loadResolveAndSave: (name, name_supp) =>
     with read_data name, name_supp
-      \andThen (data) -> @dialog.load_data data
+      \ifOk (data) -> @dialog\load_data data
 
     button, result = aegisub.dialog.display @dialog\resolve!, @buttons\resolve!
 
-    unless @buttons.is_close_cancel button
+    unless @buttons\is_close_cancel button
       save_data name, name_supp, result
 
     return button, result
@@ -70,7 +78,7 @@ class Dialog
   ---------------------------------------------------------------------
   -- Repeatly display the dialog until f returns ok(result)
   -- 
-  -- @param   f       function that takes in button and result.
+  -- @param   f       Function that takes in button and result.
   --                  It shall returns ok() if the dialog is accepted.
   --                  Any contents in the ok() is returns out of
   --                  `repeatUntil()` so you could possibly preprocess
@@ -89,7 +97,7 @@ class Dialog
     while true
       button, result = aegisub.dialog.display @dialog\resolve!, @buttons\resolve!
 
-      if @buttons.is_close_cancel button
+      if @buttons\is_close_cancel button
         return err "[aka.uikit] User cancels display.repeatUntil"
         
       result = f button, result
@@ -102,39 +110,51 @@ class Dialog
   -- Load the contents from previous run, repeatly display the dialog
   -- until f returns ok(result), and then save the result for next run.
   -- 
-  -- @param   f       function that takes in button and result.
-  --                  It shall returns ok(result) if the dialog is
-  --                  You may preprocess the data for further use since
-  --                  the contents inside ok() will be returned out of
-  --                  `loadRepeatUntilAndSave`. However, you also need
-  --                  to return the key-value pairs necessay for the
-  --                  next dialog run.
-  --                  It shall returns err() if the dialog is rejected
-  --                  and the dialog is redisplayed to the user.
-  --                  If you want to display an error message or modify
-  --                  the dialog, you can pass data inside err() and it
-  --                  will be loaded using `dialog:loadData()`.
+  -- @param   [name]    The subfolder you would want to put the config
+  -- @param   name_supp The name for the config file without the file
+  --                    extension.
+  --                    The subfolder name is an optional parameter and
+  --                    can be ommited in place. Calling the method as
+  --                    `display\loadRepeatUntilAndSave filename, f` is
+  --                    A-OK.
+  -- @param   f         Function that takes in button and result.
+  --                    It shall returns ok(result) if the dialog is
+  --                    You may preprocess the data for further use since
+  --                    the contents inside ok() will be returned out of
+  --                    `loadRepeatUntilAndSave`. However, you also need
+  --                    to return the key-value pairs necessay for the
+  --                    next dialog run.
+  --                    It shall returns err() if the dialog is rejected
+  --                    and the dialog is redisplayed to the user.
+  --                    If you want to display an error message or modify
+  --                    the dialog, you can pass data inside err() and it
+  --                    will be loaded using `dialog:loadData()`.
   --
-  -- @return  Result  Ok if the dialog is accepted by f. Contains the
-  --                  data returned from f.
-  --                  Err if the user cancel the operation.
+  -- @return  Result    Ok if the dialog is accepted by f. Contains the
+  --                    data returned from f.
+  --                    Err if the user cancel the operation.
   ---------------------------------------------------------------------
-  loadRepeatUntilAndSave: (f, name, name_supp) =>
+  loadRepeatUntilAndSave: (name, name_supp, f) =>
+    f, name_supp = name_supp, nil if f == nil
+    name_supp, name = name, nil if name_supp == nil
+
     with read_data name, name_supp
-      \andThen (data) -> @dialog.load_data data
+      \ifOk (data) -> @dialog\load_data data
 
     while true
       button, result = aegisub.dialog.display @dialog\resolve!, @buttons\resolve!
 
-      if @buttons.is_close_cancel button
+      if @buttons\is_close_cancel button
         return err "[aka.uikit] User cancels display.repeatUntil"
         
       result_ = f button, result
       if result_\isOk!
-        if result_\unwrap! ~= nil
+        if (type result_\unwrap!) == "table"
           save_data name, name_supp, result_\unwrap!
         else
           save_data name, name_supp, result
         return result_
 
-      @dialog\load_data result\unwrapErr!
+      @dialog\load_data result_\unwrapErr!
+
+{:display}

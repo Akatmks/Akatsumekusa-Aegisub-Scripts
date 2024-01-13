@@ -23,7 +23,7 @@
 
 
 local re = require("aegisub.re")
-local Table = require("ILL.ILL.Table")
+local Table = require("ILL.ILL.Table").Table
 
 
 -- Inheritance:
@@ -51,18 +51,11 @@ local dialog_resolver = {}
 -----------------------------------------------------------------------
 dialog_resolver.resolve = function(self)
     local result = setmetatable({}, { __index = self })
-    for k, v in ipairs(self) do
-        if type(k) ~= "number" then
-            result[k] = self[k]
-    end end
-    
     subdialog_resolver.resolve(self, result, 0, 0, result.width)
-    
     return setmetatable(result, {})
 end
 
-local dialog
-dialog = setmetatable({}, { __index = dialog_resolver, __call = dialog.new })
+local dialog = {}
 -----------------------------------------------------------------------
 -- Create a dialog instance.  
 --
@@ -72,14 +65,18 @@ dialog = setmetatable({}, { __index = dialog_resolver, __call = dialog.new })
 -- @return  self    The newly created dialog instance
 -----------------------------------------------------------------------
 dialog.new = function(dialog_base)
-    setmetatable(dialog_base, { __index = dialog })
     dialog_base["class"] = "_au_dialog"
     dialog_base["data"] = dialog_base["data"] or {}
+    setmetatable(dialog_base, { __index = dialog })
     return dialog_base
 end
 dialog.copy = function(self)
     return Table.deepcopy(self)
 end
+local dialog_mt = {}
+dialog_mt.__index = dialog_resolver
+dialog_mt.__call = function(cls, ...) return cls.new(...) end
+setmetatable(dialog, dialog_mt)
 
 local subdialog_mt = {}
 subdialog_mt.__index = function(self, key)
@@ -155,12 +152,14 @@ vanilla_resolver.base = function(item, x, y, width)
     item.height = item.height and item.height or 1
 end
 vanilla_resolver.resolve = function(item, dialog, x, y, width)
+    item = Table.copy(item)
     vanilla_resolver.base(item, x, y, width)
     table.insert(dialog, item)
     return y + item.height
 end
 local vanilla_value_resolver = {}
 vanilla_value_resolver.resolve = function(item, dialog, x, y, width)
+    item = Table.copy(item)
     vanilla_resolver.base(item, x, y, width)
     if item["name"] then
         item["value"] = dialog["data"][item["name"]] and dialog["data"][item["name"]] or item["value"]
@@ -170,6 +169,7 @@ vanilla_value_resolver.resolve = function(item, dialog, x, y, width)
 end
 local vanilla_text_resolver = {}
 vanilla_text_resolver.resolve = function(item, dialog, x, y, width)
+    item = Table.copy(item)
     vanilla_resolver.base(item, x, y, width)
     if item["name"] then
         item["text"] = dialog["data"][item["name"]] and dialog["data"][item["name"]] or item["text"]
@@ -341,8 +341,7 @@ end
 
 local separator_resolver = {}
 separator_resolver.resolve = function(item, dialog, x, y, width)
-    item.height = item.height and item.height or 1
-    return y + item.height
+    return y + item.height and item.height or 1
 end
 -----------------------------------------------------------------------
 -- Create a separator or an empty space on the dialog.
@@ -460,25 +459,21 @@ end
 
 local columns_resolver = {}
 columns_resolver.resolve = function(item, dialog, x, y, width)
-    vanilla_resolver.base(item, x, y, width)
-
     local current_width
-    local current_x = item.x
-    local current_y
+    local current_x = x
+    local new_y
     local max_y = 0
 
     for i, v in ipairs(item.widths) do
         if type(v) == "number" then
             current_width = v
         elseif type(v) == "function" then
-            current_width = v(item.width)
+            current_width = v(width)
         else
             error("[aka.uikit] Invalid key widths passed to dialog.columns()\n[aka.uikit] widths should either be a table of number or function")
         end
-
-        current_y = item.columns[i]:resolve(dialog, current_x, item.y, current_width)
-
-        max_y = math.max(max_y, current_y)
+        new_y = item.columns[i]:resolve(dialog, current_x, y, current_width)
+        max_y = math.max(max_y, new_y)
         current_x = current_x + current_width
     end
     return max_y
@@ -684,7 +679,9 @@ end
 -- To create this dialog:
 --  Expand [x]
 -- Calls:
---  dialog:label_checkbox({ label = "Expand", value = true })
+--  dialog:label_checkbox({ label = "Expand",
+--                          name = "expand",
+--                          value = true })
 --
 -- @return  self
 -----------------------------------------------------------------------

@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.1"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.unicode\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -47,65 +47,158 @@ DepCtrl = require("l0.DependencyControl")({
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
         { "aka.uikit" },
+        { "aka.config" },
         { "aka.outcome" },
+        { "moonscript" },
+        { "aegisub.re" },
         { "ILL.ILL" },
         { "a-mo.LineCollection" },
         { "l0.ASSFoundation" },
-        { "aegisub.re" },
-        { "aka.unicode" }
+        { "aka.unicode" },
+        { "aegisub.util" }
     }
 })
 
-local uikit, outcome, ILL, LineCollection, ASS, re, unicode = DepCtrl:requireModules()
+local uikit, config, outcome, moonscript, re, ILL, LineCollection, ASS, unicode, util = DepCtrl:requireModules()
 local adialog, abuttons, adisplay = uikit.dialog, uikit.buttons, uikit.display
+local presets_config = config.make_editor({ display_name = "aka.Sandbox/presets",
+                                            presets = { ["Default"] = {} },
+                                            default = "Default" })
 local o, op, ok, err = outcome.o, outcome.pcall, outcome.ok, outcome.err
 
+local file_extension = re.compile([[.*\.([^\\\/]+)$]])
+
 local Sandbox = function(sub, sel, act)
-    local dialog = adialog.new({ width = 60 })
+    local presets = presets_config:read_and_validate_config_if_empty_then_default_or_else_edit_and_save("aka.Sandbox", "presets", function(config)
+        for k, v in pairs(config) do
+            if type(k) ~= "string" then
+                return err("All keys in the config table shall be strings.\nKey " .. tostring(k) .. " is a " .. type(k) .. ".")
+        end end
+        return ok(config) end)
+        :ifErr(aegisub.cancel)
+        :unwrap()
 
-    local err_dialog = adialog.ifable({ name = "err_msg" })
-    err_dialog:label({ label = "Error occuried:" })
-    err_dialog:textbox({ height = 6, name = "err_msg" })
+    local dialog = adialog.new({ width = 57 })
 
-    dialog:label({ label = "These variables are required:" })
-    local one, two, three, four
-    one, two, three, four = dialog:columns({ widths = { 15, 15, 15, 15 } })
-    one:label({ label = "sub: Subtitle object" })
-    two:label({ label = "sel: Selected lines" })
-    three:label({ label = "act: Active line" })
-    four:label({ label = "aegisub: aegisub object" })
-    one, three = dialog:columns({ widths = { 40, 20 } })
-    one:label({ label = "Aegi, Ass, Line, Table, ...: All classes from ILL.ILL" })
-    three:label({ label = "ass: Ass loaded with sub, sel and act" })
-    one:label({ label = "LineCollection, ASS: a-mo.LineCollection and l0.ASSFoundation" })
-    three:label({ label = "lines: LineCollection loaded with sub and sel" })
-    one, two, three = dialog:columns({ widths = { 20, 20, 20 } })
-    one:label({ label = "logger: logger from l0.DependencyControl" })
-    two:label({ label = "re: aegisub.re" })
-    three:label({ label = "unicode: aegisub.unicode (aka.unicode)" })
+    local left, right = dialog:columns({ widths = { 55, 2 } })
+    left:textbox({ height = 31, name = "command" })
 
-    dialog:label({ label = "Enter Lua code:" })
-          :textbox({ height = 20, name = "command" })
+    local err_dialog = right:ifable({ name = "err_msg" })
+    err_dialog:label({ label = "𝗘𝗿𝗿𝗼𝗿 𝗼𝗰𝗰𝘂𝗿𝗶𝗲𝗱 during previous operation:" })
+              :textbox({ height = 12, name = "err_msg" })
 
-    local buttons = abuttons.ok("Run"):extra("&Open snippet"):extra("&Save as snippet"):close("Close")
+    right:label({ label = "Select Language:" })
+         :dropdown({ name = "language", items = { "Lua", "MoonScript" }, value = "Lua" })
 
-    adisplay(dialog, buttons)
-        :repeatUntil(function(button, result)
-            if button == "&Open snippet" then
-                o(aegisub.dialog.open("Opening snippet..."))
-                    :ifOk(function(f)
-                        o(io.open(f, "r"))
+    right:label({ label = "Available variables:" })
+    local var, exp = right:columns({ widths = { 1, 1 } })
+    var:label({ label = "│ sub" })
+    exp:label({ label = "Subtitle object" })
+    var:label({ label = "│ sel:" })
+    exp:label({ label = "Selected lines" })
+    var:label({ label = "│ act:" })
+    exp:label({ label = "Active line" })
+
+    right:label({ label = "Required libraries:" })
+    var, exp = right:columns({ widths = { 1, 1 } })
+    var:label({ label = "│ Ass, Line, Aegi, …:" })
+    exp:label({ label = "All ILL.ILL classes" })
+    var:label({ label = "│ ass:" })
+    exp:label({ label = "Ass loaded with subtitle" })
+    var:label({ label = "│ LineCollection:" })
+    exp:label({ label = "a-mo.LineCollection" })
+    var:label({ label = "│ lines:" })
+    exp:label({ label = "LineCollection loaded" })
+    var:label({ label = "│ ASS:" })
+    exp:label({ label = "l0.ASSFoundation" })
+    var:label({ label = "│ logger:" })
+    exp:label({ label = "logger from l0.DepCtrl" })
+    var:label({ label = "│ aegisub:" })
+    exp:label({ label = "aegisub object" })
+    var:label({ label = "│ yutils:" })
+    exp:label({ label = "Yutils" })
+    var:label({ label = "│ re:" })
+    exp:label({ label = "aegisub.re" })
+    var:label({ label = "│ unicode:" })
+    exp:label({ label = "aegisub.unicode (m)" })
+    var:label({ label = "│ util:" })
+    exp:label({ label = "aegisub.util" })
+
+    local buttons = abuttons.ok("Run"):extra("&Load Preset"):extra("&Save As Preset"):extra("&Delete Preset"):extra("Open Sn&ippet"):extra("Save As Snipp&et"):close("Close")
+
+    local r = adisplay(dialog, buttons)
+        :loadRepeatUntilAndSave("aka.Sandbox", "dialog", function(button, result)
+            result["err_msg"] = false
+
+            if button == "&Load Preset" then
+                local items = {}
+                local value
+                for k, _ in pairs(presets) do
+                    table.insert(items, k)
+                    value = k
+                end
+                local dialog = adialog.new({ width = 16 })
+                                      :label_dropdown({ label = "Presets:", name = "preset", items = items, value = value })
+                local buttons = abuttons.ok("Load"):close("Back")
+                local b, r = adisplay(dialog, buttons):resolve()
+                if buttons:is_ok(b) then
+                    result["command"] = presets[r["preset"]]
+                end
+                return err(result)
+            elseif button == "&Delete Preset" then
+                local items = {}
+                local value
+                for k, _ in pairs(presets) do
+                    table.insert(items, k)
+                    value = k
+                end
+                local dialog = adialog.new({ width = 16 })
+                                      :label_dropdown({ label = "Presets:", name = "preset", items = items, value = value })
+                local buttons = abuttons.ok("Delete"):close("Back")
+                local b, r = adisplay(dialog, buttons):resolve()
+                if buttons:is_ok(b) then
+                    presets[r["preset"]] = nil
+                    presets_config.write_config("aka.Sandbox", "presets", presets)
+                        :ifErr(function(msg)
+                            result["err_msg"] = "Error occuried when updating presets:\n" ..
+                                                msg end)
+                end
+                return err(result)
+            elseif button == "&Save As Preset" then
+                local dialog = adialog.new({ width = 16 })
+                                      :label_edit({ label = "Preset name:", name = "preset" })
+                local buttons = abuttons.ok("Save"):close("Back")
+                local b, r = adisplay(dialog, buttons):resolve()
+                if buttons:is_ok(b) then
+                    presets[r["preset"]] = result["command"]
+                    presets_config.write_config("aka.Sandbox", "presets", presets)
+                        :ifErr(function(msg)
+                            result["err_msg"] = "Error occuried when saving presets:\n" ..
+                                                msg end)
+                end
+                return err(result)
+            elseif button == "Open Sn&ippet" then
+                o(aegisub.dialog.open("Opening snippet...", "", "", ""))
+                    :ifOk(function(path)
+                        o(io.open(path, "r"))
                             :andThen(function(f)
                                 local r = o(f:read("*a"))
                                     :ifOk(function(t)
-                                        result["command"] = t end)
+                                        result["command"] = t
+                                        local ext = file_extension:match(path)[2]["str"]
+                                        if string.lower(ext) == "lua" then
+                                            result["language"] = "Lua"
+                                        elseif string.lower(ext) == "moon" then
+                                            result["language"] = "MoonScript"
+                                        end end)
                                 f:close() return
                                 r end)
                             :ifErr(function(msg)
-                                result["err_msg"] = msg end) end) return
+                                result["err_msg"] = "Error occuried when opening snippet:\n" ..
+                                                    msg end) end) return
                 err(result)
-            elseif button == "&Save as snippet" then
-                o(aegisub.dialog.save("Saving snippet..."))
+            elseif button == "Save As Snipp&et" then
+                o(aegisub.dialog.save("Saving as snippet...", "", "", ""))
                     :ifOk(function(f)
                         o(io.open(f, "w"))
                             :andThen(function(f)
@@ -113,11 +206,14 @@ local Sandbox = function(sub, sel, act)
                                 f:close() return
                                 r end)
                             :ifErr(function(msg)
-                                result["err_msg"] = msg end) end) return
+                                result["err_msg"] = "Error occuried when saving snippet:\n" ..
+                                                    msg end) end) return
                 err(result)
             else -- button == "Run"
                 local gt = setmetatable({}, { __index = _G })
-                gt.uikit = uikit
+                gt.sub = sub
+                gt.sel = sel
+                gt.act = act
                 for k, v in pairs(ILL) do
                     if not string.find(k, "version") then
                         gt[k] = v
@@ -126,24 +222,50 @@ local Sandbox = function(sub, sel, act)
                 gt.LineCollection = LineCollection
                 gt.lines = LineCollection(sub, sel)
                 gt.ASS = ASS
+                gt.aegisub = aegisub
+                gt.logger = DepCtrl:getLogger()
                 gt.re = re
                 gt.unicode = unicode
+                gt.util = util
 
-                local r = op(loadstring(result["command"]))
+                local r
+                if result["language"] == "Lua" then
+                    r = o(loadstring(result["command"]))
+                else
+                    r = o(moonscript.loadstring(result["command"]))
+                end
                 if r:isErr() then
-                    result["err_msg"] = r:unwrapErr()
+                    result["err_msg"] = "Error occuried during loadstring():\n" ..
+                                        r:unwrapErr()
                     return err(result)
                 end
                 local f = r:unwrap()
                 setfenv(f, gt)
 
-                r = op(f())
-                if r:isErr() then
-                    result["err_msg"] = r:unwrapErr()
+                r = o(xpcall(f, function(err)
+                    result["err_msg"] = "Error occuried during execution:\n" ..
+                                        debug.traceback(err) end))
+                if r:isOk() then
+                    r = r:unwrap()
+                    if type(r) == "table" and type(r[1]) == "table" and type(r[2]) == "number" then
+                        (function()
+                            for i, v in ipairs(result[1]) do
+                                if type(v) ~= "number" then
+                                    return err()
+                            end end
+                            return ok() end)()
+                            :ifOk(function()
+                                result[1] = r[1] result[2] = r[2] end)
+                    end
+                    return ok(result)
+                else
                     return err(result)
-                end
-                return ok()
-            end end)
-end
+            end end end)
+
+    if r:isOk() then
+        r = r:unwrap()
+        if type(r) == "table" then
+            return r[1], r[2]
+end end end
 
 DepCtrl:registerMacro(Sandbox)

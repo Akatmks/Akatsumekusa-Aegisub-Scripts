@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.uikit"
 versioning.description = "Module aka.uikit"
-versioning.version = "1.0.3"
+versioning.version = "1.0.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.uikit"
 
@@ -52,6 +52,8 @@ local functions = {}
 functions.dialog = require("aka.uikit.dialog").dialog
 functions.buttons = require("aka.uikit.buttons").buttons
 functions.display = require("aka.uikit.display").display
+
+functions.error = function(str) error(str) end
 
 functions.version = version
 functions.versioning = versioning

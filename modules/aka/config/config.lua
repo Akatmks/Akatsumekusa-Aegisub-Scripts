@@ -41,7 +41,7 @@ setmetatable(config_methods, { __index = config })
 --     width [32]: The width for a column (two columns in total)
 --     height [20]: The height of a column
 --     presets: Every presets in a key-value table
---     default: THe name (key) of the default preset
+--     default: The name (key) of the default preset
 -- 
 -- @return table: an instance of config with GUI functions
 config.make_editor = function(param)
@@ -169,7 +169,7 @@ end end end
 -- 
 -- @param str config [nil]: The subfolder where the config is in
 -- @param str config_supp: The name for the config file without the file extension
--- @param function validation_func: The validation function that takes the config_data and returns either ok(config_data) or err(error_message)
+-- @param function validation_func [function(config_data) return ok(config_data)]: The validation function that takes the config_data and returns either ok(config_data) or err(error_message)
 -- 
 -- @return outcome.result<table, string>: Return the config table back if success, or return err() if the user cancel the option
 --
@@ -179,8 +179,12 @@ config_methods.read_edit_validate_and_save_config = function(self, config, confi
     local error
     local config_data
     
-    if type(config_supp) ~= "string" then validation_func = config_supp config_supp = config config = nil end
-    if type(validation_func) ~= "function" then validation_func = function(config_data) return ok(config_data) end end
+    if type(validation_func) == "function" then
+    elseif type(config_supp) == "function" then
+        validation_func = config_supp config_supp = nil
+    else
+        validation_func = function(config_data) return ok(config_data) end
+    end
     
     config_string = self.read_config_string(config, config_supp)
     if config_string:isOk() then
@@ -202,7 +206,7 @@ config_methods.read_edit_validate_and_save_config = function(self, config, confi
     end
 
     self.write_config_string(config, config_supp, config_string:unwrap())
-        :mapErr(function(error) return
+        :ifErr(function(error) return
             aegisub.debug.out(1, error) end)
     return config_data
 end
@@ -212,7 +216,7 @@ end
 -- 
 -- @param str config [nil]: The subfolder where the config is in
 -- @param str config_supp: The name for the config file without the file extension
--- @param function validation_func: The validation function that takes the config_data and returns either ok(config_data) or err(error_message)
+-- @param function validation_func [function(config_data) return ok(config_data)]: The validation function that takes the config_data and returns either ok(config_data) or err(error_message)
 -- 
 -- @return outcome.result<table, string>: Return the config table back if success, or return err() if the user cancel the option
 --
@@ -222,8 +226,12 @@ config_methods.read_and_validate_config_or_else_edit_and_save = function(self, c
     local config_data
     local error
     
-    if type(config_supp) ~= "string" then validation_func = config_supp config_supp = config config = nil end
-    if type(validation_func) ~= "function" then validation_func = function(config_data) return ok(config_data) end end
+    if type(validation_func) == "function" then
+    elseif type(config_supp) == "function" then
+        validation_func = config_supp config_supp = nil
+    else
+        validation_func = function(config_data) return ok(config_data) end
+    end
     
     config_string = self.read_config_string(config, config_supp)
     if config_string:isOk() then
@@ -250,7 +258,7 @@ config_methods.read_and_validate_config_or_else_edit_and_save = function(self, c
     end
 
     self.write_config_string(config, config_supp, config_string:unwrap())
-        :mapErr(function(error) return
+        :ifErr(function(error) return
             aegisub.debug.out(1, error) end)
     return config_data
 end
@@ -260,7 +268,7 @@ end
 -- 
 -- @param str config [nil]: The subfolder where the config is in
 -- @param str config_supp: The name for the config file without the file extension
--- @param function validation_func: The validation function that takes the config_data and returns either ok(config_data) or err(error_message)
+-- @param function validation_func [function(config_data) return ok(config_data) end]: The validation function that takes the config_data and returns either ok(config_data) or err(error_message)
 -- 
 -- @return outcome.result<table, string>: Return the config table back if success, or return err() if the user cancel the option
 --
@@ -270,8 +278,12 @@ config_methods.read_and_validate_config_if_empty_then_default_or_else_edit_and_s
     local error
     local config_data
     
-    if type(config_supp) ~= "string" then validation_func = config_supp config_supp = config config = nil end
-    if type(validation_func) ~= "function" then validation_func = function(config_data) return ok(config_data) end end
+    if type(validation_func) == "function" then
+    elseif type(config_supp) == "function" then
+        validation_func = config_supp config_supp = nil
+    else
+        validation_func = function(config_data) return ok(config_data) end
+    end
 
     config_string = self.read_config_string(config, config_supp)
     if config_string:isOk() then
@@ -290,12 +302,12 @@ config_methods.read_and_validate_config_if_empty_then_default_or_else_edit_and_s
     else
         if type(self.presets[self.default]) == "string" then
             self.write_config_string(config, config_supp, self.presets[self.default])
-                :mapErr(function(error) return
+                :ifErr(function(error) return
                     aegisub.debug.out(1, error) end)
             return self.json:decode3(self.presets[self.default])
         else
             self.write_config(config, config_supp, self.presets[self.default])
-                :mapErr(function(error) return
+                :ifErr(function(error) return
                     aegisub.debug.out(1, error) end)
             return ok(self.presets[self.default])
         end
@@ -307,7 +319,7 @@ config_methods.read_and_validate_config_if_empty_then_default_or_else_edit_and_s
     end
 
     self.write_config_string(config, config_supp, config_string:unwrap())
-        :mapErr(function(error) return
+        :ifErr(function(error) return
             aegisub.debug.out(1, error) end)
     return config_data
 end
