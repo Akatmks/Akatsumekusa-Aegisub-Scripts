@@ -822,17 +822,17 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "258f0ac2707c023402498ce910b8de96bd4c09a7"
+                            "sha1": "58473bb7d54b538c7fc74430c9a26564d228cef4"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.1.1",
                     "default": true,
                     "requiredModules": [
                         {
                             "moduleName": "lpeg"
                         }
                     ],
-                    "released": "2024-01-06"
+                    "released": "2024-01-14"
                 }
             },
             "author": "Akatsumekusa and contributors",
