@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.4"
+versioning.version = "1.0.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -125,7 +125,7 @@ local Sandbox = function(sub, sel, act)
     var:label({ label = "│ util:" })
     exp:label({ label = "aegisub.util" })
 
-    local buttons = abuttons.ok("Run"):extra("&Load Preset"):extra("&Save As Preset"):extra("&Delete Preset"):extra("Open Sn&ippet"):extra("Save As Snipp&et"):close("Close")
+    local buttons = abuttons.ok("&Run"):extra("&Load Preset"):extra("&Save As Preset"):extra("&Delete Preset"):extra("Open Sn&ippet"):extra("Save As Snipp&et"):close("Close")
 
     local r = adisplay(dialog, buttons)
         :loadRepeatUntilAndSave("aka.Sandbox", "dialog", function(button, result)

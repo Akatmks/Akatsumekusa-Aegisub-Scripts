@@ -113,6 +113,7 @@ dialog.load_data = function(self, data)
 end
 
 
+local last_class = re.compile([[.*_([^_]+)$]])
 -----------------------------------------------------------------------
 -- All vanilla classes are left as is. aka.uikit automates x, y, and
 -- width key, while all other keys need to be filled by the user
@@ -120,10 +121,9 @@ end
 -- x, y, width can be overrided by passing a new value, or by passing
 -- a function to modify the value from aka.uikit. 
 -----------------------------------------------------------------------
-local vanilla_resolver = {}
-vanilla_resolver.base = function(item, x, y, width)
-    item.class = re.split(item.class, "_")
-    item.class = item.class[#item.class]
+local vanilla_label_resolver = {}
+vanilla_label_resolver.base = function(item, x, y, width)
+    item.class = last_class:match(item.class)[2]["str"]
 
     if type(item.x) == "number" then
         do end
@@ -151,18 +151,50 @@ vanilla_resolver.base = function(item, x, y, width)
 
     item.height = item.height and item.height or 1
 end
-vanilla_resolver.resolve = function(item, dialog, x, y, width)
+vanilla_label_resolver.resolve = function(item, dialog, x, y, width)
     item = Table.copy(item)
-    vanilla_resolver.base(item, x, y, width)
+    vanilla_label_resolver.base(item, x, y, width)
+    if item["name_label"] then
+        item["label"] = dialog["data"][item["name_label"]] ~= nil and dialog["data"][item["name_label"]] or item["label"]
+        item["name_label"] = nil
+    end
     table.insert(dialog, item)
     return y + item.height
 end
 local vanilla_value_resolver = {}
 vanilla_value_resolver.resolve = function(item, dialog, x, y, width)
     item = Table.copy(item)
-    vanilla_resolver.base(item, x, y, width)
+    vanilla_label_resolver.base(item, x, y, width)
     if item["name"] then
-        item["value"] = dialog["data"][item["name"]] and dialog["data"][item["name"]] or item["value"]
+        item["value"] = dialog["data"][item["name"]] ~= nil and dialog["data"][item["name"]] or item["value"]
+    end
+    table.insert(dialog, item)
+    return y + item.height
+end
+local vanilla_value_items_resolver = {}
+vanilla_value_items_resolver.resolve = function(item, dialog, x, y, width)
+    item = Table.copy(item)
+    vanilla_label_resolver.base(item, x, y, width)
+    if item["name"] then
+        item["value"] = dialog["data"][item["name"]] ~= nil and dialog["data"][item["name"]] or item["value"]
+    end
+    if item["name_items"] then
+        item["items"] = dialog["data"][item["name_items"]] ~= nil and dialog["data"][item["name_items"]] or item["items"]
+        item["name_items"] = nil
+    end
+    table.insert(dialog, item)
+    return y + item.height
+end
+local vanilla_value_label_resolver = {}
+vanilla_value_label_resolver.resolve = function(item, dialog, x, y, width)
+    item = Table.copy(item)
+    vanilla_label_resolver.base(item, x, y, width)
+    if item["name"] then
+        item["value"] = dialog["data"][item["name"]] ~= nil and dialog["data"][item["name"]] or item["value"]
+    end
+    if item["name_label"] then
+        item["label"] = dialog["data"][item["name_label"]] ~= nil and dialog["data"][item["name_label"]] or item["label"]
+        item["name_label"] = nil
     end
     table.insert(dialog, item)
     return y + item.height
@@ -170,9 +202,9 @@ end
 local vanilla_text_resolver = {}
 vanilla_text_resolver.resolve = function(item, dialog, x, y, width)
     item = Table.copy(item)
-    vanilla_resolver.base(item, x, y, width)
+    vanilla_label_resolver.base(item, x, y, width)
     if item["name"] then
-        item["text"] = dialog["data"][item["name"]] and dialog["data"][item["name"]] or item["text"]
+        item["text"] = dialog["data"][item["name"]] ~= nil and dialog["data"][item["name"]] or item["text"]
     end
     table.insert(dialog, item)
     return y + item.height
@@ -183,12 +215,14 @@ end
 -- This method receives parameters in a table. All keys are the same as
 -- in vanilla Aegisub documentation. `x`, `y`, and `width` are
 -- optional.
+-- Additionally:
+-- @key     name_label  Change the label dynamically
 --
 -- @return  self
 -----------------------------------------------------------------------
 dialog.label = function(self, item)
     if item == nil then item = {} end
-    setmetatable(item, { __index = vanilla_resolver })
+    setmetatable(item, { __index = vanilla_label_resolver })
     item.class = "_au_label"
     table.insert(self, item)
     return self
@@ -263,12 +297,14 @@ end
 -- This method receives parameters in a table. All keys are the same as
 -- in vanilla Aegisub documentation. `x`, `y`, and `width` are
 -- optional.
+-- Additionally:
+-- @key     name_items  Change the item list dynamically
 --
 -- @return  self
 -----------------------------------------------------------------------
 dialog.dropdown = function(self, item)
     if item == nil then item = {} end
-    setmetatable(item, { __index = vanilla_value_resolver })
+    setmetatable(item, { __index = vanilla_value_items_resolver })
     item.class = "_au_dropdown"
     table.insert(self, item)
     return self
@@ -279,12 +315,14 @@ end
 -- This method receives parameters in a table. All keys are the same as
 -- in vanilla Aegisub documentation. `x`, `y`, and `width` are
 -- optional.
+-- Additionally:
+-- @key     name_label  Change the label dynamically
 --
 -- @return  self
 -----------------------------------------------------------------------
 dialog.checkbox = function(self, item)
     if item == nil then item = {} end
-    setmetatable(item, { __index = vanilla_value_resolver })
+    setmetatable(item, { __index = vanilla_value_label_resolver })
     item.class = "_au_checkbox"
     table.insert(self, item)
     return self
@@ -404,19 +442,25 @@ end
 
 local ifable_resolver = {}
 ifable_resolver.resolve = function(item, dialog, x, y, width)
-    if item["name"] and dialog["data"][item["name"]] then
+    if item["name"] and
+       ((item["value"] ~= nil and dialog["data"][item["name"]] == item["value"]) or
+        (item["value"] == nil and dialog["data"][item["name"]])) then
         return item.subdialog:resolve(dialog, x, y, width)
     else
         return y
 end end
 -----------------------------------------------------------------------
 -- Create a subdialog only when value with the name in dialog data is
--- truthy
+-- truthy or equal to the value provided.
 --
 -- This method receives parameters in a table.
 -- @key     name        The name for the value in the dialog data.
---                      If the value is truthy, classes in the
---                      subdialog will be displayed.
+-- @key     value       If this key is not provided, classes in the
+--                      subdialog will be displayed if value for the
+--                      name is truthy.
+--                      If this key is provided, classes in the
+--                      subdialog will be displayed if value for the
+--                      name equals to this key
 --
 -- @return  subdialog   Call methods such as `label` from this
 --                      subdialog to add to ifable.
@@ -431,19 +475,25 @@ end
 
 local unlessable_resolver = {}
 unlessable_resolver.resolve = function(item, dialog, x, y, width)
-    if item["name"] and dialog["data"][item["name"]] then
+    if item["name"] and
+       ((item["value"] ~= nil and dialog["data"][item["name"]] == item["value"]) or
+        (item["value"] == nil and dialog["data"][item["name"]])) then
         return y
     else
         return item.subdialog:resolve(dialog, x, y, width)
 end end
 -----------------------------------------------------------------------
 -- Create a subdialog only when value with the name in dialog data is
--- falsy
+-- falsy or not equal to the value provided.
 --
 -- This method receives parameters in a table.
 -- @key     name        The name for the value in the dialog data.
---                      If the value is falsy, classes in the
---                      subdialog will be displayed.
+-- @key     value       If this key is not provided, classes in the
+--                      subdialog will be displayed if value for the
+--                      name is falsey.
+--                      If this key is provided, classes in the
+--                      subdialog will be displayed if value for the
+--                      name does not equal to this key
 --
 -- @return  subdialog   Call methods such as `label` from this
 --                      subdialog to add to unlessable.
@@ -454,6 +504,27 @@ dialog.unlessable = function(self, item)
     item.subdialog = subdialog.new()
     table.insert(self, item)
     return item.subdialog
+end
+
+
+-----------------------------------------------------------------------
+-- Join another dialog
+--
+-- @param   dialog  Note that only classes in the dialog will be joined
+--                  and other information such as data and width will
+--                  be discarded.
+--                  The dialog will be copied inside the function so
+--                  later modification of the parameter dialog won't
+--                  affect the dialog joined.
+--
+-- @return  self
+-----------------------------------------------------------------------
+dialog.join_dialog = function(self, dialog)
+    dialog = dialog:copy()
+    dialog.class = "_au_subdialog"
+    setmetatable(dialog, { __index = subdialog })
+    table.insert(self, dialog)
+    return self
 end
 
 
@@ -514,9 +585,11 @@ dialog.row = dialog.columns
 -- All keys for edit are the same as in vanilla Aegisub.
 -- `x`, `y`, and `width` are optional.
 -- Additionally:
--- @key label   Text to display for the label
--- @key widths  By default, label and edit each takes up half of the
---              width available.
+-- @key     label       Text to display for the label.
+-- @key     name_label  Change the label dynamically.
+-- @key     widths      By default, label and edit each takes up half
+--                      of the width available. Change the widths of
+--                      two classes using this key.
 --
 -- To create this dialog:
 --  \fn  [ Arial ]
@@ -545,9 +618,11 @@ end
 -- All keys for intedit are the same as in vanilla Aegisub.
 -- `x`, `y`, and `width` are optional.
 -- Additionally:
--- @key label   Text to display for the label
--- @key widths  By default, label and intedit each takes up half of the
---              width available.
+-- @key     label       Text to display for the label.
+-- @key     name_label  Change the label dynamically.
+-- @key     widths      By default, label and edit each takes up half
+--                      of the width available. Change the widths of
+--                      two classes using this key.
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -576,9 +651,11 @@ end
 -- All keys for floatedit are the same as in vanilla Aegisub.
 -- `x`, `y`, and `width` are optional.
 -- Additionally:
--- @key label   Text to display for the label
--- @key widths  By default, label and floatedit each takes up half of
---              the width available.
+-- @key     label       Text to display for the label.
+-- @key     name_label  Change the label dynamically.
+-- @key     widths      By default, label and edit each takes up half
+--                      of the width available. Change the widths of
+--                      two classes using this key.
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -607,9 +684,11 @@ end
 -- All keys for textbox are the same as in vanilla Aegisub.
 -- `x`, `y`, and `width` are optional.
 -- Additionally:
--- @key label   Text to display for the label
--- @key widths  By default, label and textbox each takes up half of the
---              width available.
+-- @key     label       Text to display for the label.
+-- @key     name_label  Change the label dynamically.
+-- @key     widths      By default, label and edit each takes up half
+--                      of the width available. Change the widths of
+--                      two classes using this key.
 --
 -- To create this dialog:
 --  Data: [ Multiline ]
@@ -642,9 +721,12 @@ end
 -- All keys for dropdown are the same as in vanilla Aegisub.
 -- `x`, `y`, and `width` are optional.
 -- Additionally:
--- @key label   Text to display for the label
--- @key widths  By default, label and dropdown each takes up half of
---              the width available.
+-- @key     label       Text to display for the label.
+-- @key     name_label  Change the label dynamically.
+-- @key     name_items  Change the item list dynamically
+-- @key     widths      By default, label and edit each takes up half
+--                      of the width available. Change the widths of
+--                      two classes using this key.
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -673,8 +755,10 @@ end
 -- All keys for checkbox are the same as in vanilla Aegisub, except
 -- `label` are now for the label on the left.
 -- `x`, `y`, and `width` are optional.
--- @key widths  By default, label and checkbox each takes up half of
---              the width available.
+-- @key     name_label  Change the label dynamically.
+-- @key     widths      By default, label and edit each takes up half
+--                      of the width available. Change the widths of
+--                      two classes using this key.
 --
 -- To create this dialog:
 --  Expand [x]
@@ -705,9 +789,11 @@ end
 -- All keys for color are the same as in vanilla Aegisub.
 -- `x`, `y`, and `width` are optional.
 -- Additionally:
--- @key label   Text to display for the label
--- @key widths  By default, label and color each takes up half of
---              the width available.
+-- @key     label       Text to display for the label.
+-- @key     name_label  Change the label dynamically.
+-- @key     widths      By default, label and edit each takes up half
+--                      of the width available. Change the widths of
+--                      two classes using this key.
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -736,9 +822,11 @@ end
 -- All keys for coloralpha are the same as in vanilla Aegisub.
 -- `x`, `y`, and `width` are optional.
 -- Additionally:
--- @key label   Text to display for the label
--- @key widths  By default, label and coloralpha each takes up half of
---              the width available.
+-- @key     label       Text to display for the label.
+-- @key     name_label  Change the label dynamically.
+-- @key     widths      By default, label and edit each takes up half
+--                      of the width available. Change the widths of
+--                      two classes using this key.
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -767,9 +855,11 @@ end
 -- All keys for alpha are the same as in vanilla Aegisub.
 -- `x`, `y`, and `width` are optional.
 -- Additionally:
--- @key label   Text to display for the label
--- @key widths  By default, label and alpha each takes up half of
---              the width available.
+-- @key     label       Text to display for the label.
+-- @key     name_label  Change the label dynamically.
+-- @key     widths      By default, label and edit each takes up half
+--                      of the width available. Change the widths of
+--                      two classes using this key.
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -799,13 +889,17 @@ functions.subdialog_resolver = subdialog_resolver
 functions.dialog_resolver = dialog_resolver
 functions.dialog = dialog
 functions.subdialog = subdialog
-functions.vanilla_resolver = vanilla_resolver
+functions.vanilla_label_resolver = vanilla_label_resolver
 functions.vanilla_value_resolver = vanilla_value_resolver
+functions.vanilla_value_items_resolver = vanilla_value_items_resolver
+functions.vanilla_value_label_resolver = vanilla_value_label_resolver
 functions.vanilla_text_resolver = vanilla_text_resolver
 functions.separator_resolver = separator_resolver
 functions.floatable_resolver = floatable_resolver
 functions.floatable_subdialog_resolver = floatable_subdialog_resolver
 functions.floatable_subdialog = floatable_subdialog
+functions.ifable_resolver = floatable_subdialog
+functions.unlessable_resolver = floatable_subdialog
 functions.columns_resolver = columns_resolver
 
 return functions
