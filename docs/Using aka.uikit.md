@@ -1,6 +1,6 @@
 ## Using aka.uikit
 
-aka.uikit is a collection of different automation function for creating UI in Aegisub dialog.  
+aka.uikit is a collection of different automation functions for the ease  of creating UI in Aegisub dialog.  
 
 Imports aka.uikit to the scope:  
 ```lua
@@ -14,19 +14,21 @@ with require "aka.uikit"
     adisplay = .display
 ```
 
-In this tutorial, what's known otherwise as widgets or controls in Aegisub dialog will be referred to as classes, including vanilla classes such as `edit`, `floatedit` and `dropdown` as well as classes unique to aka.uikit such as `separator` and `grid`. All the options for classes such as `x`, `y`, `name`, `label`, `value` will be referred to as keys.  
+In this tutorial, what's otherwise known as widgets or controls in Aegisub dialog will be referred to as classes, including vanilla classes such as `edit`, `floatedit` and `dropdown` as well as classes unique to aka.uikit such as `separator` and `columns`. All the options for classes such as `x`, `y`, `name`, `label`, `value` will be referred to as keys.  
 
-If you want a glance at a complete example using aka.uikit, see [aka.Sandbox](../macros/aka.Sandbox.lua).  
+If you want a glance at an basic example using aka.uikit, see [aka.Sandbox](../macros/aka.Sandbox.lua).  
 
 ### Table of Contents
 
 – [Basic components](#basic-components)  
 – [`aka.uikit.dialog`: Autofill `x`, `y` and `width` key](#akauikitdialog-autofill-x-y-and-width-key)  
-– [`aka.uikit.dialog`: All classes](#akauikitdialog-all-classes)  
+– [`aka.uikit.dialog`: A list of all classes](#akauikitdialog-a-list-of-all-classes)  
 – [`aka.uikit.dialog`: Automatically filling data into dialog](#akauikitdialog-automatically-filling-data-into-dialog)  
 – [`aka.uikit.buttons`: Create buttons with button_ids](#akauikitbuttons-create-buttons-with-button_ids)  
 – [`aka.uikit.display`: Basic use and `display.repeatUntil()`](#akauikitdisplay-basic-use-and-displayrepeatuntil)  
-– [`aka.uikit.dialog`: Create your custom classes](#akauikitdialog-create-your-custom-classes)
+– [`aka.uikit.dialog`: Group classes together and create reusable templates](#akauikitdialog-group-classes-together-and-create-reusable-templates)  
+– [`aka.uikit.dialog`: Explain structure of adialog and create custom classes](#akauikitdialog-explain-structure-of-adialog-and-create-custom-classes)  
+– [`aka.uikit.dialog`: Access data in generator functions](#akauikitdialog-access-data-in-generator-functions)  
 
 ### Basic components
 
@@ -52,7 +54,7 @@ display = adisplay dialog, buttons
 * In the following three lines, an `"OK"` and a `"Cancel"` button are created.  
 * In the last line, the dialog and buttons are (ready to be) displayed to the user.  
 
-At every stage, you can call `resolve()` to retrieve a result in vanilla Aegisub.  
+For `dialog`, `buttons`, you can call `resolve()` to get a result in vanilla Aegisub.  
 
 ```lua
 vanilla_dialog = dialog:resolve()
@@ -63,7 +65,7 @@ vanilla_dialog = dialog\resolve!
 vanilla_buttons, vanilla_button_ids = buttons\resolve!
 ```
 
-Or use it at the end to display the dialog to the user and retrieve the result:  
+Or use it at the on `display` to display the dialog to the user and retrieve the result:  
 
 ```lua
 button, result = adisplay(dialog, buttons):resolve()
@@ -101,7 +103,7 @@ dialog = { { class = "label", x = 0, y = 0, width = 5, label = "AAE data" },
            { class = "checkbox", x = 0, y = 5, width = 5, name = "expand", label = "Expand", value = true } }
 ```
 
-You can manually override the `x`, `y` or `width` key:  
+You can, however, manually override the `x`, `y` or `width` key if needed:  
 ```lua
 dialog:checkbox({ x = 1, width = 4, name = "expand", label = "Expand", value = true })
 ```
@@ -109,7 +111,7 @@ dialog:checkbox({ x = 1, width = 4, name = "expand", label = "Expand", value = t
 dialog\checkbox { x: 1, width: 4 name: "expand", label: "Expand", value: true }
 ```
 
-You can also pass a function to modify the `x`, `y` or `width` key. The function will receive the key's natural value as parameter:  
+You can also pass a generator function to modify the `x`, `y` or `width` key. The function will receive the key's natural or default value as parameter:  
 ```lua
 dialog:checkbox({ x = function(x) return x + 1 end,
                   width = function(width) return width - 1 end,
@@ -128,7 +130,7 @@ dialog\checkbox
 
 Note that even if you have modified `x` or `y` key, the space the class originally occupies will still be left for it. If you want the class to be floating without occupying space, you could use [`dialog:floatable`](#dialogfloatable) class. 
 
-### `aka.uikit.dialog`: All classes
+### `aka.uikit.dialog`: A list of all classes
 
 #### `dialog.edit`, `dialog.intedit`, `dialog.floatedit`, `dialog.textbox`, `dialog.color`, `dialog.coloralpha`, `dialog.alpha`
 
@@ -136,22 +138,36 @@ For vanilla classes, keys used in `aka.uikit.dialog` are the same as in dialog t
 
 `dialog.edit`:  
 ```lua
--- Create an edit.  
+-- Create an edit.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key.
+-- `x`, `y`, `width`, `height`, and `text` keys also accept generator
+-- functions.
 --
 -- @return  self
 ```
 
 `dialog.floatedit`:  
 ```lua
--- Create a floatedit.  
+-- Create a floatedit.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key.
+-- `x`, `y`, `width`, `height`, and `value` keys also accept generator
+-- functions.
 --
 -- @return  self
 ```
@@ -162,26 +178,37 @@ For these three classes, in addition to vanilla keys, new `name` keys are availa
 
 `dialog.label`:  
 ```lua
--- Create a label.  
+-- Create a label.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
--- Additionally:
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
 -- @key     name_label  Change the label dynamically
+-- `x`, `y`, `width`, `height`, and `label` keys also accept generator
+-- functions.
 --
 -- @return  self
 ```
 
 `dialog.dropdown`:  
 ```lua
--- Create a dropdown.  
+-- Create a dropdown.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
--- Additionally:
--- @key     name_items  Change the item list dynamically
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key for `value` and the following key:
+-- @key     name_items  Change items dynamically
+-- `x`, `y`, `width`, `height`, `value` and `items` keys also accept
+-- generator functions.
 --
 -- @return  self
 ```
@@ -190,11 +217,17 @@ For these three classes, in addition to vanilla keys, new `name` keys are availa
 ```lua
 -- Create a checkbox.  
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
--- Additionally:
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key for `value` and the following key:
 -- @key     name_label  Change the label dynamically
+-- `x`, `y`, `width`, `height`, `value` and `label` keys also accept
+-- generator functions.
 --
 -- @return  self
 ```
@@ -248,7 +281,7 @@ subdialog\label { x: 10, y: 11, width: 3, label: "Floating" }
 
 #### `dialog.ifable` and `dialog.unlessable`
 
-Classes inside an ifable class will only display if the value specified by the name in ifable is truthy.
+Classes inside an ifable class will only display if the value specified by the name in ifable is truthy or equal to the value provided.
 
 ```lua
 -- Create a subdialog only when value with the name in dialog data is
@@ -267,7 +300,7 @@ Classes inside an ifable class will only display if the value specified by the n
 --                      subdialog to add to ifable.
 ```
 
-Classes inside an unlessable class will only display if the value specified by the name in unlessable is falsy.
+Classes inside an unlessable class will only display if the value specified by the name in unlessable is falsy or not equal to the value provided.
 
 ```lua
 -- Create a subdialog only when value with the name in dialog data is
@@ -357,12 +390,15 @@ By default, `aka.uikit.dialog` arranges classes from top to bottom. This method 
 --
 -- This method receives parameters in a table.
 -- @key     widths      A table of widths for each columns. The number
---                      of widths in this table determines the number
+--                      of width's in this table determines the number
 --                      of columns created.
 --                      For example, to create three equally divided
 --                      columns in a dialog with a total width of 12:
 --                          dialog:columns({ widths = { 4, 4, 4 } })
---                      Accepts both number and function. 
+--                      Also accepts generator function for individual
+--                      width's. The generator function will received
+--                      the width of the whole dialog.columns as
+--                      parameter.  
 --
 -- @return  subdialogs  For each width in widths param, return a
 --                      subdialog. Call methods such as `label` from
@@ -400,11 +436,13 @@ It's common for automation scripts to have a edit, intedit, floatedit, etc with 
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- @return  self
 ```
 
-`dialog.label_dropdown`:  
+`dialog.label_floatedit`:  
 ```lua
 -- Create a floatedit with a label on the left.
 --
@@ -417,11 +455,13 @@ It's common for automation scripts to have a edit, intedit, floatedit, etc with 
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- @return  self
 ```
 
-`dialog.label_floatedit`:  
+`dialog.label_dropdown`:  
 ```lua
 -- Create a dropdown with a label on the left.
 --
@@ -435,6 +475,8 @@ It's common for automation scripts to have a edit, intedit, floatedit, etc with 
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -460,7 +502,7 @@ dialog\label_checkbox { label: "Expand", name: "expand", value: true }
 
 ### `aka.uikit.dialog`: Automatically filling data into dialog
 
-It's common for scripts to prefill the dialog with contents, either data from the active subtitle line, or settings from previous run. In vanilla, this is often performed as below:  
+It's common for automation scripts to prefill the dialog with data, either data from the active subtitle line, or settings from previous run. In vanilla, this is often performed as below:  
 ```lua
 dialog = { { class = "floatedit",   x = 0, y = 0, width = 5,
                                     name = "frz", value = line_data["frz"] },
@@ -468,7 +510,7 @@ dialog = { { class = "floatedit",   x = 0, y = 0, width = 5,
                                     name = "command", value = previous_data["command"] } }
 ```
 
-`aka.uikit.dialog` makes it easy using the `dialog:load_data()` method:  
+`aka.uikit.dialog` makes this process easy using the `dialog:load_data()` method:  
 ```lua
 dialog = adialog.new({ width = 5 }
                 :load_data(line_data)
@@ -490,12 +532,12 @@ The data should be in key-value pairs, in the same format as the second return f
 `dialog:load_data()` overrides the default values set in the dialog or values from previous call of `dialog:load_data()`. That means if you want to use values from previous run but also need a default value when the user runs the script for the first time, you can write the default value directly to each classes:  
 ```lua
 dialog = adialog.new({ width = 4 })
-                :load_data(previous_data) -- could be nil
+                :load_data(previous_data) -- Override value; could be nil
                 :label_floatedit({ label = "Strength", name = "strength", min = 0, value = 2 }) -- Default value
 ```
 ```moon
 dialog = adialog.new { width: 4 }
-dialog\load_data previous_data -- could be nil
+dialog\load_data previous_data -- Override value; could be nil
 dialog\label_floatedit { label: "Strength", name: "strength", min: 0, value: 2 } -- Default value
 ```
 
@@ -505,7 +547,7 @@ default_data = { "strength" = 2 }
 
 dialog = adialog.new({ width = 4 })
                 :load_data(default_data)
-                :load_data(previous_data) -- could be nil
+                :load_data(previous_data) -- Override default_data; could be nil
                 :label_floatedit({ label = "Strength", name = "strength", min = 0 })
 ```
 ```moon
@@ -514,7 +556,7 @@ default_data =
 
 dialog = adialog.new { width: 4 }
 dialog\load_data default_data
-dialog\load_data previous_data -- could be nil
+dialog\load_data previous_data -- Override default_data; could be nil
 dialog\label_floatedit { label: "Strength", name: "strength", min: 0, value: 2 } -- Default value
 ```
 
@@ -618,6 +660,33 @@ buttons2 = aka.uikit.buttons "Left Button"
 buttons3 = aka.uikit.buttons.regular "Left button"
 ```
 
+#### `buttons.is_ok()`, `buttons.is_close_cancel()`, `buttons.is_close()`, `buttons.is_cancel()`, and `buttons.is_help()`
+
+These are functions that will be helpful to process `button` return after display:  
+
+As an example:  
+```lua
+button, result = adisplay(dialog, buttons):resolve()
+if buttons:is_ok(button) then
+    -- ...
+elseif button == "Extra button" then
+    -- ...
+elseif buttons:is_close_cancel(button) then
+    -- ...
+end
+```
+```moon
+button, result = (adisplay dialog, buttons)\resolve!
+if buttons\is_ok button
+  -- ...
+elseif button == "Extra button"
+  -- ...
+elseif buttons\is_close_cancel button
+  -- ...
+```
+
+One note is that `buttons.is_close()` and `buttons.is_cancel()` are only aliases for function `buttons.is_close_cancel()` and it makes no distinction between `close` and `cancel` buttons.  
+
 ### `aka.uikit.display`: Basic use and `display.repeatUntil()`
 
 #### `display.resolve()`
@@ -649,6 +718,8 @@ button, result = adisplay(dialog, buttons):resolve()
 ```moon
 button, result = (adisplay dialog, buttons)\resolve!
 ```
+
+`aka.uikit.display` also offers methods for more complex situations:  
 
 #### `display.repeatUntil()`
 
@@ -773,8 +844,6 @@ This will automatically „Recall last“ in every run. However, this won't work
 --                    Err if the user cancel the operation.
 ```
 
-An example of a complete use of aka.uikit is available at [aka.Sandbox](../macros/aka.Sandbox.lua).  
-
 ### `aka.uikit.dialog`: Group classes together and create reusable templates
 
 Grouping classes together and creating reusable templates is exactly the idea behind `adialog.label_xxx` methods such as `adialog.label_edit` and `adialog.label_dropdown`. It is simply packing the function calls to real classes into a new method:  
@@ -795,8 +864,8 @@ Grouping classes together and creating reusable templates is exactly the idea be
 -----------------------------------------------------------------------
 dialog.label_edit = function(self, item)
     if item.widths == nil then
-        item.widths = { function(width) return math.ceil(width / 2) end,
-                        function(width) return math.floor(width / 2) end }
+        item.widths = { function(width, _) return math.ceil(width / 2) end,
+                        function(width, _) return math.floor(width / 2) end }
     end
     local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
     item.x = nil item.y = nil item.width = nil item.widths = nil
@@ -856,7 +925,7 @@ class new_dialog extends dialog
       right\floatedit { name: .name_y, value: .value_y }
 ```
 
-### `aka.uikit.dialog`: Create your own classes
+### `aka.uikit.dialog`: Explain structure of adialog and create custom classes
 
 Here is a brief insight of how `aka.uikit.dialog` works.  
 
@@ -893,7 +962,7 @@ dialog → dialog_mt → dialog_resolver
  ├╶["resolve"] function
  ├╶["width"] 10
  ├╶["data"] { ["edit"] = "EDIT" }
- ├╶[1] vanilla_label_resolver
+ ├╶[1] vanilla_label_resolver → vanilla_base_resolver
  │      ├╶["resolve"] function
  │      └╶["label"] "LABEL_A"
  ├╶[2] columns_resolver
@@ -902,15 +971,15 @@ dialog → dialog_mt → dialog_resolver
  │      └╶["columns"]
  │           ├╶[1] subdialog → subdialog_mt → subdialog_resolver
  │           │      ├╶["resolve"] function
- │           │      └╶[1] vanilla_label_resolver
+ │           │      └╶[1] vanilla_label_resolver → vanilla_base_resolver
  │           │             ├╶["resolve"] function
  │           │             └╶["label"] "LABEL_B"
  │           └╶[2] subdialog → subdialog_mt → subdialog_resolver
  │                  ├╶["resolve"] function
- │                  └╶[1] vanilla_label_resolver
+ │                  └╶[1] vanilla_label_resolver → vanilla_base_resolver
  │                         ├╶["resolve"] function
  │                         └╶["label"] "LABEL_C"
- └╶[3] vanilla_label_resolver
+ └╶[3] vanilla_label_resolver → vanilla_base_resolver
         ├╶["resolve"] function
         └╶["label"] "LABEL_D"
 ```
@@ -926,50 +995,55 @@ subdialog_resolver.resolve = function(self, dialog, x, y, width)
 end
 ```
 
-In `aka.uikit.dialog`, every classes is arranged from top to bottom. That means all classes in the same dialog or subdialog will be fed with the same `x` and `width`. For `y`, every resolvers will take the current `y`, decide how many height they will need, and return `y` plus `height` for the next class down the line.  
+In `aka.uikit.dialog`, classes are arranged from top to bottom. That means all classes in the same dialog or subdialog will be fed with the same `x` and `width`. For `y`, every resolvers will take the current `y`, decide how many height they will need, and return `y` plus `height` for the next class down the line.  
 
-The `vanilla_label_resolver` for the labels has a lot more to do. Although the `label` key has been provided by the user, the user may use `name_label` key to dynamically updating the label. It also need to sort out `x`, `y`, `width` and insert it to the resulting dialog table:  
+The `vanilla_label_resolver` has a lot to do. Although the `label` key has been provided by the user, the user may use `name_label` key to dynamically updating the label. It also need to sort out `x`, `y`, `width` and insert it to the resulting dialog table:  
 
 ```lua
 vanilla_label_resolver.resolve = function(item, dialog, x, y, width)
     item = Table.copy(item)
     item.class = last_class:match(item.class)[2]["str"]
-    item.x = item.x or x -- Note The actual code for x, y, and width is
-    item.y = item.y or y -- a tiny bit more complex
-    item.width = item.width or width
-    item.height = item.height and item.height or 1
-    if item["name_label"] then
-        item["label"] = dialog["data"][item["name_label"]] ~= nil and dialog["data"][item["name_label"]] or item["label"]
-        item["name_label"] = nil
-    end
+    vanilla_base_resovler.x_y_width_height_resolve(item, dialog, "x", x)
+    vanilla_base_resovler.x_y_width_height_resolve(item, dialog, "y", y)
+    vanilla_base_resovler.x_y_width_height_resolve(item, dialog, "width", width)
+    vanilla_base_resovler.x_y_width_height_resolve(item, dialog, "height", 1)
+    vanilla_base_resovler.value_resolve(item, dialog, "name_label", "label")
     table.insert(dialog, item)
     return y + item.height
 end
+-- For the two function it calls:
+vanilla_base_resovler.x_y_width_height_resolve = function(item, dialog, key, default_value)
+    if item[key] == nil then
+        item[key] = default_value
+    elseif type(item[key]) == "function" then
+        item[key] = item[key](default_value, dialog["data"])
+    else
+        do end
+end end
+vanilla_base_resovler.value_resolve = function(item, dialog, name_key, value_key)
+    if item[name_key] ~= nil and dialog["data"][item[name_key]] ~= nil then
+        if type(dialog["data"][item[name_key]]) == "function" then
+            item[value_key] = dialog["data"][item[name_key]](item[value_key], dialog["data"])
+        else
+            item[value_key] = dialog["data"][item[name_key]]
+        end
+    else
+        if type(item[value_key]) == "function" then
+            item[value_key] = item[value_key](nil, dialog["data"])
+    end end
+    item[name_key] = nil
+end
+-- ...
 ```
 
-The `item` parameter in this function is `self`, the label / `vanilla_label_resolver` itself with string `label` and function `resolve`. Note that we copied `item` before making any changes to it. This is important as the `adialog` instance and every classes in it should be considered immutable. This is because in `aka.uikit.display.repeatUtil` and many other usages, the same `adialog` instance will be used to generate dialog table repeatly.  
+The `item` parameter in this function is `self`, `vanilla_label_resolver` instance with `label` as string and `resolve` as function.  
+Pay special attention that we copied `item` before making any changes to it. This is important as the `adialog` instance and every classes in it should be considered immutable. This is because in `aka.uikit.display.repeatUtil` and many other usages, the same `adialog` instance will be used to generate dialog table repeatly.  
 
 The `dialog` parameter is the Aegisub dialog table that the instance is resolving to, as in the example, `item` is inserted into the `dialog` table after processing.  
 However, to open access to `dialog["data"]` from `adialog.load_data()` and other potential information, the `dialog` table inherits the original `adialog` instance. This means  `dialog["data"]` is not a copy of `data` in original `adialog` instance, but through `__index` metamethod they are the same table. For the same reason as `item` parameter, everything that is inherited in this dialog table should be considered immutable.  
 
-Adding in the function to add `vanilla_label_resolver` to `adialog` instance:  
-
+To insert such resolver into `adialog`:  
 ```lua
-local vanilla_label_resolver = {}
-vanilla_label_resolver.resolve = function(item, dialog, x, y, width)
-    item = Table.copy(item)
-    item.class = last_class:match(item.class)[2]["str"]
-    item.x = item.x or x -- Note The actual code for x, y, and width is
-    item.y = item.y or y -- a tiny bit more complex
-    item.width = item.width or width
-    item.height = item.height and item.height or 1
-    if item["name_label"] then
-        item["label"] = dialog["data"][item["name_label"]] ~= nil and dialog["data"][item["name_label"]] or item["label"]
-        item["name_label"] = nil
-    end
-    table.insert(dialog, item)
-    return y + item.height
-end
 dialog.label = function(self, item)
     if item == nil then item = {} end
     setmetatable(item, { __index = vanilla_label_resolver })
@@ -979,6 +1053,44 @@ dialog.label = function(self, item)
 end
 ```
 
-Implementations for other `aka.uikit.dialog` classes are available in the [source](../modules/aka/uikit/dialog.lua).  
+Custom classes can be created similarly and implementations for other `aka.uikit.dialog` classes are available in the [source](../modules/aka/uikit/dialog.lua).  
 
 In conclusion, a class in `aka.uikit.dialog` is a Lua table with a `resolve()` function which when called, prepares and inserts the results as vanilla dialog classes into dialog table. `resolve()` function accepts `self`, the resulting `dialog` table with `__index` metamethod set to original `adialog` instance and `x`, `y` and `width` for the class, and returns `y` for the next class to resolve.  
+
+### `aka.uikit.dialog`: Access data in generator functions
+
+Many [classes in `adialog`](#akauikitdialog-a-list-of-all-classes) accepts generator functions. b 
+For generator functions on `x`, `y` and `width` key, the function will receive the normal x, y, or width value generated by `aka.uikit` in its first parameter.  
+For generator functions on `height` key, the function will receive `1` in its first parameter.  
+For generator functions on `value`, `text`, `label` or equivalent keys, if the function is passed in at the time of setting up the dialog through `adialog` method calls, the function will receive `nil` as its first parameter. However, if the function is passed in through `adialog.load_data` and thereby picked up by `name`, `name_label` or equivalent, it will receive the value passed in at the time of setting up the dialog.  
+
+As an example:  
+```lua
+rotate = function(value) return value + 90 end
+data = { ["degree"] = rotate }
+dialog = adialog.new({ width = 5 })
+                :label_floatedit({ label = "Degree:" name = "degree", value = 90 })
+                :load_data(data)
+```
+```moon
+rotate = (value) -> value + 90
+data = { degree: rotate }
+with dialog = adialog { width: 5 }
+  \label_floatedit { label: "Degree:", name: "degree", value: 90 }
+  \load_data data
+```
+When this example dialog is displayed, it will show 180 in the floatedit.  
+
+However, something that has not be introduced by now is that all generator functions receive `dialog["data"]` as the second parameter. As is exaplained in [previous section](#akauikitdialog-explain-structure-of-adialog-and-create-custom-classes), this `dialog["data"]` should considered immutable.  
+
+As an example:  
+```lua
+err_dialog:textbox({ height = 4,
+                     value = function(_, data)
+                         return "Error occurred\n" .. data["err"] end })
+```
+```moon
+err_dialog\textbox
+  height: 4
+  value: (_, data) -> "Error occurred\n" .. data["err"]
+```

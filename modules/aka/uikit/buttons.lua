@@ -59,7 +59,7 @@ end
 setmetatable(buttons, buttons_mt)
 
 -----------------------------------------------------------------------
--- Add an apply, ok and confirm button. This button is triggered when
+-- Add an apply, ok or confirm button. This button is triggered when
 -- the user pressed Enter or return.
 --
 -- @param   name    The name of the button, both for display and for
@@ -146,6 +146,8 @@ overloaded_buttons.is_close_cancel = function(self, button)
            button == self.button_ids["close"] or
            button == self.button_ids["cancel"]
 end
+overloaded_buttons.is_close = overloaded_buttons.is_close_cancel
+overloaded_buttons.is_cancel = overloaded_buttons.is_close_cancel
 overloaded_buttons.is_help = function(self, button)
     if self.button_ids["help"] == nil then
         error("[aka.uikit] buttons.is_help is called but help button is never set")

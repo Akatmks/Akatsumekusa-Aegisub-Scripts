@@ -740,12 +740,12 @@
                         {
                             "name": "/buttons.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "4a57d528a13ae2d30db9ab4a3b079d2e3e376b03"
+                            "sha1": "2a737a08033c35b4988cd178167adc5223ab34c9"
                         },
                         {
                             "name": "/dialog.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "04f358ee61487d6d5f5c8dcb0f3d9b4eb6da1990"
+                            "sha1": "a369a0fd9dd725a5e54e3cdc726581f6591eaf80"
                         },
                         {
                             "name": "/display.moon",
@@ -755,10 +755,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "2ad08362b4eba91fe858b11d784d411bf0d18d2f"
+                            "sha1": "83c5e32e60388ee753198f1a5c9d25a4c3732f45"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requiredModules": [
                         {
@@ -777,7 +777,7 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-01-15"
+                    "released": "2024-01-29"
                 }
             },
             "author": "Akatsumekusa and contributors",

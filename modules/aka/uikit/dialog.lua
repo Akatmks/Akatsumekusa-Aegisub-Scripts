@@ -114,109 +114,78 @@ end
 
 
 local last_class = re.compile([[.*_([^_]+)$]])
------------------------------------------------------------------------
--- All vanilla classes are left as is. aka.uikit automates x, y, and
--- width key, while all other keys need to be filled by the user
--- manually.
--- x, y, width can be overrided by passing a new value, or by passing
--- a function to modify the value from aka.uikit. 
------------------------------------------------------------------------
-local vanilla_label_resolver = {}
-vanilla_label_resolver.base = function(item, x, y, width)
-    item.class = last_class:match(item.class)[2]["str"]
-
-    if type(item.x) == "number" then
-        do end
-    elseif type(item.x) == "function" then
-        item.x = item.x(x)
+local vanilla_base_resolver = {}
+vanilla_base_resolver.x_y_width_height_resolve = function(item, dialog, key, default_value)
+    if item[key] == nil then
+        item[key] = default_value
+    elseif type(item[key]) == "function" then
+        item[key] = item[key](default_value, dialog["data"])
     else
-        item.x = x
-    end
-
-    if type(item.y) == "number" then
         do end
-    elseif type(item.y) == "function" then
-        item.y = item.y(y)
+end end
+vanilla_base_resolver.value_resolve = function(item, dialog, name_key, value_key)
+    if item[name_key] ~= nil and dialog["data"][item[name_key]] ~= nil then
+        if type(dialog["data"][item[name_key]]) == "function" then
+            item[value_key] = dialog["data"][item[name_key]](item[value_key], dialog["data"])
+        else
+            item[value_key] = dialog["data"][item[name_key]]
+        end
     else
-        item.y = y
-    end
-
-    if type(item.width) == "number" then
-        do end
-    elseif type(item.width) == "function" then
-        item.width = item.width(width)
-    else
-        item.width = width
-    end
-
-    item.height = item.height and item.height or 1
-end
-vanilla_label_resolver.resolve = function(item, dialog, x, y, width)
-    item = Table.copy(item)
-    vanilla_label_resolver.base(item, x, y, width)
-    if item["name_label"] then
-        item["label"] = dialog["data"][item["name_label"]] ~= nil and dialog["data"][item["name_label"]] or item["label"]
-        item["name_label"] = nil
-    end
-    table.insert(dialog, item)
-    return y + item.height
-end
-local vanilla_value_resolver = {}
-vanilla_value_resolver.resolve = function(item, dialog, x, y, width)
-    item = Table.copy(item)
-    vanilla_label_resolver.base(item, x, y, width)
-    if item["name"] then
-        item["value"] = dialog["data"][item["name"]] ~= nil and dialog["data"][item["name"]] or item["value"]
-    end
-    table.insert(dialog, item)
-    return y + item.height
-end
-local vanilla_value_items_resolver = {}
-vanilla_value_items_resolver.resolve = function(item, dialog, x, y, width)
-    item = Table.copy(item)
-    vanilla_label_resolver.base(item, x, y, width)
-    if item["name"] then
-        item["value"] = dialog["data"][item["name"]] ~= nil and dialog["data"][item["name"]] or item["value"]
-    end
-    if item["name_items"] then
-        item["items"] = dialog["data"][item["name_items"]] ~= nil and dialog["data"][item["name_items"]] or item["items"]
-        item["name_items"] = nil
-    end
-    table.insert(dialog, item)
-    return y + item.height
-end
-local vanilla_value_label_resolver = {}
-vanilla_value_label_resolver.resolve = function(item, dialog, x, y, width)
-    item = Table.copy(item)
-    vanilla_label_resolver.base(item, x, y, width)
-    if item["name"] then
-        item["value"] = dialog["data"][item["name"]] ~= nil and dialog["data"][item["name"]] or item["value"]
-    end
-    if item["name_label"] then
-        item["label"] = dialog["data"][item["name_label"]] ~= nil and dialog["data"][item["name_label"]] or item["label"]
-        item["name_label"] = nil
-    end
-    table.insert(dialog, item)
-    return y + item.height
-end
-local vanilla_text_resolver = {}
-vanilla_text_resolver.resolve = function(item, dialog, x, y, width)
-    item = Table.copy(item)
-    vanilla_label_resolver.base(item, x, y, width)
-    if item["name"] then
-        item["text"] = dialog["data"][item["name"]] ~= nil and dialog["data"][item["name"]] or item["text"]
-    end
-    table.insert(dialog, item)
-    return y + item.height
+        if type(item[value_key]) == "function" then
+            item[value_key] = item[value_key](nil, dialog["data"])
+    end end
+    item[name_key] = nil
 end
 -----------------------------------------------------------------------
--- Create a label.  
+-- Call vanilla_base_resolver.new() to construct a vanilla resolver.
+-- The first parameter is the key for the value occupying name `name`
+-- key, for example, `"value"` for intedit and `"text"` for edit.
+-- Additional parameters specify additional name keys to be recognised
+-- with the value keys. For example, `"label"` for label will allow
+-- `name_label` key to dynamically modify `label` key.
+-----------------------------------------------------------------------
+vanilla_base_resolver.new = function(...)
+    local keys = table.pack(...)
+    local self = setmetatable({}, { __index = vanilla_base_resolver })
+    self.resolve = function(item, dialog, x, y, width)
+        item = Table.copy(item)
+        item.class = last_class:match(item.class)[2]["str"]
+        item:x_y_width_height_resolve(dialog, "x", x)
+        item:x_y_width_height_resolve(dialog, "y", y)
+        item:x_y_width_height_resolve(dialog, "width", width)
+        item:x_y_width_height_resolve(dialog, "height", 1)
+        for i, key in ipairs(keys) do
+            if i == 1 then
+                if key then
+                    item:value_resolve(dialog, "name", key)
+                end
+            else
+                item:value_resolve(dialog, "name_" .. key, key)
+        end end
+        table.insert(dialog, item)
+        return y + item.height
+    end
+    return self
+end
+setmetatable(vanilla_base_resolver, { __call = vanilla_base_resolver.new })
+local vanilla_label_resolver = vanilla_base_resolver(nil, "label")
+local vanilla_text_resolver = vanilla_base_resolver("text")
+local vanilla_value_resolver = vanilla_base_resolver("value")
+local vanilla_value_items_resolver = vanilla_base_resolver("value", "items")
+local vanilla_value_label_resolver = vanilla_base_resolver("value", "label")
+-----------------------------------------------------------------------
+-- Create a label.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
--- Additionally:
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
 -- @key     name_label  Change the label dynamically
+-- `x`, `y`, `width`, `height`, and `label` keys also accept generator
+-- functions.
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -228,11 +197,18 @@ dialog.label = function(self, item)
     return self
 end
 -----------------------------------------------------------------------
--- Create an edit.  
+-- Create an edit.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key.
+-- `x`, `y`, `width`, `height`, and `text` keys also accept generator
+-- functions.
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -244,11 +220,18 @@ dialog.edit = function(self, item)
     return self
 end
 -----------------------------------------------------------------------
--- Create an intedit.  
+-- Create an intedit.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key.
+-- `x`, `y`, `width`, `height`, and `value` keys also accept generator
+-- functions.
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -260,11 +243,18 @@ dialog.intedit = function(self, item)
     return self
 end
 -----------------------------------------------------------------------
--- Create a floatedit.  
+-- Create a floatedit.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key.
+-- `x`, `y`, `width`, `height`, and `value` keys also accept generator
+-- functions.
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -276,11 +266,18 @@ dialog.floatedit = function(self, item)
     return self
 end
 -----------------------------------------------------------------------
--- Create a textbox.  
+-- Create a textbox.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key.
+-- `x`, `y`, `width`, `height`, and `text` key accepts generator
+-- functions.
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -292,13 +289,19 @@ dialog.textbox = function(self, item)
     return self
 end
 -----------------------------------------------------------------------
--- Create a dropdown.  
+-- Create a dropdown.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
--- Additionally:
--- @key     name_items  Change the item list dynamically
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key for `value` and the following key:
+-- @key     name_items  Change items dynamically
+-- `x`, `y`, `width`, `height`, `value` and `items` keys also accept
+-- generator functions.
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -312,11 +315,17 @@ end
 -----------------------------------------------------------------------
 -- Create a checkbox.  
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
--- Additionally:
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key for `value` and the following key:
 -- @key     name_label  Change the label dynamically
+-- `x`, `y`, `width`, `height`, `value` and `label` keys also accept
+-- generator functions.
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -328,11 +337,18 @@ dialog.checkbox = function(self, item)
     return self
 end
 -----------------------------------------------------------------------
--- Create a color.  
+-- Create a color.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key.
+-- `x`, `y`, `width`, `height`, and `value` keys also accept generator
+-- functions.
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -344,11 +360,18 @@ dialog.color = function(self, item)
     return self
 end
 -----------------------------------------------------------------------
--- Create a coloralpha.  
+-- Create a coloralpha.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key.
+-- `x`, `y`, `width`, `height`, and `value` keys also accept generator
+-- functions.
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -360,11 +383,18 @@ dialog.coloralpha = function(self, item)
     return self
 end
 -----------------------------------------------------------------------
--- Create an alpha.  
+-- Create an alpha.
 --
--- This method receives parameters in a table. All keys are the same as
--- in vanilla Aegisub documentation. `x`, `y`, and `width` are
--- optional.
+-- This method receives parameters in a table.
+-- 
+-- All vanilla keys are avilable.
+-- `x`, `y`, and `width` keys are optional and will be generated by
+-- aka.uikit.
+-- 
+-- Additionally, to dynamically modify the dialog:
+-- Use the vanilla `name` key.
+-- `x`, `y`, `width`, `height`, and `value` keys also accept generator
+-- functions.
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -536,10 +566,10 @@ columns_resolver.resolve = function(item, dialog, x, y, width)
     local max_y = 0
 
     for i, v in ipairs(item.widths) do
-        if type(v) == "number" then
+        if type(v) == "function" then
+            current_width = v(width, dialog["data"])
+        elseif type(v) == "number" then
             current_width = v
-        elseif type(v) == "function" then
-            current_width = v(width)
         else
             error("[aka.uikit] Invalid key widths passed to dialog.columns()\n[aka.uikit] widths should either be a table of number or function")
         end
@@ -554,12 +584,15 @@ end
 --
 -- This method receives parameters in a table.
 -- @key     widths      A table of widths for each columns. The number
---                      of widths in this table determines the number
+--                      of width's in this table determines the number
 --                      of columns created.
 --                      For example, to create three equally divided
 --                      columns in a dialog with a total width of 12:
 --                          dialog:columns({ widths = { 4, 4, 4 } })
---                      Accepts both number and function. 
+--                      Also accepts generator function for individual
+--                      width's. The generator function will received
+--                      the width of the whole dialog.columns as
+--                      parameter.  
 --
 -- @return  subdialogs  For each width in widths param, return a
 --                      subdialog. Call methods such as `label` from
@@ -590,6 +623,8 @@ dialog.row = dialog.columns
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- To create this dialog:
 --  \fn  [ Arial ]
@@ -600,8 +635,8 @@ dialog.row = dialog.columns
 -----------------------------------------------------------------------
 dialog.label_edit = function(self, item)
     if item.widths == nil then
-        item.widths = { function(width) return math.ceil(width / 2) end,
-                        function(width) return math.floor(width / 2) end }
+        item.widths = { function(width, _) return math.ceil(width / 2) end,
+                        function(width, _) return math.floor(width / 2) end }
     end
     local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
     item.x = nil item.y = nil item.width = nil item.widths = nil
@@ -623,6 +658,8 @@ end
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -633,8 +670,8 @@ end
 -----------------------------------------------------------------------
 dialog.label_intedit = function(self, item)
     if item.widths == nil then
-        item.widths = { function(width) return math.ceil(width / 2) end,
-                        function(width) return math.floor(width / 2) end }
+        item.widths = { function(width, _) return math.ceil(width / 2) end,
+                        function(width, _) return math.floor(width / 2) end }
     end
     local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
     item.x = nil item.y = nil item.width = nil item.widths = nil
@@ -656,6 +693,8 @@ end
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -666,8 +705,8 @@ end
 -----------------------------------------------------------------------
 dialog.label_floatedit = function(self, item)
     if item.widths == nil then
-        item.widths = { function(width) return math.ceil(width / 2) end,
-                        function(width) return math.floor(width / 2) end }
+        item.widths = { function(width, _) return math.ceil(width / 2) end,
+                        function(width, _) return math.floor(width / 2) end }
     end
     local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
     item.x = nil item.y = nil item.width = nil item.widths = nil
@@ -689,6 +728,8 @@ end
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- To create this dialog:
 --  Data: [ Multiline ]
@@ -703,8 +744,8 @@ end
 -----------------------------------------------------------------------
 dialog.label_textbox = function(self, item)
     if item.widths == nil then
-        item.widths = { function(width) return math.ceil(width / 2) end,
-                        function(width) return math.floor(width / 2) end }
+        item.widths = { function(width, _) return math.ceil(width / 2) end,
+                        function(width, _) return math.floor(width / 2) end }
     end
     local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
     item.x = nil item.y = nil item.width = nil item.widths = nil
@@ -727,6 +768,8 @@ end
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -737,8 +780,8 @@ end
 -----------------------------------------------------------------------
 dialog.label_dropdown = function(self, item)
     if item.widths == nil then
-        item.widths = { function(width) return math.ceil(width / 2) end,
-                        function(width) return math.floor(width / 2) end }
+        item.widths = { function(width, _) return math.ceil(width / 2) end,
+                        function(width, _) return math.floor(width / 2) end }
     end
     local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
     item.x = nil item.y = nil item.width = nil item.widths = nil
@@ -759,6 +802,8 @@ end
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- To create this dialog:
 --  Expand [x]
@@ -771,8 +816,8 @@ end
 -----------------------------------------------------------------------
 dialog.label_checkbox = function(self, item)
     if item.widths == nil then
-        item.widths = { function(width) return math.ceil(width / 2) end,
-                        function(width) return math.floor(width / 2) end }
+        item.widths = { function(width, _) return math.ceil(width / 2) end,
+                        function(width, _) return math.floor(width / 2) end }
     end
     local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
     item.x = nil item.y = nil item.width = nil item.widths = nil
@@ -794,6 +839,8 @@ end
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -804,8 +851,8 @@ end
 -----------------------------------------------------------------------
 dialog.label_color = function(self, item)
     if item.widths == nil then
-        item.widths = { function(width) return math.ceil(width / 2) end,
-                        function(width) return math.floor(width / 2) end }
+        item.widths = { function(width, _) return math.ceil(width / 2) end,
+                        function(width, _) return math.floor(width / 2) end }
     end
     local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
     item.x = nil item.y = nil item.width = nil item.widths = nil
@@ -827,6 +874,8 @@ end
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -837,8 +886,8 @@ end
 -----------------------------------------------------------------------
 dialog.label_coloralpha = function(self, item)
     if item.widths == nil then
-        item.widths = { function(width) return math.ceil(width / 2) end,
-                        function(width) return math.floor(width / 2) end }
+        item.widths = { function(width, _) return math.ceil(width / 2) end,
+                        function(width, _) return math.floor(width / 2) end }
     end
     local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
     item.x = nil item.y = nil item.width = nil item.widths = nil
@@ -860,6 +909,8 @@ end
 -- @key     widths      By default, label and edit each takes up half
 --                      of the width available. Change the widths of
 --                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
 --
 -- To create this dialog:
 --  \frz  [  0.  ]
@@ -870,8 +921,8 @@ end
 -----------------------------------------------------------------------
 dialog.label_alpha = function(self, item)
     if item.widths == nil then
-        item.widths = { function(width) return math.ceil(width / 2) end,
-                        function(width) return math.floor(width / 2) end }
+        item.widths = { function(width, _) return math.ceil(width / 2) end,
+                        function(width, _) return math.floor(width / 2) end }
     end
     local left, right = self:columns({ x = item.x, y = item.y, width = item.width, widths = item.widths })
     item.x = nil item.y = nil item.width = nil item.widths = nil
@@ -889,17 +940,18 @@ functions.subdialog_resolver = subdialog_resolver
 functions.dialog_resolver = dialog_resolver
 functions.dialog = dialog
 functions.subdialog = subdialog
+functions.vanilla_base_resolver = vanilla_base_resolver
 functions.vanilla_label_resolver = vanilla_label_resolver
+functions.vanilla_text_resolver = vanilla_text_resolver
 functions.vanilla_value_resolver = vanilla_value_resolver
 functions.vanilla_value_items_resolver = vanilla_value_items_resolver
 functions.vanilla_value_label_resolver = vanilla_value_label_resolver
-functions.vanilla_text_resolver = vanilla_text_resolver
 functions.separator_resolver = separator_resolver
 functions.floatable_resolver = floatable_resolver
 functions.floatable_subdialog_resolver = floatable_subdialog_resolver
 functions.floatable_subdialog = floatable_subdialog
-functions.ifable_resolver = floatable_subdialog
-functions.unlessable_resolver = floatable_subdialog
+functions.ifable_resolver = ifable_resolver
+functions.unlessable_resolver = unlessable_resolver
 functions.columns_resolver = columns_resolver
 
 return functions
