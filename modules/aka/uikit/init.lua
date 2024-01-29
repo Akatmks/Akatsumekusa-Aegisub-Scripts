@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.uikit"
 versioning.description = "Module aka.uikit"
-versioning.version = "1.0.6"
+versioning.version = "1.0.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.uikit"
 

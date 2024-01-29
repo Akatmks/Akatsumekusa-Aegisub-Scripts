@@ -745,7 +745,7 @@
                         {
                             "name": "/dialog.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "a369a0fd9dd725a5e54e3cdc726581f6591eaf80"
+                            "sha1": "6f6ea53cb2607b38ba1139d6f972614a77642335"
                         },
                         {
                             "name": "/display.moon",
@@ -755,10 +755,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "83c5e32e60388ee753198f1a5c9d25a4c3732f45"
+                            "sha1": "d977344db0d21e50ccb661fcaf651c789ce6ceaa"
                         }
                     ],
-                    "version": "1.0.6",
+                    "version": "1.0.7",
                     "default": true,
                     "requiredModules": [
                         {

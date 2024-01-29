@@ -144,7 +144,7 @@ end
 -- with the value keys. For example, `"label"` for label will allow
 -- `name_label` key to dynamically modify `label` key.
 -----------------------------------------------------------------------
-vanilla_base_resolver.new = function(...)
+vanilla_base_resolver.new = function(self, ...)
     local keys = table.pack(...)
     local self = setmetatable({}, { __index = vanilla_base_resolver })
     self.resolve = function(item, dialog, x, y, width)
