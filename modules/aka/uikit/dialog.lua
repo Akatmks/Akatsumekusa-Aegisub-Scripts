@@ -133,9 +133,7 @@ vanilla_base_resolver.value_resolve = function(item, dialog, name_key, value_key
     else
         if type(item[value_key]) == "function" then
             item[value_key] = item[value_key](nil, dialog["data"])
-    end end
-    item[name_key] = nil
-end
+end end end
 -----------------------------------------------------------------------
 -- Call vanilla_base_resolver.new() to construct a vanilla resolver.
 -- The first parameter is the key for the value occupying name `name`
@@ -161,6 +159,7 @@ vanilla_base_resolver.new = function(self, ...)
                 end
             else
                 item:value_resolve(dialog, "name_" .. key, key)
+                item["name_" .. key] = nil
         end end
         table.insert(dialog, item)
         return y + item.height

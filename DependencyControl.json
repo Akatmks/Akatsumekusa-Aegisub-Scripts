@@ -198,10 +198,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "b64086a18d4f6d2825cff99fd31f421b5596e36f"
+                            "sha1": "b3d997d5f1e2ac0d90466139e754db42c29fc22c"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requiredModules": [
                         {
@@ -245,7 +245,7 @@
                             "moduleName": "aegisub.util"
                         }
                     ],
-                    "released": "2024-01-15"
+                    "released": "2024-01-31"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -745,7 +745,7 @@
                         {
                             "name": "/dialog.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "6f6ea53cb2607b38ba1139d6f972614a77642335"
+                            "sha1": "85574504192ae758947fbfa7635214cc19281f1e"
                         },
                         {
                             "name": "/display.moon",
@@ -755,10 +755,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "d977344db0d21e50ccb661fcaf651c789ce6ceaa"
+                            "sha1": "bb408975b0b871e6da8af20889aad73d76045b22"
                         }
                     ],
-                    "version": "1.0.7",
+                    "version": "1.0.8",
                     "default": true,
                     "requiredModules": [
                         {
@@ -777,7 +777,7 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-01-29"
+                    "released": "2024-01-31"
                 }
             },
             "author": "Akatsumekusa and contributors",

@@ -121,7 +121,7 @@ Unique features:
 
 Thanks to  
 – bucket3432 for developing the original `bucket.Sandbox` script.  
-– Zahuczky for suggesting new libraries to be prerequired.  
+– Zahuczky and PhosCity for suggesting libraries to be required and made available in scope.  
 
 ## NN.farnhuah
 

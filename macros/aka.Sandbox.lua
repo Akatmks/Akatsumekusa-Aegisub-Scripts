@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.5"
+versioning.version = "1.0.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -85,7 +85,7 @@ local Sandbox = function(sub, sel, act)
     left:textbox({ height = 31, name = "command" })
 
     local err_dialog = right:ifable({ name = "err_msg" })
-    err_dialog:label({ label = "𝗘𝗿𝗿𝗼𝗿 𝗼𝗰𝗰𝘂𝗿𝗶𝗲𝗱 during previous operation:" })
+    err_dialog:label({ label = "𝗘𝗿𝗿𝗼𝗿 𝗼𝗰𝗰𝘂𝗿𝗿𝗲𝗱 during previous operation:" })
               :textbox({ height = 12, name = "err_msg" })
 
     right:label({ label = "Select Language:" })
@@ -161,7 +161,7 @@ local Sandbox = function(sub, sel, act)
                     presets[r["preset"]] = nil
                     presets_config.write_config("aka.Sandbox", "presets", presets)
                         :ifErr(function(msg)
-                            result["err_msg"] = "Error occuried when updating presets:\n" ..
+                            result["err_msg"] = "Error occurred when updating presets:\n" ..
                                                 msg end)
                 end
                 return err(result)
@@ -174,7 +174,7 @@ local Sandbox = function(sub, sel, act)
                     presets[r["preset"]] = result["command"]
                     presets_config.write_config("aka.Sandbox", "presets", presets)
                         :ifErr(function(msg)
-                            result["err_msg"] = "Error occuried when saving presets:\n" ..
+                            result["err_msg"] = "Error occurred when saving presets:\n" ..
                                                 msg end)
                 end
                 return err(result)
@@ -195,7 +195,7 @@ local Sandbox = function(sub, sel, act)
                                 f:close() return
                                 r end)
                             :ifErr(function(msg)
-                                result["err_msg"] = "Error occuried when opening snippet:\n" ..
+                                result["err_msg"] = "Error occurred when opening snippet:\n" ..
                                                     msg end) end) return
                 err(result)
             elseif button == "Save As Snipp&et" then
@@ -207,7 +207,7 @@ local Sandbox = function(sub, sel, act)
                                 f:close() return
                                 r end)
                             :ifErr(function(msg)
-                                result["err_msg"] = "Error occuried when saving snippet:\n" ..
+                                result["err_msg"] = "Error occurred when saving snippet:\n" ..
                                                     msg end) end) return
                 err(result)
             else -- button == "Run"
@@ -237,7 +237,7 @@ local Sandbox = function(sub, sel, act)
                     r = o(moonscript.loadstring(result["command"]))
                 end
                 if r:isErr() then
-                    result["err_msg"] = "Error occuried during loadstring():\n" ..
+                    result["err_msg"] = "Error occurred during loadstring():\n" ..
                                         r:unwrapErr()
                     return err(result)
                 end
@@ -246,7 +246,7 @@ local Sandbox = function(sub, sel, act)
 
                 r = o(xpcall(f, function(err)
                     if err ~= nil and type(err) ~= "string" then err = Table.view(err) end
-                    result["err_msg"] = "Error occuried during execution:\n" ..
+                    result["err_msg"] = "Error occurred during execution:\n" ..
                                         debug.traceback(err) end))
                 if r:isOk() then
                     r = r:unwrap()
