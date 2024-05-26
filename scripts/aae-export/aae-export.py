@@ -50,7 +50,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 2, 1),
+    "version": (1, 2, 2),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -865,13 +865,13 @@ class AAEExportExportAll(bpy.types.Operator):
             i = marker.frame - clip.frame_start
 
             data[5][i] = marker.corners[3][0] * ratio[0]
-            data[6][i] = -marker.corners[3][1] * ratio[1]
+            data[6][i] = (1 - marker.corners[3][1]) * ratio[1]
             data[7][i] = marker.corners[2][0] * ratio[0]
-            data[8][i] = -marker.corners[2][1] * ratio[1]
+            data[8][i] = (1 - marker.corners[2][1]) * ratio[1]
             data[9][i] = marker.corners[0][0] * ratio[0]
-            data[10][i] = -marker.corners[0][1] * ratio[1]
+            data[10][i] = (1 - marker.corners[0][1]) * ratio[1]
             data[11][i] = marker.corners[1][0] * ratio[0]
-            data[12][i] = -marker.corners[1][1] * ratio[1]
+            data[12][i] = (1 - marker.corners[1][1]) * ratio[1]
 
             if not np.isnan(data[5][i]):
                 try:
