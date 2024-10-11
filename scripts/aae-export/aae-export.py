@@ -50,7 +50,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 2, 3),
+    "version": (1, 2, 4),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -2467,9 +2467,9 @@ class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
             raise ValueError("The legacy export method only allows one clip to be loaded into Blender at a time. You can either try the new export interface at „Clip Editor > Tools > Solve > AAE Export“ or use „File > New“ to create a new Blender file.")
         clip = bpy.data.movieclips[0]
         settings = context.screen.AAEExportSettings
-        clip_settings = context.edit_movieclip.AAEExportSettingsClip
-        section_settings_l = context.edit_movieclip.AAEExportSettingsSectionL
-        section_settings_ll = context.edit_movieclip.AAEExportSettingsSectionLL
+        clip_settings = clip.AAEExportSettingsClip
+        section_settings_l = clip.AAEExportSettingsSectionL
+        section_settings_ll = clip.AAEExportSettingsSectionLL
 
         for track in clip.tracking.tracks:
             AAEExportExportAll._export_to_file( \
