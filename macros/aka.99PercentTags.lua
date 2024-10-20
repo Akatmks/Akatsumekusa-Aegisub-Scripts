@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "0.1.3"
+versioning.version = "0.1.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -636,7 +636,7 @@ For fn, Style, Actor and Effect fields, a pair of quotation marks are required.
 
 There are a lot of variables you can refer to in edit fields. First, all tags and data listed in the tag and line data editor are variables under the same name.
 > alpha [ 1a ]
-In above exmaple, we set \1a's current value to \alpha. You may noticed that a`1a` shouldn't be a valid Lua variable because variable cannot start with digits. For the listed tag names, 99%Tags will convert these identifiers before evaluation.
+In above exmaple, we set \1a's current value to \alpha. You may noticed that `1a` shouldn't be a valid Lua variable because variable cannot start with digits. For the listed tag names, 99%Tags will convert these identifiers before evaluation.
 
 Second, there is a special variable `_` (one underscore) that represents the current tag itself.
 > frz [ _ ]

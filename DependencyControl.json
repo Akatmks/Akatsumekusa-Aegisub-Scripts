@@ -64,12 +64,12 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "4be680698655f2d71fbef0a3617bf7720320b425"
+                            "sha1": "6d4b0cfdeaa7ca2725896ec52fdf58587fce326f"
                         }
                     ],
-                    "version": "0.1.3",
+                    "version": "0.1.4",
                     "default": true,
-                    "released": "2023-08-03"
+                    "released": "2024-10-20"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -198,10 +198,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "b3d997d5f1e2ac0d90466139e754db42c29fc22c"
+                            "sha1": "85afe4eb927e907a822224d97ab5c8eec4572c34"
                         }
                     ],
-                    "version": "1.0.6",
+                    "version": "1.0.7",
                     "default": true,
                     "requiredModules": [
                         {
@@ -238,14 +238,24 @@
                             "moduleName": "Yutils"
                         },
                         {
+                            "moduleName": "arch.Math"
+                        },
+                        {
+                            "moduleName": "l0.Functional",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/line0-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
                             "moduleName": "aka.unicode",
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.util"
+                        },
+                        {
+                            "moduleName": "petzku.util"
                         }
                     ],
-                    "released": "2024-01-31"
+                    "released": "2024-10-20"
                 }
             },
             "author": "Akatsumekusa and contributors",

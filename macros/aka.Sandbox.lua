@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.6"
+versioning.version = "1.0.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"Yutils\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"Yutils\" }, { \"moduleName\": \"arch.Math\" }, { \"moduleName\": \"l0.Functional\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"petzku.util\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -55,12 +55,15 @@ DepCtrl = require("l0.DependencyControl")({
         { "a-mo.LineCollection" },
         { "l0.ASSFoundation" },
         { "Yutils" },
+        { "arch.Math" },
+        { "l0.Functional" },
         { "aka.unicode" },
-        { "aegisub.util" }
+        { "aegisub.util" },
+        { "petzku.util" }
     }
 })
 
-local re, config, outcome, uikit, ILL, moonscript, LineCollection, ASS, yutils, unicode, util = DepCtrl:requireModules()
+local re, config, outcome, uikit, ILL, moonscript, LineCollection, ASS, yutils, Math, Functional, unicode, util, putil = DepCtrl:requireModules()
 local file_extension = re.compile([[.*\.([^\\\/]+)$]])
 local presets_config = config.make_editor({ display_name = "aka.Sandbox/presets",
                                             presets = { ["Default"] = {} },
@@ -86,44 +89,46 @@ local Sandbox = function(sub, sel, act)
 
     local err_dialog = right:ifable({ name = "err_msg" })
     err_dialog:label({ label = "𝗘𝗿𝗿𝗼𝗿 𝗼𝗰𝗰𝘂𝗿𝗿𝗲𝗱 during previous operation:" })
-              :textbox({ height = 12, name = "err_msg" })
+              :textbox({ height = 7, name = "err_msg" })
 
     right:label({ label = "Select Language:" })
          :dropdown({ name = "language", items = { "Lua", "MoonScript" }, value = "Lua" })
 
     right:label({ label = "Available variables:" })
     local var, exp = right:columns({ widths = { 1, 1 } })
-    var:label({ label = "│ sub" })
-    exp:label({ label = "Subtitle object" })
-    var:label({ label = "│ sel:" })
-    exp:label({ label = "Selected lines" })
-    var:label({ label = "│ act:" })
-    exp:label({ label = "Active line" })
+    var:label({ label = "│ sub" })                  exp:label({ label = "Subtitle object" })
+    var:label({ label = "│ sel:" })                 exp:label({ label = "Selected lines" })
+    var:label({ label = "│ act:" })                 exp:label({ label = "Active line" })
 
     right:label({ label = "Required libraries:" })
     var, exp = right:columns({ widths = { 1, 1 } })
-    var:label({ label = "│ Ass, Line, Aegi, …:" })
-    exp:label({ label = "All ILL.ILL classes" })
-    var:label({ label = "│ ass:" })
-    exp:label({ label = "Ass loaded with subtitle" })
-    var:label({ label = "│ LineCollection:" })
-    exp:label({ label = "a-mo.LineCollection" })
-    var:label({ label = "│ lines:" })
-    exp:label({ label = "LineCollection loaded" })
-    var:label({ label = "│ ASS:" })
-    exp:label({ label = "l0.ASSFoundation" })
-    var:label({ label = "│ logger:" })
-    exp:label({ label = "logger from l0.DepCtrl" })
-    var:label({ label = "│ aegisub:" })
-    exp:label({ label = "aegisub object" })
-    var:label({ label = "│ yutils:" })
-    exp:label({ label = "Yutils" })
-    var:label({ label = "│ re:" })
-    exp:label({ label = "aegisub.re" })
-    var:label({ label = "│ unicode:" })
-    exp:label({ label = "aegisub.unicode (m)" })
-    var:label({ label = "│ util:" })
-    exp:label({ label = "aegisub.util" })
+    var:label({ label = "│ Ass, Line, Aegi, …:" })  exp:label({ label = "All ILL.ILL classes" })
+    var:label({ label = "│ ass:" })                 exp:label({ label = "Ass loaded with subtitle" })
+    var:label({ label = "│ LineCollection:" })      exp:label({ label = "a-mo.LineCollection" })
+    var:label({ label = "│ lines:" })               exp:label({ label = "LineCollection loaded" })
+    var:label({ label = "│ ASS:" })                 exp:label({ label = "l0.ASSFoundation" })
+    var:label({ label = "│ logger:" })              exp:label({ label = "logger from l0.DepCtrl" })
+    var:label({ label = "│ aegisub:" })             exp:label({ label = "aegisub object" })
+    var:label({ label = "│ yutils:" })              exp:label({ label = "Yutils" })
+    var:label({ label = "│ Math:" })                exp:label({ label = "arch.Math" })
+    var:label({ label = "│ re:" })                  exp:label({ label = "aegisub.re (ext)" })
+    var:label({ label = "│ unicode:" })             exp:label({ label = "aegisub.unicode (ext)" })
+    var:label({ label = "│ util:" })                exp:label({ label = "aegisub.util (ext)" })
+    local full = right:unlessable({ name = "err_msg" })
+    full:label({ label = "─ re and util extended with l0.Functional" })
+    full:label({ label = "─ unicode ext with l0.Functional and aka.u" })
+    var, exp = right:columns({ widths = { 1, 1 } })
+    var:label({ label = "│ list, List:" })          exp:label({ label = "list from l0.Functional" })
+    var:label({ label = "│ transform:" })           exp:label({ label = "transform in petzku.util" })
+
+    right:label({ label = "Vanilla functions:" })
+    full = right:unlessable({ name = "err_msg" })
+    full:label({ label = "─ table and string ext with l0.Functional" })
+    full:label({ label = "─ math ext with l0.Functional and petzku.util" })
+    full:label({ label = "─ io extended with petzku.util" })
+    local brief = right:ifable({ name = "err_msg" })
+    local bvar, bexp = brief:columns({ widths = { 1, 1 } })
+    bvar:label({ label = "│ table, math, io, …:" }) bexp:label({ label = "(extended)" })
 
     local buttons = abuttons.ok("&Run"):extra("&Load Preset"):extra("&Save As Preset"):extra("&Delete Preset"):extra("Open Sn&ippet"):extra("Save As Snipp&et"):close("Close")
 
@@ -212,6 +217,14 @@ local Sandbox = function(sub, sel, act)
                 err(result)
             else -- button == "Run"
                 local gt = setmetatable({}, { __index = _G })
+                local mmt = function(...)
+                    local t = table.pack(...)
+                    return { __index = function(self, key)
+                        for _, v in pairs(t) do
+                            if v[key] then
+                                return v[key]
+                        end end end }
+                end
                 gt.sub = sub
                 gt.sel = sel
                 gt.act = act
@@ -223,12 +236,20 @@ local Sandbox = function(sub, sel, act)
                 gt.LineCollection = LineCollection
                 gt.lines = LineCollection(sub, sel)
                 gt.ASS = ASS
-                gt.aegisub = aegisub
                 gt.logger = DepCtrl:getLogger()
+                gt.aegisub = aegisub
                 gt.yutils = yutils
-                gt.re = re
-                gt.unicode = unicode
-                gt.util = util
+                gt.Math = Math
+                gt.re = setmetatable({}, mmt(re, Functional.re))
+                gt.unicode = setmetatable({}, mmt(unicode, Functional.unicode))
+                gt.util = setmetatable({}, mmt(util, Functional.util))
+                gt.List = Functional.List
+                gt.list = Functional.list
+                gt.transform = putil.transform
+                gt.table = setmetatable({}, mmt(table, Functional.table))
+                gt.string = setmetatable({}, mmt(string, Functional.string))
+                gt.math = setmetatable({}, mmt(math, Functional.math, putil.math))
+                gt.io = setmetatable({}, mmt(io, putil.io))
 
                 local r
                 if result["language"] == "Lua" then
