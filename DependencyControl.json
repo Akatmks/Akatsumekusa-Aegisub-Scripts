@@ -362,22 +362,22 @@
                         {
                             "name": "/colours.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "bc4a713fb0ced892c6b3647ca308106e66b44fb2"
+                            "sha1": "f0daf93be5f39decd8ba0bdc2883798ac72a9b4b"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "e13fb0acb2ba2a9cb72625e9d77a50a8dedd3da2"
+                            "sha1": "9d34782527207b40e24f392939f7b1a7d56f7537"
                         },
                         {
                             "name": "/interface.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "cbe82bda438ecba68b52c25793ca48e310fe4ef3"
+                            "sha1": "90a842a45d22c9117fe0f0f2f7c90eb72d32c68b"
                         }
                     ],
-                    "version": "0.0.5",
+                    "version": "0.0.6",
                     "default": true,
-                    "released": "2023-07-30"
+                    "released": "2024-11-19"
                 }
             },
             "author": "Akatsumekusa and contributors",

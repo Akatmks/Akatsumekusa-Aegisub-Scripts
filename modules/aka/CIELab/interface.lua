@@ -27,11 +27,13 @@ local colours = require("aka.CIELab.colours")
 local Colour = {}
 Colour.__index = Colour
 
-local ColourType = { BT709RGB = "0", XYZ = "10", CIELab = "11", CIELCh = "12" }
+-- Thanks to Chortos-2 and arch1t3cht for clearing the details regarding
+-- pure 2.4 and BT.709. I assume I did everything alright?
+local ColourType = { BT1886RGB = "0", XYZ = "10", CIELab = "11", CIELCh = "12" }
 
-Colour.fromBT709RGB = function(R, G, B)
+Colour.fromBT1886RGB = function(R, G, B)
     local self = setmetatable({}, Colour)
-    self.type = ColourType.BT709RGB
+    self.type = ColourType.BT1886RGB
     self.colour = ffi.new("Colour")
     self.colour[0] = R
     self.colour[1] = G
@@ -40,7 +42,7 @@ Colour.fromBT709RGB = function(R, G, B)
 end
 Colour.fromPixel = function(colour)
     local self = setmetatable({}, Colour)
-    self.type = ColourType.BT709RGB
+    self.type = ColourType.BT1886RGB
     self.colour = ffi.new("Colour")
     self.colour[0] = bit.band(bit.rshift(colour, 16), 0xFF)
     self.colour[1] = bit.band(bit.rshift(colour, 8), 0xFF)
@@ -75,30 +77,45 @@ Colour.fromCIELCh = function(L, C, h)
     return self
 end
 
-Colour.toBT709RGB = function(self)
+Colour.toBT1886RGB = function(self)
     local colour
 
-    if self.type == ColourType.BT709RGB then
+    if self.type == ColourType.BT1886RGB then
         return self.colour[0], self.colour[1], self.colour[2]
-    else
-        error("[aka.CIELab] Unsupported conversion")
+    elseif self.type == ColourType.XYZ then
+        colour = colours.XYZtoBT1886RGB(self.colour)
+        return colour[0], colour[1], colour[2]
+    elseif self.type == ColourType.CIELab then
+        colour = colours.CIELabtoXYZ(self.colour)
+        colour = colours.XYZtoBT1886RGB(colour)
+        return colour[0], colour[1], colour[2]
+    elseif self.type == ColourType.CIELch then
+        colour = colours.CIELChtoCIELab(self.colour)
+        colour = colours.CIELabtoXYZ(colour)
+        colour = colours.XYZtoBT1886RGB(colour)
+        return colour[0], colour[1], colour[2]
 end end
 Colour.toXYZ = function(self)
     local colour
 
-    if self.type == ColourType.BT709RGB then
-        colour = colours.BT709RGBtoXYZ(self.colour)
+    if self.type == ColourType.BT1886RGB then
+        colour = colours.BT1886RGBtoXYZ(self.colour)
         return colour[0], colour[1], colour[2]
     elseif self.type == ColourType.XYZ then
         return self.colour[0], self.colour[1], self.colour[2]
-    else
-        error("[aka.CIELab] Unsupported conversion")
+    elseif self.type == ColourType.CIELab then
+        colour = colours.CIELabtoXYZ(self.colour)
+        return colour[0], colour[1], colour[2]
+    elseif self.type == ColourType.CIELch then
+        colour = colours.CIELChtoCIELab(self.colour)
+        colour = colours.CIELabtoXYZ(colour)
+        return colour[0], colour[1], colour[2]
 end end
 Colour.toCIELab = function(self)
     local colour
 
-    if self.type == ColourType.BT709RGB then
-        colour = colours.BT709RGBtoXYZ(self.colour)
+    if self.type == ColourType.BT1886RGB then
+        colour = colours.BT1886RGBtoXYZ(self.colour)
         colour = colours.XYZtoCIELab(colour)
         return colour[0], colour[1], colour[2]
     elseif self.type == ColourType.XYZ then
@@ -107,14 +124,14 @@ Colour.toCIELab = function(self)
     elseif self.type == ColourType.CIELab then
         return self.colour[0], self.colour[1], self.colour[2]
     elseif self.type == ColourType.CIELch then
-        colour = colours.CIELabtoCIELCh(self.colour)
+        colour = colours.CIELChtoCIELab(self.colour)
         return colour[0], colour[1], colour[2]
 end end
 Colour.toCIELCh = function(self)
     local colour
 
-    if self.type == ColourType.BT709RGB then
-        colour = colours.BT709RGBtoXYZ(self.colour)
+    if self.type == ColourType.BT1886RGB then
+        colour = colours.BT1886RGBtoXYZ(self.colour)
         colour = colours.XYZtoCIELab(colour)
         colour = colours.CIELabtoCIELCh(colour)
         return colour[0], colour[1], colour[2]
