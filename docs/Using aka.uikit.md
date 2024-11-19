@@ -292,9 +292,14 @@ Classes inside an ifable class will only display if the value specified by the n
 -- @key     value       If this key is not provided, classes in the
 --                      subdialog will be displayed if value for the
 --                      name is truthy.
---                      If this key is provided, classes in the
---                      subdialog will be displayed if value for the
---                      name equals to this key
+--                      If this key is provided and not a function,
+--                      classes in the subdialog will be displayed if
+--                      value for the name equals to this key.
+--                      If this key is a generator function, the
+--                      function will be called with the current value
+--                      in the dialog data. Classes in the subdialog
+--                      will be displayed if the return of the function
+--                      is truthy.
 --
 -- @return  subdialog   Call methods such as `label` from this
 --                      subdialog to add to ifable.
@@ -311,9 +316,14 @@ Classes inside an unlessable class will only display if the value specified by t
 -- @key     value       If this key is not provided, classes in the
 --                      subdialog will be displayed if value for the
 --                      name is falsey.
---                      If this key is provided, classes in the
---                      subdialog will be displayed if value for the
---                      name does not equal to this key
+--                      If this key is provided and not a function,
+--                      classes in the subdialog will be displayed if
+--                      value for the name doesn't equal to this key.
+--                      If this key is a generator function, the
+--                      function will be called with the current value
+--                      in the dialog data. Classes in the subdialog
+--                      will be displayed if the return of the function
+--                      is falsey.
 --
 -- @return  subdialog   Call methods such as `label` from this
 --                      subdialog to add to unlessable.

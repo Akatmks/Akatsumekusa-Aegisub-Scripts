@@ -755,7 +755,7 @@
                         {
                             "name": "/dialog.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "85574504192ae758947fbfa7635214cc19281f1e"
+                            "sha1": "0593948fb6cd0ce24ed1048b98d9bee1fe463411"
                         },
                         {
                             "name": "/display.moon",
@@ -765,10 +765,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "bb408975b0b871e6da8af20889aad73d76045b22"
+                            "sha1": "f930916fca76770b87ed036ecaac6a78ad37566d"
                         }
                     ],
-                    "version": "1.0.8",
+                    "version": "1.0.9",
                     "default": true,
                     "requiredModules": [
                         {
@@ -787,7 +787,7 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-01-31"
+                    "released": "2024-11-19"
                 }
             },
             "author": "Akatsumekusa and contributors",

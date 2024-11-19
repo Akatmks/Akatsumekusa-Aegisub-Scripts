@@ -471,13 +471,20 @@ end
 
 local ifable_resolver = {}
 ifable_resolver.resolve = function(item, dialog, x, y, width)
-    if item["name"] and
+    if type(item["value"]) == "function" then
+        if (item["name"] ~= nil and
+            item["value"](dialog["data"][item["name"]], dialog["data"])) or
+           (item["name"] == nil and
+            item["value"](nil, dialog["data"])) then
+            return item.subdialog:resolve(dialog, x, y, width)
+        end
+    elseif item["name"] and
        ((item["value"] ~= nil and dialog["data"][item["name"]] == item["value"]) or
         (item["value"] == nil and dialog["data"][item["name"]])) then
         return item.subdialog:resolve(dialog, x, y, width)
-    else
-        return y
-end end
+    end
+    return y
+end
 -----------------------------------------------------------------------
 -- Create a subdialog only when value with the name in dialog data is
 -- truthy or equal to the value provided.
@@ -487,9 +494,14 @@ end end
 -- @key     value       If this key is not provided, classes in the
 --                      subdialog will be displayed if value for the
 --                      name is truthy.
---                      If this key is provided, classes in the
---                      subdialog will be displayed if value for the
---                      name equals to this key
+--                      If this key is provided and not a function,
+--                      classes in the subdialog will be displayed if
+--                      value for the name equals to this key.
+--                      If this key is a generator function, the
+--                      function will be called with the current value
+--                      in the dialog data. Classes in the subdialog
+--                      will be displayed if the return of the function
+--                      is truthy.
 --
 -- @return  subdialog   Call methods such as `label` from this
 --                      subdialog to add to ifable.
@@ -504,13 +516,20 @@ end
 
 local unlessable_resolver = {}
 unlessable_resolver.resolve = function(item, dialog, x, y, width)
-    if item["name"] and
+    if type(item["value"]) == "function" then
+        if (item["name"] ~= nil and
+            item["value"](dialog["data"][item["name"]], dialog["data"])) or
+           (item["name"] == nil and
+            item["value"](nil, dialog["data"])) then
+            return y
+        end
+    elseif item["name"] and
        ((item["value"] ~= nil and dialog["data"][item["name"]] == item["value"]) or
         (item["value"] == nil and dialog["data"][item["name"]])) then
         return y
-    else
-        return item.subdialog:resolve(dialog, x, y, width)
-end end
+    end
+    return item.subdialog:resolve(dialog, x, y, width)
+end
 -----------------------------------------------------------------------
 -- Create a subdialog only when value with the name in dialog data is
 -- falsy or not equal to the value provided.
@@ -520,9 +539,14 @@ end end
 -- @key     value       If this key is not provided, classes in the
 --                      subdialog will be displayed if value for the
 --                      name is falsey.
---                      If this key is provided, classes in the
---                      subdialog will be displayed if value for the
---                      name does not equal to this key
+--                      If this key is provided and not a function,
+--                      classes in the subdialog will be displayed if
+--                      value for the name doesn't equal to this key.
+--                      If this key is a generator function, the
+--                      function will be called with the current value
+--                      in the dialog data. Classes in the subdialog
+--                      will be displayed if the return of the function
+--                      is falsey.
 --
 -- @return  subdialog   Call methods such as `label` from this
 --                      subdialog to add to unlessable.
