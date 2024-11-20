@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.7"
+versioning.version = "1.0.8"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -66,7 +66,7 @@ DepCtrl = require("l0.DependencyControl")({
 local re, config, outcome, uikit, ILL, moonscript, LineCollection, ASS, yutils, Math, Functional, unicode, util, putil = DepCtrl:requireModules()
 local file_extension = re.compile([[.*\.([^\\\/]+)$]])
 local presets_config = config.make_editor({ display_name = "aka.Sandbox/presets",
-                                            presets = { ["Default"] = {} },
+                                            presets = { ["Default"] = {}, ["Example"] = { ["Example Preset"] = { ["language"] = "MoonScript", ["command"] = "logger\\dump sub[act]" } } },
                                             default = "Default" })
 local o, ok, err = outcome.o, outcome.ok, outcome.err
 local adialog, abuttons, adisplay = uikit.dialog, uikit.buttons, uikit.display
@@ -75,8 +75,11 @@ local Table = ILL.Table
 local Sandbox = function(sub, sel, act)
     local presets = presets_config:read_and_validate_config_if_empty_then_default_or_else_edit_and_save("aka.Sandbox", "presets", function(config)
         for k, v in pairs(config) do
-            if type(k) ~= "string" then
-                return err("All keys in the config table shall be strings.\nKey " .. tostring(k) .. " is a " .. type(k) .. ".")
+            if not (type(k) == "string" and
+                    type(v) == "table" and
+                    (v["language"] == "Lua" or v["language"] == "MoonScript") and
+                    type(v["command"] == "string")) then
+                return err("Error occurs when parsing key \"" .. tostring(k) .. "\".\nView Preset „Example“ below for an example of the format.")
         end end
         return ok(config) end)
         :ifErr(aegisub.cancel)
@@ -148,7 +151,8 @@ local Sandbox = function(sub, sel, act)
                 local buttons = abuttons.ok("Load"):close("Back")
                 local b, r = adisplay(dialog, buttons):resolve()
                 if buttons:is_ok(b) then
-                    result["command"] = presets[r["preset"]]
+                    result["language"] = presets[r["preset"]]["language"]
+                    result["command"] = presets[r["preset"]]["command"]
                 end
                 return err(result)
             elseif button == "&Delete Preset" then
@@ -176,7 +180,9 @@ local Sandbox = function(sub, sel, act)
                 local buttons = abuttons.ok("Save"):close("Back")
                 local b, r = adisplay(dialog, buttons):resolve()
                 if buttons:is_ok(b) then
-                    presets[r["preset"]] = result["command"]
+                    presets[r["preset"]] = {}
+                    presets[r["preset"]]["language"] = result["language"]
+                    presets[r["preset"]]["command"] = result["command"]
                     presets_config.write_config("aka.Sandbox", "presets", presets)
                         :ifErr(function(msg)
                             result["err_msg"] = "Error occurred when saving presets:\n" ..
