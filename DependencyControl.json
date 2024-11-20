@@ -64,10 +64,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "14558b1aa2a78423816fe2ff046493f0b2e23d2c"
+                            "sha1": "c8c974070a01bc1797fae20766b55dfc01561352"
                         }
                     ],
-                    "version": "0.2.1",
+                    "version": "0.2.2",
                     "default": true,
                     "released": "2024-11-20"
                 }

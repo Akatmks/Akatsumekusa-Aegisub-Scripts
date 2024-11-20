@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "0.2.1"
+versioning.version = "0.2.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.config2\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.unicode\" }]"
+versioning.requireModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -48,23 +48,26 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
         {
-            { "aka.config2" },
+            { "aka.config" },
             { "aka.outcome" },
             { "ILL.ILL" },
             { "aegisub.util" },
             { "aegisub.re" },
+            { "aka.uikit" },
             { "aka.unicode" }
         }
     })
     DepCtrl:requireModules()
 end
-local aconfig = require("aka.config2")
+local aconfig = require("aka.config")
 local outcome = require("aka.outcome")
 local o, ok, err, some, none, opcall = outcome.o, outcome.ok, outcome.err, outcome.some, outcome.none, outcome.pcall
 local ILL = require("ILL.ILL")
 local Ass, Line, Table = ILL.Ass, ILL.Line, ILL.Table
 local autil = require("aegisub.util")
 local re = require("aegisub.re")
+local uikit = require("aka.uikit")
+local adialog, abuttons, adisplay = uikit.dialog, uikit.buttons, uikit.display
 local unicode = require("aka.unicode")
 
 
@@ -88,6 +91,7 @@ local parse_other_data
 
 local main
 local re_tagsBlock_viewing
+local presets_config
 local show_dialog
 local generate_dialog
 local apply_data
@@ -225,6 +229,9 @@ end
 
 
 re_tagsBlock_viewing = re.compile[[(\d+) \(Viewing\)]]
+presets_config = aconfig.make_editor({ display_name = "aka.99PercentTags/presets",
+                                      presets = { ["Default"] = {}, ["Example"] = [[{\n  "Swap fsc": {\n    "1a": "",\n    "3a": "",\n    "3cb": "",\n    "3cg": "",\n    "3cr": "",\n    "4a": "",\n    "4cb": "",\n    "4cg": "",\n    "4cr": "",\n    "Actor": "",\n    "Effect": "",\n    "Style": "",\n    "alpha": "",\n    "an": "",\n    "b": "",\n    "be": "",\n    "blur": "",\n    "bord": "",\n    "cb": "",\n    "cg": "",\n    "cr": "",\n    "end": "",\n    "fax": "",\n    "fay": "",\n    "fn": "",\n    "frx": "",\n    "fry": "",\n    "frz": "",\n    "fs": "",\n    "fscx": "fscy",\n    "fscy": "swap",\n    "fsp": "",\n    "i": "",\n    "layer": "",\n    "mode": 2,\n    "move2x": "",\n    "move2y": "",\n    "orgx": "",\n    "orgy": "",\n    "posx": "",\n    "posy": "",\n    "prepro": "swap = fscx",\n    "q": "",\n    "s": "",\n    "shad": "",\n    "start": "",\n    "tagsblock": 1,\n    "u": "",\n    "xbord": "",\n    "xshad": "",\n    "ybord": "",\n    "yshad": ""\n  }\n}]] },
+                                      default = "Default" })
 show_dialog = function(ass, sub, act, mode)
     local dialog_base
     local dialog_data
@@ -260,20 +267,16 @@ show_dialog = function(ass, sub, act, mode)
     end
     dialog_data["tagsblock"] = 1
 
-    presets = aconfig.read_config("aka.99PercentTags", "presets")
-        :andThen(function(config)
-            if type(config) ~= "table" then
-                return err("[aka.99PercentTags] Error")
-            end
-            for k, v in pairs(config) do
-                if type(v) ~= "table" then
-                    config[k] = nil
-            end end
-            return ok(config) end)
-        :orElseOther(function()
-            aconfig.write_config("aka.99PercentTags", "presets", {})
-            return ok({}) end)
+    presets = presets_config:read_and_validate_config_if_empty_then_default_or_else_edit_and_save("aka.99PercentTags", "presets", function(config)
+        for k, v in pairs(config) do
+            if not (type(k) == "string" and
+                    type(v) == "table") then return
+                err("Error occurs when parsing key \"" .. tostring(k) .. "\".\nView Preset „Example“ below for an example of the format.")
+        end end return
+        ok(config) end)
+        :ifErr(aegisub.cancel)
         :unwrap()
+
     dialog_base["presets"] = {}
     for k, _ in pairs(presets) do
         table.insert(dialog_base["presets"], k)
@@ -307,9 +310,9 @@ show_dialog = function(ass, sub, act, mode)
 
         dialog = generate_dialog(dialog_base, act_data, dialog_data)
         if not dialog_base["help"] then
-            buttons = { "&Apply", "View &Tags Block", "&Load Preset", "&Del. Pre.", "&Save As Pre.", "&Help", "Cancel" }
+            buttons = { "&Apply", "View &Tags Block", "&Load Preset", "&Del. Pre.", "&Save As Pre.", "&Help / More", "Cancel" }
         else
-            buttons = { "&Apply", "View &Tags Block", "&Load Preset", "&Delete Preset", "&Save As Preset", "&Help", "Cancel" }
+            buttons = { "&Apply", "View &Tags Block", "&Load Preset", "&Delete Preset", "&Save As Preset", "Open From F&ile" ,"Sav&e To File", "Cancel" }
         end
         button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Cancel", no = "Cancel", cancel = "Cancel" }
 
@@ -336,6 +339,8 @@ show_dialog = function(ass, sub, act, mode)
             dialog_base["presets"][1] = nil
             dialog_data["preset"] = nil
         end
+
+        dialog_data[""] = nil
         
         if button == false or button == "Cancel" then
             aegisub.cancel()
@@ -344,6 +349,8 @@ show_dialog = function(ass, sub, act, mode)
             dialog_data["preset_new"] = nil
             presets["(Recall last)"] = dialog_data
             aconfig.write_config("aka.99PercentTags", "presets", presets)
+                :ifErr(function(msg)
+                    aegisub.debug.out("[aka.99PercentTags] Error occurred when updating recall last:\n" .. msg) end)
 
             return dialog_data, act_data
         elseif button == "View &Tags Block" then
@@ -369,6 +376,8 @@ show_dialog = function(ass, sub, act, mode)
             if dialog_data["preset"] then
                 presets[dialog_data["preset"]] = nil
                 aconfig.write_config("aka.99PercentTags", "presets", presets)
+                    :ifErr(function(msg)
+                        aegisub.debug.out("[aka.99PercentTags] Error occurred when updating presets:\n" .. msg) end)
                 
                 for i, v in ipairs(dialog_base["presets"]) do
                     if v == dialog_data["preset"] then
@@ -385,24 +394,78 @@ show_dialog = function(ass, sub, act, mode)
             if dialog_data["preset_new"] == "_" then
                 dialog_data["preset_new"] = dialog_data["preset"]
             end
-    
-            presets[dialog_data["preset_new"]] = Table.copy(dialog_data)
-            presets[dialog_data["preset_new"]]["preset"] = nil
-            presets[dialog_data["preset_new"]]["preset_new"] = nil
-            aconfig.write_config("aka.99PercentTags", "presets", presets)
-            
-            match = false
-            for _, v in ipairs(dialog_base["presets"]) do
-                if v == dialog_data["preset_new"] then
-                    match = true
-                    break
+
+            while dialog_data["preset_new"] == "" do
+                local dialog = adialog.new({ width = 16 })
+                                      :label_edit({ label = "Preset name:", name = "preset" })
+                local buttons = abuttons.ok("Save"):close("Back")
+                local b, r = adisplay(dialog, buttons):resolve()
+                if buttons:is_ok(b) then
+                    dialog_data["preset_new"] = r["preset"]
+                elseif buttons:is_close(b) then
+                    break -- continue
             end end
-            if not match then
-                table.insert(dialog_base["presets"], 1, dialog_data["preset_new"])
+    
+            if dialog_data["preset_new"] ~= "" then
+                presets[dialog_data["preset_new"]] = Table.copy(dialog_data)
+                presets[dialog_data["preset_new"]]["preset"] = nil
+                presets[dialog_data["preset_new"]]["preset_new"] = nil
+                aconfig.write_config("aka.99PercentTags", "presets", presets)
+                    :ifErr(function(msg)
+                        aegisub.debug.out("[aka.99PercentTags] Error occurred when saving presets:\n" .. msg) end)
+                    
+                match = false
+                for _, v in ipairs(dialog_base["presets"]) do
+                    if v == dialog_data["preset_new"] then
+                        match = true
+                        break
+                end end
+                if not match then
+                    table.insert(dialog_base["presets"], 1, dialog_data["preset_new"])
+                end
+                dialog_data["preset"] = dialog_data["preset_new"]
+                dialog_data["preset_new"] = ""
             end
-            dialog_data["preset"] = dialog_data["preset_new"]
-            dialog_data["preset_new"] = ""
-        elseif button == "&Help" then
+        elseif button == "Open From F&ile" then
+            o(aegisub.dialog.open("Opening preset...", "", "", ""))
+                :ifOk(function(path)
+                    o(io.open(path, "r"))
+                        :andThen(function(f)
+                            local r
+                            r = o(f:read("*a"))
+                            f:close() return
+                            r end)
+                        :andThen(function(t) return
+                            aconfig.json:decode3(t) end)
+                        :ifOk(function(new_dialog_data)
+                            for k, v in pairs(dialog_data) do
+                                if type(new_dialog_data[k]) == "nil" then
+                                    new_dialog_data[k] = v
+                            end end
+            
+                            dialog_data = new_dialog_data end)
+                        :ifErr(function(msg)
+                            aegisub.debug.out("[aka.99PercentTags] Error occurred when opening preset:\n" .. msg) end) end)
+        elseif button == "Sav&e To File" then
+            o(aegisub.dialog.save("Saving preset...", "", "", ""))
+                :ifOk(function(path)
+                    o(io.open(path, "w"))
+                        :andThen(function(f)
+                            local to_save_dialog_data
+                            local r
+
+                            to_save_dialog_data = Table.copy(dialog_data)
+                            to_save_dialog_data["preset"] = nil
+                            to_save_dialog_data["preset_new"] = nil
+
+                            r = o(aconfig.json:encode_pretty(to_save_dialog_data))
+                                :andThen(function(d) return
+                                    o(f:write(d)) end)
+                            f:close() return
+                            r end)
+                        :ifErr(function(msg)
+                            aegisub.debug.out("[aka.99PercentTags] Error occurred when saving preset:\n" .. msg) end) end)
+        elseif button == "&Help / More" then
             dialog_base["help"] = true
 end end end
 
