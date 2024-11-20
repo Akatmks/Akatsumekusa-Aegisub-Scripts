@@ -64,12 +64,12 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "6d4b0cfdeaa7ca2725896ec52fdf58587fce326f"
+                            "sha1": "14558b1aa2a78423816fe2ff046493f0b2e23d2c"
                         }
                     ],
-                    "version": "0.1.4",
+                    "version": "0.2.1",
                     "default": true,
-                    "released": "2024-10-20"
+                    "released": "2024-11-20"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -755,7 +755,7 @@
                         {
                             "name": "/dialog.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "0593948fb6cd0ce24ed1048b98d9bee1fe463411"
+                            "sha1": "7defa25e7e3d655a609577a4cde2091434627296"
                         },
                         {
                             "name": "/display.moon",
@@ -765,10 +765,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "f930916fca76770b87ed036ecaac6a78ad37566d"
+                            "sha1": "dd6165fddb0513c5a9861e6859fffedf0a731c78"
                         }
                     ],
-                    "version": "1.0.9",
+                    "version": "1.0.10",
                     "default": true,
                     "requiredModules": [
                         {
@@ -787,7 +787,7 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-11-19"
+                    "released": "2024-11-20"
                 }
             },
             "author": "Akatsumekusa and contributors",

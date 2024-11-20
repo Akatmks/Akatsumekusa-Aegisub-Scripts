@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "0.1.4"
+versioning.version = "0.2.1"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -87,7 +87,7 @@ local parse_tags
 local parse_other_data
 
 local main
-local re_tagsBlock_selected
+local re_tagsBlock_viewing
 local show_dialog
 local generate_dialog
 local apply_data
@@ -116,14 +116,14 @@ end
 Select mode:
 [ Generate data from active line once and apply to al... ]
 Select tags block:  
-[ 1 (Selected)                                           ] 
+[ 1 (Viewing)                                            ] 
 Preprocess tag data:
 [                                                        ]
 [                                                        ]
 [                                                        ]
 [                                                        ]
 Edit tag data:
-an    5   [      ]  fn    Nunito          [              ]
+an    5   [      ]  fn    "Nunito"        [              ]
 posx  960 [      ]  fs    60  [      ]  cr    255 [      ]
 posy  480 [      ]  fsp   0   [      ]  cg    255 [      ]
 move2x -  [      ]  blur  0.5 [      ]  cb    255 [      ]
@@ -208,16 +208,14 @@ end
 
 
 
-logger = DepCtrl:getLogger() -- TODO
-dumper = logger -- TODO
-main = function(sub, sel, act)
+main = function(sub, sel, act, mode)
     local ass
     local dialog_data
     local act_data
     
     ass = Ass(sub, sel, act)
 
-    dialog_data, act_data = show_dialog(ass, sub, act)
+    dialog_data, act_data = show_dialog(ass, sub, act, mode)
 
     apply_data(ass, sub, act, dialog_data, act_data)
 
@@ -226,8 +224,8 @@ end
 
 
 
-re_tagsBlock_selected = re.compile[[(\d+) \(Selected\)]]
-show_dialog = function(ass, sub, act)
+re_tagsBlock_viewing = re.compile[[(\d+) \(Viewing\)]]
+show_dialog = function(ass, sub, act, mode)
     local dialog_base
     local dialog_data
     local act_l
@@ -247,8 +245,8 @@ show_dialog = function(ass, sub, act)
     dialog_data = {}
 
     dialog_base["modes"] = { "Generate data from active line once and apply to all selected lines",
-                             "Generate data from each selected line and apply respectively" }
-    dialog_data["mode"] = 1
+                             "Generate and apply data on each selected line respectively" }
+    dialog_data["mode"] = mode
 
     for _, v in ipairs(all_tags) do
         dialog_data[v] = ""
@@ -262,7 +260,7 @@ show_dialog = function(ass, sub, act)
     end
     dialog_data["tagsblock"] = 1
 
-    presets = aconfig.read_config("aka.99PercentTags")
+    presets = aconfig.read_config("aka.99PercentTags", "presets")
         :andThen(function(config)
             if type(config) ~= "table" then
                 return err("[aka.99PercentTags] Error")
@@ -273,7 +271,7 @@ show_dialog = function(ass, sub, act)
             end end
             return ok(config) end)
         :orElseOther(function()
-            aconfig.write_config("aka.99PercentTags", {})
+            aconfig.write_config("aka.99PercentTags", "presets", {})
             return ok({}) end)
         :unwrap()
     dialog_base["presets"] = {}
@@ -299,8 +297,8 @@ show_dialog = function(ass, sub, act)
 
         dialog_data["mode"] = dialog_base["modes"][dialog_data["mode"]]
 
-        dialog_base["tagsblocks"][dialog_data["tagsblock"]] = tostring(dialog_data["tagsblock"]) .. " (Selected)"
-        dialog_data["tagsblock"] = tostring(dialog_data["tagsblock"]) .. " (Selected)"
+        dialog_base["tagsblocks"][dialog_data["tagsblock"]] = tostring(dialog_data["tagsblock"]) .. " (Viewing)"
+        dialog_data["tagsblock"] = tostring(dialog_data["tagsblock"]) .. " (Viewing)"
 
         if #dialog_base["presets"] == 0 then
             dialog_base["presets"] = { "(No presets)" }
@@ -309,9 +307,9 @@ show_dialog = function(ass, sub, act)
 
         dialog = generate_dialog(dialog_base, act_data, dialog_data)
         if not dialog_base["help"] then
-            buttons = { "&Apply", "Select &Tags Block", "&Load Pre.", "&Del. Pre.", "&Save As Pre.", "&Help", "Cancel" }
+            buttons = { "&Apply", "View &Tags Block", "&Load Preset", "&Del. Pre.", "&Save As Pre.", "&Help", "Cancel" }
         else
-            buttons = { "&Apply", "Select &Tags Block", "&Load Preset", "&Delete Preset", "&Save As Preset", "&Help", "Cancel" }
+            buttons = { "&Apply", "View &Tags Block", "&Load Preset", "&Delete Preset", "&Save As Preset", "&Help", "Cancel" }
         end
         button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Cancel", no = "Cancel", cancel = "Cancel" }
 
@@ -320,12 +318,11 @@ show_dialog = function(ass, sub, act)
         for i, v in ipairs(dialog_base["modes"]) do
             if v == dialog_data["mode"] then
                 dialog_data["mode"] = i
-            end
-            break
-        end
+                break
+        end end
 
         for i, v in ipairs(dialog_base["tagsblocks"]) do
-            match = re_tagsBlock_selected:match(v)
+            match = re_tagsBlock_viewing:match(v)
             if match then
                 dialog_base["tagsblocks"][i] = match[2]["str"]
                 if dialog_data["tagsblock"] == v then
@@ -346,12 +343,12 @@ show_dialog = function(ass, sub, act)
             dialog_data["preset"] = nil
             dialog_data["preset_new"] = nil
             presets["(Recall last)"] = dialog_data
-            aconfig.write_config("aka.99PercentTags", presets)
+            aconfig.write_config("aka.99PercentTags", "presets", presets)
 
             return dialog_data, act_data
-        elseif button == "Select &Tags Block" then
+        elseif button == "View &Tags Block" then
             -- pass
-        elseif button == "&Load Pre." or button == "&Load Preset" then
+        elseif button == "&Load Preset" then
             if dialog_data["preset"] then
                 new_dialog_data = Table.copy(presets[dialog_data["preset"]])
 
@@ -362,37 +359,49 @@ show_dialog = function(ass, sub, act)
 
                 dialog_data = new_dialog_data
             end
-        elseif button == "&Del. Pre." or button == "&Delete Preset" then
+        elseif (button == "&Del. Pre." or button == "&Delete Preset") or
+               ((button == "&Save As Pre." or button == "&Save As Preset") and
+                dialog_data["preset_new"] == "-") then
+            if button == "&Save As Pre." or button == "&Save As Preset" then
+                dialog_data["preset_new"] = ""
+            end
+
             if dialog_data["preset"] then
                 presets[dialog_data["preset"]] = nil
-                aconfig.write_config("aka.99PercentTags", presets)
+                aconfig.write_config("aka.99PercentTags", "presets", presets)
                 
-                dialog_base["presets"] = {}
-                for k, _ in pairs(presets) do
-                    table.insert(dialog_base["presets"], k)
-                end
+                for i, v in ipairs(dialog_base["presets"]) do
+                    if v == dialog_data["preset"] then
+                        table.remove(dialog_base["presets"], i)
+                        break
+                end end
                 dialog_data["preset"] = nil
-                for k, _ in pairs(presets) do
-                    dialog_data["preset"] = k
+                for _, v in pairs(dialog_base["presets"]) do
+                    dialog_data["preset"] = v
                     break
                 end
             end
         elseif button == "&Save As Pre." or button == "&Save As Preset" then
+            if dialog_data["preset_new"] == "_" then
+                dialog_data["preset_new"] = dialog_data["preset"]
+            end
+    
             presets[dialog_data["preset_new"]] = Table.copy(dialog_data)
             presets[dialog_data["preset_new"]]["preset"] = nil
             presets[dialog_data["preset_new"]]["preset_new"] = nil
-            aconfig.write_config("aka.99PercentTags", presets)
+            aconfig.write_config("aka.99PercentTags", "presets", presets)
             
             match = false
             for _, v in ipairs(dialog_base["presets"]) do
-                if v == dialog_base["preset_new"] then
+                if v == dialog_data["preset_new"] then
                     match = true
                     break
             end end
             if not match then
-                table.insert(dialog_base["presets"], dialog_base["preset_new"])
+                table.insert(dialog_base["presets"], 1, dialog_data["preset_new"])
             end
-            dialog_data["preset"] = dialog_base["preset_new"]
+            dialog_data["preset"] = dialog_data["preset_new"]
+            dialog_data["preset_new"] = ""
         elseif button == "&Help" then
             dialog_base["help"] = true
 end end end
@@ -448,7 +457,7 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
  0  Select mode:
  1  [ Generate data from active line once and apply to al... ]
  2  Select tags block:  
- 3  [ 1 (Selected)                                           ] 
+ 3  [ 1 (Viewing)                                           ] 
  4  Preprocess tag data:
  5  [                                                        ]
  6  [                                                        ]
@@ -522,7 +531,7 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
     table.insert(dialog, { class = "label",             x = onefull, y = tags, width = name,
                                                         label = B"fn" })
     table.insert(dialog, { class = "label",             x = onefull + name, y = tags, width = value + arrow + edit,
-                                                        label = tostring(act_data["fn"]) })
+                                                        label = "\"" .. tostring(act_data["fn"]) .. "\"" })
     table.insert(dialog, { class = "label",             x = twofull, y = tags, width = arrow,
                                                         label = "🡢" })
     table.insert(dialog, { class = "edit", name = "fn", x = twofull + arrow, y = tags, width = onefull - arrow,
@@ -610,51 +619,54 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
     if dialog_base["help"] then
         table.insert(dialog, { class = "textbox",       x = threefull, y = 0, width = help, height = help_height,
                                                         text = [[
-The interface of 99%Tags consists of five sections:
+The interface of 99%Tags consists of six sections:
 – Mode selector,
 – Tags block selector,
 – Preprocess data,
 – Tag data editor,
-– Line data editor.
+– Line data editor,
+– Preset editor.
 
 To edit tags as in 𝗛𝗬𝗗𝗥𝗔, enter the value you want in the edit fields in tag and line data editor:
 > fs  [ 50 ]
 > fsp [ .1 ]
 In above example, we set \fs to 50 and \fsp to 0.1.
 
-You can switch the tags block using the tags block selector at the top and then click „Select Tags Block“ button to load the data at the new tags block.
+You can switch between tags block using the tags block selector at the top:
 > Select tags block [ 2 ]
-After clicking „Select Tags Block“ button:
-> Select tags block [ 2 (Selected) ]
+You can click „View Tags Block“ button to see the tag values at the newly selected tags block.
+> Select tags block [ 2 (Viewing) ]
 
 Unlike HYDRA where the edit fields are limited to floating point numbers, edit fields in 99%Tags can be any Lua expressions.
 > cr  [ 0b10000000 ]
 > frz [ math.deg(math.pi / 2) ]
-In above example, we set cr (Red channel of \c) to &H80& and \frz to `math.deg(math.pi / 2)` which equals to 90.
-> fn  [ "Noto Sans Display" ]
+In above example, we set cr (the red channel of \c) to &H80& and \frz to `math.deg(math.pi / 2)` which equals to 90.
+> fn  [ "Noto Sans Medium" ]
 For fn, Style, Actor and Effect fields, a pair of quotation marks are required.
 
-There are a lot of variables you can refer to in edit fields. First, all tags and data listed in the tag and line data editor are variables under the same name.
-> alpha [ 1a ]
-In above exmaple, we set \1a's current value to \alpha. You may noticed that `1a` shouldn't be a valid Lua variable because variable cannot start with digits. For the listed tag names, 99%Tags will convert these identifiers before evaluation.
+There are a lot of variables you can refer to in edit fields.
+First, all tags and data listed in the tag and line data editor are variables under the same name.
+> fscy [ fscx ]
+> cr [ 0x100 - 3cr ]
+In above exmaple, we set \fscy to match the current value of \fscx, and we set the red channel of \c to the opposite of the red channel of \3c. You may noticed that `3cr` shouldn't be valid Lua variables because Lua variables can't start with digits. For and only for the listed ASS tag names, 99%Tags will convert these identifiers before evaluation.
 
 Second, there is a special variable `_` (one underscore) that represents the current tag itself.
 > frz [ _ ]
 > fax [ _ ]
-In above example, we set \frz and \fax to itself.
+In above example, we set \frz and \fax to its current value.
 
 Note the mode selector at the top of the interface. which reads „Generate data from active line once and apply to all selected lines“. If we have multiple lines selected, setting tags to `_` essentially copys the value from active line to all selected lines like 𝗡𝗲𝗰𝗿𝗼𝘀𝗖𝗼𝗽𝘆.
 > frz [ _ ]
 > fax [ _ ]
-In above example, provided that we have multiple lines selected and the mode set to „Generate data from active line once and apply to all selected linesuotation“, we copy \frz and \fax value from active line to all selected lines.
+In above example, provided that we have multiple lines selected and the mode set to „Generate data from active line once and apply to all selected lines“, we copy \frz and \fax value from active line to all selected lines.
 
-The next natural thing with `_` is to do arithmetic operations like in 𝗥𝗲𝗰𝗮𝗹𝗰𝘂𝗹𝗮𝘁𝗼𝗿. Select mode to „Generate data from each selected line and apply respectively“ and enter expressions like `_+200`, or to add 200 to the current value. To make things simple, you can omit the first `_` and starts the expression with the operators like `+` or `-`.
+The next natural thing with `_` is to do arithmetic operations like in 𝗥𝗲𝗰𝗮𝗹𝗰𝘂𝗹𝗮𝘁𝗼𝗿. Select mode to „Generate and apply data on each selected line respectively“ and enter expressions like `_+200`, or to add 200 to the current value. To make things simple, you can omit the first `_` and starts the expression with the operators like `+` or `*`.
 > posx  [ +200 ]
 In above example, we add 200 to posx (the x axis of \pos), shifting the sign to the right. `+200` is the same as `_+200`, as the first `_` in `_+200` is omited.
 > posx  [ (_+200)*0.8 ]
 In above example, we add 200 to posx and then multiply it by 0.8. Note that the first `_` in this case is not omittable because it is inside a pair of parentheses.
 
-Alert! One consequence of allowing the first `_` to be omitted is that you can't assign negative values to tags. In order to set negative values, you need to write it as zero minus the value. This tradeoff is made because there are very few tags in ASS like \pos and \fax that allows negative values.
+Caution! One consequence of allowing the first `_` to be omitted is that you can't assign negative values to tags. In order to set negative values, you need to write it as zero minus the value. This tradeoff is made because there are very few tags in ASS like \pos and \fax that allows negative values.
 > fax [ 0-0.1 ]
 In above example, we set \fax to `0-0.1`, or -0.1.
 
@@ -662,17 +674,16 @@ There is also a special case in edit fields. Setting edit field to `-` (one hyph
 > bord  [ - ]
 In above example, we set \bord to the value specified in Style.
 > posx  [ - ]
-For pairing tags like posx and posy (the x and y axis of \pos), removing one of the axis will only revert that axis to Style.
+For pairing tags like posx and posy (the x and y axis of \pos), removing one of the axis will only revert the axis to Style.
 > orgx  [ - ]
 For \org tags, removing one of the axis will revert the axis back to \pos instead of Style.
 > move2x  [ - ]
-For \move tags, removing one of the axis will set the axis to the axis' starting position. Removing both axes will revert \move back to \pos.
+For \move tags, removing one of the axis will set the axis to the axis' starting position. Removing both move2x and move2y will revert \move back to \pos.
 
-At last, you can preprocess the data in the big text field above. Unlike edit fields of the tags, this is for Lua commands instead of expressions. The proprocess field shares the same envionment with all the tag fields. They execute in the following order:
+At last, you can preprocess the data in the big text field above. Unlike edit fields of the tags, the preprocess field is for Lua commands instead of expressions. This allows us to do basic 𝗟𝘂𝗮𝗜𝗻𝘁𝗲𝗿𝗽𝗿𝗲𝘁 works.
+The proprocess field shares the same envionment with all the tag fields. They execute in the following order:
 – preprocess → an → posx → … → q → fn → fs → … → be → cr → … → 4a → layer → start → end → Style → Actor → Effect
 If during the execution of a earlier field a tag has been modified, it will stay modified in the execution of later field.
-
-This allows us to do basic 𝗟𝘂𝗮𝗜𝗻𝘁𝗲𝗿𝗽𝗿𝗲𝘁 works:
 > preprocess [ sw = fscx ]
 > fscx [ fscy ]
 > fscy [ sw ]
@@ -685,16 +696,21 @@ Because the fscy is below fscx, in this example, we assign fscx to a new variabl
 > fscy [ _ ]
 You could, however, put every calculations in preprocess and put a `_` in edit fields of the tags to apply the changes. A tag modification will only be applied if there are expressions in the tag edit field.
 
-In addition to preprocess field and tag fields, all selected lines, provided that „Generate data from each selected line and apply respectively“ is selected, also shares a same environment.
-> preprocess [ i = i or -1 ]
-> preprocess [ i = i + 1 ]
-> layer [ i ]
+If „Generate and apply data on each selected line respectively“ is used, all selected lines also share the same environment. All tag values will be reset when a new line is loaded in, but values defined in the preprocess field will be kept.
+> preprocess [ l = l == nil and -1 or l ]
+> preprocess [ l = l + 1 ]
+> layer [ l ]
 This set the layer of each selected line to incremental values starting from 0.
 
-Additionally, line object after `Line.process()` is exposed under `line` and you may modify them directly.
+Additionally, line object after ILL's `Line.process()` is exposed under `line` and you may modify them directly.
 > preprocess [ line.margin_l = 100 ]
 In this example, we set left margin of selected lines to 100.
-]] })
+
+At the bottom of the UI, you can load, delete, or save your modifications as presets, or recall last, using `Load Preset`, `Delete Preset` and `Save As Preset` buttons.
+
+The „Save as preset“ edit field recognises two special cases, `_` and `-`. They are triggered when pressing the `Save As Preset` button. The special cases here are different than the special cases of the tag edit fields.
+Using `_`, you can overwrite the preset that's currently selected in the „Load or delete preset“ dropdown selector, even if it isn't the one that's currently loaded. This is the same as typing out the full name of the preset you want to overwrite.
+Using `-` in „Save as preset“ edit field and pressing `Save As Preset` button is the same as pressing `Delete Preset` button alone.]] })
     end
 
     return dialog
@@ -735,9 +751,9 @@ apply_data = function(ass, sub, act, data, act_data)
                 aegisub.debug.out("[aka.99PercentTags] Skipping line " .. tostring(s) .. " because line " .. tostring(s) .. " does not have tags block " .. tostring(data["tagsblock"]) .. "\n")
         end end
     else
+        line_data = {}
         for line, s, i, n in ass:iterSel(false) do
             ass:progressLine(s, i, n)
-            line_data = {}
             tagsBlocks = Line.tagsBlocks(ass, line)
             parse_tags(line_data, line, tagsBlocks[data["tagsblock"]].data)
             parse_other_data(line_data, line, tagsBlocks.width, tagsBlocks.height)
@@ -754,10 +770,10 @@ apply_data = function(ass, sub, act, data, act_data)
     end
 end
 
-re_extra_spaces = re.compile[[^ *(.+?) *$]]
-re_if_omitted = re.compile[[^(?:(?:\+|\-|\*|\/|%|\^|==|~=|<|>|<=|>=|\.\.)[^\+\-\*\/%\^=~<>\.]|and |or )]]
-re_match_underscore = re.compile[[^(.*[^\w]|)_([^\w].*|)$]]
-re_match_invalid_varnames = re.compile[[^((?:[^"']*(?:"(?:[^"]*(?<!\\)(?:\\\\)*\\")*?[^"]*(?<!\\)(?:\\\\)*"|'(?:[^']*(?<!\\)(?:\\\\)*\\')*?[^']*(?<!\\)(?:\\\\)*'))*(?:[^"']*[^\w"']|)|)(3cr|3cg|3cb|4cr|4cg|4cb|1a|2a|3a|4a)([^\w].*|)$]]
+re_extra_spaces = re.compile([[^ *(.+?) *$]], re.NO_MOD_M)
+re_if_omitted = re.compile([[^(?:(?:\+|\-|\*|\/|%|\^|==|~=|<|>|<=|>=|\.\.)[^\+\-\*\/%\^=~<>\.]|and |or )]], re.NO_MOD_M)
+re_match_underscore = re.compile([[^(.*[^\w]|)_([^\w].*|)$]], re.NO_MOD_M)
+re_match_invalid_varnames = re.compile([[^((?:[^"']*(?:"(?:[^"]*(?<!\\)(?:\\\\)*\\")*?[^"]*(?<!\\)(?:\\\\)*"|'(?:[^']*(?<!\\)(?:\\\\)*\\')*?[^']*(?<!\\)(?:\\\\)*'))*(?:[^"']*[^\w"']|)|)(3cr|3cg|3cb|4cr|4cg|4cb|1a|2a|3a|4a)([^\w].*|)$]], re.NO_MOD_M)
 process_data = function(data)
     local commands
     local operations
@@ -798,10 +814,12 @@ process_data = function(data)
                 while true do
                     match = re_match_underscore:match(command)
                     if match then
-                        command = match[2]["str"] .. tag .. match[4]["str"]
+                        command = match[2]["str"] .. tag .. match[3]["str"]
                     else
                         break
                 end end
+
+                command = tag .. " = " .. command
 
                 while true do
                     match = re_match_invalid_varnames:match(command)
@@ -811,7 +829,7 @@ process_data = function(data)
                         break
                 end end
 
-                commands = commands and (commands .. "\ntag = " .. command) or ("tag = " .. command)
+                commands = commands and (commands .. "\n" .. command) or command
                 table.insert(operations, { "Set", tag })
     end end end
 
@@ -822,6 +840,7 @@ execute_tags = function(commands, line_data)
     local run
 
     if commands then
+        line_data._G = line_data
         setmetatable(line_data, { __index = _G })
         run = o(loadstring(commands))
             :ifErr(function(err)
@@ -891,7 +910,7 @@ apply_tags = function(operations, line, tagsBlocks, i, data, original_data, styl
                 o(single_find(alpha_tags, v[2]))
                     :ifOk(function(tag)
                         if v[1] == "Set" then
-                            tagsBlocks[i]:insert({ { tag, string.format("&H%X&", data[tag]) } })
+                            tagsBlocks[i]:insert({ { tag, autil.ass_alpha(data[tag]) } })
 
                         elseif v[1] == "Clear" then
                             if i == 1 then
@@ -900,7 +919,7 @@ apply_tags = function(operations, line, tagsBlocks, i, data, original_data, styl
                                 ch = false
                                 for j = i, 1, -1 do
                                     if tagsBlocks[j]:existsTag(tag) then
-                                        tagsBlocks[i]:insert({ { tag, string.format("&H%X&", style_data[tag]) } })
+                                        tagsBlocks[i]:insert({ { tag, autil.ass_alpha(style_data[tag]) } })
                                         ch = true
                                 end end
                                 if not ch then
@@ -1024,7 +1043,7 @@ apply_tags = function(operations, line, tagsBlocks, i, data, original_data, styl
                 end
                 
                 if tag_data[1] and tag_data[1]:isNone() and tag_data[2] and tag_data[2]:isNone() then
-                    messy_set["move"] = { style_data[move_tags[1]], style_data[move_tags[2]] }
+                    messy_set["move"] = { style_data[move_tags[1]], style_data[move_tags[2]] } -- This is for messy_set["org"] below
                 else
                     for j = 1, 2 do
                         if not tag_data[j] then
@@ -1046,13 +1065,25 @@ apply_tags = function(operations, line, tagsBlocks, i, data, original_data, styl
                    tag_data[3] and tag_data[3]:isNone() and tag_data[4] and tag_data[4]:isNone() then
                     messy_set["move"] = { style_data[move_tags[1]], style_data[move_tags[2]] }
                 else
-                    for j = 1, 4 do
+                    for j = 1, 2 do
                         if not tag_data[j] then
                             tag_data[j] = original_data[move_tags[j]]
                         elseif tag_data[j]:isSome() then
                             tag_data[j] = tag_data[j]:unwrap()
                         elseif tag_data[j]:isNone() then
                             tag_data[j] = style_data[move_tags[j]]
+                    end end
+                    for j = 3, 4 do
+                        if not tag_data[j] then
+                            if original_data[move_tags[j]] then
+                                tag_data[j] = original_data[move_tags[j]]
+                            else
+                                tag_data[j] = tag_data[j-2]
+                            end
+                        elseif tag_data[j]:isSome() then
+                            tag_data[j] = tag_data[j]:unwrap()
+                        elseif tag_data[j]:isNone() then
+                            tag_data[j] = tag_data[j-2]
                     end end
                     tagsBlocks[1]:insert({ { "move", { tag_data[1], tag_data[2], tag_data[3], tag_data[4] } } })
             end end
@@ -1061,7 +1092,7 @@ apply_tags = function(operations, line, tagsBlocks, i, data, original_data, styl
             ch = false
             if tag_data[1] and tag_data[1]:isNone() and tag_data[2] and tag_data[2]:isNone() and tag_data[3] and tag_data[3]:isNone() then
                 ch = true
-                for j = i, 1, -1 do
+                for j = i - 1, 1, -1 do
                     if tagsBlocks[j]:existsTag(tag) then
                         ch = false
                 end end
@@ -1078,7 +1109,7 @@ apply_tags = function(operations, line, tagsBlocks, i, data, original_data, styl
                     elseif tag_data[j]:isNone() then
                         tag_data[j] = style_data[colour_tags[tag][j]]
                 end end
-                tagsBlocks[i]:insert({ { tag, string.format("&H%X%X%X&", tag_data[3], tag_data[1], tag_data[2]) } })
+                tagsBlocks[i]:insert({ { tag, autil.ass_color(tag_data[1], tag_data[2], tag_data[3]) } })
     end end end
 
     if messy_set["org"] then
@@ -1100,8 +1131,5 @@ end end end
 
 
 
-if hasDepCtrl then
-    DepCtrl:registerMacro(main)
-else
-    aegisub.register_macro("99%Tags", "Add or modify tags on selected lines", main)
-end
+aegisub.register_macro("99%Tags", "Add or modify tags on selected lines", function(sub, sel, act) main(sub, sel, act, 1) end)
+aegisub.register_macro("99%Tags (open in Recalculator mode)", "Add or modify tags on selected lines", function(sub, sel, act) main(sub, sel, act, 2) end)

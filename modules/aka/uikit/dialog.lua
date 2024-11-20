@@ -479,8 +479,8 @@ ifable_resolver.resolve = function(item, dialog, x, y, width)
             return item.subdialog:resolve(dialog, x, y, width)
         end
     elseif item["name"] and
-       ((item["value"] ~= nil and dialog["data"][item["name"]] == item["value"]) or
-        (item["value"] == nil and dialog["data"][item["name"]])) then
+           ((item["value"] ~= nil and dialog["data"][item["name"]] == item["value"]) or
+            (item["value"] == nil and dialog["data"][item["name"]])) then
         return item.subdialog:resolve(dialog, x, y, width)
     end
     return y
