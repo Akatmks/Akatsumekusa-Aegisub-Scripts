@@ -8,10 +8,11 @@ local uikit = require("aka.uikit")
 local adialog, abuttons, adisplay = uikit.dialog, uikit.buttons, uikit.display
 ```
 ```moon
+local adialog, abuttons, adisplay
 with require "aka.uikit"
-    adialog = .dialog
-    abuttons = .buttons
-    adisplay = .display
+  adialog = .dialog
+  abuttons = .buttons
+  adisplay = .display
 ```
 
 In this tutorial, what's otherwise known as widgets or controls in Aegisub dialog will be referred to as classes, including vanilla classes such as `edit`, `floatedit` and `dropdown` as well as classes unique to aka.uikit such as `separator` and `columns`. All the options for classes such as `x`, `y`, `name`, `label`, `value` will be referred to as keys.  
@@ -43,11 +44,11 @@ buttons = abuttons.new()
 display = adisplay(dialog, buttons)
 ```
 ```moon
-with dialog = adialog { width = 6 }
-    \label { label = "Hello World!" }
+with dialog = adialog { width: 6 }
+  \label { label: "Hello World!" }
 with buttons = abuttons!
-    \ok "OK"
-    \close "Cancel"
+  \ok "OK"
+  \close "Cancel"
 display = adisplay dialog, buttons
 ```
 * In the first two lines, a dialog is created with width of 6, containing only one class, a label that will display "Hello World!".  
@@ -65,7 +66,7 @@ vanilla_dialog = dialog\resolve!
 vanilla_buttons, vanilla_button_ids = buttons\resolve!
 ```
 
-Or use it at the on `display` to display the dialog to the user and retrieve the result:  
+Or use it on `display` to display the dialog to the user:  
 
 ```lua
 button, result = adisplay(dialog, buttons):resolve()
@@ -354,6 +355,7 @@ result = adisplay(dialog, buttons)
         end end)
 ```
 ```moon
+local dialog, buttons, result
 with dialog = adialog.new { width: 5 }
   \load_data previous_data
   -- If err_msg is truely, the label_edit will be displayed with text of err_msg
@@ -364,9 +366,11 @@ with dialog = adialog.new { width: 5 }
 with buttons = abuttons.ok "Connect"
   \close "Cancel"
 
-with result = adisplay display, buttons
+with result = adisplay dialog, buttons
   \repeatUntil (button, result) ->
-    response, err, msg = request.send result["url"], { method: "GET" }
+    -- If the user clicked "Cancel", `repeatUntil()`` will return
+    -- without calling this function
+    response = request.send result["url"], { method: "GET" }
     if not response
       result["err_msg"] = "No response"
       return err result
@@ -449,6 +453,11 @@ It's common for automation scripts to have a edit, intedit, floatedit, etc with 
 -- All keys except for `name`s, presumably, also accept generator
 -- functions.  
 --
+-- To create this dialog:
+--  \fn  [ Arial ]
+-- Calls:
+--  dialog:label_edit({ label = "\\fn", name = "fn", text = "Arial" })
+--
 -- @return  self
 ```
 
@@ -467,6 +476,11 @@ It's common for automation scripts to have a edit, intedit, floatedit, etc with 
 --                      two classes using this key.
 -- All keys except for `name`s, presumably, also accept generator
 -- functions.  
+--
+-- To create this dialog:
+--  \frz  [  0.  ]
+-- Calls:
+--  dialog:label_floatedit({ label = "\\frz", name = "frz", value = 0 })
 --
 -- @return  self
 ```
@@ -487,11 +501,6 @@ It's common for automation scripts to have a edit, intedit, floatedit, etc with 
 --                      two classes using this key.
 -- All keys except for `name`s, presumably, also accept generator
 -- functions.  
---
--- To create this dialog:
---  \frz  [  0.  ]
--- Calls:
---  dialog:label_floatedit({ label = "\\frz", name = "frz", value = 0 })
 --
 -- @return  self
 ```
@@ -542,12 +551,12 @@ The data should be in key-value pairs, in the same format as the second return f
 `dialog:load_data()` overrides the default values set in the dialog or values from previous call of `dialog:load_data()`. That means if you want to use values from previous run but also need a default value when the user runs the script for the first time, you can write the default value directly to each classes:  
 ```lua
 dialog = adialog.new({ width = 4 })
-                :load_data(previous_data) -- Override value; could be nil
+                :load_data(previous_data) -- Override default value
                 :label_floatedit({ label = "Strength", name = "strength", min = 0, value = 2 }) -- Default value
 ```
 ```moon
 dialog = adialog.new { width: 4 }
-dialog\load_data previous_data -- Override value; could be nil
+dialog\load_data previous_data -- Override default value
 dialog\label_floatedit { label: "Strength", name: "strength", min: 0, value: 2 } -- Default value
 ```
 
@@ -556,17 +565,17 @@ Or have a separate default table:
 default_data = { "strength" = 2 }
 
 dialog = adialog.new({ width = 4 })
-                :load_data(default_data)
-                :load_data(previous_data) -- Override default_data; could be nil
-                :label_floatedit({ label = "Strength", name = "strength", min = 0 })
+                :load_data(default_data) -- Override default value
+                :load_data(previous_data) -- Override default_data and default value
+                :label_floatedit({ label = "Strength", name = "strength", min = 0, value = 2 }) -- Default value
 ```
 ```moon
 default_data =
   strength: 2
 
 dialog = adialog.new { width: 4 }
-dialog\load_data default_data
-dialog\load_data previous_data -- Override default_data; could be nil
+dialog\load_data default_data -- Override default value
+dialog\load_data previous_data -- Override default_data and default value
 dialog\label_floatedit { label: "Strength", name: "strength", min: 0, value: 2 } -- Default value
 ```
 
@@ -588,33 +597,33 @@ buttons = abuttons.ok("Apply")
                   :close("Close")
 ```
 ```moon
-buttons = abuttons!
-buttons\ok "Apply"
-buttons "&Validate"
-buttons\help "&Help"
-buttons\close "Close"
+with buttons = abuttons!
+  \ok "Apply"
+  \regular "&Validate"
+  \help "&Help"
+  \close "Close"
 ```
 
 #### `buttons.new()` and `buttons.__call()`
 
-To create a `aka.uikit.buttons` instance, call `new`, call `aka.uikit.buttons` itself, or call any of the buttons using `.` instead of `:` or `\`:  
+To create a `aka.uikit.buttons` instance, either call `new`, call the object itself, or directly call any of the buttons using `.` instead of `:` or `\`:  
 
 ```lua
-buttons1 = abuttons.new()
-buttons2 = abuttons()
-buttons3 = abuttons.ok("Apply")
-buttons4 = abuttons.regular("L&eft")
+instance1 = abuttons.new()
+instance2 = abuttons()
+instance3 = abuttons.ok("Apply")
+instance4 = abuttons.regular("L&eft")
 ```
 ```moon
-buttons1 = abuttons.new!
-buttons2 = abuttons!
-buttons3 = abuttons.ok "Apply"
-buttons4 = abuttons.regular "L&eft"
+instance1 = abuttons.new!
+instance2 = abuttons!
+instance3 = abuttons.ok "Apply"
+instance4 = abuttons.regular "L&eft"
 ```
 
 #### `buttons.ok()`, `buttons.close()`, `buttons.cancel()` and `buttons.help()`
 
-These are special buttons in Aegisub that they have `button_ids` and will be triggers when the user presses keys such as Enter, return or escape on keyboard, in addition to clicking the button using mouse. For main functional buttons, these should be preferred over regular buttons explained in the next section.  
+These are special buttons in Aegisub that they have `button_ids` and will be triggers when the user presses keys such as Enter, return or escape on keyboard. For main functional buttons, these should be preferred over regular buttons (which will be introduced in the next section).  
 – `buttons.ok()` triggers when the user presses Enter or return.  
 – `buttons.close()` triggers when the user presses escape.  
 – `buttons.cancel()` is mutually exclusive with `buttons.close()`. The difference between the two is that when the user presses escape, in `buttons.close()` the display returns the name of the close button, but in `buttons.cancel()` the display returns `false`.  
@@ -646,30 +655,6 @@ buttons\extra "Configurate"
 buttons "Configurate"
 ```
 
-Note that direct calling of the instance itself is only available after the instance is initialised. Which means:  
-```lua
--- This is valid.
-buttons1 = aka.uikit.buttons.ok("Confirm")
-buttons1("Extra Button")
--- This is invalid.
--- This is not calling a buttons instance but calling the buttons class.
--- This only creates a buttons instance but do not add any buttons to the instance.
-buttons2 = aka.uikit.buttons("Left Button")
--- This is valid.
-buttons3 = aka.uikit.buttons.regular("Left button")
-```
-```moon
--- This is valid.
-buttons1 = aka.uikit.buttons.ok "Confirm"
-buttons1 "Extra Button"
--- This is invalid.
--- This is not calling a buttons instance but calling the buttons class.
--- This only creates a buttons instance but do not add any buttons to the instance.
-buttons2 = aka.uikit.buttons "Left Button"
--- This is valid.
-buttons3 = aka.uikit.buttons.regular "Left button"
-```
-
 #### `buttons.is_ok()`, `buttons.is_close_cancel()`, `buttons.is_close()`, `buttons.is_cancel()`, and `buttons.is_help()`
 
 These are functions that will be helpful to process `button` return after display:  
@@ -695,7 +680,7 @@ elseif buttons\is_close_cancel button
   -- ...
 ```
 
-One note is that `buttons.is_close()` and `buttons.is_cancel()` are only aliases for function `buttons.is_close_cancel()` and it makes no distinction between `close` and `cancel` buttons.  
+`buttons.is_close()` and `buttons.is_cancel()` are only aliases for function `buttons.is_close_cancel()` and it makes no distinction between `close` and `cancel` buttons.  
 
 ### `aka.uikit.display`: Basic use and `display.repeatUntil()`
 
@@ -866,9 +851,18 @@ Grouping classes together and creating reusable templates is exactly the idea be
 -- All keys for edit are the same as in vanilla Aegisub.
 -- `x`, `y`, and `width` are optional.
 -- Additionally:
--- @key     label   Text to display for the label
--- @key     widths  By default, label and edit each takes up half of
---                  the width available.
+-- @key     label       Text to display for the label.
+-- @key     name_label  Change the label dynamically.
+-- @key     widths      By default, label and edit each takes up half
+--                      of the width available. Change the widths of
+--                      two classes using this key.
+-- All keys except for `name`s, presumably, also accept generator
+-- functions.  
+--
+-- To create this dialog:
+--  \fn  [ Arial ]
+-- Calls:
+--  dialog:label_edit({ label = "\\fn", name = "fn", text = "Arial" })
 --
 -- @return  self
 -----------------------------------------------------------------------
@@ -915,7 +909,7 @@ new_dialog.pos_edit = function(self, item)
 end
 ```
 ```moon
-class new_dialog extends dialog
+class new_dialog extends adialog
   -----------------------------------------------------------------------
   -- @key     label
   -- @key     name_x

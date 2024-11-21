@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "0.2.2"
+versioning.version = "0.2.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -769,11 +769,13 @@ Additionally, line object after ILL's `Line.process()` is exposed under `line` a
 > preprocess [ line.margin_l = 100 ]
 In this example, we set left margin of selected lines to 100.
 
-At the bottom of the UI, you can load, delete, or save your modifications as presets, or recall last, using `Load Preset`, `Delete Preset` and `Save As Preset` buttons.
+At the bottom of the UI, you can load, delete, or save your modifications as presets, or recall last, using „Load Preset“, „Delete Preset“ and „Save As Preset“ buttons.
 
-The „Save as preset“ edit field recognises two special cases, `_` and `-`. They are triggered when pressing the `Save As Preset` button. The special cases here are different than the special cases of the tag edit fields.
+The „Save as preset“ edit field recognises two special cases, `_` and `-`. They are triggered when pressing the „Save As Preset“ button. The special cases here are different than the special cases of the tag edit fields.
 Using `_`, you can overwrite the preset that's currently selected in the „Load or delete preset“ dropdown selector, even if it isn't the one that's currently loaded. This is the same as typing out the full name of the preset you want to overwrite.
-Using `-` in „Save as preset“ edit field and pressing `Save As Preset` button is the same as pressing `Delete Preset` button alone.]] })
+Using `-` in „Save as preset“ edit field and pressing „Save As Preset“ button is the same as pressing „Delete Preset“ button alone.
+
+You can save and share 99%Tags operations using „Save To File“ and „Open From File“ button. These two buttons are only visible after pressing „Help / More“ button.]] })
     end
 
     return dialog

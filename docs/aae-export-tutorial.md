@@ -49,3 +49,4 @@ https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/114ed7e
 * pers-mo is essentially perspective.moon running repeatly using the 4 corners of the marker, also known as Power Pin. For perspective.moon, you will need to draw a clip to generate perspective. For pers-mo, you need to draw the marker onto the surface for the text and then track it to generate perspective for each frames.  
 * Perspective can be tracked in Blender using both „Perspective“ or „Affine“ motion model.  
 * There is a „Power Pin Remap“ function below smoothing feature, with which you can rotate or flip the result sign.  
+* Read PhosCity's [Blender Motion Tracking for Fansubbing](https://fansubbers.miraheze.org/wiki/User:PhosCity/Blender_Motion_Tracking_for_Fansubbing) for more details regarding motion tracking in Blender.  

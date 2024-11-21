@@ -9,11 +9,11 @@
 – [aae-export](#aae-export)  
 ***Typesetting Aid***  
 – [aka.99PercentTags](#aka99percenttags)  
+– [aka.SandBox](#akasandbox)  
 – [aka.BackupSection](#akabackupsection--akadupe-and-not-comment)  
 – [aka.BoundingBox](#akaboundingbox)  
 – [aka.Cycles](#akacycles)  
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
-– [aka.SandBox](#akasandbox)  
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
 ***Aegisub VapourSynth***  
@@ -23,12 +23,13 @@
 <td>
 
 ***Modules***  
+– [aka.uikit](#akauikit)  
 – [aka.actor](#akaactor)  
 – [aka.config](#akaconfig--akaconfig2)  
 – [aka.config2](#akaconfig--akaconfig2)  
-– [aka.singlesimple](#akasinglesimple)  
 – [aka.optimising](#akaoptimising)  
 – [aka.outcome](#akaoutcome)  
+– [aka.singlesimple](#akasinglesimple)  
 – [aka.threads](#akathreads)  
 – [aka.unicode](#akaunicode)  
 – [aka.unsemantic](#akaunsemantic)  
@@ -58,6 +59,7 @@ AAE Export is a Blender add-on that exports tracks and plane tracks into [Aegisu
 –　[Tutorial 2: Basic motion tracking](docs/aae-export-tutorial.md#tutorial-2-basic-motion-tracking)  
 –　[Tutorial 3: Introducing smoothing feature](docs/aae-export-tutorial.md#tutorial-3-introducing-smoothing-feature)  
 –　[Tutorial 4: Tracking perspective](docs/aae-export-tutorial.md#tutorial-4-tracking-perspective)  
+–　[Tutorial: Blender Motion Tracking for Fansubbing by PhosCity](https://fansubbers.miraheze.org/wiki/User:PhosCity/Blender_Motion_Tracking_for_Fansubbing)  
 
 Thanks to  
 
@@ -74,7 +76,35 @@ Thanks to
 
 ## aka.99PercentTags
 
-99%Tags is a script for adding and editing tags on subtitle lines. It combines the base functions of [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, ua.HYDRA-like interface.  
+99%Tags is a script for adding and modifying tags on subtitle lines. It combines the base functions of [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, HYDRA-like interface. It can facilitate simple operations such as setting tag values across multiple lines or performing arithmetic calculations on tag values, but it also provides a simple Lua interface for more complex operations.  
+
+To get started, install the script and use it the same way as ua.HYDRA. If you enter `150` in the text field for `fscx`, you are setting `\fscx` to `150`.  
+To perform simple arithmetic calculations such as multiplying `\fscx` by 125%, just enter `*1.25` in the text field. It is as simple as ABC.  
+Explore the builtin „Help“ panel for all the features of 99%Tags.  
+
+Features:  
+– Carefully designid Lua system that minimise typing for simple operations.  
+– Easytouse Lua interface that makes complex operations easier to code than [aka.Sandbox](#akasandbox).  
+– Builtin „Help“ panel showcasing example usages and explaining all the details.  
+– Bultiin import and export feature as well as an internal preset system for ease of reusing and sharing operations.  
+
+Comparing against [aka.Sandbox](#akasandbox) for complex operations:  
+– For any operations, especially regarding ASS tags, which can be performed in 1 pass, 99%Tags would be faster to code.  
+– For any operations that need to compare between all selected lines and can't be performed in 1 pass, or operations that would need to create tags blocks or modify multiple tags blocks at once, [aka.Sandbox](#akasandbox) would be the better choice.  
+
+## aka.Sandbox
+
+aka.Sandbox is a script similar to [lyger.LuaInterpret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts/tree/master#user-content-LuaInterpret) but relies on libraries such as [ILL.ILL](https://github.com/TypesettingTools/ILL-Aegisub-Scripts) and [l0.ASSFoundation](https://github.com/TypesettingTools/ASSFoundation) for easy modification of subtitles.  
+
+Unique features:  
+– MoonScript support in addition to Lua.  
+– Commonly used libraries already required and initialised. No need to manually write `require`s.  
+– Builtin import and export of code snippets, as well as an internal preset system.  
+– Better error handling. If an error occurs during execution, the editor window will open back up to make it easier to tweak the code.  
+
+Thanks to  
+– bucket3432 for developing the original `bucket.Sandbox` script.  
+– Zahuczky and PhosCity for suggesting libraries to be required and made available in scope.  
 
 ## aka.BackupSection & aka.dupe-and-not-comment
 
@@ -109,20 +139,6 @@ SubInspector:
 
 aka.Cycles is largely the same as [ua.Cycles](https://github.com/unanimated/luaegisub) but with a configuration editor inside Aegisub.  
 
-## aka.Sandbox
-
-aka.Sandbox is a script similar to [lyger.LuaInterpret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts/tree/master#user-content-LuaInterpret) but relies on libraries such as [ILL.ILL](https://github.com/TypesettingTools/ILL-Aegisub-Scripts) and [l0.ASSFoundation](https://github.com/TypesettingTools/ASSFoundation) for easy modification of subtitles.  
-
-Unique features:  
-– MoonScript support in addition to Lua.  
-– Commonly used libraries already required and initialised. No need to manually write `require`s.  
-– Builtin import and export of code snippets in addition to an internal preset system.  
-– Better error handling. If an error occurs during execution, the editor window will open back up to make it easier to tweak the code.  
-
-Thanks to  
-– bucket3432 for developing the original `bucket.Sandbox` script.  
-– Zahuczky and PhosCity for suggesting libraries to be required and made available in scope.  
-
 ## NN.farnhuah
 
 NN.farnhuah is an Aegisub frontend for [zhconvert](https://zhconvert.org/).  
@@ -152,6 +168,22 @@ Replace the line with:
 ```python
 __aegi_keyframes = a.get_keyframes(filename, clip, __aegi_keyframes, generate=a.GenKeyframesMode.ASK, ask_callback=ask.callback)
 ```
+
+## aka.uikit
+
+aka.uikit is a powerful UI framework for aegisub dialogs. Creating a dialog is as simple as:  
+```moon
+with dialog = adialog { width: 6 }
+    \label { label: "Hello World!" }
+with buttons = abuttons!
+    \ok "OK"
+    \close "Cancel"
+button, result = (adisplay dialog, buttons)\resolve!
+if buttons\is_ok button
+    aegisub.debug.out "Hooray!"
+```
+
+View the document at [docs/Using aka.uikit.md](docs/Using%20aka.uikit.md).  
 
 ## aka.actor
 

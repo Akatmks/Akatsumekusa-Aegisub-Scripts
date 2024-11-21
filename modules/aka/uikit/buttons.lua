@@ -27,13 +27,16 @@ local buttons
 local overloaded_buttons
 
 buttons = {}
-buttons.new = function()
+buttons.new = function(name)
     local mt = {}
     mt.__index = overloaded_buttons
     mt.__call = overloaded_buttons.regular
     local self = setmetatable({}, mt)
     self.buttons = {}
     self.button_ids = {}
+    if name then
+        self(name)
+    end
     return self
 end
 buttons.copy = function(self)
