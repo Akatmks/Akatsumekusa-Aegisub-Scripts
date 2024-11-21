@@ -224,6 +224,22 @@ aconfig.read_edit_validate_and_save_config(self, config, config_supp, validation
 
 Detailed tutorial is available at [docs/Using aka.config and aka.config2.md](docs/Using%20aka.config%20and%20aka.config2.md).  
 
+## aka.optimising
+
+aka.optimising introduces a timing function for debugging.  
+
+Set `aka.optimising.json` under DependencyControl's `configDir` to `{ true }`. Use `optimising.start()` to start the timer. Use `optimising.lap(lap_name)` to print time to `aegisub.debug.out`.  
+
+## aka.outcome
+
+aka.outcome introduces `Result` and `Option` similar to Rust's `std::result::Result` and `std::option::Option`. It is based on mtdowling's [Outcome](https://github.com/mtdowling/outcome) and is used by `aka.config`, `aka.config` and many other Akatsumkusa's scripts.  
+
+Detailed introduction is available at [docs/Using aka.outcome.md](docs/Using%20aka.outcome.md).  
+
+*License Information*  
+– *Outcome is originally released by Michael Dowling under MIT License.*  
+– *It is modified with exisiting functions changed and new functions added by Akatsumekusa.*  
+
 ## aka.singlesimple
 
 aka.singlesimple is a config module. It stores one enum per config and the enum is synced\* across all scrips requesting the same config.  
@@ -240,22 +256,6 @@ config:setValue(value)
 \*: Loosely.  
 
 Detailed tutorial is available at [docs/Using aka.singlesimple.md](docs/Using%20aka.singlesimple.md).  
-
-## aka.optimising
-
-aka.optimising introduces a timing function for debugging.  
-
-Set `aka.optimising.json` under DependencyControl's `configDir` to `{ true }`. Use `optimising.start()` to start the timer. Use `optimising.lap(lap_name)` to print time to `aegisub.debug.out`.  
-
-## aka.outcome
-
-aka.outcome introduces `Result` and `Option` similar to Rust's `std::result::Result` and `std::option::Option`. It is based on mtdowling's [Outcome](https://github.com/mtdowling/outcome) and is used by `aka.config`, `aka.config` and many other Akatsumkusa's scripts.  
-
-Detailed introduction is available at [docs/Using aka.outcome.md](docs/Using%20aka.outcome.md).  
-
-*License Information*  
-– *Outcome is originally released by Michael Dowling under MIT License.*  
-– *It is modified with exisiting functions changed and new functions added by Akatsumekusa.*  
 
 ## aka.threads
 
