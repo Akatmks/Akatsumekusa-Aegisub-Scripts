@@ -50,7 +50,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 2, 1),
+    "version": (1, 2, 4),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
@@ -149,17 +149,17 @@ def get_smoothing_modules_install_description():
     import sys
 
     pre_modules = "This will download and install "
-    modules = " and ".join([", ".join(["pip"] + [module[1] for module in smoothing_modules[:-1]]), smoothing_modules[-1][1]]) if len(smoothing_modules) != 0 else "pip"
+    modules = " and ".join([", ".join(["pip"] + [module[1] for module in smoothing_modules[:-1]]), smoothing_modules[-1][1]]) if <<len>>(smoothing_modules) != 0 else "pip"
     post_modules_pre_path = " to Blender's python environment at „"
     path = PurePath(sys.prefix).as_posix()
     post_path = "“. This process normally takes about 2 minutes"
 
-    if len(pre_modules) + len(modules) + len(post_modules_pre_path) + len(path) + len(post_path) < 240:
+    if <<len>>(pre_modules) + <<len>>(modules) + <<len>>(post_modules_pre_path) + <<len>>(path) + <<len>>(post_path) < 240:
         return pre_modules + modules + post_modules_pre_path + path + post_path
     else:
-        available_len = 240 - len(pre_modules) - len(modules) - len(post_modules_pre_path) - len(post_path)
+        available_len = 240 - <<len>>(pre_modules) - <<len>>(modules) - <<len>>(post_modules_pre_path) - <<len>>(post_path)
         path_last_two_parts = "/" + (parts := PurePath(path).parts)[-2] + "/" + parts[-1]
-        return pre_modules + modules + post_modules_pre_path + path[:available_len - len(path_last_two_parts) - 3] + "..." + path_last_two_parts + post_path
+        return pre_modules + modules + post_modules_pre_path + path[:available_len - <<len>>(path_last_two_parts) - 3] + "..." + path_last_two_parts + post_path
 
 class AAEExportSettings(bpy.types.PropertyGroup):
     bl_label = "AAEExportSettings"
@@ -865,13 +865,13 @@ class AAEExportExportAll(bpy.types.Operator):
             i = marker.frame - clip.frame_start
 
             data[5][i] = marker.corners[3][0] * ratio[0]
-            data[6][i] = -marker.corners[3][1] * ratio[1]
+            data[6][i] = (1 - marker.corners[3][1]) * ratio[1]
             data[7][i] = marker.corners[2][0] * ratio[0]
-            data[8][i] = -marker.corners[2][1] * ratio[1]
+            data[8][i] = (1 - marker.corners[2][1]) * ratio[1]
             data[9][i] = marker.corners[0][0] * ratio[0]
-            data[10][i] = -marker.corners[0][1] * ratio[1]
+            data[10][i] = (1 - marker.corners[0][1]) * ratio[1]
             data[11][i] = marker.corners[1][0] * ratio[0]
-            data[12][i] = -marker.corners[1][1] * ratio[1]
+            data[12][i] = (1 - marker.corners[1][1]) * ratio[1]
 
             if not np.isnan(data[5][i]):
                 try:
@@ -2467,9 +2467,9 @@ class AAEExportLegacy(bpy.types.Operator, bpy_extras.io_utils.ExportHelper):
             raise ValueError("The legacy export method only allows one clip to be loaded into Blender at a time. You can either try the new export interface at „Clip Editor > Tools > Solve > AAE Export“ or use „File > New“ to create a new Blender file.")
         clip = bpy.data.movieclips[0]
         settings = context.screen.AAEExportSettings
-        clip_settings = context.edit_movieclip.AAEExportSettingsClip
-        section_settings_l = context.edit_movieclip.AAEExportSettingsSectionL
-        section_settings_ll = context.edit_movieclip.AAEExportSettingsSectionLL
+        clip_settings = clip.AAEExportSettingsClip
+        section_settings_l = clip.AAEExportSettingsSectionL
+        section_settings_ll = clip.AAEExportSettingsSectionLL
 
         for track in clip.tracking.tracks:
             AAEExportExportAll._export_to_file( \
@@ -2641,7 +2641,7 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
             base122 = CDLL(PurePath(path, "libbase122.dylib").as_posix())
             base122.decode.argtypes = (c_char_p, c_size_t, c_char_p, c_size_t)
             base122.decode.restype = c_size_t
-            out_size = base122.decode(c_char_p(aae_export_id_mac), c_size_t((size := len(aae_export_id_mac))),
+            out_size = base122.decode(c_char_p(aae_export_id_mac), c_size_t((size := <<len>>(aae_export_id_mac))),
                                       (out := create_string_buffer(ceil(size * 1.20))), c_size_t(ceil(size * 1.20)))
             with tarfile.open(fileobj=BytesIO(out.raw[:out_size]), mode="r", errorlevel=1) as tar:
                 tar.extractall(path=path)
@@ -2677,7 +2677,7 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
             base122 = CDLL(PurePath(path, "libbase122.so").as_posix())
             base122.decode.argtypes = (c_char_p, c_size_t, c_char_p, c_size_t)
             base122.decode.restype = c_size_t
-            out_size = base122.decode(c_char_p(aae_export_id_linux_x86_64), c_size_t((size := len(aae_export_id_linux_x86_64))),
+            out_size = base122.decode(c_char_p(aae_export_id_linux_x86_64), c_size_t((size := <<len>>(aae_export_id_linux_x86_64))),
                                       (out := create_string_buffer(ceil(size * 1.20))), c_size_t(ceil(size * 1.20)))
             with tarfile.open(fileobj=BytesIO(out.raw[:out_size]), mode="r", errorlevel=1) as tar:
                 tar.extractall(path=path)
