@@ -40,7 +40,7 @@
   "orgy": "-",
   "posx": "posx_",
   "posy": "posy_",
-  "prepro": "if not posy_ then\n  posx_ = posx\n  posy_ = posy\n  if an == 1 then an_ = 7 posx_ = posx_ + fs * 0.116 posy_ = posy_ - fs * 0.194\n  elseif an == 7 then an_ = 9 posx_ = posx_ - fs * 0.116 posy_ = posy_ - fs * 0.194\n  elseif an == 9 then an_ = 3 posx_ = posx_ - fs * 0.116 posy_ = posy_ + fs * 0.194\n  elseif an == 3 then an_ = 1 posx_ = posx_ + fs * 0.116 posy_ = posy_ + fs * 0.194\n  end\nelse\n  posy_ = posy_ + fs * 0.691\nend",
+  "prepro": "if not posy_ then\n  posx_ = posx\n  posy_ = posy\n  if an == 1 then an_ = 7 posx_ = posx_ + fs * 0.116 posy_ = posy_ - fs * 0.193\n  elseif an == 7 then an_ = 9 posx_ = posx_ - fs * 0.191 posy_ = posy_ - fs * 0.193\n  elseif an == 4 then an_ = 8 posx_ = posx_ - fs * 0.039 posy_ = posy_ - fs * 0.193\n  end\nelse\n  posy_ = posy_ + fs * 0.691\nend",
   "q": "",
   "s": "",
   "shad": "",
