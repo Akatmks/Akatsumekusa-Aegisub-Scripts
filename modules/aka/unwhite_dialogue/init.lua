@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.unwhite_dialogue"
 versioning.description = "Module aka.unwhite_dialogue"
-versioning.version = "0.0.5"
+versioning.version = "0.0.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.unwhite_dialogue"
 
-versioning.requireModules = "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aka.CIELab\" }, { \"moduleName\": \"aka.outcome\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aka.CIELab\" }, { \"moduleName\": \"aka.outcome\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then

@@ -20,11 +20,11 @@ local versioning = {}
 
 versioning.name = "NN.CJSpacing"
 versioning.description = "Module NN.CJSpacing"
-versioning.version = "0.1.6"
+versioning.version = "0.1.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "NN.CJSpacing"
 
-versioning.requireModules = "[{ \"moduleName\": \"NN.CJCharacter\" }, { \"moduleName\": \"aegisub.unicode\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"NN.CJCharacter\" }, { \"moduleName\": \"aegisub.unicode\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then

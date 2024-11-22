@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.CIELab"
 versioning.description = "Module aka.CIELab"
-versioning.version = "0.0.6"
+versioning.version = "0.0.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.CIELab"
 
-versioning.requireModules = "[{ \"moduleName\": \"ffi\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"ffi\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then

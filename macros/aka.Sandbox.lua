@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.8"
+versioning.version = "1.0.9"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"Yutils\" }, { \"moduleName\": \"arch.Math\" }, { \"moduleName\": \"l0.Functional\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"petzku.util\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"Yutils\" }, { \"moduleName\": \"arch.Math\" }, { \"moduleName\": \"l0.Functional\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"petzku.util\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -47,8 +47,9 @@ DepCtrl = require("l0.DependencyControl")({
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
         { "aegisub.re" },
-        { "aka.config" },
+        { "aka.StackTracePlus" },
         { "aka.outcome" },
+        { "aka.config" },
         { "aka.uikit" },
         { "ILL.ILL" },
         { "moonscript" },
@@ -63,12 +64,15 @@ DepCtrl = require("l0.DependencyControl")({
     }
 })
 
-local re, config, outcome, uikit, ILL, moonscript, LineCollection, ASS, yutils, Math, Functional, unicode, util, putil = DepCtrl:requireModules()
+local re, STP, outcome, config, uikit, ILL, moonscript, LineCollection, ASS, yutils, Math, Functional, unicode, util, putil = DepCtrl:requireModules()
 local file_extension = re.compile([[.*\.([^\\\/]+)$]])
+local clean_traceback = re.compile[[(.*?)(?:\([0-9]+\) Lua upvalue '_ao_xpcall')]]
+STP()
+local o, ok, err = outcome.o, outcome.ok, outcome.err
+local _ao_xpcall = outcome.xpcall
 local presets_config = config.make_editor({ display_name = "aka.Sandbox/presets",
                                             presets = { ["Default"] = {}, ["Example"] = { ["Example Preset"] = { ["language"] = "MoonScript", ["command"] = "logger\\dump sub[act]" } } },
                                             default = "Default" })
-local o, ok, err = outcome.o, outcome.ok, outcome.err
 local adialog, abuttons, adisplay = uikit.dialog, uikit.buttons, uikit.display
 local Table = ILL.Table
 
@@ -271,10 +275,13 @@ local Sandbox = function(sub, sel, act)
                 local f = r:unwrap()
                 setfenv(f, gt)
 
-                r = o(xpcall(f, function(err)
-                    if err ~= nil and type(err) ~= "string" then err = Table.view(err) end
-                    result["err_msg"] = "Error occurred during execution:\n" ..
-                                        debug.traceback(err) end))
+                r = _ao_xpcall(f, function(err)
+                    local traceback = debug.traceback(err)
+                    local match = clean_traceback:match(traceback)
+                    if match then
+                        traceback = match[2]["str"]
+                    end
+                    result["err_msg"] = "Error occurred during execution:\n" .. traceback end)
                 if r:isOk() then
                     r = r:unwrap()
                     if type(r) == "table" and type(r[1]) == "table" and type(r[2]) == "number" then

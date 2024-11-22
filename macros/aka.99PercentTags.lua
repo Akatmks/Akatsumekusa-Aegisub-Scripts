@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "0.2.3"
+versioning.version = "0.2.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
-versioning.requireModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -53,6 +53,7 @@ if hasDepCtrl then
             { "ILL.ILL" },
             { "aegisub.util" },
             { "aegisub.re" },
+            { "aka.StackTracePlus" },
             { "aka.uikit" },
             { "aka.unicode" }
         }
@@ -61,11 +62,13 @@ if hasDepCtrl then
 end
 local aconfig = require("aka.config")
 local outcome = require("aka.outcome")
-local o, ok, err, some, none, opcall = outcome.o, outcome.ok, outcome.err, outcome.some, outcome.none, outcome.pcall
+local o, ok, err, some, none = outcome.o, outcome.ok, outcome.err, outcome.some, outcome.none
+local _ao_xpcall = outcome.xpcall
 local ILL = require("ILL.ILL")
 local Ass, Line, Table = ILL.Ass, ILL.Line, ILL.Table
 local autil = require("aegisub.util")
 local re = require("aegisub.re")
+require("aka.StackTracePlus")()
 local uikit = require("aka.uikit")
 local adialog, abuttons, adisplay = uikit.dialog, uikit.buttons, uikit.display
 local unicode = require("aka.unicode")
@@ -100,6 +103,7 @@ local re_if_omitted
 local re_match_underscore
 local re_match_invalid_varnames
 local process_data
+local re_clean_traceback
 local execute_tags
 local apply_tags
 
@@ -170,7 +174,7 @@ eval_tags = table_concat(auto_dialog_tags, non_tag_tags)
 prepro_tags = { "prepro" }
 all_tags = table_concat(prepro_tags, eval_tags)
 
-parse_tags = function(data, line, ILL_data)
+parse_tags = function(data, ILL_data)
     local ILL_data_tag
 
     ILL_data_tag = function(ILL_data, tag)
@@ -296,7 +300,7 @@ show_dialog = function(ass, sub, act, mode)
     parse_other_data(act_data, act_l, act_tagsBlocks.width, act_tagsBlocks.height)
 
     while true do
-        parse_tags(act_data, act_l, act_tagsBlocks[dialog_data["tagsblock"]].data)
+        parse_tags(act_data, act_tagsBlocks[dialog_data["tagsblock"]].data)
 
         dialog_data["mode"] = dialog_base["modes"][dialog_data["mode"]]
 
@@ -798,7 +802,7 @@ apply_data = function(ass, sub, act, data, act_data)
     line.text = ""
     style_data = {}
     Line.process(ass, line)
-    parse_tags(style_data, line, line.data)
+    parse_tags(style_data, line.data)
 
     if data["mode"] == 1 then
         execute_tags(commands, act_data)
@@ -806,7 +810,7 @@ apply_data = function(ass, sub, act, data, act_data)
             ass:progressLine(s, i, n)
             line_data = {}
             tagsBlocks = Line.tagsBlocks(ass, line)
-            parse_tags(line_data, line, tagsBlocks[data["tagsblock"]].data)
+            parse_tags(line_data, tagsBlocks[data["tagsblock"]].data)
 
             if tagsBlocks[data["tagsblock"]] then
                 apply_tags(operations, line, line.text.tagsBlocks, data["tagsblock"], act_data, line_data, style_data)
@@ -820,7 +824,7 @@ apply_data = function(ass, sub, act, data, act_data)
         for line, s, i, n in ass:iterSel(false) do
             ass:progressLine(s, i, n)
             tagsBlocks = Line.tagsBlocks(ass, line)
-            parse_tags(line_data, line, tagsBlocks[data["tagsblock"]].data)
+            parse_tags(line_data, tagsBlocks[data["tagsblock"]].data)
             parse_other_data(line_data, line, tagsBlocks.width, tagsBlocks.height)
 
             original_data = Table.copy(line_data)
@@ -901,6 +905,7 @@ process_data = function(data)
     return commands, operations
 end
 
+re_clean_traceback = re.compile[[(.*?)(?:\([0-9]+\) Lua upvalue '_ao_xpcall')]]
 execute_tags = function(commands, line_data)
     local run
 
@@ -917,14 +922,20 @@ execute_tags = function(commands, line_data)
                 aegisub.cancel() end)
             :unwrap()
         setfenv(run, line_data)
-        opcall(run)
-            :ifErr(function(err)
-                aegisub.debug.out("[aka.99PercentTags] Error during command execution\n")
-                aegisub.debug.out("[aka.99PercentTags] The following commands are collected from dialog and executed:\n")
-                aegisub.debug.out(commands .. "\n")
-                aegisub.debug.out("[aka.99PercentTags] The following error occurs:\n")
-                aegisub.debug.out(err .. "\n")
-                aegisub.cancel() end)
+        _ao_xpcall(run, function(err)
+            local traceback
+            local match
+            aegisub.debug.out("[aka.99PercentTags] Error during command execution\n")
+            aegisub.debug.out("[aka.99PercentTags] The following commands are collected from dialog and executed:\n")
+            aegisub.debug.out(commands .. "\n")
+            aegisub.debug.out("[aka.99PercentTags] The following error occurs:\n")
+            traceback = debug.traceback(err)
+            match = re_clean_traceback:match(traceback)
+            if match then
+                traceback = match[2]["str"]
+            end
+            aegisub.debug.out(traceback) end)
+            :ifErr(aegisub.cancel)
 end end
 
 apply_tags = function(operations, line, tagsBlocks, i, data, original_data, style_data)

@@ -16,6 +16,8 @@
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
+***Typesetting Snippets***  
+– [Typesetting Snippets](#typesetting-snippets)
 ***Aegisub VapourSynth***  
 – [tkinter_alternatives](#tkinter_alternatives)  
 
@@ -25,6 +27,7 @@
 ***Modules***  
 – [aka.uikit](#akauikit)  
 – [aka.actor](#akaactor)  
+– [aka.CIELab](#akacielab)
 – [aka.config](#akaconfig--akaconfig2)  
 – [aka.config2](#akaconfig--akaconfig2)  
 – [aka.optimising](#akaoptimising)  
@@ -36,6 +39,7 @@
 ***Thirdparty Modules***  
 – [effil](#effil)  
 – [request](#request)  
+– [StackTracePlus](#stacktraceplus)
   
 </td>
 </tr><tr>
@@ -146,6 +150,17 @@ NN.farnhuah is an Aegisub frontend for [zhconvert](https://zhconvert.org/).
 To use NN.farnhuah, select the line for farnhuah and click „farn huah“. To switch between chs and cht subtitles, click „chie huann chs her cht“.  
 On first launch, NN.farnhuah will show a configuration window. Create your own configuration from zhconvert's [documentation](https://docs.zhconvert.org/api/convert/), or click „Apply Preset“ to use the default config from SweetSub.  
 
+## Typesetting Snippets
+
+**[Fix Multiline fax (99%Tags)](snippets/Fix%20Multiline%20fax.json)**  
+Fix alignment at `\N` for `\frz\fax` typeset signs.  
+*How to Use:* Typeset, use [ua.NecrosCopy](https://github.com/Akatmks/unanimated-Aegisub-Scripts/blob/master/uam.NecrosCopy.lua) to split at \N, then apply this snippets using [99%Tags](#aka99percenttags).  
+
+**[Fix Vertical Source Han (99%Tags)](snippets/Fix%20Vertical%20Source%20Han.json)**  
+Fix render issues for vertical Source Han fonts.  
+*How to Use:* Typeset under libass, use [zf.split](https://github.com/TypesettingTools/zeref-Aegisub-Scripts?tab=readme-ov-file#--macro-splits-text-by-) to split text by chars, then apply this snippets using [99%Tags](#aka99percenttags).  
+*Limitations:* Only supports signs without perspective.   
+
 ## tkinter_alternatives
 
 tkinter_alternatives.py is a fix for Aegisub VapourSynth Default Video Script if your Python installation does not come with Tkinter.
@@ -210,6 +225,18 @@ aactor.onelessFlag(line, flag)
 ```
 
 `aactor.field` is a [aka.singlesimple](#akasinglesimple) config specifying the field to place the flags. It has three possible values, `actor`, `effect` and `style`. It is synced across all scripts using aka.actor.  
+
+## aka.CIELab
+
+aka.CIELab is a module that converts between sRGB RGB with pure power curve 2.4 and CIELab.  
+```moon
+import Colour from require "aka.CIELab"
+L, a, b = (Colour.fromBT1886RGB R, G, B)\toCIELab!
+L, C, h = (Colour.fromPixel (Line.tagsBlocks ass, line)[1].data.color1)\toCIELCh!
+X, Y, Z = (Colour.fromCIELCh L, C, h)\toXYZ!
+```
+
+Thanks to Chortos-2 and arch1t3cht for teaching me about BT.709 and gamma 2.4. I might still manage to screw something up in this module and it'll all be my fault, not theirs.  
 
 ## aka.config & aka.config2
 
@@ -308,3 +335,16 @@ Add `aka.request` to DependencyControl's required modules. View the documents at
 
 *License Information*  
 – *LuaJIT-Request is copyrighted to Lucien Greathouse and is licensed under zlib License. It is adapted to Aegisub environment with minimum modifications.*  
+
+## StackTracePlus
+
+[StackTracePlus](https://github.com/ignacio/StackTracePlus) provides enhanced stack traces for LuaJIT.  
+```lua
+require("aka.StackTracePlus")()
+```
+```moon
+(require "aka.StackTracePlus")!
+```
+
+*License Information*  
+– *LuaJIT-Request is copyrighted to Ignacio Burgueño and is licensed under MIT License. It is adapted to Aegisub environment with some modifications.*  

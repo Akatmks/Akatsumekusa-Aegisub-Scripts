@@ -64,12 +64,44 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "46d4fd1ba72446060cf79089e17f9e726b22d59a"
+                            "sha1": "98e8d985b26dadb6efc587f587f5935107ee63d2"
                         }
                     ],
-                    "version": "0.2.3",
+                    "version": "0.2.4",
                     "default": true,
-                    "released": "2024-11-21"
+                    "requiredModules": [
+                        {
+                            "moduleName": "aka.config",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aka.outcome",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "ILL.ILL",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aegisub.util"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        },
+                        {
+                            "moduleName": "aka.StackTracePlus",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aka.uikit",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aka.unicode",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        }
+                    ],
+                    "released": "2024-11-22"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -198,21 +230,25 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "e9067900b08f26731f5b299e9b2a625c7c2fcefe"
+                            "sha1": "65c7af11f0c9ea2839aea709d627108ac3061985"
                         }
                     ],
-                    "version": "1.0.8",
+                    "version": "1.0.9",
                     "default": true,
                     "requiredModules": [
                         {
                             "moduleName": "aegisub.re"
                         },
                         {
-                            "moduleName": "aka.config",
+                            "moduleName": "aka.StackTracePlus",
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aka.outcome",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aka.config",
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
@@ -255,7 +291,7 @@
                             "moduleName": "petzku.util"
                         }
                     ],
-                    "released": "2024-11-20"
+                    "released": "2024-11-22"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -341,12 +377,20 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "def30ce826521ad81b2d9cc3882acd5e7c96d8da"
+                            "sha1": "775b47af4262660d7687d9c8809b40a5afc8dd7b"
                         }
                     ],
-                    "version": "0.1.6",
+                    "version": "0.1.7",
                     "default": true,
-                    "released": "2023-07-30"
+                    "requiredModules": [
+                        {
+                            "moduleName": "NN.CJCharacter"
+                        },
+                        {
+                            "moduleName": "aegisub.unicode"
+                        }
+                    ],
+                    "released": "2024-11-22"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -367,7 +411,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "9d34782527207b40e24f392939f7b1a7d56f7537"
+                            "sha1": "32cbc792f0060b00cdb6395624a54babfbc39e48"
                         },
                         {
                             "name": "/interface.lua",
@@ -375,14 +419,45 @@
                             "sha1": "90a842a45d22c9117fe0f0f2f7c90eb72d32c68b"
                         }
                     ],
-                    "version": "0.0.6",
+                    "version": "0.0.7",
                     "default": true,
-                    "released": "2024-11-19"
+                    "requiredModules": [
+                        {
+                            "moduleName": "ffi"
+                        }
+                    ],
+                    "released": "2024-11-22"
                 }
             },
             "author": "Akatsumekusa and contributors",
             "name": "aka.CIELab",
             "description": "Module aka.CIELab",
+            "url": "@{baseUrl}#@{namespace}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
+        },
+        "aka.StackTracePlus": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": "/StackTracePlus.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "237f3eee4fb6e8a0187e604fc92e0b040c15fb8c"
+                        },
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "ee9eb8ea29102de74e63dc86c751a76e584b77fe"
+                        }
+                    ],
+                    "version": "1.0.1",
+                    "default": true,
+                    "released": "2024-11-22"
+                }
+            },
+            "author": "Ignacio Burgue\u00f1o",
+            "name": "StackTracePlus",
+            "description": "Module StackTracePlus",
             "url": "@{baseUrl}#@{namespace}",
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
@@ -554,10 +629,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "3cf6a13eb9672c96bb285669e447d8ea5bddc1d2"
+                            "sha1": "cf7f017bfb5a3bf5c2ea1e010cdaa1428e79e6eb"
                         }
                     ],
-                    "version": "1.0.10",
+                    "version": "1.0.11",
                     "default": true,
                     "requiredModules": [
                         {
@@ -569,7 +644,7 @@
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-01-06"
+                    "released": "2024-11-22"
                 }
             },
             "author": "Mikhail Kupriyanov, Ilia Udalov",
@@ -616,12 +691,12 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "35b93cc7d0f1619e982b37ce41b1496ec208d1cf"
+                            "sha1": "ee914bb21688d320308baa7379ed412d5709afbd"
                         }
                     ],
-                    "version": "1.0.9",
+                    "version": "1.0.10",
                     "default": true,
-                    "released": "2024-01-06"
+                    "released": "2024-11-22"
                 }
             },
             "author": "Michael Dowling, modified by Akatsumekusa",
@@ -637,7 +712,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "677e1f2b90858207fe633e96e439c69145582178"
+                            "sha1": "ba34628f047e20f9837e9b9fe519e7d6ab384a03"
                         },
                         {
                             "name": "/libcurl.dll",
@@ -657,7 +732,7 @@
                             "sha1": "53d19b0c540146d96b21f099b71e57a0252dd6e0"
                         }
                     ],
-                    "version": "1.0.14",
+                    "version": "1.0.15",
                     "default": true,
                     "requiredModules": [
                         {
@@ -669,10 +744,10 @@
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-01-06"
+                    "released": "2024-11-22"
                 }
             },
-            "author": "Lucien Greathouse, adapted to Aegisub environment by Akatsumekusa",
+            "author": "Lucien Greathouse",
             "name": "request",
             "description": "Module request",
             "url": "@{baseUrl}#@{namespace}",
@@ -858,7 +933,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "93851d4dca60b6399aeb7f03d60e2f8538d56212"
+                            "sha1": "616abe195a212ad3921690ec5117c19bcaa13d9f"
                         },
                         {
                             "name": "/samples.lua",
@@ -866,9 +941,23 @@
                             "sha1": "fb89bf777e32689ecfb1b491afa6de00fda0beeb"
                         }
                     ],
-                    "version": "0.0.5",
+                    "version": "0.0.6",
                     "default": true,
-                    "released": "2024-01-06"
+                    "requiredModules": [
+                        {
+                            "moduleName": "ILL.ILL",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aka.CIELab",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aka.outcome",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        }
+                    ],
+                    "released": "2024-11-22"
                 }
             },
             "author": "Akatsumekusa and contributors",
