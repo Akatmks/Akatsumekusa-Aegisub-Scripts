@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "0.2.4"
+versioning.version = "0.2.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -96,6 +96,8 @@ local main
 local re_tagsBlock_viewing
 local presets_config
 local show_dialog
+local dialog_aconfig
+local dialog_config
 local generate_dialog
 local apply_data
 local re_extra_spaces
@@ -316,7 +318,7 @@ show_dialog = function(ass, sub, act, mode)
         if not dialog_base["help"] then
             buttons = { "&Apply", "View &Tags Block", "&Load Preset", "&Del. Pre.", "&Save As Pre.", "&Help / More", "Cancel" }
         else
-            buttons = { "&Apply", "View &Tags Block", "&Load Preset", "&Delete Preset", "&Save As Preset", "Open From F&ile" ,"Sav&e To File", "Cancel" }
+            buttons = { "&Apply", "View &Tags Block", "&Load Preset", "&Delete Preset", "&Save As Preset", "Open From F&ile" ,"Sav&e To File", "Config", "Cancel" }
         end
         button_ids = { ok = "&Apply", yes = "&Apply", save = "&Apply", apply = "&Apply", close = "Cancel", no = "Cancel", cancel = "Cancel" }
 
@@ -400,13 +402,13 @@ show_dialog = function(ass, sub, act, mode)
             end
 
             while dialog_data["preset_new"] == "" do
-                local dialog = adialog.new({ width = 16 })
+                local dialog_2 = adialog.new({ width = 16 })
                                       :label_edit({ label = "Preset name:", name = "preset" })
-                local buttons = abuttons.ok("Save"):close("Back")
-                local b, r = adisplay(dialog, buttons):resolve()
-                if buttons:is_ok(b) then
+                local buttons_2 = abuttons.ok("Save"):close("Back")
+                local b, r = adisplay(dialog_2, buttons_2):resolve()
+                if buttons_2:is_ok(b) then
                     dialog_data["preset_new"] = r["preset"]
-                elseif buttons:is_close(b) then
+                elseif buttons_2:is_close(b) then
                     break -- continue
             end end
     
@@ -430,6 +432,8 @@ show_dialog = function(ass, sub, act, mode)
                 dialog_data["preset"] = dialog_data["preset_new"]
                 dialog_data["preset_new"] = ""
             end
+        elseif button == "&Help / More" then
+            dialog_base["help"] = true
         elseif button == "Open From F&ile" then
             o(aegisub.dialog.open("Opening preset...", "", "", ""))
                 :ifOk(function(path)
@@ -469,11 +473,38 @@ show_dialog = function(ass, sub, act, mode)
                             r end)
                         :ifErr(function(msg)
                             aegisub.debug.out("[aka.99PercentTags] Error occurred when saving preset:\n" .. msg) end) end)
-        elseif button == "&Help / More" then
-            dialog_base["help"] = true
-end end end
+        elseif button == "Config" then
+            local dialog_2 = adialog.new({ width = 16 })
+                                    :label_intedit({ label = "Preprocess textbox height:", name = "prepro_height", min = 2, max = 2147483647 })
+                                    :load_data(dialog_config)
+            local buttons_2 = abuttons.ok("Save"):close("Cancel")
+            local b, r = adisplay(dialog_2, buttons_2):resolve()
+            if buttons_2:is_ok(b) then
+                dialog_config = r
+                aconfig.write_config("aka.99PercentTags", "dialog", dialog_config)
+                    :ifErr(function()
+                        aegisub.debug.out("[aka.config] Failed to write config to file.\n")
+                        aegisub.debug.out("[aka.config] " .. error .. "\n") end)
+            elseif buttons_2:is_close(b) then
+                -- continue
+end end end end
 
+dialog_aconfig = aconfig.make_editor({ display_name = "aka.99PercentTags/dialog",
+                                      presets = { ["Default"] = { ["prepro_height"] = 5 } },
+                                      default = "Default" })
 generate_dialog = function(dialog_base, act_data, dialog_data)
+    if not dialog_config then
+        dialog_config = dialog_aconfig:read_and_validate_config_if_empty_then_default_or_else_edit_and_save("aka.99PercentTags", "dialog", function(config)
+            if config["prepro_height"] == nil then
+                config["prepro_height"] = 5
+            elseif type(config["prepro_height"]) ~= "number" or config["prepro_height"] < 2 then return
+                err("Invalid key \"prepro_height\".")
+            end return
+            ok(config) end)
+            :ifErr(aegisub.cancel)
+            :unwrap()
+    end
+
     local name = 3
     local value = 2
     local arrow = 1
@@ -489,12 +520,12 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
     local tagsBlock = 3
     local prepro_text = 4
     local prepro = 5
-    local tags_text = 10 local prepro_next = tags_text
-    local tags = 11
-    local line_text = 26 local tags_next = line_text
-    local layer = 27
-    local preset_text = 29
-    local preset = 30 local help_height = preset + 2 -- Why?
+    local tags_text = 10 + dialog_config["prepro_height"] - 5 local prepro_next = tags_text
+    local tags = 11 + dialog_config["prepro_height"] - 5
+    local line_text = 26 + dialog_config["prepro_height"] - 5 local tags_next = line_text
+    local layer = 27 + dialog_config["prepro_height"] - 5
+    local preset_text = 29 + dialog_config["prepro_height"] - 5
+    local preset = 30 + dialog_config["prepro_height"] - 5 local help_height = preset + 2 -- Why?
 
     local B
     local dialog

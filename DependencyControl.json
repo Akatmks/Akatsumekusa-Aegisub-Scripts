@@ -64,10 +64,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "98e8d985b26dadb6efc587f587f5935107ee63d2"
+                            "sha1": "7364ec9c50f7cbd2b76282b472696731a5ecbfd2"
                         }
                     ],
-                    "version": "0.2.4",
+                    "version": "0.2.5",
                     "default": true,
                     "requiredModules": [
                         {
@@ -371,12 +371,12 @@
                         {
                             "name": "/colours.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "f0daf93be5f39decd8ba0bdc2883798ac72a9b4b"
+                            "sha1": "156e52d321aeb897da78b9e71ac26d82cce7fb39"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "32cbc792f0060b00cdb6395624a54babfbc39e48"
+                            "sha1": "2b8855bc87cac27a5013409e51c019462a624268"
                         },
                         {
                             "name": "/interface.lua",
@@ -384,7 +384,7 @@
                             "sha1": "90a842a45d22c9117fe0f0f2f7c90eb72d32c68b"
                         }
                     ],
-                    "version": "0.0.7",
+                    "version": "0.0.8",
                     "default": true,
                     "requiredModules": [
                         {

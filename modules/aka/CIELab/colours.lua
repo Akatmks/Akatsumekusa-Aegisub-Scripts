@@ -46,7 +46,7 @@ local XYZtoBT1886RGB = function(XYZ)
     RGB[1]      = XYZ[0] * -0.9689 + XYZ[1] *  1.8758 + XYZ[2] *  0.0415
     RGB[2]      = XYZ[0] *  0.0557 + XYZ[1] * -0.2040 + XYZ[2] *  1.0570
     for i=0,2 do
-        buf[i]  = (RGB[i] / 255) ^ (5/12)
+        RGB[i]  = (RGB[i] / 255) ^ (5/12)
     end
 
     return XYZ
