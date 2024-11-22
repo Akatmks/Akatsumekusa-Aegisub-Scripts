@@ -84,8 +84,8 @@ Thanks to
 
 *To get started:*  
 – Install the script.  
-– Use it the same way as ua.HYDRA. If you want to set `\fscx` to 150, just enter `150` in the text field for `fscx`.  
-– Try out simple arithmetic calculations. If you want to multiply `\fscx` by 125%, just enter `*1.25` in the text field for `fscx`.  
+– Use it the same way as ua.HYDRA. If you want to set `\fscx` to 150, enter `150` in the text field for `fscx`.  
+– Try out simple arithmetic calculations. If you want to multiply `\fscx` by 125%, enter `*1.25` in the text field for `fscx`.  
 – Explore the builtin „Help“ panel for a reference to all the features of 99%Tags.  
 
 *Features:*  
