@@ -11,7 +11,6 @@
 – [aka.99PercentTags](#aka99percenttags)  
 – [aka.SandBox](#akasandbox)  
 – [aka.BackupSection](#akabackupsection--akadupe-and-not-comment)  
-– [aka.BoundingBox](#akaboundingbox)  
 – [aka.Cycles](#akacycles)  
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
 ***farn huah***  
@@ -92,7 +91,7 @@ Thanks to
 – Carefully designid Lua system that minimises typing for simple operations.  
 – Easytouse Lua interface that makes complex operations easier to code than [aka.Sandbox](#akasandbox).  
 – Builtin „Help“ panel showcasing example usages and explaining all the details.  
-– Bultiin import and export feature as well as an internal preset system for ease of reusing and sharing operations.  
+– Bultiin import and export feature as well as an internal preset system for ease of reusing and sharing operations. See [Typesetting Snippets](#typesetting-snippets) for some snippets by Akatsumekusa.    
 
 *Comparing against [aka.Sandbox](#akasandbox) for complex operations:*  
 – For any operations that can be performed in 1 pass, especially modifying ASS tags, 99%Tags would be faster to code.  
@@ -134,16 +133,6 @@ garret.dupe-and-comment:
 
 aka.dupe-and-not-comment:  
 <img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/460b0ba8-dd71-4610-83e3-4354db1b232e" alt="99%Tags Function Preview" width="600"/>
-
-## aka.BoundingBox
-
-aka.BoundingBox adds either [SubInspector](https://github.com/TypesettingTools/SubInspector)-style or [text_extents](https://github.com/arch1t3cht/Aegisub/blob/master/automation/v4-docs/misc.txt)-style bounding box as rect clip to selected lines.  
-
-SubInspector:  
-<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/7bd79529-17bf-4d9c-ba87-5fef7bbee73e" alt="99%Tags Function Preview" width="400"/>
-
-`aegisub.text_extents`:  
-<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/ce2972d3-c4f5-481e-9c86-6b8a392882c0" alt="99%Tags Function Preview" width="400"/>
 
 ## aka.Cycles
 

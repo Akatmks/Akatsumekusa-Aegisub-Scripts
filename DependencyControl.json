@@ -145,41 +145,6 @@
             "url": "@{baseUrl}#@{namespace}",
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
-        "aka.BoundingBox": {
-            "channels": {
-                "master": {
-                    "files": [
-                        {
-                            "name": ".moon",
-                            "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "957f40d23967e2bcdafc863775f59c04bfa629e7"
-                        }
-                    ],
-                    "version": "1.0.7",
-                    "default": true,
-                    "requiredModules": [
-                        {
-                            "moduleName": "ILL.ILL",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
-                        },
-                        {
-                            "moduleName": "SubInspector.Inspector",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/SubInspector/master/DependencyControl.json"
-                        },
-                        {
-                            "moduleName": "aka.outcome",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
-                        }
-                    ],
-                    "released": "2024-01-06"
-                }
-            },
-            "author": "Akatsumekusa and contributors",
-            "name": "BoundingBox",
-            "description": "Create a clip of the bounding box of the subtitle line",
-            "url": "@{baseUrl}#@{namespace}",
-            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
-        },
         "aka.Cycles": {
             "channels": {
                 "master": {
