@@ -333,7 +333,7 @@ function _M.stacktrace(thread, message, level)
 
 	dumper:add("\r\n")
 	dumper:add[[
-Stack Traceback
+Stack Traceback:
 ]]
 	--print(error_message)
 

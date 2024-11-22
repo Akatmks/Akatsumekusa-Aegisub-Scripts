@@ -442,15 +442,15 @@
                         {
                             "name": "/StackTracePlus.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "237f3eee4fb6e8a0187e604fc92e0b040c15fb8c"
+                            "sha1": "bdfaec2759c47bf3ba5ccc89718919bad6e6827b"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "ee9eb8ea29102de74e63dc86c751a76e584b77fe"
+                            "sha1": "eba171fb15f78c301fdffad189cd185f79438988"
                         }
                     ],
-                    "version": "1.0.1",
+                    "version": "1.0.2",
                     "default": true,
                     "released": "2024-11-22"
                 }
