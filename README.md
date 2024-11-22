@@ -96,9 +96,7 @@ Comparing against [aka.Sandbox](#akasandbox) for complex operations:
 – For any operations, especially regarding ASS tags, which can be performed in 1 pass, 99%Tags would be faster to code.  
 – For any operations that need to compare between all selected lines and can't be performed in 1 pass, or operations that would need to create tags blocks or modify multiple tags blocks at once, [aka.Sandbox](#akasandbox) would be the better choice.
 
-<div align="center">
-<img src="https://github.com/user-attachments/assets/e2bb8595-e156-4572-a4e1-7973d0559672" alt="99%Tags Function Preview" width="498"/>
-</div>
+<img src="https://github.com/user-attachments/assets/a5bc24e6-8e19-4e59-9b42-edd0fcef6b6d" alt="99%Tags Function Preview" width="498"/>
 
 ## aka.Sandbox
 
@@ -114,6 +112,8 @@ Thanks to
 – bucket3432 for developing the original `bucket.Sandbox` script.  
 – Zahuczky and PhosCity for suggesting libraries to be required and made available in scope.  
 
+<img src="https://github.com/user-attachments/assets/b70c2c2e-58ed-4ac8-8f73-29e281874d5b" alt="99%Tags Function Preview" width="540"/>
+
 ## aka.BackupSection & aka.dupe-and-not-comment
 
 aka.BackupSection and aka.dupe-and-not-comment are similar in function to [garret.dupe-and-comment](https://github.com/garret1317/aegisub-scripts#dupe-and-comment) but arrange the new lines in different ways.  
@@ -122,27 +122,26 @@ To backup using aka.BackupSection, select the lines to backup and click „Backu
 
 Comparing the three scripts,  
 when applied to the following selection:  
-
-<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/cfac5853-7e0d-463b-a977-82b17aa63770" alt="99%Tags Function Preview" width="500"/>
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/cfac5853-7e0d-463b-a977-82b17aa63770" alt="99%Tags Function Preview" width="600"/>
 
 aka.BackupSection:  
-<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/d8da70be-d684-437e-8faa-c3d1f0cf4419" alt="99%Tags Function Preview" width="500"/>
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/d8da70be-d684-437e-8faa-c3d1f0cf4419" alt="99%Tags Function Preview" width="600"/>
 
 garret.dupe-and-comment:  
-<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/79de7767-e432-4416-9904-6bcfb15f6067" alt="99%Tags Function Preview" width="500"/>
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/79de7767-e432-4416-9904-6bcfb15f6067" alt="99%Tags Function Preview" width="600"/>
 
 aka.dupe-and-not-comment:  
-<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/460b0ba8-dd71-4610-83e3-4354db1b232e" alt="99%Tags Function Preview" width="500"/>
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/460b0ba8-dd71-4610-83e3-4354db1b232e" alt="99%Tags Function Preview" width="600"/>
 
 ## aka.BoundingBox
 
 aka.BoundingBox adds either [SubInspector](https://github.com/TypesettingTools/SubInspector)-style or [text_extents](https://github.com/arch1t3cht/Aegisub/blob/master/automation/v4-docs/misc.txt)-style bounding box as rect clip to selected lines.  
 
 SubInspector:  
-![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/7bd79529-17bf-4d9c-ba87-5fef7bbee73e)
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/7bd79529-17bf-4d9c-ba87-5fef7bbee73e" alt="99%Tags Function Preview" width="400"/>
 
 `aegisub.text_extents`:  
-![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/ce2972d3-c4f5-481e-9c86-6b8a392882c0)
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/ce2972d3-c4f5-481e-9c86-6b8a392882c0" alt="99%Tags Function Preview" width="400"/>
 
 ## aka.Cycles
 
