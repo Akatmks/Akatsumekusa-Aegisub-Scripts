@@ -17,7 +17,7 @@
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
 ***Typesetting Snippets***  
-– [Typesetting Snippets](#typesetting-snippets)
+– [Typesetting Snippets](#typesetting-snippets)  
 ***Aegisub VapourSynth***  
 – [tkinter_alternatives](#tkinter_alternatives)  
 
@@ -27,7 +27,7 @@
 ***Modules***  
 – [aka.uikit](#akauikit)  
 – [aka.actor](#akaactor)  
-– [aka.CIELab](#akacielab)
+– [aka.CIELab](#akacielab)  
 – [aka.config](#akaconfig--akaconfig2)  
 – [aka.config2](#akaconfig--akaconfig2)  
 – [aka.optimising](#akaoptimising)  
@@ -94,7 +94,11 @@ Features:
 
 Comparing against [aka.Sandbox](#akasandbox) for complex operations:  
 – For any operations, especially regarding ASS tags, which can be performed in 1 pass, 99%Tags would be faster to code.  
-– For any operations that need to compare between all selected lines and can't be performed in 1 pass, or operations that would need to create tags blocks or modify multiple tags blocks at once, [aka.Sandbox](#akasandbox) would be the better choice.  
+– For any operations that need to compare between all selected lines and can't be performed in 1 pass, or operations that would need to create tags blocks or modify multiple tags blocks at once, [aka.Sandbox](#akasandbox) would be the better choice.
+
+<div align="center">
+<img src="https://github.com/user-attachments/assets/e2bb8595-e156-4572-a4e1-7973d0559672" alt="99%Tags Function Preview" width="498"/>
+</div>
 
 ## aka.Sandbox
 
@@ -118,16 +122,17 @@ To backup using aka.BackupSection, select the lines to backup and click „Backu
 
 Comparing the three scripts,  
 when applied to the following selection:  
-![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/cfac5853-7e0d-463b-a977-82b17aa63770)
+
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/cfac5853-7e0d-463b-a977-82b17aa63770" alt="99%Tags Function Preview" width="500"/>
 
 aka.BackupSection:  
-![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/d8da70be-d684-437e-8faa-c3d1f0cf4419)
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/d8da70be-d684-437e-8faa-c3d1f0cf4419" alt="99%Tags Function Preview" width="500"/>
 
 garret.dupe-and-comment:  
-![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/79de7767-e432-4416-9904-6bcfb15f6067)
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/79de7767-e432-4416-9904-6bcfb15f6067" alt="99%Tags Function Preview" width="500"/>
 
 aka.dupe-and-not-comment:  
-![image](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/460b0ba8-dd71-4610-83e3-4354db1b232e)
+<img src="https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/assets/112813970/460b0ba8-dd71-4610-83e3-4354db1b232e" alt="99%Tags Function Preview" width="500"/>
 
 ## aka.BoundingBox
 
