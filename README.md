@@ -98,7 +98,7 @@ Thanks to
 – For any operations that can be performed in 1 pass, especially modifying ASS tags, 99%Tags would be faster to code.  
 – For any operations that need to compare between all selected lines and can't be performed in 1 pass, or operations that would need to create tags blocks or modify multiple tags blocks at once, [aka.Sandbox](#akasandbox) would be the better choice.  
 
-<img src="https://github.com/user-attachments/assets/a5bc24e6-8e19-4e59-9b42-edd0fcef6b6d" alt="99%Tags Function Preview" width="747"/>
+<img src="https://github.com/user-attachments/assets/a5bc24e6-8e19-4e59-9b42-edd0fcef6b6d" alt="99%Tags Function Preview" width="581"/>
 
 ## aka.Sandbox
 
