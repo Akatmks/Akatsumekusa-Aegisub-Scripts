@@ -343,4 +343,4 @@ require("aka.StackTracePlus")()
 ```
 
 *License Information*  
-– *LuaJIT-Request is copyrighted to Ignacio Burgueño and is licensed under MIT License. It is adapted to Aegisub environment with some modifications.*  
+– *StackTracePlus is copyrighted to Ignacio Burgueño and is licensed under MIT License. It is adapted to Aegisub environment with some modifications.*  
