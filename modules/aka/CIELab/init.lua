@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "aka.CIELab"
 versioning.description = "Module aka.CIELab"
-versioning.version = "0.0.8"
+versioning.version = "0.0.9"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.CIELab"
 
-versioning.requiredModules = "[{ \"moduleName\": \"ffi\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"ffi\" }, { \"moduleName\": \"aegisub.util\" }]"
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
 if hasDepCtrl then
@@ -42,7 +42,8 @@ if hasDepCtrl then
         url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
         feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
         {
-            { "ffi" }
+            { "ffi" },
+            { "aegisub.util" }
         }
     }):requireModules()
 end

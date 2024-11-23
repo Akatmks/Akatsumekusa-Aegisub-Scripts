@@ -371,27 +371,30 @@
                         {
                             "name": "/colours.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "156e52d321aeb897da78b9e71ac26d82cce7fb39"
+                            "sha1": "14c29d730f080ca132fe8aa8dbf3d34e0bd66de1"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "2b8855bc87cac27a5013409e51c019462a624268"
+                            "sha1": "03474ee86d3bea775769679e9aff57c7fb95b03d"
                         },
                         {
                             "name": "/interface.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "90a842a45d22c9117fe0f0f2f7c90eb72d32c68b"
+                            "sha1": "ccd816d22ddec5dad831db97b1fdda4af338add8"
                         }
                     ],
-                    "version": "0.0.8",
+                    "version": "0.0.9",
                     "default": true,
                     "requiredModules": [
                         {
                             "moduleName": "ffi"
+                        },
+                        {
+                            "moduleName": "aegisub.util"
                         }
                     ],
-                    "released": "2024-11-22"
+                    "released": "2024-11-23"
                 }
             },
             "author": "Akatsumekusa and contributors",

@@ -46,26 +46,23 @@ local XYZtoBT1886RGB = function(XYZ)
     RGB[1]      = XYZ[0] * -0.9689 + XYZ[1] *  1.8758 + XYZ[2] *  0.0415
     RGB[2]      = XYZ[0] *  0.0557 + XYZ[1] * -0.2040 + XYZ[2] *  1.0570
     for i=0,2 do
-        RGB[i]  = (RGB[i] / 255) ^ (5/12)
+        RGB[i]  = RGB[i] ^ (5/12) * 255
     end
 
-    return XYZ
+    return RGB
 end
 
 local XYZtoCIELab = function(XYZ)
-    local buf = ffi.new("Colour")
-    buf[0]      = XYZ[0] / 0.950489
-    buf[1]      = XYZ[1]
-    buf[2]      = XYZ[2] / 1.088840
-    for i=0,2 do
-        if buf[i] > (6/29) ^ 3 then buf[i]  = buf[i] ^ (1/3)
-        else                        buf[i]  = buf[i] / 3 * (6/29) ^ 2 + 4/29
-    end end
-
     local CIELab = ffi.new("Colour")
-    CIELab[0]   = 116 * buf[1] - 16
-    CIELab[1]   = 500 * (buf[0] - buf[1])
-    CIELab[2]   = 200 * (buf[1] - buf[2])
+    XYZ[0]      = XYZ[0] / 0.950489
+    XYZ[2]      = XYZ[2] / 1.088840
+    for i=0,2 do
+        if XYZ[i] > (6/29) ^ 3 then XYZ[i]  = XYZ[i] ^ (1/3)
+        else                        XYZ[i]  = XYZ[i] / 3 * (6/29) ^ -2 + 4/29
+    end end
+    CIELab[0]   = 116 * XYZ[1] - 16
+    CIELab[1]   = 500 * (XYZ[0] - XYZ[1])
+    CIELab[2]   = 200 * (XYZ[1] - XYZ[2])
 
     return CIELab
 end
@@ -73,13 +70,13 @@ local CIELabtoXYZ = function(CIELab)
     local XYZ = ffi.new("Colour")
     XYZ[1]      = (CIELab[0] + 16) / 116
     XYZ[0]      = XYZ[1] + CIELab[1] / 500
-    XYZ[2]      = XYZ[1] + CIELab[2] / 200
+    XYZ[2]      = XYZ[1] - CIELab[2] / 200
     for i=0,2 do
         if XYZ[i] > 6/29 then   XYZ[i]  = XYZ[i] ^ 3
         else                    XYZ[i]  = 3 * (6/29) ^ 2 * (XYZ[i] - 4/29)
     end end
     XYZ[0]      = XYZ[0] * 0.950489
-    XYZ[2]      = XYZ[0] * 1.088840
+    XYZ[2]      = XYZ[2] * 1.088840
 
     return XYZ
 end

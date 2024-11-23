@@ -22,6 +22,7 @@
 ------------------------------------------------------------------------------
 
 local ffi = require("ffi")
+local util = require("aegisub.util")
 local colours = require("aka.CIELab.colours")
 
 local Colour = {}
@@ -41,13 +42,7 @@ Colour.fromBT1886RGB = function(R, G, B)
     return self
 end
 Colour.fromPixel = function(colour)
-    local self = setmetatable({}, Colour)
-    self.type = ColourType.BT1886RGB
-    self.colour = ffi.new("Colour")
-    self.colour[0] = bit.band(bit.rshift(colour, 16), 0xFF)
-    self.colour[1] = bit.band(bit.rshift(colour, 8), 0xFF)
-    self.colour[2] = bit.band(colour, 0xFF)
-    return self
+    return Colour.fromBT1886RGB(util.extract_color(colour))
 end
 Colour.fromXYZ = function(X, Y, Z)
     local self = setmetatable({}, Colour)
@@ -89,7 +84,7 @@ Colour.toBT1886RGB = function(self)
         colour = colours.CIELabtoXYZ(self.colour)
         colour = colours.XYZtoBT1886RGB(colour)
         return colour[0], colour[1], colour[2]
-    elseif self.type == ColourType.CIELch then
+    elseif self.type == ColourType.CIELCh then
         colour = colours.CIELChtoCIELab(self.colour)
         colour = colours.CIELabtoXYZ(colour)
         colour = colours.XYZtoBT1886RGB(colour)
@@ -106,7 +101,7 @@ Colour.toXYZ = function(self)
     elseif self.type == ColourType.CIELab then
         colour = colours.CIELabtoXYZ(self.colour)
         return colour[0], colour[1], colour[2]
-    elseif self.type == ColourType.CIELch then
+    elseif self.type == ColourType.CIELCh then
         colour = colours.CIELChtoCIELab(self.colour)
         colour = colours.CIELabtoXYZ(colour)
         return colour[0], colour[1], colour[2]
@@ -123,7 +118,7 @@ Colour.toCIELab = function(self)
         return colour[0], colour[1], colour[2]
     elseif self.type == ColourType.CIELab then
         return self.colour[0], self.colour[1], self.colour[2]
-    elseif self.type == ColourType.CIELch then
+    elseif self.type == ColourType.CIELCh then
         colour = colours.CIELChtoCIELab(self.colour)
         return colour[0], colour[1], colour[2]
 end end
