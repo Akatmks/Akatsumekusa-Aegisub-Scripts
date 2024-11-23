@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "0.2.6"
+versioning.version = "0.2.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.ILLFixed\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -50,7 +50,7 @@ if hasDepCtrl then
         {
             { "aka.config" },
             { "aka.outcome" },
-            { "ILL.ILL" },
+            { "aka.ILLFixed" },
             { "aegisub.util" },
             { "aegisub.re" },
             { "aka.StackTracePlus" },
@@ -64,7 +64,7 @@ local aconfig = require("aka.config")
 local outcome = require("aka.outcome")
 local o, ok, err, some, none = outcome.o, outcome.ok, outcome.err, outcome.some, outcome.none
 local _ao_xpcall = outcome.xpcall
-local ILL = require("ILL.ILL")
+local ILL = require("aka.ILLFixed")
 local Ass, Line, Table = ILL.Ass, ILL.Line, ILL.Table
 local autil = require("aegisub.util")
 local re = require("aegisub.re")
@@ -266,7 +266,7 @@ show_dialog = function(ass, sub, act, mode)
     end
 
     act_l = sub[act]
-    act_tagsBlocks = Line.tagsBlocks(ass, act_l)
+    act_tagsBlocks = Line.tagsBlocks(ass, act_l, false)
     dialog_base["tagsblocks"] = {}
     for i, _ in ipairs(act_tagsBlocks) do
         dialog_base["tagsblocks"][i] = tostring(i)
@@ -850,7 +850,7 @@ apply_data = function(ass, sub, act, data, act_data)
         for line, s, i, n in ass:iterSel(false) do
             ass:progressLine(s, i, n)
             line_data = {}
-            tagsBlocks = Line.tagsBlocks(ass, line)
+            tagsBlocks = Line.tagsBlocks(ass, line, false)
             parse_tags(line_data, tagsBlocks[data["tagsblock"]].data)
 
             if tagsBlocks[data["tagsblock"]] then
@@ -864,7 +864,7 @@ apply_data = function(ass, sub, act, data, act_data)
         line_data = {}
         for line, s, i, n in ass:iterSel(false) do
             ass:progressLine(s, i, n)
-            tagsBlocks = Line.tagsBlocks(ass, line)
+            tagsBlocks = Line.tagsBlocks(ass, line, false)
             parse_tags(line_data, tagsBlocks[data["tagsblock"]].data)
             parse_other_data(line_data, line, tagsBlocks.width, tagsBlocks.height)
 

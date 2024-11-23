@@ -64,10 +64,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "8a6475c893f44b2feea86e1307002c9194dd9df6"
+                            "sha1": "27525aa939af8d38637a397980a0e73dda5047e0"
                         }
                     ],
-                    "version": "0.2.6",
+                    "version": "0.2.7",
                     "default": true,
                     "requiredModules": [
                         {
@@ -79,8 +79,8 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
-                            "moduleName": "ILL.ILL",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
+                            "moduleName": "aka.ILLFixed",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.util"
@@ -400,6 +400,33 @@
             "author": "Akatsumekusa and contributors",
             "name": "aka.CIELab",
             "description": "Module aka.CIELab",
+            "url": "@{baseUrl}#@{namespace}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
+        },
+        "aka.ILLFixed": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": "/init.moon",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "3d2296ce173b0a65a1b38ca3e7a04633128c6549"
+                        }
+                    ],
+                    "version": "1.0.1",
+                    "default": true,
+                    "requiredModules": [
+                        {
+                            "moduleName": "ILL.ILL",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
+                        }
+                    ],
+                    "released": "2024-11-23"
+                }
+            },
+            "author": "Alen, Ruan Dias, and Akatsumekusa",
+            "name": "ILLFixed",
+            "description": "Module aka.ILLFixed",
             "url": "@{baseUrl}#@{namespace}",
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
