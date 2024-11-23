@@ -7,17 +7,17 @@
 `https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json`  
 ***Motion Tracking***  
 – [aae-export](#aae-export)  
-***Typesetting Aid***  
+***Typesetting Scripts***  
 – [aka.99PercentTags](#aka99percenttags)  
 – [aka.SandBox](#akasandbox)  
 – [aka.BackupSection](#akabackupsection--akadupe-and-not-comment)  
 – [aka.Cycles](#akacycles)  
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
-***farn huah***  
-– [NN.farnhuah](#nnfarnhuah)  
 ***Typesetting Snippets***  
 – [Typesetting Snippets](#typesetting-snippets)  
-***Aegisub VapourSynth***  
+***farn huah***  
+– [NN.farnhuah](#nnfarnhuah)  
+***Aegisub VapourSynth Scripts***  
 – [tkinter_alternatives](#tkinter_alternatives)  
 
 </td>
