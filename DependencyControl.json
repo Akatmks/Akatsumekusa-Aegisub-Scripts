@@ -64,10 +64,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "7364ec9c50f7cbd2b76282b472696731a5ecbfd2"
+                            "sha1": "8a6475c893f44b2feea86e1307002c9194dd9df6"
                         }
                     ],
-                    "version": "0.2.5",
+                    "version": "0.2.6",
                     "default": true,
                     "requiredModules": [
                         {
@@ -101,7 +101,7 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-11-22"
+                    "released": "2024-11-23"
                 }
             },
             "author": "Akatsumekusa and contributors",

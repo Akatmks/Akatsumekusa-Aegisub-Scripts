@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "0.2.5"
+versioning.version = "0.2.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -353,10 +353,20 @@ show_dialog = function(ass, sub, act, mode)
         elseif button == "&Apply" then
             dialog_data["preset"] = nil
             dialog_data["preset_new"] = nil
-            presets["(Recall last)"] = dialog_data
-            aconfig.write_config("aka.99PercentTags", "presets", presets)
-                :ifErr(function(msg)
-                    aegisub.debug.out("[aka.99PercentTags] Error occurred when updating recall last:\n" .. msg) end)
+
+            local do_save = false
+            for _, v in pairs(dialog_data) do
+                if type(v) == "string" and v ~= "" then
+                    do_save = true
+                    break
+            end end
+            
+            if do_save then
+                presets["(Recall last)"] = dialog_data
+                aconfig.write_config("aka.99PercentTags", "presets", presets)
+                    :ifErr(function(msg)
+                        aegisub.debug.out("[aka.99PercentTags] Error occurred when updating recall last:\n" .. msg) end)
+            end
 
             return dialog_data, act_data
         elseif button == "View &Tags Block" then
