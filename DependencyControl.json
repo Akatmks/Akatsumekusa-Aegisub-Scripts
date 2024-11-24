@@ -239,13 +239,16 @@
                             "moduleName": "Yutils"
                         },
                         {
-                            "moduleName": "arch.Math"
+                            "moduleName": "arch.Math",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/arch1t3cht-Aegisub-Scripts/refs/heads/main/DependencyControl.json"
                         },
                         {
-                            "moduleName": "arch.Perspective"
+                            "moduleName": "arch.Perspective",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/arch1t3cht-Aegisub-Scripts/refs/heads/main/DependencyControl.json"
                         },
                         {
-                            "moduleName": "arch.Util"
+                            "moduleName": "arch.Util",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/arch1t3cht-Aegisub-Scripts/refs/heads/main/DependencyControl.json"
                         },
                         {
                             "moduleName": "l0.Functional",
@@ -259,7 +262,8 @@
                             "moduleName": "aegisub.util"
                         },
                         {
-                            "moduleName": "petzku.util"
+                            "moduleName": "petzku.util",
+                            "feed": "https://raw.githubusercontent.com/petzku/Aegisub-Scripts/refs/heads/master/DependencyControl.json"
                         }
                     ],
                     "released": "2024-11-24"
@@ -355,7 +359,8 @@
                     "default": true,
                     "requiredModules": [
                         {
-                            "moduleName": "NN.CJCharacter"
+                            "moduleName": "NN.CJCharacter",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.unicode"
