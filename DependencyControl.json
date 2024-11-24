@@ -64,10 +64,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "27525aa939af8d38637a397980a0e73dda5047e0"
+                            "sha1": "7bc3400420dc95a323697f39392a9e582d7c9ae2"
                         }
                     ],
-                    "version": "0.2.7",
+                    "version": "1.0.1",
                     "default": true,
                     "requiredModules": [
                         {
@@ -101,7 +101,7 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-11-23"
+                    "released": "2024-11-24"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -382,7 +382,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "03474ee86d3bea775769679e9aff57c7fb95b03d"
+                            "sha1": "b31c976121c40f196c50b983d6e3b334fdc69f7d"
                         },
                         {
                             "name": "/interface.lua",
@@ -390,7 +390,7 @@
                             "sha1": "ccd816d22ddec5dad831db97b1fdda4af338add8"
                         }
                     ],
-                    "version": "0.0.9",
+                    "version": "1.0.1",
                     "default": true,
                     "requiredModules": [
                         {
@@ -400,7 +400,7 @@
                             "moduleName": "aegisub.util"
                         }
                     ],
-                    "released": "2024-11-23"
+                    "released": "2024-11-24"
                 }
             },
             "author": "Akatsumekusa and contributors",
