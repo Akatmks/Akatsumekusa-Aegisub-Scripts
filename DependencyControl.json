@@ -195,10 +195,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "f7ba4cf13e627e887cb7472986ae5c101f7e64e8"
+                            "sha1": "ab057b540be0c35bb56583ac5817a7e2b559ebfd"
                         }
                     ],
-                    "version": "1.0.10",
+                    "version": "1.0.11",
                     "default": true,
                     "requiredModules": [
                         {
@@ -240,6 +240,12 @@
                         },
                         {
                             "moduleName": "arch.Math"
+                        },
+                        {
+                            "moduleName": "arch.Perspective"
+                        },
+                        {
+                            "moduleName": "arch.Util"
                         },
                         {
                             "moduleName": "l0.Functional",

@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.10"
+versioning.version = "1.0.11"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"Yutils\" }, { \"moduleName\": \"arch.Math\" }, { \"moduleName\": \"l0.Functional\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"petzku.util\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"Yutils\" }, { \"moduleName\": \"arch.Math\" }, { \"moduleName\": \"arch.Perspective\" }, { \"moduleName\": \"arch.Util\" }, { \"moduleName\": \"l0.Functional\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"petzku.util\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -57,6 +57,8 @@ DepCtrl = require("l0.DependencyControl")({
         { "l0.ASSFoundation" },
         { "Yutils" },
         { "arch.Math" },
+        { "arch.Perspective" },
+        { "arch.Util" },
         { "l0.Functional" },
         { "aka.unicode" },
         { "aegisub.util" },
@@ -64,7 +66,7 @@ DepCtrl = require("l0.DependencyControl")({
     }
 })
 
-local re, STP, outcome, config, uikit, ILL, moonscript, LineCollection, ASS, yutils, Math, Functional, unicode, util, putil = DepCtrl:requireModules()
+local re, STP, outcome, config, uikit, ILL, moonscript, LineCollection, ASS, yutils, Math, Perspective, Util, Functional, unicode, util, putil = DepCtrl:requireModules()
 local file_extension = re.compile([[.*\.([^\\\/]+)$]])
 local clean_traceback = re.compile[[(.*?)(?:\([0-9]+\) Lua upvalue '_ao_xpcall')]]
 STP()
@@ -121,7 +123,14 @@ local Sandbox = function(sub, sel, act)
     var:label({ label = "│ logger:" })              exp:label({ label = "logger from l0.DepCtrl" })
     var:label({ label = "│ aegisub:" })             exp:label({ label = "aegisub object" })
     var:label({ label = "│ yutils:" })              exp:label({ label = "Yutils" })
-    var:label({ label = "│ Math:" })                exp:label({ label = "arch.Math" })
+    local full = right:unlessable({ name = "err_msg" })
+    local fvar, fexp = full:columns({ widths = { 1, 1 } })
+    fvar:label({ label = "│ Math:" })               fexp:label({ label = "arch.Math" })
+    fvar:label({ label = "│ Perspective:" })        fexp:label({ label = "arch.Perspective" })
+    fvar:label({ label = "│ Util:" })               fexp:label({ label = "arch.Util" })
+    local brief = right:ifable({ name = "err_msg" })
+    local bvar, bexp = brief:columns({ widths = { 1, 1 } })
+    bvar:label({ label = "│ Math, Util, …:" })      bexp:label({ label = "arch1t3cht modules" })
     local full = right:unlessable({ name = "err_msg" })
     local fvar, fexp = full:columns({ widths = { 1, 1 } })
     fvar:label({ label = "│ re:" })                 fexp:label({ label = "aegisub.re (ext)" })
@@ -258,6 +267,8 @@ local Sandbox = function(sub, sel, act)
                 gt.aegisub = aegisub
                 gt.yutils = yutils
                 gt.Math = Math
+                gt.Perspective = Perspective
+                gt.Util = Util
                 gt.re = setmetatable({}, mmt(re, Functional.re))
                 gt.unicode = setmetatable({}, mmt(unicode, Functional.unicode))
                 gt.util = setmetatable({}, mmt(util, Functional.util))
