@@ -195,10 +195,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "65c7af11f0c9ea2839aea709d627108ac3061985"
+                            "sha1": "f7ba4cf13e627e887cb7472986ae5c101f7e64e8"
                         }
                     ],
-                    "version": "1.0.9",
+                    "version": "1.0.10",
                     "default": true,
                     "requiredModules": [
                         {
@@ -256,7 +256,7 @@
                             "moduleName": "petzku.util"
                         }
                     ],
-                    "released": "2024-11-22"
+                    "released": "2024-11-24"
                 }
             },
             "author": "Akatsumekusa and contributors",

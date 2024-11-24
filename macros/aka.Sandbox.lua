@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.9"
+versioning.version = "1.0.10"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -96,16 +96,20 @@ local Sandbox = function(sub, sel, act)
 
     local err_dialog = right:ifable({ name = "err_msg" })
     err_dialog:label({ label = "𝗘𝗿𝗿𝗼𝗿 𝗼𝗰𝗰𝘂𝗿𝗿𝗲𝗱 during previous operation:" })
-              :textbox({ height = 7, name = "err_msg" })
+              :textbox({ height = 11, name = "err_msg" })
 
     right:label({ label = "Select Language:" })
          :dropdown({ name = "language", items = { "Lua", "MoonScript" }, value = "Lua" })
 
     right:label({ label = "Available variables:" })
-    local var, exp = right:columns({ widths = { 1, 1 } })
-    var:label({ label = "│ sub" })                  exp:label({ label = "Subtitle object" })
-    var:label({ label = "│ sel:" })                 exp:label({ label = "Selected lines" })
-    var:label({ label = "│ act:" })                 exp:label({ label = "Active line" })
+    local full = right:unlessable({ name = "err_msg" })
+    local fvar, fexp = full:columns({ widths = { 1, 1 } })
+    fvar:label({ label = "│ sub:" })                fexp:label({ label = "Subtitle object" })
+    fvar:label({ label = "│ sel:" })                fexp:label({ label = "Selected lines" })
+    fvar:label({ label = "│ act:" })                fexp:label({ label = "Active line" })
+    local brief = right:ifable({ name = "err_msg" })
+    local bvar, bexp = brief:columns({ widths = { 1, 1 } })
+    bvar:label({ label = "│ sub, sel, act:" })      bexp:label({ label = "Subtitle object" })
 
     right:label({ label = "Required libraries:" })
     var, exp = right:columns({ widths = { 1, 1 } })
@@ -118,18 +122,22 @@ local Sandbox = function(sub, sel, act)
     var:label({ label = "│ aegisub:" })             exp:label({ label = "aegisub object" })
     var:label({ label = "│ yutils:" })              exp:label({ label = "Yutils" })
     var:label({ label = "│ Math:" })                exp:label({ label = "arch.Math" })
-    var:label({ label = "│ re:" })                  exp:label({ label = "aegisub.re (ext)" })
-    var:label({ label = "│ unicode:" })             exp:label({ label = "aegisub.unicode (ext)" })
-    var:label({ label = "│ util:" })                exp:label({ label = "aegisub.util (ext)" })
     local full = right:unlessable({ name = "err_msg" })
+    local fvar, fexp = full:columns({ widths = { 1, 1 } })
+    fvar:label({ label = "│ re:" })                 fexp:label({ label = "aegisub.re (ext)" })
+    fvar:label({ label = "│ unicode:" })            fexp:label({ label = "aegisub.unicode (ext)" })
+    fvar:label({ label = "│ util:" })               fexp:label({ label = "aegisub.util (ext)" })
     full:label({ label = "─ re and util extended with l0.Functional" })
     full:label({ label = "─ unicode ext with l0.Functional and aka.u" })
+    local brief = right:ifable({ name = "err_msg" })
+    local bvar, bexp = brief:columns({ widths = { 1, 1 } })
+    bvar:label({ label = "│ re, unicode, util:" })  bexp:label({ label = "Aegisub modules {ext}" })
     var, exp = right:columns({ widths = { 1, 1 } })
     var:label({ label = "│ list, List:" })          exp:label({ label = "list from l0.Functional" })
     var:label({ label = "│ transform:" })           exp:label({ label = "transform in petzku.util" })
 
-    right:label({ label = "Vanilla functions:" })
-    full = right:unlessable({ name = "err_msg" })
+    right:label({ label = "Vanilla libraries:" })
+    local full = right:unlessable({ name = "err_msg" })
     full:label({ label = "─ table and string ext with l0.Functional" })
     full:label({ label = "─ math ext with l0.Functional and petzku.util" })
     full:label({ label = "─ io extended with petzku.util" })
@@ -140,7 +148,7 @@ local Sandbox = function(sub, sel, act)
     local buttons = abuttons.ok("&Run"):extra("&Load Preset"):extra("&Save As Preset"):extra("&Delete Preset"):extra("Open Sn&ippet"):extra("Save As Snipp&et"):close("Close")
 
     local r = adisplay(dialog, buttons)
-        :loadRepeatUntilAndSave("aka.Sandbox", "dialog", function(button, result)
+        :loadRepeatUntilAndSave("aka.Sandbox", "dialog_preset", function(button, result)
             result["err_msg"] = false
 
             if button == "&Load Preset" then
