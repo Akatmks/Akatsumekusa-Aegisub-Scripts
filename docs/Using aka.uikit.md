@@ -17,7 +17,7 @@ with require "aka.uikit"
 
 In this tutorial, what's otherwise known as widgets or controls in Aegisub dialog will be referred to as classes, including vanilla classes such as `edit`, `floatedit` and `dropdown` as well as classes unique to aka.uikit such as `separator` and `columns`. All the options for classes such as `x`, `y`, `name`, `label`, `value` will be referred to as keys.  
 
-If you want a glance at an basic example using aka.uikit, see [aka.Sandbox](../macros/aka.Sandbox.lua).  
+Some examples using aka.uikit include a small dialog in [aka.99PercentTags](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/3d1e5fd1c2a9c5f392a0139d004f02a8c2170b3d/macros/aka.99PercentTags.lua#L487-L491) (Unfortunately the main dialog of 99%Tags is written prior to aka.uikit), the main dialog of [aka.Sandbox](https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts/blob/3d1e5fd1c2a9c5f392a0139d004f02a8c2170b3d/macros/aka.Sandbox.lua#L94-L160), a series of [config dialogs](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts/blob/7ec7ae6cc13c3bb74af5f0708b89be4bea42c0b5/macros/autoclip/zah.autoclip.lua#L204-L339) and [dependency install dialogs](https://github.com/Zahuczky/Zahuczkys-Aegisub-Scripts/blob/7ec7ae6cc13c3bb74af5f0708b89be4bea42c0b5/macros/autoclip/zah.autoclip.lua#L343-L647) in zah.autoclip.  
 
 ### Table of Contents
 
