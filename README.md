@@ -94,7 +94,7 @@ Thanks to
 – Bultiin import and export feature as well as an internal preset system for ease of reusing and sharing operations. See [Typesetting Snippets](#typesetting-snippets) for some snippets by Akatsumekusa.    
 
 *Relations between 99%Tags and HYDRA, PhosCity's Edit Tags, or other similar scripts:*  
-The idea of 99%Tags is not to replace ua.HYDRA, PhosCity's Edit Tags, ua.NecrosCopy, or any other similar scripts (maybe except ua.Recalculator). There are many situations where these scripts would be more convenient than 99%Tags. It would be a good idea to learn these scripts and use them when they are the most convenient.  
+The idea of 99%Tags is not to replace [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), or any other similar scripts (maybe except [Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator)). There are many situations where these scripts would be more convenient than 99%Tags. It would be a good idea to learn these scripts and use them when they are the most convenient.  
 
 *Comparing against [aka.Sandbox](#akasandbox) for complex operations:*  
 – For any operations that can be performed in 1 pass, especially modifying ASS tags, 99%Tags would be faster to code.  
