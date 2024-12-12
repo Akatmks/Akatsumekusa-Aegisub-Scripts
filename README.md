@@ -79,7 +79,7 @@ Thanks to
 
 ## aka.99PercentTags
 
-99%Tags is a script for adding and modifying tags on subtitle lines. It combines the base functions of [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, HYDRA-like interface. It can facilitate simple operations such as setting tag values across multiple lines or performing arithmetic calculations on tag values, but it also provides a simple Lua interface for more complex operations.  
+99%Tags is a script for adding and modifying tags on subtitle lines. It combines the base functions of [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, HYDRA-like interface. It can facilitate simple operations such as setting tag values across multiple lines or performing arithmetic calculations on tag values, but it also provides full Lua interface for complex operations.  
 
 *To get started:*  
 – Install the script.  
@@ -88,7 +88,7 @@ Thanks to
 – Explore the builtin „Help“ panel for a detailed guide to all the features of 99%Tags.  
 
 *Features:*  
-– Carefully designid Lua system that minimises typing for simple operations.  
+– Carefully designed Lua system that minimises typing for simple operations.  
 – Easytouse Lua interface that makes complex operations easier to code than [aka.Sandbox](#akasandbox).  
 – Builtin „Help“ panel showcasing example usages and explaining all the details.  
 – Bultiin import and export feature as well as an internal preset system for ease of reusing and sharing operations. See [Typesetting Snippets](#typesetting-snippets) for some snippets by Akatsumekusa.    
