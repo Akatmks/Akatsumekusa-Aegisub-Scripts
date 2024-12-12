@@ -28,8 +28,8 @@ local versioning = {}
 
 versioning.name = "request"
 versioning.description = "Module request"
-versioning.version = "1.0.13"
-versioning.author = "Lucien Greathouse, adapted to Aegisub environment by Akatsumekusa"
+versioning.version = "1.0.16"
+versioning.author = "Lucien Greathouse"
 versioning.namespace = "aka.request"
 
 versioning.requiredModules = "[{ \"moduleName\": \"ffi\" }, { \"moduleName\": \"requireffi.requireffi\", \"version\": \"0.1.2\" }]"

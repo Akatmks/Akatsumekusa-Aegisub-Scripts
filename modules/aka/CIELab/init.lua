@@ -1,4 +1,4 @@
--- aka.dupe-and-not-comment
+-- aka.CIELab
 -- Copyright (c) Akatsumekusa and contributors
 
 ------------------------------------------------------------------------------
@@ -23,42 +23,33 @@
 
 local versioning = {}
 
-versioning.name = "Dupe and Not Comment"
-versioning.description = "Duplicate selected line line by line"
-versioning.version = "1.0.6"
+versioning.name = "aka.CIELab"
+versioning.description = "Module aka.CIELab"
+versioning.version = "1.0.2"
 versioning.author = "Akatsumekusa and contributors"
-versioning.namespace = "aka.dupe-and-not-comment"
+versioning.namespace = "aka.CIELab"
 
-script_name = versioning.name
-script_description = versioning.description
-script_version = versioning.version
-script_author = versioning.author
-script_namespace = versioning.namespace
+versioning.requiredModules = "[{ \"moduleName\": \"ffi\" }, { \"moduleName\": \"aegisub.util\" }]"
 
-DepCtrl = require("l0.DependencyControl")({
-    name = versioning.name,
-    description = versioning.description,
-    version = versioning.version,
-    author = versioning.author,
-    moduleName = versioning.namespace,
-    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
-})
-
-local Dupe
-
-Dupe = function(sub, sel, act)
-    for i=#sel,1,-1 do
-        sub[-sel[i]] = sub[sel[i]]
-
-        if act == sel[i] then
-            sel[i] = sel[i] + i - 1
-            act = sel[i]
-        else
-            sel[i] = sel[i] + i - 1
-        end
-    end
-    return sel, act
+local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
+if hasDepCtrl then
+    DepCtrl({
+        name = versioning.name,
+        description = versioning.description,
+        version = versioning.version,
+        author = versioning.author,
+        moduleName = versioning.namespace,
+        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
+        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/dev/DependencyControl.json",
+        {
+            { "ffi" },
+            { "aegisub.util" }
+        }
+    }):requireModules()
 end
 
-DepCtrl:registerMacro(Dupe)
+local functions = require("aka.CIELab.interface")
+
+functions.versioning = versioning
+
+return functions

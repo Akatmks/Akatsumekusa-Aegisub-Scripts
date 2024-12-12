@@ -114,7 +114,8 @@ end
 -- 
 -- @return outcome.result<table, string>: Return the same config table back if success
 write_config = function(config, config_supp, config_data)
-    if type(config_supp) == "table" then config_data = config_supp config_supp = config config = nil end
+    if config_data == nil then config_data = config_supp config_supp = nil end
+    if config_supp == nil then config_supp = config config = nil end
     return
     o(json:encode_pretty(config_data))
         :andThen(function(config_string) return
@@ -133,7 +134,8 @@ end
 -- 
 -- @return outcome.result<table, string>: Return the same config string back if success
 write_config_string = function(config, config_supp, config_string)
-    if config_string == nil then config_string = config_supp config_supp = config config = nil end
+    if config_string == nil then config_string = config_supp config_supp = nil end
+    if config_supp == nil then config_supp = config config = nil end
     return
     o(lfs.attributes(config_dir .. (config and "/" .. config or ""), "mode"))
         :orElseOther(function(_) return

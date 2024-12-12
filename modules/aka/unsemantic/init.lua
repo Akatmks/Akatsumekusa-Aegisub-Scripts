@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.unsemantic"
 versioning.description = "Module aka.unsemantic"
-versioning.version = "1.0.2"
+versioning.version = "1.1.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.unsemantic"
 
@@ -62,13 +62,13 @@ mt = {
     end,
     __lt = function(lhs, rhs)
         return lhs.major < rhs.major or
-               lhs.minor < rhs.minor or
-               lhs.patch < rhs.patch
+               (lhs.major == rhs.major and lhs.minor < rhs.minor) or
+               (lhs.major == rhs.major and lhs.minor == rhs.minor and lhs.patch < rhs.patch)
     end,
     __le = function(lhs, rhs)
-        return lhs.major <= rhs.major or
-               lhs.minor <= rhs.minor or
-               lhs.patch <= rhs.patch
+        return lhs.major < rhs.major or
+               (lhs.major == rhs.major and lhs.minor < rhs.minor) or
+               (lhs.major == rhs.major and lhs.minor == rhs.minor and lhs.patch <= rhs.patch)
     end
 }
 V = function(version_str)

@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "BackupSelection"
 versioning.description = "Backup selected lines"
-versioning.version = "1.0.13"
+versioning.version = "1.0.15"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.BackupSelection"
 

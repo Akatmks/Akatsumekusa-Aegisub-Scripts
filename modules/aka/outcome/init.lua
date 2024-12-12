@@ -35,7 +35,7 @@ local versioning = {}
 
 versioning.name = "aka.outcome"
 versioning.description = "Module aka.outcome"
-versioning.version = "1.0.8"
+versioning.version = "1.0.11"
 versioning.author = "Michael Dowling, modified by Akatsumekusa"
 versioning.namespace = "aka.outcome"
 
@@ -49,7 +49,7 @@ local version = require("l0.DependencyControl")({
   feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
 })
 
-local type, error, pcall, string = type, error, pcall, string
+local type, error, pcall, xpcall, string = type, error, pcall, xpcall, string
 local setmetatable, getmetatable = setmetatable, getmetatable
 
 local OK, ERR = true, false
@@ -999,6 +999,26 @@ function outcome.pcall(f, ...)
 end
 
 --- Invokes a function and returns a `Result<T, E>`.
+-- If the function errors, an Err Result is returned.
+--
+--    local res = Result.pcall(error, "oh no!")
+--    assert(res:isErr())
+--    assert(res:unwrapErr() == "oh no!")
+--
+-- @tparam function f Function to invoke that returns T or raises E.
+-- @tparam ... Arguments to pass to the function.
+-- @treturn Result Returns `Result<T, E>`
+-- @within Result functions
+function outcome.xpcall(f, err, ...)
+  local ok, result = xpcall(f, err, ...)
+  if ok then
+    return outcome.ok(result)
+  else
+    return outcome.err(result)
+  end
+end
+
+--- Invokes a function and returns a `Result<T, E>`.
 -- Compared to outcome.pcall, outcome.multi_pcall is able to receive
 -- multiple returns from function and pack returns into a table.
 -- If the function errors, an Err Result is returned.
@@ -1013,6 +1033,29 @@ end
 -- @within Result functions
 function outcome.multi_pcall(f, ...)
   local result = table.pack(pcall(f, ...))
+  if result[1] == true then
+    table.remove(result, 1)
+    return outcome.ok(result)
+  else
+    return outcome.err(result[2])
+  end
+end
+
+--- Invokes a function and returns a `Result<T, E>`.
+-- Compared to outcome.xpcall, outcome.multi_xpcall is able to receive
+-- multiple returns from function and pack returns into a table.
+-- If the function errors, an Err Result is returned.
+--
+--    local res = Result.multi_pcall(error, "oh no!")
+--    assert(res:isErr())
+--    assert(res:unwrapErr() == "oh no!")
+--
+-- @tparam function f Function to invoke that returns T or raises E.
+-- @tparam ... Arguments to pass to the function.
+-- @treturn Result Returns `Result<T, E>`
+-- @within Result functions
+function outcome.multi_xpcall(f, err, ...)
+  local result = table.pack(xpcall(f, err, ...))
   if result[1] == true then
     table.remove(result, 1)
     return outcome.ok(result)
