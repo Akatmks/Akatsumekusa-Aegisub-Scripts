@@ -81,22 +81,22 @@ Thanks to
 
 99%Tags is a script for adding and modifying tags on subtitle lines. It combines the base functions of [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, HYDRA-like interface. It can facilitate simple operations such as setting tag values across multiple lines or performing arithmetic calculations on tag values, but it also provides full Lua interface for complex operations.  
 
-*To get started:*  
+***To get started:***  
 – Install the script.  
 – Use it the same way as ua.HYDRA. If you want to set `\fscx` to 150, enter `150` in the text field for `fscx`.  
 – Try out simple arithmetic calculations. If you want to multiply `\fscx` by 125%, enter `*1.25` in the text field for `fscx`.  
 – Explore the builtin „Help“ panel for a detailed guide to all the features of 99%Tags.  
 
-*Features:*  
+***Features:***  
 – Carefully designed Lua system that minimises typing for simple operations.  
 – Easytouse Lua interface that makes complex operations easier to code than [aka.Sandbox](#akasandbox).  
 – Builtin „Help“ panel showcasing example usages and explaining all the details.  
 – Bultiin import and export feature as well as an internal preset system for ease of reusing and sharing operations. See [Typesetting Snippets](#typesetting-snippets) for some snippets by Akatsumekusa.    
 
-*Relations between 99%Tags and HYDRA, PhosCity's Edit Tags, or other similar scripts:*  
+***Relations between 99%Tags and HYDRA, PhosCity's Edit Tags, or other similar scripts:***  
 The idea of 99%Tags is not to replace [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), or other similar scripts. There are many situations where these scripts would be more convenient than 99%Tags. It would be a good idea to learn these scripts and use them when they are the most convenient.  
 
-*Comparing against [aka.Sandbox](#akasandbox) for complex operations:*  
+***Comparing against [aka.Sandbox](#akasandbox) for complex operations:***  
 – For any operations that can be performed in 1 pass, especially modifying ASS tags, 99%Tags would be faster to code.  
 – For any operations that need to compare between all selected lines and can't be performed in 1 pass, or operations that would need to create tags blocks or modify multiple tags blocks at once, [aka.Sandbox](#akasandbox) would be the better choice.  
 
@@ -106,13 +106,13 @@ The idea of 99%Tags is not to replace [HYDRA](https://unanimated.github.io/ts/sc
 
 aka.Sandbox is a script similar to [lyger.LuaInterpret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts/tree/master#user-content-LuaInterpret) but relies on libraries such as [ILL.ILL](https://github.com/TypesettingTools/ILL-Aegisub-Scripts) and [l0.ASSFoundation](https://github.com/TypesettingTools/ASSFoundation) for easy modification of subtitles.  
 
-*Unique features:*  
+***Unique features:***  
 – MoonScript support in addition to Lua.  
 – Commonly used libraries already required and initialised. No need to manually write `require`s.  
 – Builtin import and export of code snippets, as well as an internal preset system.  
 – Better error handling. If an error occurs during execution, the editor window will open back up to make it easier to tweak the code.  
 
-*Thanks to*  
+***Thanks to***  
 – bucket3432 for developing the original `bucket.Sandbox` script.  
 – Zahuczky and PhosCity for suggesting libraries to be required and made available in scope.  
 
