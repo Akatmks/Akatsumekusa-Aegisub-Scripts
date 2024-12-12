@@ -113,7 +113,7 @@ aka.Sandbox is a script similar to [lyger.LuaInterpret](https://github.com/Types
 – bucket3432 for developing the original `bucket.Sandbox` script.  
 – Zahuczky and PhosCity for suggesting libraries to be required and made available in scope.  
 
-<img src="https://github.com/user-attachments/assets/b70c2c2e-58ed-4ac8-8f73-29e281874d5b" alt="99%Tags Function Preview" width="636"/>
+<img src="https://github.com/user-attachments/assets/fb957df9-f1ae-4dde-912e-b281a0990869" alt="99%Tags Function Preview" width="636"/>
 
 ## aka.BackupSection & aka.dupe-and-not-comment
 
