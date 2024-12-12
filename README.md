@@ -93,6 +93,9 @@ Thanks to
 – Builtin „Help“ panel showcasing example usages and explaining all the details.  
 – Bultiin import and export feature as well as an internal preset system for ease of reusing and sharing operations. See [Typesetting Snippets](#typesetting-snippets) for some snippets by Akatsumekusa.    
 
+*Relations between 99%Tags and HYDRA, PhosCity's Edit Tags, or other similar scripts:*  
+The idea of 99%Tags is not to replace ua.HYDRA, PhosCity's Edit Tags, ua.NecrosCopy, or any other similar scripts (maybe except ua.Recalculator). There are many situations where these scripts would be more convenient than 99%Tags. It would be a good idea to learn these scripts and use them when they are the most convenient.  
+
 *Comparing against [aka.Sandbox](#akasandbox) for complex operations:*  
 – For any operations that can be performed in 1 pass, especially modifying ASS tags, 99%Tags would be faster to code.  
 – For any operations that need to compare between all selected lines and can't be performed in 1 pass, or operations that would need to create tags blocks or modify multiple tags blocks at once, [aka.Sandbox](#akasandbox) would be the better choice.  
