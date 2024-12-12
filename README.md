@@ -82,7 +82,7 @@ Thanks to
 99%Tags is a script for adding and modifying tags on subtitle lines. It combines the base functions of [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, HYDRA-like interface. It can facilitate simple operations such as setting tag values across multiple lines or performing arithmetic calculations on tag values, but it also provides full Lua interface for complex operations.  
 
 ***To get started:***  
-– Install the script.  
+– Install the script from [DependencyControl](#table-of-contents).  
 – Use it the same way as ua.HYDRA. If you want to set `\fscx` to 150, enter `150` in the text field for `fscx`.  
 – Try out simple arithmetic calculations. If you want to multiply `\fscx` by 125%, enter `*1.25` in the text field for `fscx`.  
 – Explore the builtin „Help“ panel for a detailed guide to all the features of 99%Tags.  
