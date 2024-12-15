@@ -24,7 +24,7 @@
 versioning =
 	name: "ILLFixed"
 	description: "Module aka.ILLFixed"
-	version: "1.0.2"
+	version: "1.0.3"
 	author: "Alen, Ruan Dias, and Akatsumekusa"
 	namespace: "aka.ILLFixed"
 	requiredModules: "[{ \"moduleName\": \"ILL.ILL\" }]"

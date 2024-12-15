@@ -344,10 +344,10 @@
                         {
                             "name": "/init.moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "937e27f3085f938971d1a04dce85940dfdb70e19"
+                            "sha1": "b48b1675894896d346e6823cd11387d98358ccb9"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requiredModules": [
                         {
@@ -355,7 +355,7 @@
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-12-12"
+                    "released": "2024-12-15"
                 }
             },
             "author": "Alen, Ruan Dias, and Akatsumekusa",
