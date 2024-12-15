@@ -344,10 +344,10 @@
                         {
                             "name": "/init.moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "b48b1675894896d346e6823cd11387d98358ccb9"
+                            "sha1": "3e0de1aef2adedc7e6ca7b9835161708a54fbaec"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.5",
                     "default": true,
                     "requiredModules": [
                         {
