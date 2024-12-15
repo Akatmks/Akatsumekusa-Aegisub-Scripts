@@ -1,5 +1,5 @@
--- aka.uikit
--- Copyright (c) Akatsumekusa and contributors
+-- aka.ILLFixed
+-- Copyright (c) 2023 Alen and Ruan Dias
 
 ------------------------------------------------------------------------------
 -- Permission is hereby granted, free of charge, to any person obtaining a
