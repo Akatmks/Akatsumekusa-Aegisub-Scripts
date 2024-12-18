@@ -204,8 +204,8 @@ View the document at [docs/Using aka.uikit.md](docs/Using%20aka.uikit.md).
 
 aka.command is a (hopefully) problem-free solution for executing commands from Aegisub based on `run_cmd` function from [petzku.util](https://github.com/petzku/Aegisub-Scripts?tab=readme-ov-file#util).
 
-aka.command uses `run_cmd` from io library in petzku.util. `run_cmd` should always be preferred over `os.execute`, not only because it records the log and avoids the 256 byte limit on Windows, but also because `os.execute` sometimes returns `0` even when the program doesn't exit normally.  
-Different from petzku.util, `run_cmd` in aka.command have `quiet = true` by default.  
+aka.command imports `run_cmd` function from petzku.util. `run_cmd` should always be preferred over `os.execute`, not only because it records the log and avoids the 256 bytes limit on Windows, but also because `os.execute` sometimes returns `0` even when the program doesn't exit normally. Different from petzku.util, `run_cmd` in aka.command have `quiet = true` by default.   
+  
 ```lua
 log, status, terminate, exit_code = run_cmd(command)
 ```
