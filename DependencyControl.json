@@ -420,6 +420,36 @@
             "url": "@{baseUrl}#@{namespace}",
             "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
         },
+        "aka.command": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": "/init.lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "c807157c4509e1e6a7bd545a71ffbb25b51df014"
+                        }
+                    ],
+                    "version": "1.0.1",
+                    "default": true,
+                    "requiredModules": [
+                        {
+                            "moduleName": "petzku.util",
+                            "feed": "https://raw.githubusercontent.com/petzku/Aegisub-Scripts/refs/heads/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aegisub.re"
+                        }
+                    ],
+                    "released": "2024-12-18"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "aka.command",
+            "description": "Module aka.command",
+            "url": "@{baseUrl}#@{namespace}",
+            "fileBaseUrl": "@{fileBaseUrl}modules/@{namespacePath}"
+        },
         "aka.config": {
             "channels": {
                 "master": {
@@ -470,12 +500,12 @@
                         {
                             "name": "/config2.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "c6816df14833b982512553ea889054a6e1583313"
+                            "sha1": "e9aa6c49ec7c6bfce0de8bcfe63066eec83ee43f"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "196b1275a517df3f9ee44ab2c6fe8d4fab55e02d"
+                            "sha1": "f31a726cf2196a0b2e3a4f9f569081ef771103f2"
                         },
                         {
                             "name": "/json.lua",
@@ -483,7 +513,7 @@
                             "sha1": "66004f9373847d877fe0aae5ad8a02bf7e161fef"
                         }
                     ],
-                    "version": "1.0.9",
+                    "version": "1.0.10",
                     "default": true,
                     "requiredModules": [
                         {
@@ -500,7 +530,7 @@
                             "moduleName": "lfs"
                         }
                     ],
-                    "released": "2024-12-12"
+                    "released": "2024-12-18"
                 }
             },
             "author": "Akatsumekusa and contributors",
