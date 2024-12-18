@@ -279,8 +279,8 @@ end
 
 -- Run AutoClip
 local command = p(config["python"]) .. " -m ass_autoclip" ..
-                                 " --input " .. p(video_file) .. 
-                                 " --output " .. p(output_file)
+                                       " --input " .. p(video_file) .. 
+                                       " --output " .. p(output_file)
 local log, status, terminate, code = run_cmd_c(command)
 if status then
     aegisub.debug.out("AutoClip completed successfully.\n")
@@ -301,8 +301,8 @@ if check_cmd_c command
 
 -- Run AutoClip
 command = (p config["python"]) .. " -m ass_autoclip" ..
-                                 " --input " .. (p video_file) .. 
-                                 " --output " .. (p output_file)
+                                  " --input " .. (p video_file) .. 
+                                  " --output " .. (p output_file)
 log, status, terminate, code = run_cmd_c command
 if status
   aegisub.debug.out "AutoClip completed successfully.\n"
