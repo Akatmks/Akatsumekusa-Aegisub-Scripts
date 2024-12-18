@@ -27,6 +27,7 @@
 – [aka.uikit](#akauikit)  
 – [aka.actor](#akaactor)  
 – [aka.CIELab](#akacielab)  
+– [aka.command](#akacommand)  
 – [aka.config](#akaconfig--akaconfig2)  
 – [aka.config2](#akaconfig--akaconfig2)  
 – [aka.optimising](#akaoptimising)  
@@ -198,6 +199,81 @@ if buttons\is_ok button
 ```
 
 View the document at [docs/Using aka.uikit.md](docs/Using%20aka.uikit.md).  
+
+## aka.command
+
+aka.command is a (hopefully) problem-free solution for executing commands from Aegisub based on `run_cmd` function from [petzku.util](https://github.com/petzku/Aegisub-Scripts?tab=readme-ov-file#util).
+
+aka.command uses `run_cmd` from io library in petzku.util. `run_cmd` should always be preferred over `os.execute`, not only because it records the log and avoids the 256 byte limit on Windows, but also because `os.execute` sometimes returns `0` even when the program doesn't exit normally.  
+Different from petzku.util, `run_cmd` in aka.command have `quiet = true` by default.  
+```lua
+log, status, terminate, exit_code = run_cmd(command)
+```
+
+In addition, aka.command provides function `c` that supports running multiple commands separated by `\n`. Later commands will only be runned if earlier commands return with exit code 0.  
+```lua
+command = c(command)
+```
+
+aka.command also provides function `p` which when wrapped around paths in the command, escape any characters that would cause issue. Commands constructed using function `p` has to be runned through `c` before executing.  
+```lua
+quoted_path = p(path)
+```
+
+Combining `run_cmd` and `c`, aka.command provides two shorthand functions:  
+```lua
+log, status, terminate, exit_code = run_cmd_c(command)
+status = check_cmd_c(command)
+```
+
+Examples of using aka.command:  
+```lua
+local acommand = require("aka.command")
+local p = acommand.p
+local run_cmd_c = acommand.run_cmd_c
+local check_cmd_c = acommand.check_cmd_c
+
+-- Check AutoClip dependencies
+local command = p(config["python"]) .. " -m ass_autoclip --check-dependencies"
+if check_cmd_c(command) then
+    aegisub.debug.out("Dependency satisfied.\n")
+end
+
+-- Run AutoClip
+local command = p(config["python"]) .. " -m ass_autoclip" ..
+                                 " --input " .. p(video_file) .. 
+                                 " --output " .. p(output_file)
+local log, status, terminate, code = run_cmd_c(command)
+if status then
+    aegisub.debug.out("AutoClip completed successfully.\n")
+else
+    if terminate == "exit" then
+        aegisub.debug.out("Python exits with code " .. tostring(code) .. "\n")
+    else
+        aegisub.debug.out("Python terminated with signal " .. tostring(code) .. "\n")
+end end
+```
+```moon
+import p, run_cmd_c, check_cmd_c from require "aka.command"
+
+-- Check AutoClip dependencies
+command = (p config["python"]) .. " -m ass_autoclip --check-dependencies"
+if check_cmd_c command
+  aegisub.debug.out "Dependency satisfied.\n"
+
+-- Run AutoClip
+command = (p config["python"]) .. " -m ass_autoclip" ..
+                                 " --input " .. (p video_file) .. 
+                                 " --output " .. (p output_file)
+log, status, terminate, code = run_cmd_c command
+if status
+  aegisub.debug.out "AutoClip completed successfully.\n"
+else
+  if terminate == "exit"
+    aegisub.debug.out "Python exits with code " .. (tostring code) .. "\n"
+  else
+    aegisub.debug.out "Python terminated with signal " .. (tostring code) .. "\n"
+```
 
 ## aka.actor
 
