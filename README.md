@@ -253,7 +253,7 @@ In addition, aka.command provides function `c` that supports running multiple co
 command = c(command)
 ```
 
-aka.command also provides function `p` which when wrapped around paths in the command, escape any characters that would cause issue. Commands constructed using function `p` has to be runned through `c` before executing.  
+aka.command also provides function `p` which when wrapped around paths in the command, escapes any characters that would cause issue. Commands constructed using function `p` has to be runned through `c` before executing.  
 ```lua
 quoted_path = p(path)
 ```
