@@ -200,6 +200,44 @@ if buttons\is_ok button
 
 View the document at [docs/Using aka.uikit.md](docs/Using%20aka.uikit.md).  
 
+## aka.actor
+
+aka.actor is a flag system visible to the user.  
+For example, when you backup a line with [aka.BackupSection](#akabackupsection--akadupe-and-not-comment), a `backup` flag will be added to the commented line.  
+
+Check whether a flag exists and the number of times it exists on line:  
+```lua
+aactor.flag(line, "backup")
+```
+Set flag on line:  
+```lua
+aactor.setFlag(line, "backup")
+```
+
+Other functions include:  
+```lua
+aactor.flag(line, flag)
+aactor.setFlag(line, flag)
+aactor.clearFlag(line, flag)
+aactor.toggleFlag(line, flag)
+aactor.onemoreFlag(line, flag)
+aactor.onelessFlag(line, flag)
+```
+
+`aactor.field` is a [aka.singlesimple](#akasinglesimple) config specifying the field to place the flags. It has three possible values, `actor`, `effect` and `style`. It is synced across all scripts using aka.actor.  
+
+## aka.CIELab
+
+aka.CIELab is a module that converts between sRGB RGB with pure power curve 2.4 and CIELab.  
+```moon
+import Colour from require "aka.CIELab"
+L, a, b = (Colour.fromBT1886RGB R, G, B)\toCIELab!
+L, C, h = (Colour.fromPixel (Line.tagsBlocks ass, line)[1].data.color1)\toCIELCh!
+X, Y, Z = (Colour.fromCIELCh L, C, h)\toXYZ!
+```
+
+Thanks to Chortos-2 and arch1t3cht for teaching me about BT.709 and gamma 2.4. I might still manage to screw something up in this module and it'll all be my fault, not theirs.  
+
 ## aka.command
 
 aka.command is a (hopefully) problem-free solution for executing commands from Aegisub based on `run_cmd` function from [petzku.util](https://github.com/petzku/Aegisub-Scripts?tab=readme-ov-file#util).
@@ -274,44 +312,6 @@ else
   else
     aegisub.debug.out "Python terminated with signal " .. (tostring code) .. "\n"
 ```
-
-## aka.actor
-
-aka.actor is a flag system visible to the user.  
-For example, when you backup a line with [aka.BackupSection](#akabackupsection--akadupe-and-not-comment), a `backup` flag will be added to the commented line.  
-
-Check whether a flag exists and the number of times it exists on line:  
-```lua
-aactor.flag(line, "backup")
-```
-Set flag on line:  
-```lua
-aactor.setFlag(line, "backup")
-```
-
-Other functions include:  
-```lua
-aactor.flag(line, flag)
-aactor.setFlag(line, flag)
-aactor.clearFlag(line, flag)
-aactor.toggleFlag(line, flag)
-aactor.onemoreFlag(line, flag)
-aactor.onelessFlag(line, flag)
-```
-
-`aactor.field` is a [aka.singlesimple](#akasinglesimple) config specifying the field to place the flags. It has three possible values, `actor`, `effect` and `style`. It is synced across all scripts using aka.actor.  
-
-## aka.CIELab
-
-aka.CIELab is a module that converts between sRGB RGB with pure power curve 2.4 and CIELab.  
-```moon
-import Colour from require "aka.CIELab"
-L, a, b = (Colour.fromBT1886RGB R, G, B)\toCIELab!
-L, C, h = (Colour.fromPixel (Line.tagsBlocks ass, line)[1].data.color1)\toCIELCh!
-X, Y, Z = (Colour.fromCIELCh L, C, h)\toXYZ!
-```
-
-Thanks to Chortos-2 and arch1t3cht for teaching me about BT.709 and gamma 2.4. I might still manage to screw something up in this module and it'll all be my fault, not theirs.  
 
 ## aka.config & aka.config2
 
