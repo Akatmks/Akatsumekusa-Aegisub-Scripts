@@ -272,7 +272,8 @@ local run_cmd_c = acommand.run_cmd_c
 local check_cmd_c = acommand.check_cmd_c
 
 -- Check AutoClip dependencies
-local command = p(config["python"]) .. " -m ass_autoclip --check-dependencies"
+local command = p(config["python"]) .. " -m ass_autoclip --check-python-dependencies\n" ..
+                p(config["python"]) .. " -m ass_autoclip --check-vs-dependencies"
 if check_cmd_c(command) then
     aegisub.debug.out("Dependency satisfied.\n")
 end
@@ -295,7 +296,8 @@ end end
 import p, run_cmd_c, check_cmd_c from require "aka.command"
 
 -- Check AutoClip dependencies
-command = (p config["python"]) .. " -m ass_autoclip --check-dependencies"
+command = (p config["python"]) .. " -m ass_autoclip --check-python-dependencies\n" ..
+          (p config["python"]) .. " -m ass_autoclip --check-vs-dependencies"
 if check_cmd_c command
   aegisub.debug.out "Dependency satisfied.\n"
 
