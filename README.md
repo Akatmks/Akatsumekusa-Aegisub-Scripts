@@ -242,7 +242,7 @@ Thanks to Chortos-2 and arch1t3cht for teaching me about BT.709 and gamma 2.4. I
 
 aka.command is a (hopefully) problem-free solution for executing commands from Aegisub based on `run_cmd` function from [petzku.util](https://github.com/petzku/Aegisub-Scripts?tab=readme-ov-file#util).
 
-aka.command imports `run_cmd` function from petzku.util. `run_cmd` should always be preferred over `os.execute`, not only because it records the log and avoids the 256 bytes limit on Windows, but also because `os.execute` sometimes returns `0` even when the program doesn't exit normally. Different from petzku.util, `run_cmd` in aka.command have `quiet = true` by default.   
+aka.command imports `run_cmd` function from petzku.util. `run_cmd` should always be preferred over `os.execute`, not only because it records the log and avoids the 256 character limit on Windows, but also because `os.execute` sometimes returns `0` even when the program doesn't exit normally. Different from petzku.util, `run_cmd` in aka.command have `quiet = true` by default.   
   
 ```lua
 log, status, terminate, exit_code = run_cmd(command)
