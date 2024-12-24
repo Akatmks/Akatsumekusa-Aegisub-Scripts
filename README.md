@@ -27,6 +27,7 @@
 – [aka.uikit](#akauikit)  
 – [aka.actor](#akaactor)  
 – [aka.CIELab](#akacielab)  
+– [aka.command](#akacommand)  
 – [aka.config](#akaconfig--akaconfig2)  
 – [aka.config2](#akaconfig--akaconfig2)  
 – [aka.optimising](#akaoptimising)  
@@ -79,41 +80,44 @@ Thanks to
 
 ## aka.99PercentTags
 
-99%Tags is a script for adding and modifying tags on subtitle lines. It combines the base functions of [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, HYDRA-like interface. It can facilitate simple operations such as setting tag values across multiple lines or performing arithmetic calculations on tag values, but it also provides a simple Lua interface for more complex operations.  
+99%Tags is a script for adding and modifying tags on subtitle lines. It combines the base functions of [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [Recalculator](https://unanimated.github.io/ts/scripts-manuals.htm#recalculator), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), and [LuaIntepret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts#luainterpret) into a simple, easytouse, HYDRA-like interface. It can facilitate simple operations such as setting tag values across multiple lines or performing arithmetic calculations on tag values, but it also provides full Lua interface for complex operations.  
 
-*To get started:*  
-– Install the script.  
+***To get started:***  
+– Install the script from [DependencyControl](#table-of-contents).  
 – Use it the same way as ua.HYDRA. If you want to set `\fscx` to 150, enter `150` in the text field for `fscx`.  
 – Try out simple arithmetic calculations. If you want to multiply `\fscx` by 125%, enter `*1.25` in the text field for `fscx`.  
 – Explore the builtin „Help“ panel for a detailed guide to all the features of 99%Tags.  
 
-*Features:*  
-– Carefully designid Lua system that minimises typing for simple operations.  
+***Features:***  
+– Carefully designed Lua system that minimises typing for simple operations.  
 – Easytouse Lua interface that makes complex operations easier to code than [aka.Sandbox](#akasandbox).  
 – Builtin „Help“ panel showcasing example usages and explaining all the details.  
 – Bultiin import and export feature as well as an internal preset system for ease of reusing and sharing operations. See [Typesetting Snippets](#typesetting-snippets) for some snippets by Akatsumekusa.    
 
-*Comparing against [aka.Sandbox](#akasandbox) for complex operations:*  
+***Relations between 99%Tags and HYDRA, PhosCity's Edit Tags, or other similar scripts:***  
+The idea of 99%Tags is not to replace [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), or other similar scripts. There are many situations where these scripts would be more convenient than 99%Tags. It would be a good idea to learn these scripts and use them when they are the most convenient.  
+
+***Comparing against [aka.Sandbox](#akasandbox) for complex operations:***  
 – For any operations that can be performed in 1 pass, especially modifying ASS tags, 99%Tags would be faster to code.  
 – For any operations that need to compare between all selected lines and can't be performed in 1 pass, or operations that would need to create tags blocks or modify multiple tags blocks at once, [aka.Sandbox](#akasandbox) would be the better choice.  
 
-<img src="https://github.com/user-attachments/assets/a5bc24e6-8e19-4e59-9b42-edd0fcef6b6d" alt="99%Tags Function Preview" width="581"/>
+<img src="https://github.com/user-attachments/assets/f595f986-3d47-406a-a8db-c51f3a79d2b3" alt="99%Tags Function Preview" width="542"/>
 
 ## aka.Sandbox
 
 aka.Sandbox is a script similar to [lyger.LuaInterpret](https://github.com/TypesettingTools/lyger-Aegisub-Scripts/tree/master#user-content-LuaInterpret) but relies on libraries such as [ILL.ILL](https://github.com/TypesettingTools/ILL-Aegisub-Scripts) and [l0.ASSFoundation](https://github.com/TypesettingTools/ASSFoundation) for easy modification of subtitles.  
 
-*Unique features:*  
+***Unique features:***  
 – MoonScript support in addition to Lua.  
 – Commonly used libraries already required and initialised. No need to manually write `require`s.  
 – Builtin import and export of code snippets, as well as an internal preset system.  
 – Better error handling. If an error occurs during execution, the editor window will open back up to make it easier to tweak the code.  
 
-*Thanks to*  
+***Thanks to***  
 – bucket3432 for developing the original `bucket.Sandbox` script.  
 – Zahuczky and PhosCity for suggesting libraries to be required and made available in scope.  
 
-<img src="https://github.com/user-attachments/assets/b70c2c2e-58ed-4ac8-8f73-29e281874d5b" alt="99%Tags Function Preview" width="636"/>
+<img src="https://github.com/user-attachments/assets/0281aea4-ae68-402d-9884-120db61059ad" alt="99%Tags Function Preview" width="770"/>
 
 ## aka.BackupSection & aka.dupe-and-not-comment
 
@@ -233,6 +237,81 @@ X, Y, Z = (Colour.fromCIELCh L, C, h)\toXYZ!
 ```
 
 Thanks to Chortos-2 and arch1t3cht for teaching me about BT.709 and gamma 2.4. I might still manage to screw something up in this module and it'll all be my fault, not theirs.  
+
+## aka.command
+
+aka.command is a (hopefully) problem-free solution for executing commands from Aegisub based on `run_cmd` function from [petzku.util](https://github.com/petzku/Aegisub-Scripts?tab=readme-ov-file#util).
+
+aka.command imports `run_cmd` function from petzku.util. `run_cmd` should always be preferred over `os.execute`, not only because it records the log and avoids the 256 bytes limit on Windows, but also because `os.execute` sometimes returns `0` even when the program doesn't exit normally. Different from petzku.util, `run_cmd` in aka.command have `quiet = true` by default.   
+  
+```lua
+log, status, terminate, exit_code = run_cmd(command)
+```
+
+In addition, aka.command provides function `c` that supports running multiple commands separated by `\n`. Later commands will only be runned if earlier commands return with exit code 0.  
+```lua
+command = c(command)
+```
+
+aka.command also provides function `p` which when wrapped around paths in the command, escapes any characters that would cause issue. Commands constructed using function `p` has to be runned through `c` before executing.  
+```lua
+quoted_path = p(path)
+```
+
+Combining `run_cmd` and `c`, aka.command provides two shorthand functions:  
+```lua
+log, status, terminate, exit_code = run_cmd_c(command)
+status = check_cmd_c(command)
+```
+
+Examples of using aka.command:  
+```lua
+local acommand = require("aka.command")
+local p = acommand.p
+local run_cmd_c = acommand.run_cmd_c
+local check_cmd_c = acommand.check_cmd_c
+
+-- Check AutoClip dependencies
+local command = p(config["python"]) .. " -m ass_autoclip --check-dependencies"
+if check_cmd_c(command) then
+    aegisub.debug.out("Dependency satisfied.\n")
+end
+
+-- Run AutoClip
+local command = p(config["python"]) .. " -m ass_autoclip" ..
+                                       " --input " .. p(video_file) .. 
+                                       " --output " .. p(output_file)
+local log, status, terminate, code = run_cmd_c(command)
+if status then
+    aegisub.debug.out("AutoClip completed successfully.\n")
+else
+    if terminate == "exit" then
+        aegisub.debug.out("Python exits with code " .. tostring(code) .. "\n")
+    else
+        aegisub.debug.out("Python terminated with signal " .. tostring(code) .. "\n")
+end end
+```
+```moon
+import p, run_cmd_c, check_cmd_c from require "aka.command"
+
+-- Check AutoClip dependencies
+command = (p config["python"]) .. " -m ass_autoclip --check-dependencies"
+if check_cmd_c command
+  aegisub.debug.out "Dependency satisfied.\n"
+
+-- Run AutoClip
+command = (p config["python"]) .. " -m ass_autoclip" ..
+                                  " --input " .. (p video_file) .. 
+                                  " --output " .. (p output_file)
+log, status, terminate, code = run_cmd_c command
+if status
+  aegisub.debug.out "AutoClip completed successfully.\n"
+else
+  if terminate == "exit"
+    aegisub.debug.out "Python exits with code " .. (tostring code) .. "\n"
+  else
+    aegisub.debug.out "Python terminated with signal " .. (tostring code) .. "\n"
+```
 
 ## aka.config & aka.config2
 

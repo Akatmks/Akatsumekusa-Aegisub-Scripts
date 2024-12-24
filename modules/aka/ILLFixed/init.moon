@@ -1,5 +1,5 @@
--- aka.uikit
--- Copyright (c) Akatsumekusa and contributors
+-- aka.ILLFixed
+-- Copyright (c) 2023 Alen and Ruan Dias
 
 ------------------------------------------------------------------------------
 -- Permission is hereby granted, free of charge, to any person obtaining a
@@ -24,7 +24,7 @@
 versioning =
 	name: "ILLFixed"
 	description: "Module aka.ILLFixed"
-	version: "1.0.1"
+	version: "1.0.6"
 	author: "Alen, Ruan Dias, and Akatsumekusa"
 	namespace: "aka.ILLFixed"
 	requiredModules: "[{ \"moduleName\": \"ILL.ILL\" }]"

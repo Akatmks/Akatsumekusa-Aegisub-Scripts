@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.threads"
 versioning.description = "Module aka.threads"
-versioning.version = "1.0.5"
+versioning.version = "1.0.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.threads"
 

@@ -36,24 +36,24 @@ local write_config
 local write_config_string
 
 json.error = none()
-json.onDecodeError = function(message, text, location, etc)
+json.onDecodeError = function(self, message, text, location, etc)
     local matches
     local i
 
-    if not text or not location or not etc then return end
+    if not message or not text or not location then return end
 
-    location = "\n" .. location .. "\n"
-    etc = etc + 1
-    matches = re.find(location, "(\\r|\\n|\\r\\n)")
+    text = "\n" .. text .. "\n"
+    location = location + 1
+    matches = re.find(text, "(\\r|\\n|\\r\\n)")
     i = 1
     while matches[i + 1] do
-        if etc == 2 then
-            json.error = json.error:mapOr(text, function(prev) return prev .. "\n" .. text end)
+        if location == 2 then
+            json.error = json.error:mapOr(message, function(prev) return prev .. "\n" .. message end)
             return
-        elseif etc > matches[i]["last"] and etc <= matches[i + 1]["first"] then
-            text = text .. " in line " .. tostring(i) .. " column " .. tostring(unicode.len(string.sub(location, matches[i]["last"] + 1, etc - 1)) + 1) .. "\n" ..
-                   "`" .. string.sub(location, matches[i]["last"] + 1, matches[i + 1]["first"] - 1) .. "`"
-            json.error = json.error:mapOr(text, function(prev) return prev .. "\n" .. text end)
+        elseif location > matches[i]["last"] and location <= matches[i + 1]["first"] then
+            message = message .. " in line " .. tostring(i) .. " column " .. tostring(unicode.len(string.sub(text, matches[i]["last"] + 1, location - 1)) + 1) .. "\n" ..
+                      "`" .. string.sub(text, matches[i]["last"] + 1, matches[i + 1]["first"] - 1) .. "`"
+            json.error = json.error:mapOr(message, function(prev) return prev .. "\n" .. message end)
             return
         end
         i = i + 1

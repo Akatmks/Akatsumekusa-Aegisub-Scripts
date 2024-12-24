@@ -23,7 +23,7 @@ local versioning = {}
 
 versioning.name = "StackTracePlus"
 versioning.description = "Module StackTracePlus"
-versioning.version = "1.0.2"
+versioning.version = "1.0.4"
 versioning.author = "Ignacio Burgueño"
 versioning.namespace = "aka.StackTracePlus"
 

@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Dupe and Not Comment"
 versioning.description = "Duplicate selected line line by line"
-versioning.version = "1.0.5"
+versioning.version = "1.0.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.dupe-and-not-comment"
 

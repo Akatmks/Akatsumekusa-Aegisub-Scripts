@@ -546,9 +546,10 @@ with dialog = adialog { width: 5 }
   \textbox { height: 3, name: "command" }
 ```
 
-The data should be in key-value pairs, in the same format as the second return from vanilla `aegisub.dialog.display`.  
+The data should be in key-value pairs, in the same format as the second return from `aegisub.dialog.display`.  
 
-`dialog:load_data()` overrides the default values set in the dialog or values from previous call of `dialog:load_data()`. That means if you want to use values from previous run but also need a default value when the user runs the script for the first time, you can write the default value directly to each classes:  
+`dialog:load_data()` can be called before or after the creation of classes in the dialog, and data in `dialog:load_data()` is applied in the `resolve()` function.  
+`dialog:load_data()` overrides the default values set in the dialog or values from previous call of `dialog:load_data()`. This way if you want to use values from previous run but also need a default value when the user runs the script for the first time, you can write the default value directly to each classes:  
 ```lua
 dialog = adialog.new({ width = 4 })
                 :load_data(previous_data) -- Override default value
