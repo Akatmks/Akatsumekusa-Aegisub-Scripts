@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.12"
+versioning.version = "1.0.13"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"Yutils\" }, { \"moduleName\": \"arch.Math\" }, { \"moduleName\": \"arch.Perspective\" }, { \"moduleName\": \"arch.Util\" }, { \"moduleName\": \"l0.Functional\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"petzku.util\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.ILLFixed\" }, { \"moduleName\": \"moonscript\" }, { \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"Yutils\" }, { \"moduleName\": \"arch.Math\" }, { \"moduleName\": \"arch.Perspective\" }, { \"moduleName\": \"arch.Util\" }, { \"moduleName\": \"l0.Functional\" }, { \"moduleName\": \"aka.unicode\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"petzku.util\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -51,7 +51,7 @@ DepCtrl = require("l0.DependencyControl")({
         { "aka.outcome" },
         { "aka.config" },
         { "aka.uikit" },
-        { "ILL.ILL" },
+        { "aka.ILLFixed" },
         { "moonscript" },
         { "a-mo.LineCollection" },
         { "l0.ASSFoundation" },
@@ -115,7 +115,7 @@ local Sandbox = function(sub, sel, act)
 
     right:label({ label = "Required libraries:" })
     var, exp = right:columns({ widths = { 1, 1 } })
-    var:label({ label = "│ Ass, Line, Aegi, …:" })  exp:label({ label = "All ILL.ILL classes" })
+    var:label({ label = "│ Ass, Line, Aegi, …:" })  exp:label({ label = "All ILL.ILL classes (f)" })
     var:label({ label = "│ ass:" })                 exp:label({ label = "Ass loaded with subtitle" })
     var:label({ label = "│ LineCollection:" })      exp:label({ label = "a-mo.LineCollection" })
     var:label({ label = "│ lines:" })               exp:label({ label = "LineCollection loaded" })

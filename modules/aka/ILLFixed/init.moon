@@ -24,7 +24,7 @@
 versioning =
 	name: "ILLFixed"
 	description: "Module aka.ILLFixed"
-	version: "1.0.5"
+	version: "1.0.6"
 	author: "Alen, Ruan Dias, and Akatsumekusa"
 	namespace: "aka.ILLFixed"
 	requiredModules: "[{ \"moduleName\": \"ILL.ILL\" }]"
@@ -41,21 +41,46 @@ version = (require "l0.DependencyControl")
 	[1]: { { "ILL.ILL" } }
 
 ILL = version\requireModules!
-import Aegi, Line, Math, Table, Util, UTF8, Tags, Text, Path, Font from ILL
+import Aegi, Config, Math, Table, Util, UTF8, Ass, Curve, Path, Point, Segment, Line, Tag, Tags, Text, Font from ILL
+
+-- sets the final value of the text
+Ass.__base.setText = (l) ->
+	-- aka.ILLFixed Modified
+	if l.isShape and l.shape
+		l.text = l.shape
+	elseif Util.checkClass l.text, "Text"
+		copyInstance = Table.copy l.text
+		l.text = l.text\__tostring!
+		return copyInstance
+	elseif l.tags
+		local tags
+		if Util.checkClass l.tags, "Tags"
+			tags = Table.copy l.tags
+			tags\clear l.styleref
+			tags = tags\__tostring!
+		else
+			tags = l.tags
+		if l.isShape
+			l.text = tags .. l.shape
+		else
+			l.text = tags .. l.text_stripped
 
 -- processes the line values by extending its information pool
 Line.__base.process = (ass, l) ->
 	{:styles, :meta} = ass
 	{:res_x, :res_y, :video_x_correct_factor} = meta
 
-	if type(l.text) == "string" and not l.isShape 
-		l.text = Text l.text
+	-- aka.ILLFixed Modified
+	if type(l.text) == "string"
+		l.text = Text l.text, l.isShape
 
-	if not l.data and not l.isShape
+	-- aka.ILLFixed Modified
+	if not l.data
 		l.text\moveToFirstLayer!
 
 	with l
-		.text_stripped = .isShape and .text\gsub("%b{}", "") or .text\stripped!
+		-- aka.ILLFixed Modified
+		.text_stripped = .text\stripped!
 		.duration = .end_time - .start_time
 		textIsBlank = Util.isBlank .text_stripped
 
@@ -85,7 +110,8 @@ Line.__base.process = (ass, l) ->
 					.data[tag] = value
 
 		-- sets the values found in the tags to the style
-		.tags or= Tags .isShape and .text\match("%b{}") or .text.tagsBlocks[1]\get!
+		-- aka.ILLFixed Modified
+		.tags or= Tags .text.tagsBlocks[1]\get!
 		for {:tag, :name} in *.tags\split!
 			{:style_name, :value} = tag
 			if style_name
@@ -107,21 +133,19 @@ Line.__base.process = (ass, l) ->
 		font = Font .data
 
 		-- if it's a shape, this information are irrelevant
-		unless .isShape
-			-- gets the value of the width of a space
-			.space_width = font\getTextExtents(" ").width
-			.space_width *= video_x_correct_factor
+		-- gets the value of the width of a space
+		-- aka.ILLFixed Modified
+		.space_width = font\getTextExtents(" ").width
+		.space_width *= video_x_correct_factor
 
-			-- spaces that are on the left and right of the text
-			.prevspace = .text_stripped\match("^(%s*).-%s*$")\len! * .space_width
-			.postspace = .text_stripped\match("^%s*.-(%s*)$")\len! * .space_width
+		-- spaces that are on the left and right of the text
+		-- aka.ILLFixed Modified
+		.prevspace = .text_stripped\match("^(%s*).-%s*$")\len! * .space_width
+		.postspace = .text_stripped\match("^%s*.-(%s*)$")\len! * .space_width
 
-			-- removes the spaces between the text
-			.text_stripped = .text_stripped\match "^%s*(.-)%s*$"
-		else
-			-- to make everything more dynamic
-			.shape = .text_stripped
-			.text_stripped = ""
+		-- removes the spaces between the text
+		-- aka.ILLFixed Modified
+		.text_stripped = .text_stripped\match "^%s*(.-)%s*$"
 
 		-- gets the metric values of the text
 		-- aka.ILLFixed Modified

@@ -64,10 +64,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "fd8411b69537df9529e86b1a0e3582f5b785a020"
+                            "sha1": "40aad28d63a38b3946393ef0dd1485636628d9fe"
                         }
                     ],
-                    "version": "1.0.2",
+                    "version": "1.0.3",
                     "default": true,
                     "requiredModules": [
                         {
@@ -101,7 +101,7 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-12-12"
+                    "released": "2025-01-12"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -195,10 +195,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "7e0956dc4f24f583c5eaf1b111fe03e5caf94259"
+                            "sha1": "c0a11e3627d78de0a3dfe3830fe8e4d71106270c"
                         }
                     ],
-                    "version": "1.0.12",
+                    "version": "1.0.13",
                     "default": true,
                     "requiredModules": [
                         {
@@ -221,8 +221,8 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
-                            "moduleName": "ILL.ILL",
-                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
+                            "moduleName": "aka.ILLFixed",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
                             "moduleName": "moonscript"
@@ -266,7 +266,7 @@
                             "feed": "https://raw.githubusercontent.com/petzku/Aegisub-Scripts/refs/heads/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-12-12"
+                    "released": "2025-01-12"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -344,10 +344,10 @@
                         {
                             "name": "/init.moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "3e0de1aef2adedc7e6ca7b9835161708a54fbaec"
+                            "sha1": "60b268a053a380a1b99579a46a51f2f7b97ba973"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
                     "requiredModules": [
                         {
@@ -355,7 +355,7 @@
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-12-15"
+                    "released": "2025-01-12"
                 }
             },
             "author": "Alen, Ruan Dias, and Akatsumekusa",
@@ -371,17 +371,17 @@
                         {
                             "name": "/StackTracePlus.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "bdfaec2759c47bf3ba5ccc89718919bad6e6827b"
+                            "sha1": "2813b700a29866531e28e233712f3498f27dbe64"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "3466bb557aed65eeaabd0dae3b212e337d4642e5"
+                            "sha1": "fcde44bdc37cb59e1f62d876bed83b93075ff12d"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.4",
                     "default": true,
-                    "released": "2024-12-12"
+                    "released": "2025-01-12"
                 }
             },
             "author": "Ignacio Burgue\u00f1o",

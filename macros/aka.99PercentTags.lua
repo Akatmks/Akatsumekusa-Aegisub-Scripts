@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "1.0.2"
+versioning.version = "1.0.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -169,7 +169,7 @@ auto_dialog_tags = table_concat(an_tags, move_tags, org_tags, single_tagsBlock_t
                                 colour_tags["c"], colour_tags["3c"], colour_tags["4c"],
                                 alpha_tags)
 
-non_tag_tags = { "layer", "start", "end",
+non_tag_tags = { "layer", "start", "end_",
                  "Style", "Actor", "Effect" }
 eval_tags = table_concat(auto_dialog_tags, non_tag_tags)
 
@@ -206,7 +206,7 @@ end end
 parse_other_data = function(data, line, width, height)
     data["layer"] = line.layer
     data["start"] = line.start_time
-    data["end"] = line.end_time
+    data["end_"] = line.end_time
     data["Style"] = line.style
     data["Actor"] = line.actor
     data["Effect"] = line.effect
@@ -236,7 +236,7 @@ end
 
 re_tagsBlock_viewing = re.compile[[(\d+) \(Viewing\)]]
 presets_config = aconfig.make_editor({ display_name = "aka.99PercentTags/presets",
-                                      presets = { ["Default"] = {}, ["Example"] = [[{\n  "Swap fsc": {\n    "1a": "",\n    "3a": "",\n    "3cb": "",\n    "3cg": "",\n    "3cr": "",\n    "4a": "",\n    "4cb": "",\n    "4cg": "",\n    "4cr": "",\n    "Actor": "",\n    "Effect": "",\n    "Style": "",\n    "alpha": "",\n    "an": "",\n    "b": "",\n    "be": "",\n    "blur": "",\n    "bord": "",\n    "cb": "",\n    "cg": "",\n    "cr": "",\n    "end": "",\n    "fax": "",\n    "fay": "",\n    "fn": "",\n    "frx": "",\n    "fry": "",\n    "frz": "",\n    "fs": "",\n    "fscx": "fscy",\n    "fscy": "swap",\n    "fsp": "",\n    "i": "",\n    "layer": "",\n    "mode": 2,\n    "move2x": "",\n    "move2y": "",\n    "orgx": "",\n    "orgy": "",\n    "posx": "",\n    "posy": "",\n    "prepro": "swap = fscx",\n    "q": "",\n    "s": "",\n    "shad": "",\n    "start": "",\n    "tagsblock": 1,\n    "u": "",\n    "xbord": "",\n    "xshad": "",\n    "ybord": "",\n    "yshad": ""\n  }\n}]] },
+                                      presets = { ["Default"] = {}, ["Example"] = [[{\n  "Swap fsc": {\n    "1a": "",\n    "3a": "",\n    "3cb": "",\n    "3cg": "",\n    "3cr": "",\n    "4a": "",\n    "4cb": "",\n    "4cg": "",\n    "4cr": "",\n    "Actor": "",\n    "Effect": "",\n    "Style": "",\n    "alpha": "",\n    "an": "",\n    "b": "",\n    "be": "",\n    "blur": "",\n    "bord": "",\n    "cb": "",\n    "cg": "",\n    "cr": "",\n    "end_": "",\n    "fax": "",\n    "fay": "",\n    "fn": "",\n    "frx": "",\n    "fry": "",\n    "frz": "",\n    "fs": "",\n    "fscx": "fscy",\n    "fscy": "swap",\n    "fsp": "",\n    "i": "",\n    "layer": "",\n    "mode": 2,\n    "move2x": "",\n    "move2y": "",\n    "orgx": "",\n    "orgy": "",\n    "posx": "",\n    "posy": "",\n    "prepro": "swap = fscx",\n    "q": "",\n    "s": "",\n    "shad": "",\n    "start": "",\n    "tagsblock": 1,\n    "u": "",\n    "xbord": "",\n    "xshad": "",\n    "ybord": "",\n    "yshad": ""\n  }\n}]] },
                                       default = "Default" })
 show_dialog = function(ass, sub, act, mode)
     local dialog_base
@@ -686,11 +686,11 @@ generate_dialog = function(dialog_base, act_data, dialog_data)
     table.insert(dialog, { class = "edit", name = "start", x = onefull + name + arrow, y = layer, width = value + edit,
                                                         text = dialog_data["start"] })
     table.insert(dialog, { class = "label",             x = twofull, y = layer, width = name,
-                                                        label = B"end" })
+                                                        label = B"end_" })
     table.insert(dialog, { class = "label",             x = twofull + name, y = layer, width = arrow,
                                                         label = "🡢" })
-    table.insert(dialog, { class = "edit", name = "end", x = twofull + name + arrow, y = layer, width = value + edit,
-                                                        text = dialog_data["end"] })
+    table.insert(dialog, { class = "edit", name = "end_", x = twofull + name + arrow, y = layer, width = value + edit,
+                                                        text = dialog_data["end_"] })
 
     table.insert(dialog, { class = "label",             x = 0, y = layer + 1, width = name,
                                                         label = B"Style" })
@@ -1117,9 +1117,9 @@ apply_tags = function(operations, line, tagsBlocks, i, data, original_data, styl
                     elseif v[1] == "Clear" then
                         aegisub.debug.out("[aka.99PercentTags] Skipping settings line start time to \"-\"\n")
                     end
-                elseif v[2] == "end" then
+                elseif v[2] == "end_" then
                     if v[1] == "Set" then
-                        line.end_time = data["end"]
+                        line.end_time = data["end_"]
                     elseif v[1] == "Clear" then
                         aegisub.debug.out("[aka.99PercentTags] Skipping settings line end time to \"-\"\n")
                     end
