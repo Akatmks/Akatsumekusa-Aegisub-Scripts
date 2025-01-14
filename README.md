@@ -14,7 +14,8 @@
 – [aka.Cycles](#akacycles)  
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
 ***Typesetting Snippets***  
-– [Typesetting Snippets](#typesetting-snippets)  
+– [99%Tags Snippets](#99tags-snippets)  
+– [Sandbox Snippets](#sandbox-snippets)  
 ***farn huah***  
 – [NN.farnhuah](#nnfarnhuah)  
 ***Aegisub VapourSynth Scripts***  
@@ -92,7 +93,7 @@ Thanks to
 – Carefully designed Lua system that minimises typing for simple operations.  
 – Easytouse Lua interface that makes complex operations easier to code than [aka.Sandbox](#akasandbox).  
 – Builtin „Help“ panel showcasing example usages and explaining all the details.  
-– Bultiin import and export feature as well as an internal preset system for ease of reusing and sharing operations. See [Typesetting Snippets](#typesetting-snippets) for some snippets by Akatsumekusa.    
+– Bultiin import and export feature as well as an internal preset system for ease of reusing and sharing operations. See [99%Tags Snippets](#99tags-snippets) for some snippets by Akatsumekusa.  
 
 ***Relations between 99%Tags and HYDRA, PhosCity's Edit Tags, or other similar scripts:***  
 The idea of 99%Tags is not to replace [HYDRA](https://unanimated.github.io/ts/scripts-manuals.htm#hydra), [PhosCity's Edit Tags](https://phoscity.github.io/Aegisub-Scripts/Edit%20Tags/), [NecrosCopy](https://unanimated.github.io/ts/scripts-manuals.htm#necroscopy), or other similar scripts. There are many situations where these scripts would be more convenient than 99%Tags. It would be a great idea to learn all these scripts and use whichever one that is the most efficient for the situation.  
@@ -110,7 +111,7 @@ aka.Sandbox is a script similar to [lyger.LuaInterpret](https://github.com/Types
 ***Unique features:***  
 – MoonScript support in addition to Lua.  
 – Commonly used libraries already required and initialised. No need to manually write `require`s.  
-– Builtin import and export of code snippets, as well as an internal preset system.  
+– Builtin import and export of code snippets, as well as an internal preset system. See [Sandbox Snippets](#sandbox-snippets) for some snippets by Akatsumekusa.  
 – Better error handling. If an error occurs during execution, the editor window will open back up to make it easier to tweak the code.  
 
 ***Thanks to***  
@@ -149,17 +150,23 @@ NN.farnhuah is an Aegisub frontend for [zhconvert](https://zhconvert.org/).
 To use NN.farnhuah, select the line for farnhuah and click „farn huah“. To switch between chs and cht subtitles, click „chie huann chs her cht“.  
 On first launch, NN.farnhuah will show a configuration window. Create your own configuration from zhconvert's [documentation](https://docs.zhconvert.org/api/convert/), or click „Apply Preset“ to use the default config from SweetSub.  
 
-## Typesetting Snippets
+## 99%Tags Snippets
 
-**[Fix Multiline fax (99%Tags)](snippets/Fix%20Multiline%20fax.json)**  
+**[Fix Multiline fax](snippets/99%25Tags/Fix%20Multiline%20fax.json)**  
 Fix alignment at `\N` for `\frz\fax` typeset signs.  
 *How to Use:* Typeset, use [ua.NecrosCopy](https://github.com/Akatmks/unanimated-Aegisub-Scripts/blob/master/uam.NecrosCopy.lua) to split at \N, then apply this snippets using [99%Tags](#aka99percenttags).  
 
-**[Fix Vertical Source Han (99%Tags)](snippets/Fix%20Vertical%20Source%20Han.json)**  
+**[Fix Vertical Source Han](snippets/99%25Tags/Fix%20Vertical%20Source%20Han.json)**  
 Fix render issues for vertical Source Han fonts.  
 *How to Use:* Typeset under libass, use [zf.split](https://github.com/TypesettingTools/zeref-Aegisub-Scripts?tab=readme-ov-file#--macro-splits-text-by-)'s „Splits Text By Chars“ feature, then apply this snippets using [99%Tags](#aka99percenttags).  
 *Limitations:* Only supports signs without perspective. `\pos` correction only supports `\an1`, `\an4` and `\an7`.  
 *Notes:* Supporting signs with `\frz\fax` would probably be fairly easy. Send me a message if you need it.  
+
+## Sandbox Snippets
+
+**[aegi-color-track Moving Average](snippets/Sandbox/aegi-color-track%20Moving%20Average.moon)**  
+Smooth out the flickering in colour tracking from a terrible video source.  
+*How to Use:* Apply zah.aegi-color-track, open aka.Sandbox and load the snippet, read the comments at the start of the snippet, and then click „Run“.  
 
 ## tkinter_alternatives
 
