@@ -26,7 +26,7 @@ for line in *lines
    r = (colours[i - 2][1] + colours[i - 1][1] + colours[i][1] + colours[i + 1][1] + colours[i + 2][1]) / 5
    g = (colours[i - 2][2] + colours[i - 1][2] + colours[i][2] + colours[i + 1][2] + colours[i + 2][2]) / 5
    b = (colours[i - 2][3] + colours[i - 1][3] + colours[i][3] + colours[i + 1][3] + colours[i + 2][3]) / 5
-   -- Change here to match a different colour other than \c
+   -- Change here to modify a different colour other than \c
    result = result .. [[\c]] .. util.ass_color r, g, b
   i = i + 1
  line.text = result
