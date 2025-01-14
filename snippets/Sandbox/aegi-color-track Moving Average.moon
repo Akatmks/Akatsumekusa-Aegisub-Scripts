@@ -1,10 +1,11 @@
 -- Please make sure you only have one valid colour tag for each frame
 -- zah.aegi-color-track will not delete your original colour typesetting when inserting its own
 -- It's possible you will have duplicate colour tags
--- Please make sure your colour tags is in the right order, from the first frame to the last frame
+-- Please make sure your colour tags are in the right order, from the first frame to the last frame
 -- This Sandbox script doesn't check for either of these issues
 
 -- Change here to match a different colour other than \c
+-- Also change the colour at the sixth line from the bottom
 colour = re.compile[[\\c(&H[0-9A-F]{6}&)]]
 
 for line in *lines
@@ -25,6 +26,7 @@ for line in *lines
    r = (colours[i - 2][1] + colours[i - 1][1] + colours[i][1] + colours[i + 1][1] + colours[i + 2][1]) / 5
    g = (colours[i - 2][2] + colours[i - 1][2] + colours[i][2] + colours[i + 1][2] + colours[i + 2][2]) / 5
    b = (colours[i - 2][3] + colours[i - 1][3] + colours[i][3] + colours[i + 1][3] + colours[i + 2][3]) / 5
+   -- Change here to match a different colour other than \c
    result = result .. [[\c]] .. util.ass_color r, g, b
   i = i + 1
  line.text = result
