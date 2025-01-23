@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.14"
+versioning.version = "1.0.15"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -115,7 +115,7 @@ local Sandbox = function(sub, sel, act)
 
     right:label({ label = "Required libraries:" })
     var, exp = right:columns({ widths = { 1, 1 } })
-    var:label({ label = "│ Ass, Line, Aegi, …:" })  exp:label({ label = "All ILL.ILL (f) classes" })
+    var:label({ label = "│ Ass, Line, Aegi, …:" })  exp:label({ label = "All ILL.ILL (m) classes" })
     var:label({ label = "│ ass:" })                 exp:label({ label = "Ass loaded with subtitle" })
     var:label({ label = "│ LineCollection:" })      exp:label({ label = "a-mo.LineCollection" })
     var:label({ label = "│ lines:" })               exp:label({ label = "LineCollection loaded" })
