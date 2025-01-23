@@ -141,14 +141,7 @@ aka.dupe-and-not-comment:
 
 ## aka.Cycles
 
-aka.Cycles is largely the same as [ua.Cycles](https://github.com/unanimated/luaegisub) but with a configuration editor inside Aegisub.  
-
-## NN.farnhuah
-
-NN.farnhuah is an Aegisub frontend for [zhconvert](https://zhconvert.org/).  
-
-To use NN.farnhuah, select the line for farnhuah and click „farn huah“. To switch between chs and cht subtitles, click „chie huann chs her cht“.  
-On first launch, NN.farnhuah will show a configuration window. Create your own configuration from zhconvert's [documentation](https://docs.zhconvert.org/api/convert/), or click „Apply Preset“ to use the default config from SweetSub.  
+Cycles.a is largely the same as [ua.Cycles](https://github.com/unanimated/luaegisub) but with a configuration editor inside Aegisub.  
 
 ## 99%Tags Snippets
 
@@ -167,6 +160,13 @@ Fix render issues for vertical Source Han fonts.
 **[aegi-color-track Moving Average](snippets/Sandbox/aegi-color-track%20Moving%20Average.moon)**  
 Smooth out the flickering in colour tracking from a terrible video source.  
 *How to Use:* Apply zah.aegi-color-track, open aka.Sandbox and load the snippet, read the comments at the start of the snippet, and then click „Run“.  
+
+## NN.farnhuah
+
+NN.farnhuah is an Aegisub frontend for [zhconvert](https://zhconvert.org/).  
+
+To use NN.farnhuah, select the line for farnhuah and click „farn huah“. To switch between chs and cht subtitles, click „chie huann chs her cht“.  
+On first launch, NN.farnhuah will show a configuration window. Create your own configuration from zhconvert's [documentation](https://docs.zhconvert.org/api/convert/), or click „Apply Preset“ to use the default config from SweetSub.  
 
 ## tkinter_alternatives
 
