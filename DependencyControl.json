@@ -64,10 +64,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "40aad28d63a38b3946393ef0dd1485636628d9fe"
+                            "sha1": "3a3bcd3f815a3fa49f5340c608453b8dfbb42902"
                         }
                     ],
-                    "version": "1.0.3",
+                    "version": "1.0.4",
                     "default": true,
                     "requiredModules": [
                         {
@@ -79,8 +79,8 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
-                            "moduleName": "aka.ILLFixed",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                            "moduleName": "ILL.ILL",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
                         },
                         {
                             "moduleName": "aegisub.util"
@@ -101,7 +101,7 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2025-01-12"
+                    "released": "2025-02-06"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -195,10 +195,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "c8f437b47bb4c0aa09f3152466c2cbf252cc1c6d"
+                            "sha1": "efa379f64e78aabe340080915a18fbd36c221d37"
                         }
                     ],
-                    "version": "1.0.15",
+                    "version": "1.0.16",
                     "default": true,
                     "requiredModules": [
                         {
@@ -221,8 +221,8 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         },
                         {
-                            "moduleName": "aka.ILLFixed",
-                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                            "moduleName": "ILL.ILL",
+                            "feed": "https://raw.githubusercontent.com/TypesettingTools/ILL-Aegisub-Scripts/main/DependencyControl.json"
                         },
                         {
                             "moduleName": "moonscript"
@@ -266,7 +266,7 @@
                             "feed": "https://raw.githubusercontent.com/petzku/Aegisub-Scripts/refs/heads/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2025-01-23"
+                    "released": "2025-02-06"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -784,7 +784,7 @@
                         {
                             "name": "/buttons.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "1b9a454948b0fd6b0d08e5a154a8ffe18dd4cf4d"
+                            "sha1": "093ed384099021dc9704f37b49a9d72c1e247bfa"
                         },
                         {
                             "name": "/dialog.lua",
@@ -799,10 +799,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "81961f6b4a3d68d3cf1cb0a07b86935658f75a7c"
+                            "sha1": "e718af3d8e91b6b8eaa3011d7f673eba0d8520a5"
                         }
                     ],
-                    "version": "1.0.12",
+                    "version": "1.0.13",
                     "default": true,
                     "requiredModules": [
                         {
@@ -821,7 +821,7 @@
                             "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-12-12"
+                    "released": "2025-02-06"
                 }
             },
             "author": "Akatsumekusa and contributors",

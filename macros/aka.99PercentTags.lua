@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "1.0.3"
+versioning.version = "1.0.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.ILLFixed\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -50,7 +50,7 @@ if hasDepCtrl then
         {
             { "aka.config" },
             { "aka.outcome" },
-            { "aka.ILLFixed" },
+            { "ILL.ILL" },
             { "aegisub.util" },
             { "aegisub.re" },
             { "aka.StackTracePlus" },
@@ -64,7 +64,7 @@ local aconfig = require("aka.config")
 local outcome = require("aka.outcome")
 local o, ok, err, some, none = outcome.o, outcome.ok, outcome.err, outcome.some, outcome.none
 local _ao_xpcall = outcome.xpcall
-local ILL = require("aka.ILLFixed")
+local ILL = require("ILL.ILL")
 local Ass, Line, Table = ILL.Ass, ILL.Line, ILL.Table
 local autil = require("aegisub.util")
 local re = require("aegisub.re")
@@ -487,7 +487,7 @@ show_dialog = function(ass, sub, act, mode)
             local dialog_2 = adialog.new({ width = 16 })
                                     :label_intedit({ label = "Preprocess textbox height:", name = "prepro_height", min = 2, max = 2147483647 })
                                     :load_data(dialog_config)
-            local buttons_2 = abuttons.ok("Save"):close("Cancel")
+            local buttons_2 = abuttons.ok("Set"):close("Cancel")
             local b, r = adisplay(dialog_2, buttons_2):resolve()
             if buttons_2:is_ok(b) then
                 dialog_config = r

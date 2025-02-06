@@ -641,18 +641,20 @@ buttons\ok "Apply"
 buttons\close "Close"
 ```
 
-#### `buttons.regular()`, `buttons.extra()`, and `buttons.__call()`
+#### `buttons.regular()`, `buttons.extra()`, `buttons.button()`, and `buttons.__call()`
 
-To create a regular button, call `buttons.regular()`, `buttons.extra()`, or just call the instance itself.  
+To create a regular button, call `buttons.regular()`, `buttons.extra()`, `buttons.button()`, or just call the instance itself.  
 
 ```lua
 buttons:regular("Configurate")
 buttons:extra("Configurate")
+buttons:button("Configurate")
 buttons("Configurate")
 ```
 ```moon
 buttons\regular "Configurate"
 buttons\extra "Configurate"
+buttons\button "Configurate"
 buttons "Configurate"
 ```
 

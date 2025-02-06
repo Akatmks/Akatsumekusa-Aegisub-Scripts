@@ -118,7 +118,7 @@ overloaded_buttons.help = function(self, name)
     return self
 end
 -----------------------------------------------------------------------
--- Add a regular button. Same as buttons.extra.
+-- Add a regular button. Same as buttons.extra, and buttons.button.
 --
 -- @param   name    The name of the button, both for display and for
 --                  return after dialog is displayed. Supports "&".
@@ -134,6 +134,13 @@ end
 --                  return after dialog is displayed. Supports "&".
 -----------------------------------------------------------------------
 overloaded_buttons.extra = overloaded_buttons.regular
+-----------------------------------------------------------------------
+-- Add an extra regular button. Same as buttons.regular.
+--
+-- @param   name    The name of the button, both for display and for
+--                  return after dialog is displayed. Supports "&".
+-----------------------------------------------------------------------
+overloaded_buttons.button = overloaded_buttons.regular
 
 overloaded_buttons.is_ok = function(self, button)
     if self.button_ids["ok"] == nil then
