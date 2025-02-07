@@ -148,6 +148,8 @@ Cycles.a is largely the same as [ua.Cycles](https://github.com/unanimated/luaegi
 
 aka.InlineStorage is a simple script for storing and accessing AAE data and preset files as regular subtitle lines inside ASS. This is so that people reworking on the subtitle in the future would not need to retrack or to recreate the preset.  
 
+<img src="https://github.com/user-attachments/assets/6a092209-2d24-4016-a3d3-338c6edd7215" alt="aka.InlineStorage Function Preview" width="480"/>
+
 ## 99%Tags Snippets
 
 **[Fix Multiline fax](snippets/99%25Tags/Fix%20Multiline%20fax.json)**  
