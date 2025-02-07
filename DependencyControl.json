@@ -188,6 +188,40 @@
             "url": "@{baseUrl}#@{namespace}",
             "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
         },
+        "aka.InlineStorage": {
+            "channels": {
+                "master": {
+                    "files": [
+                        {
+                            "name": ".lua",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "5eed8a7907f90ddebd86d41d853a207a9153860b"
+                        }
+                    ],
+                    "version": "1.0.1",
+                    "default": true,
+                    "requiredModules": [
+                        {
+                            "moduleName": "aka.uikit",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aka.outcome",
+                            "feed": "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
+                        },
+                        {
+                            "moduleName": "aegisub.clipboard"
+                        }
+                    ],
+                    "released": "2025-02-07"
+                }
+            },
+            "author": "Akatsumekusa and contributors",
+            "name": "InlineStorage",
+            "description": "Put AAE data or preset files inline so they are available to the people reworking on the subtitle in the future",
+            "url": "@{baseUrl}#@{namespace}",
+            "fileBaseUrl": "@{fileBaseUrl}macros/@{namespace}"
+        },
         "aka.Sandbox": {
             "channels": {
                 "master": {
