@@ -13,6 +13,7 @@
 – [aka.BackupSection](#akabackupsection--akadupe-and-not-comment)  
 – [aka.Cycles](#akacycles)  
 – [aka.dupe-and-not-comment](#akabackupsection--akadupe-and-not-comment)  
+– [aka.InlineStorage](#akainlinestorage)  
 ***Typesetting Snippets***  
 – [99%Tags Snippets](#99tags-snippets)  
 – [Sandbox Snippets](#sandbox-snippets)  
@@ -142,6 +143,10 @@ aka.dupe-and-not-comment:
 ## aka.Cycles
 
 Cycles.a is largely the same as [ua.Cycles](https://github.com/unanimated/luaegisub) but with a configuration editor inside Aegisub.  
+
+## aka.InlineStorage
+
+aka.InlineStorage is a simple script for storing and accessing AAE data and preset files as regular subtitle lines inside ASS. This is so that people reworking on the subtitle in the future would not need to retrack or to recreate the preset.  
 
 ## 99%Tags Snippets
 
