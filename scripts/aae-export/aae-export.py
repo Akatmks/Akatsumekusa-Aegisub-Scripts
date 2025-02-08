@@ -50,7 +50,7 @@ bl_info = {
     "name": "AAE Export",
     "description": "Export tracks and plane tracks to Aegisub-Motion and Aegisub-Perspective-Motion compatible AAE data",
     "author": "Akatsumekusa, arch1t3cht, bucket3432, Martin Herkt and contributors",
-    "version": (1, 2, 4),
+    "version": (1, 2, 5),
     "support": "COMMUNITY",
     "category": "Video Tools",
     "blender": (3, 1, 0),
