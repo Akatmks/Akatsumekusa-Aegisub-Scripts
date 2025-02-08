@@ -2965,7 +2965,7 @@ class AAEExportExportAll(bpy.types.Operator):
         plot_x_y(axs, 3, 3, 11, 12, "power_pin_" + clip_settings.power_pin_remap_0005, clip_settings.power_pin_remap_0005 != "0005")
 
         fig.canvas.draw()
-        with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
+        with PIL.Image.frombytes("RGBA", fig.canvas.get_width_height(), fig.canvas.tostring_argb()) as im:
             im.show()
         plt.close(fig)
 
@@ -3072,7 +3072,7 @@ class AAEExportExportAll(bpy.types.Operator):
         plot_x_y(axs[6], 11, 12, "power_pin_0005")
 
         fig.canvas.draw()
-        with PIL.Image.frombytes("RGB", fig.canvas.get_width_height(), fig.canvas.tostring_rgb()) as im:
+        with PIL.Image.frombytes("RGBA", fig.canvas.get_width_height(), fig.canvas.tostring_argb()) as im:
             im.show()
         plt.close(fig)
 
