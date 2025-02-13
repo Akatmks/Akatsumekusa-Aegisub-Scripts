@@ -1,4 +1,4 @@
--- NN.Fanhua
+-- NN.farnhuah
 -- Copyright (c) Akatsumekusa
 
 ------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "farnhuah"
 versioning.description = "farn huah jeau been"
-versioning.version = "1.0.13"
+versioning.version = "1.0.14"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.farnhuah"
 
