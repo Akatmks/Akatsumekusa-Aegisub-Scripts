@@ -274,7 +274,7 @@ function Dumper:DumpLocals (level)
 				end
 				--for k,v in pairs(info) do print(k,v) end
 				fun_name = fun_name or GuessFunctionName(info)
-				self:add_f("%s%s = Lua function '%s' (defined at line %d of chunk %s)\r\n", prefix, name, fun_name, info.linedefined, source)
+				self:add_f("%s%s = Lua function '%s' (defined at line %d of chunk %s)\r\n", prefix, name, fun_name, info.linedefined, --[[source aka.StackTracePlus modified]] info.source)
 			end
 		elseif type(value) == "thread" then
 			self:add_f("%sthread %q = %s\r\n", prefix, name, tostring(value))
@@ -346,7 +346,7 @@ Stack Traceback:
 			if string_sub(info.source, 1, 1) == "@" then
 				dumper:add_f("(%d) main chunk of file '%s' at line %d\r\n", level_to_show, string_sub(info.source, 2), info.currentline)
 			else
-				dumper:add_f("(%d) main chunk of %s at line %d\r\n", level_to_show, info.short_src, info.currentline)
+				dumper:add_f("(%d) main chunk of %s at line %d\r\n", level_to_show, --[[info.short_src aka.StackTracePlus modified]] info.source, info.currentline)
 			end
 		elseif info.what == "C" then
 			--print(info.namewhat, info.name)
@@ -378,7 +378,7 @@ Stack Traceback:
 			elseif info.source and info.source:sub(1,1) == '#' then
 				dumper:add_f("(%d) Lua %s '%s' at template '%s:%d'%s\r\n", level_to_show, function_type, function_name, info.source:sub(2), info.currentline, was_guessed and " (best guess)" or "")
 			else
-				dumper:add_f("(%d) Lua %s '%s' at line %d of chunk '%s'\r\n", level_to_show, function_type, function_name, info.currentline, source)
+				dumper:add_f("(%d) Lua %s '%s' at line %d of chunk '%s'\r\n", level_to_show, function_type, function_name, info.currentline, --[[source aka.StackTracePlus modified]] info.source)
 			end
 			dumper:DumpLocals(level)
 		else

@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.16"
+versioning.version = "1.0.17"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -205,6 +205,7 @@ local Sandbox = function(sub, sel, act)
                 end
                 preset = preset_available
                 local dialog = adialog.new({ width = 16 })
+                                      :label({ label = "Load preset:" })
                                       :label_dropdown({ label = "Preset:", name = "preset", items = items, value = preset })
                 local buttons = abuttons.ok("Load"):close("Back")
                 local b, r = adisplay(dialog, buttons):resolve()
@@ -224,6 +225,7 @@ local Sandbox = function(sub, sel, act)
                 end
                 preset = preset_available
                 local dialog = adialog.new({ width = 16 })
+                                      :label({ label = "Delete preset:" })
                                       :label_dropdown({ label = "Preset:", name = "preset", items = items, value = preset })
                 local buttons = abuttons.ok("Delete"):close("Back")
                 local b, r = adisplay(dialog, buttons):resolve()
@@ -300,7 +302,7 @@ local Sandbox = function(sub, sel, act)
                 local mmt = function(...)
                     local t = table.pack(...)
                     return { __index = function(self, key)
-                        for _, v in pairs(t) do
+                        for _, v in ipairs(t) do
                             if v[key] then
                                 return v[key]
                         end end end }
