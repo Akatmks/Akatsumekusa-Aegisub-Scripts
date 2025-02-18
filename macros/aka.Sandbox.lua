@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.18"
+versioning.version = "1.0.19"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -131,12 +131,26 @@ local Sandbox = function(sub, sel, act)
     bvar:label({ label = "│ sub, sel, act:" })      bexp:label({ label = "Subtitle object" })
 
     right:label({ label = "Required libraries:" })
-    var, exp = right:columns({ widths = { 1, 1 } })
+    local var, exp = right:columns({ widths = { 1, 1 } })
     var:label({ label = "│ Ass, Line, Aegi, …:" })  exp:label({ label = "All ILL.ILL classes" })
     var:label({ label = "│ ass:" })                 exp:label({ label = "Ass loaded with subtitle" })
+    local full = right:ifable({ name = "language", value = "Lua" })
+    local full = full:unlessable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
+    full:label({ label = "─ Remember to ass:getNewSelection()" })
+    local full = right:ifable({ name = "language", value = "MoonScript" })
+    local full = full:unlessable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
+    full:label({ label = "─ Remember to ass\\getNewSelection!" })
+    local var, exp = right:columns({ widths = { 1, 1 } })
     var:label({ label = "│ LineCollection:" })      exp:label({ label = "a-mo.LineCollection" })
     var:label({ label = "│ lines:" })               exp:label({ label = "LineCollection loaded" })
     var:label({ label = "│ ASS:" })                 exp:label({ label = "l0.ASSFoundation" })
+    local full = right:ifable({ name = "language", value = "Lua" })
+    local full = full:unlessable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
+    full:label({ label = "─ Rmbr data:commit() n lines:replaceLines()" })
+    local full = right:ifable({ name = "language", value = "MoonScript" })
+    local full = full:unlessable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
+    full:label({ label = "─ Rmbr data\\commit! n lines\\replaceLines!" })
+    local var, exp = right:columns({ widths = { 1, 1 } })
     var:label({ label = "│ logger:" })              exp:label({ label = "logger from l0.DepCtrl" })
     var:label({ label = "│ aegisub:" })             exp:label({ label = "aegisub object" })
     var:label({ label = "│ yutils:" })              exp:label({ label = "Yutils" })
@@ -158,7 +172,7 @@ local Sandbox = function(sub, sel, act)
     local brief = right:ifable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
     local bvar, bexp = brief:columns({ widths = { 1, 1 } })
     bvar:label({ label = "│ re, unicode, util:" })  bexp:label({ label = "Aegisub modules (ext)" })
-    var, exp = right:columns({ widths = { 1, 1 } })
+    local var, exp = right:columns({ widths = { 1, 1 } })
     var:label({ label = "│ list, List:" })          exp:label({ label = "list from l0.Functional" })
     var:label({ label = "│ transform:" })           exp:label({ label = "transform in petzku.util" })
 
@@ -190,11 +204,11 @@ local Sandbox = function(sub, sel, act)
                     config.write_config("aka.Sandbox", "dialog", dialog_config)
                         :ifErr(function()
                             aegisub.debug.out("[aka.config] Failed to write config to file.\n")
-                            aegisub.debug.out("[aka.config] " .. error .. "\n") end) return
-                    err(r)
-                else return
-                    err()
-                end
+                            aegisub.debug.out("[aka.config] " .. error .. "\n") end)
+                    for k, v in pairs(dialog_config) do
+                        result[k] = v
+                end end
+                return err(result)
             elseif button == "&Load Preset" then
                 local items = {}
                 local preset_available
