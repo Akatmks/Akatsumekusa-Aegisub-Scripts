@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "farnhuah"
 versioning.description = "farn huah jeau been"
-versioning.version = "1.1.1"
+versioning.version = "1.1.3"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.farnhuah"
 
