@@ -152,10 +152,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "71e32d63c852b00b4ff5e4ffaa1c95ec6bcf6465"
+                            "sha1": "30021aa1318c6a693f14388321503ef9720dd464"
                         }
                     ],
-                    "version": "1.1.2",
+                    "version": "1.1.4",
                     "default": true,
                     "requiredModules": [
                         {
