@@ -229,10 +229,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "6f52db8c57c3a9acc8d89e0b4550dd00a836ab7b"
+                            "sha1": "b0c70fabc63cc270287d2515518512e091f879fd"
                         }
                     ],
-                    "version": "1.0.19",
+                    "version": "1.0.20",
                     "default": true,
                     "requiredModules": [
                         {
@@ -300,7 +300,7 @@
                             "feed": "https://raw.githubusercontent.com/petzku/Aegisub-Scripts/refs/heads/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2025-02-18"
+                    "released": "2025-02-20"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -405,17 +405,17 @@
                         {
                             "name": "/StackTracePlus.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "25f24dbb12ca379eaec136fe354724ea64b31b15"
+                            "sha1": "5b52c14372f955dbd12e4f31538d0d2244a1ba1e"
                         },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "f46128d26c51919886897fa1aaa9c1379886ba33"
+                            "sha1": "b98967996e0ec5c587e58275fa5130f0e76def5f"
                         }
                     ],
-                    "version": "1.0.5",
+                    "version": "1.0.6",
                     "default": true,
-                    "released": "2025-02-13"
+                    "released": "2025-02-20"
                 }
             },
             "author": "Ignacio Burgue\u00f1o",

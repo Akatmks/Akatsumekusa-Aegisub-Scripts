@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.19"
+versioning.version = "1.0.20"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -384,6 +384,14 @@ local Sandbox = function(sub, sel, act)
                     end
                     return ok(result)
                 else
+                    if r:unwrapErr() ~= nil then
+                        result["err_msg"] = "Error occured in aka.Sandbox's code.\n" ..
+                                            "For this error message to display, this is what has happened:\n" ..
+                                            "First, an error occured during execution of the provided script.\n" ..
+                                            "At this point, aka.Sandbox cancelled the execution and started collecting debug info such as where exactly the error occured in the provided script.\n" ..
+                                            "However, a new error occured in the code that's responsible for collecting debug info:\n" ..
+                                            tostring(r:unwrapErr())
+                    end
                     return err(result)
             end end end)
 

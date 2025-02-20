@@ -253,12 +253,12 @@ function Dumper:DumpLocals (level)
 			else
 				local txt = "{"
 				for k,v in pairs(value) do
+					if #txt ~= 1 then txt = txt..", " end
 					txt = txt..safe_tostring(k)..":"..safe_tostring(v)
 					if #txt > _M.max_tb_output_len then
 						txt = txt.." (more...)"
 						break
 					end
-					if next(value, k) then txt = txt..", " end
 				end
 				self:add_f("%s%s = %s  %s\r\n", prefix, name, safe_tostring(value), txt.."}")
 			end
