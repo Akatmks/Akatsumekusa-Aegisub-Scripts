@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Dupe and Not Comment"
 versioning.description = "Duplicate selected line line by line"
-versioning.version = "1.0.6"
+versioning.version = "1.1.1"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.dupe-and-not-comment"
 
@@ -36,12 +36,6 @@ script_author = versioning.author
 script_namespace = versioning.namespace
 
 DepCtrl = require("l0.DependencyControl")({
-    name = versioning.name,
-    description = versioning.description,
-    version = versioning.version,
-    author = versioning.author,
-    moduleName = versioning.namespace,
-    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json"
 })
 

@@ -20,7 +20,7 @@ local versioning = {}
 
 versioning.name = "farnhuah"
 versioning.description = "farn huah jeau been"
-versioning.version = "1.0.16"
+versioning.version = "1.1.1"
 versioning.author = "Akatsumekusa"
 versioning.namespace = "NN.farnhuah"
 
@@ -33,21 +33,15 @@ script_author = versioning.author
 script_namespace = versioning.namespace
 
 DepCtrl = require("l0.DependencyControl")({
-    name = versioning.name,
-    description = versioning.description,
-    version = versioning.version,
-    author = versioning.author,
-    moduleName = versioning.namespace,
-    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
         { "json" },
-        { "aka.request" },
-        { "aka.config" },
-        { "aka.outcome" },
+        { "aka.request", version = "1.0.0" },
+        { "aka.config", version = "1.0.0" },
+        { "aka.outcome", version = "1.0.0" },
         { "aegisub.re" },
-        { "aka.actor" },
-        { "aka.optimising", optional = true }
+        { "aka.actor", version = "1.0.0" },
+        { "aka.optimising", version = "1.0.0", optional = true }
     }
 })
 local json, request, aconfig, outcome, re, aactor, optimising = DepCtrl:requireModules()

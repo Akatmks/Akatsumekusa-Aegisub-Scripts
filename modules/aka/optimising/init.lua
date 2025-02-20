@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.optimising"
 versioning.description = "Module aka.optimising"
-versioning.version = "1.0.8"
+versioning.version = "1.0.9"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.optimising"
 
@@ -40,7 +40,7 @@ local version = require("l0.DependencyControl")({
     url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
-        { "aka.singlesimple" },
+        { "aka.singlesimple", version = "1.0.0" },
         { "PT.PreciseTimer" }
     }
 })

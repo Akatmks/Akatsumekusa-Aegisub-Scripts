@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "1.0.4"
+versioning.version = "1.1.1"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -38,28 +38,20 @@ script_author = versioning.author
 script_namespace = versioning.namespace
 
 local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-if hasDepCtrl then
-    DepCtrl = DepCtrl({
-        name = versioning.name,
-        description = versioning.description,
-        version = versioning.version,
-        author = versioning.author,
-        moduleName = versioning.namespace,
-        url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
-        feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
-        {
-            { "aka.config" },
-            { "aka.outcome" },
-            { "ILL.ILL" },
-            { "aegisub.util" },
-            { "aegisub.re" },
-            { "aka.StackTracePlus" },
-            { "aka.uikit" },
-            { "aka.unicode" }
-        }
-    })
-    DepCtrl:requireModules()
-end
+DepCtrl = DepCtrl({
+    feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
+    {
+        { "aka.config", version = "1.0.0" },
+        { "aka.outcome", version = "1.0.0" },
+        { "ILL.ILL", version = "1.0.0" },
+        { "aegisub.util" },
+        { "aegisub.re" },
+        { "aka.StackTracePlus", version = "1.0.0" },
+        { "aka.uikit", version = "1.0.0" },
+        { "aka.unicode", version = "1.0.0" }
+    }
+})
+DepCtrl:requireModules()
 local aconfig = require("aka.config")
 local outcome = require("aka.outcome")
 local o, ok, err, some, none = outcome.o, outcome.ok, outcome.err, outcome.some, outcome.none
@@ -1248,5 +1240,7 @@ end end end
 
 
 
-aegisub.register_macro("99%Tags", "Add or modify tags on selected lines", function(sub, sel, act) main(sub, sel, act, 1) end)
-aegisub.register_macro("99%Tags (open in Recalculator mode)", "Add or modify tags on selected lines", function(sub, sel, act) main(sub, sel, act, 2) end)
+DepCtrl:registerMacros({
+    { "99%Tags", "Add or modify tags on selected lines", function(sub, sel, act) main(sub, sel, act, 1) end, nil, nil, false }
+    { "99%Tags (open in Recalculator mode)", "Add or modify tags on selected lines", function(sub, sel, act) main(sub, sel, act, 2) end, nil, nil, false }
+})

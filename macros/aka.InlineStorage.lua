@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "InlineStorage"
 versioning.description = "Put AAE data or preset files inline so they are available to the people reworking on the subtitle in the future"
-versioning.version = "1.0.1"
+versioning.version = "1.1.1"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.InlineStorage"
 
@@ -38,16 +38,10 @@ script_author = versioning.author
 script_namespace = versioning.namespace
 
 DepCtrl = require("l0.DependencyControl")({
-    name = versioning.name,
-    description = versioning.description,
-    version = versioning.version,
-    author = versioning.author,
-    moduleName = versioning.namespace,
-    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
-        { "aka.uikit" },
-        { "aka.outcome" },
+        { "aka.uikit", version = "1.0.0" },
+        { "aka.outcome", version = "1.0.0" },
         { "aegisub.clipboard" }
     }
 })

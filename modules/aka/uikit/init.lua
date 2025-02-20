@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.uikit"
 versioning.description = "Module aka.uikit"
-versioning.version = "1.0.13"
+versioning.version = "1.0.14"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.uikit"
 
@@ -40,10 +40,10 @@ local version = require("l0.DependencyControl")({
     url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
-        { "aka.outcome" },
+        { "aka.outcome", version = "1.0.0" },
         { "aegisub.re" },
-        { "ILL.ILL" },
-        { "aka.config2" }
+        { "ILL.ILL", version = "1.0.0" },
+        { "aka.config2", version = "1.0.0" }
     }
 })
 

@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.0.20"
+versioning.version = "1.1.1"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -38,31 +38,25 @@ script_author = versioning.author
 script_namespace = versioning.namespace
 
 DepCtrl = require("l0.DependencyControl")({
-    name = versioning.name,
-    description = versioning.description,
-    version = versioning.version,
-    author = versioning.author,
-    moduleName = versioning.namespace,
-    url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
         { "aegisub.re" },
-        { "aka.StackTracePlus" },
-        { "aka.outcome" },
-        { "aka.config" },
-        { "aka.uikit" },
-        { "ILL.ILL" },
+        { "aka.StackTracePlus", version = "1.0.0" },
+        { "aka.outcome", version = "1.0.0" },
+        { "aka.config", version = "1.0.0" },
+        { "aka.uikit", version = "1.0.0" },
+        { "ILL.ILL", version = "1.0.0" },
         { "moonscript" },
-        { "a-mo.LineCollection" },
-        { "l0.ASSFoundation" },
+        { "a-mo.LineCollection", version = "1.0.0" },
+        { "l0.ASSFoundation", version = "0.1.0" },
         { "Yutils" },
-        { "arch.Math" },
-        { "arch.Perspective" },
-        { "arch.Util" },
-        { "l0.Functional" },
-        { "aka.unicode" },
+        { "arch.Math", version = "0.1.0" },
+        { "arch.Perspective", version = "0.1.0" },
+        { "arch.Util", version = "0.1.0" },
+        { "l0.Functional", version = "0.1.0" },
+        { "aka.unicode", version = "1.0.0" },
         { "aegisub.util" },
-        { "petzku.util" }
+        { "petzku.util", version = "0.1.0" }
     }
 })
 

@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "aka.threads"
 versioning.description = "Module aka.threads"
-versioning.version = "1.0.6"
+versioning.version = "1.0.7"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.threads"
 
@@ -40,7 +40,7 @@ local version = require("l0.DependencyControl")({
     url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
-        { "aka.singlesimple" },
+        { "aka.singlesimple", version = "1.0.0" },
         { "ffi" }
     }
 })

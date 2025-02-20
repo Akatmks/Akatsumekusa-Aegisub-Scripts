@@ -29,7 +29,7 @@ local versioning = {}
 
 versioning.name = "aka.config2"
 versioning.description = "Module aka.config2"
-versioning.version = "1.0.10"
+versioning.version = "1.0.11"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.config2"
 
@@ -44,7 +44,7 @@ local version = require("l0.DependencyControl")({
     url = "https://github.com/Akatmks/Akatsumekusa-Aegisub-Scripts",
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
-        { "aka.outcome" },
+        { "aka.outcome", version = "1.0.0" },
         { "aegisub.re" },
         { "aegisub.unicode" },
         { "lfs" }
