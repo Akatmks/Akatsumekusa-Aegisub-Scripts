@@ -64,10 +64,10 @@
                         {
                             "name": ".lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "9af0206287e67ebbb779ef8826eb868a1e15e062"
+                            "sha1": "2f8d4b7a35aef69bc8d068f5127b4475be3cc479"
                         }
                     ],
-                    "version": "1.1.1",
+                    "version": "1.1.2",
                     "default": true,
                     "requiredModules": [
                         {
@@ -152,10 +152,10 @@
                         {
                             "name": ".moon",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "6a60ea0c92977bb66236b8204b040cbf1ef2330a"
+                            "sha1": "71e32d63c852b00b4ff5e4ffaa1c95ec6bcf6465"
                         }
                     ],
-                    "version": "1.1.1",
+                    "version": "1.1.2",
                     "default": true,
                     "requiredModules": [
                         {

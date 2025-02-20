@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "1.1.1"
+versioning.version = "1.1.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -1241,6 +1241,6 @@ end end end
 
 
 DepCtrl:registerMacros({
-    { "99%Tags", "Add or modify tags on selected lines", function(sub, sel, act) main(sub, sel, act, 1) end, nil, nil, false }
+    { "99%Tags", "Add or modify tags on selected lines", function(sub, sel, act) main(sub, sel, act, 1) end, nil, nil, false },
     { "99%Tags (open in Recalculator mode)", "Add or modify tags on selected lines", function(sub, sel, act) main(sub, sel, act, 2) end, nil, nil, false }
 })

@@ -24,7 +24,7 @@
 versioning =
   name: "Cycles.a"
   description: "Cycles tags on selected lines"
-  version: "1.1.1"
+  version: "1.1.2"
   author: "Akatsumekusa and contributors"
   namespace: "aka.Cycles"
   requiredModules: "[{ \"moduleName\": \"a-mo.LineCollection\" }, { \"moduleName\": \"l0.ASSFoundation\" }, { \"moduleName\": \"aka.actor\" }, { \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }]"
@@ -38,11 +38,11 @@ export script_namespace = versioning.namespace
 DepCtrl = (require "l0.DependencyControl") {
   feed: "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
   {
-    { "a-mo.LineCollection", version = "1.0.0" },
-    { "l0.ASSFoundation", version = "0.1.0" },
-    { "aka.actor", version = "1.0.0" },
-    { "aka.config", version = "1.0.0" },
-    { "aka.outcome", version = "1.0.0" }
+    { "a-mo.LineCollection", version: "1.0.0" },
+    { "l0.ASSFoundation", version: "0.1.0" },
+    { "aka.actor", version: "1.0.0" },
+    { "aka.config", version: "1.0.0" },
+    { "aka.outcome", version: "1.0.0" }
   }
 }
 LineCollection, ASS, aactor, aconfig, outcome = DepCtrl\requireModules!
