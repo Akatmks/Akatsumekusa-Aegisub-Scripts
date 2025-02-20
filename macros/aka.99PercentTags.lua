@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "1.1.2"
+versioning.version = "1.1.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -37,8 +37,7 @@ script_version = versioning.version
 script_author = versioning.author
 script_namespace = versioning.namespace
 
-local hasDepCtrl, DepCtrl = pcall(require, "l0.DependencyControl")
-DepCtrl = DepCtrl({
+DepCtrl = require("l0.DependencyControl")({
     feed = "https://raw.githubusercontent.com/Akatmks/Akatsumekusa-Aegisub-Scripts/master/DependencyControl.json",
     {
         { "aka.config", version = "1.0.0" },
