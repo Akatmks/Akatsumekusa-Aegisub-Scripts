@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.1.1"
+versioning.version = "1.1.2"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -211,6 +211,7 @@ local Sandbox = function(sub, sel, act)
                     if not preset_available then preset_available = k end
                     if preset == k then preset_available = preset end
                 end
+                table.sort(items)
                 preset = preset_available
                 local dialog = adialog.new({ width = 16 })
                                       :label({ label = "Load preset:" })
@@ -231,6 +232,7 @@ local Sandbox = function(sub, sel, act)
                     if not preset_available then preset_available = k end
                     if preset == k then preset_available = preset end
                 end
+                table.sort(items)
                 preset = preset_available
                 local dialog = adialog.new({ width = 16 })
                                       :label({ label = "Delete preset:" })
@@ -253,6 +255,7 @@ local Sandbox = function(sub, sel, act)
                     if not preset_available then preset_available = k end
                     if preset == k then preset_available = preset end
                 end
+                table.sort(items)
                 preset = preset_available
                 local dialog = adialog.new({ width = 16 })
                 dialog:label({ label = "S͟a͟v͟e as preset:" })

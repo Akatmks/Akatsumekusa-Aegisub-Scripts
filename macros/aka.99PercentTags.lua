@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "1.1.3"
+versioning.version = "1.1.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
@@ -278,6 +278,7 @@ show_dialog = function(ass, sub, act, mode)
     for k, _ in pairs(presets) do
         table.insert(dialog_base["presets"], k)
     end
+    table.sort(dialog_base["presets"])
     if presets["(Recall last)"] then
         dialog_data["preset"] = "(Recall last)"
     else
