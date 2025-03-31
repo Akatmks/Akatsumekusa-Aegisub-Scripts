@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "1.1.5"
+versioning.version = "1.1.6"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.ILLFixed\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -42,7 +42,7 @@ DepCtrl = require("l0.DependencyControl")({
     {
         { "aka.config", version = "1.0.0" },
         { "aka.outcome", version = "1.0.0" },
-        { "aka.ILLFixed", version = "1.0.0" },
+        { "ILL.ILL", version = "1.0.0" },
         { "aegisub.util" },
         { "aegisub.re" },
         { "aka.StackTracePlus", version = "1.0.0" },
@@ -841,6 +841,8 @@ apply_data = function(ass, sub, act, data, act_data)
         execute_tags(commands, act_data)
         for line, s, i, n in ass:iterSel(false) do
             ass:progressLine(s, i, n)
+            -- Internal ILL variable; May break
+            line.isShape = false
             line_data = {}
             tagsBlocks = Line.tagsBlocks(ass, line, false)
             parse_tags(line_data, tagsBlocks[data["tagsblock"]].data)
@@ -856,6 +858,8 @@ apply_data = function(ass, sub, act, data, act_data)
         line_data = {}
         for line, s, i, n in ass:iterSel(false) do
             ass:progressLine(s, i, n)
+            -- Internal ILL variable; May break
+            line.isShape = false
             tagsBlocks = Line.tagsBlocks(ass, line, false)
             parse_tags(line_data, tagsBlocks[data["tagsblock"]].data)
             parse_other_data(line_data, line, tagsBlocks.width, tagsBlocks.height)
