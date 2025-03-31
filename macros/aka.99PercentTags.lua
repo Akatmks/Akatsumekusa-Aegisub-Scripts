@@ -25,11 +25,11 @@ local versioning = {}
 
 versioning.name = "99%Tags"
 versioning.description = "Add or modify tags on selected lines"
-versioning.version = "1.1.4"
+versioning.version = "1.1.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.99PercentTags"
 
-versioning.requiredModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"ILL.ILL\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
+versioning.requiredModules = "[{ \"moduleName\": \"aka.config\" }, { \"moduleName\": \"aka.outcome\" }, { \"moduleName\": \"aka.ILLFixed\" }, { \"moduleName\": \"aegisub.util\" }, { \"moduleName\": \"aegisub.re\" }, { \"moduleName\": \"aka.StackTracePlus\" }, { \"moduleName\": \"aka.uikit\" }, { \"moduleName\": \"aka.unicode\" }]"
 
 script_name = versioning.name
 script_description = versioning.description
@@ -42,7 +42,7 @@ DepCtrl = require("l0.DependencyControl")({
     {
         { "aka.config", version = "1.0.0" },
         { "aka.outcome", version = "1.0.0" },
-        { "ILL.ILL", version = "1.0.0" },
+        { "aka.ILLFixed", version = "1.0.0" },
         { "aegisub.util" },
         { "aegisub.re" },
         { "aka.StackTracePlus", version = "1.0.0" },
@@ -1230,9 +1230,9 @@ apply_tags = function(operations, line, tagsBlocks, i, data, original_data, styl
             for j = 1, 2 do
                 if not messy_set["org"][j] then
                     messy_set["org"][j] = messy_set["move"] and messy_set["move"][j] or original_data[org_tags[j]]
-                elseif messy_set["org"]:isSome() then
+                elseif messy_set["org"][j]:isSome() then
                     messy_set["org"][j] = messy_set["org"][j]:unwrap()
-                elseif messy_set["org"]:isNone() then
+                elseif messy_set["org"][j]:isNone() then
                     messy_set["org"][j] = style_data[org_tags[j]]
             end end
             tagsBlocks[1]:insert({ { "org", { messy_set["org"][1], messy_set["org"][2] } } })
