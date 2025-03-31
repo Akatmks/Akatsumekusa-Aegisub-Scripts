@@ -2682,10 +2682,10 @@ class AAEExportExportAll(bpy.types.Operator):
 
         for i in range(13):
             smoothed_data[i] \
-                = np.zeros_like(data[i])
+                = np.full_like(data[i], np.nan)
             if plotting:
                 no_blending_data[i] \
-                    = np.zeros_like(data[i])
+                    = np.full_like(data[i], np.nan)
             carryover \
                 = np.full((2), np.nan, dtype=np.float64)
             if plotting:
@@ -2802,16 +2802,15 @@ class AAEExportExportAll(bpy.types.Operator):
                         t[l+1:] = -(1 - t[l+1:]) * (data[0] - carryover[0])
 
                         smoothed_data[section_settings["start_frame"]-l:section_settings["start_frame"]+h+1] = smoothed_data[section_settings["start_frame"]-l:section_settings["start_frame"]+h+1] + t
-                    case 0b10 | 0b11:
-                        smoothed_data[section_settings["start_frame"]] = data[0]
-                    case 0b01:
-                        pass
-
+                    case 0b10:
+                        smoothed_data[section_settings["start_frame"]:section_settings["end_frame"]] = data
+                    case 0b01 | 0b11:
+                        smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] = data[1:]
                 carryover[0] = data[-1]
 
             case "SHIFT":
                 match (np.isnan(carryover[0]) * 4) + (np.isnan(smoothed_data[section_settings["start_frame"]]) * 2) + np.isnan(data[0]):
-                    case 0b100 | 0b101:
+                    case 0b110 | 0b111:
                         smoothed_data[section_settings["start_frame"]:section_settings["end_frame"]] = data
                         carryover[0] = 0
                         carryover[1] = 0
@@ -2825,8 +2824,8 @@ class AAEExportExportAll(bpy.types.Operator):
                     case 0b001 | 0b011:
                         smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] = data[1:] - carryover[1]
                         carryover[0] = carryover[0] + carryover[1] * np.count_nonzero(~np.isnan(data[1:]))
-                    case 0b110 | 0b111:
-                        raise ValueError("carryover[0] is NaN but smoothed_data[section_settings[\"start_frame\"]] is also NaN")
+                    case 0b100 | 0b101:
+                        raise ValueError("carryover[0] is NaN but smoothed_data[section_settings[\"start_frame\"]] is not NaN")
 
                 if section_settings["end_frame"] == clip.frame_duration:
                     np.add(smoothed_data, carryover[0] / np.count_nonzero(~np.isnan(smoothed_data)), out=smoothed_data)
