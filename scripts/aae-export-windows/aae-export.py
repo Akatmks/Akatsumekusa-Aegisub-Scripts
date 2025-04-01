@@ -2789,7 +2789,6 @@ class AAEExportExportAll(bpy.types.Operator):
                 carryover[0] = data[-1]
 
             case "CUBIC":
-                smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] = smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] + data[1:]
                 match (np.isnan(carryover[0]) * 2) + np.isnan(data[0]):
                     case 0b00:
                         t = np.arange(-(l := min(section_settings["start_frame"], int(clip_settings.smoothing_blending_cubic_range))),
@@ -2801,6 +2800,7 @@ class AAEExportExportAll(bpy.types.Operator):
                         t[:l+1] = t[:l+1] * (data[0] - carryover[0])
                         t[l+1:] = -(1 - t[l+1:]) * (data[0] - carryover[0])
 
+                        smoothed_data[section_settings["start_frame"]+1:section_settings["end_frame"]] = data[1:]
                         smoothed_data[section_settings["start_frame"]-l:section_settings["start_frame"]+h+1] = smoothed_data[section_settings["start_frame"]-l:section_settings["start_frame"]+h+1] + t
                     case 0b10:
                         smoothed_data[section_settings["start_frame"]:section_settings["end_frame"]] = data
