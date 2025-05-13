@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.1.2"
+versioning.version = "1.1.3"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -371,7 +371,7 @@ local Sandbox = function(sub, sel, act)
                     r = r:unwrap()
                     if type(r) == "table" and type(r[1]) == "table" and type(r[2]) == "number" then
                         (function()
-                            for i, v in ipairs(result[1]) do
+                            for i, v in ipairs(r[1]) do
                                 if type(v) ~= "number" then
                                     return err()
                             end end
