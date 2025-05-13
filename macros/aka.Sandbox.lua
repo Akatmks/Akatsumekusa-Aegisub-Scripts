@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.1.3"
+versioning.version = "1.1.4"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -369,15 +369,8 @@ local Sandbox = function(sub, sel, act)
                     result["err_msg"] = "Error occurred during execution:\n" .. traceback end)
                 if r:isOk() then
                     r = r:unwrap()
-                    if type(r) == "table" and type(r[1]) == "table" and type(r[2]) == "number" then
-                        (function()
-                            for i, v in ipairs(r[1]) do
-                                if type(v) ~= "number" then
-                                    return err()
-                            end end
-                            return ok() end)()
-                            :ifOk(function()
-                                result[1] = r[1] result[2] = r[2] end)
+                    if type(r) == "table" then
+                        result[1] = r[1] result[2] = r[2]
                     end
                     return ok(result)
                 else
