@@ -1,5 +1,5 @@
 style = "Text - CN"
-threshold = 23
+threshold = 24
 flag = "loooooong"
 
 it = (sub, act) ->
@@ -31,5 +31,9 @@ for i in it sub, act
    sub[i] = l
    logger\dump line.text_stripped
    total = total + 1
+  else
+   if aactor.flag l, flag
+    aactor.clearFlag l, flag
+    sub[i] = l
 
 logger\dump (tostring total) .. " lines marked."
