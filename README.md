@@ -426,6 +426,7 @@ Add `aka.request` to DependencyControl's required modules. View the documents at
 
 *License Information*  
 – *LuaJIT-Request is copyrighted to Lucien Greathouse and is licensed under zlib License. It is adapted to Aegisub environment with minimum modifications.*  
+– *libcurl is copyrighted to Daniel Stenberg and many contributors and is licensed under the curl license. It is adapted to Aegisub environment without modifications.*  
 
 ## StackTracePlus
 
