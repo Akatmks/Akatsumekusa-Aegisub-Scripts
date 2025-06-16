@@ -231,6 +231,8 @@ if __name__ == "__main__":
                 continue
             if p.as_posix() in excluded_files:
                 continue
+            if p.name.startswith("LICENSE"):
+                continue
             
             # Create the file in the list
             namespace = getNamespace(p)

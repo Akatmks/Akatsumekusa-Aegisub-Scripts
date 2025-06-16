@@ -376,11 +376,6 @@
                 "master": {
                     "files": [
                         {
-                            "name": "/LICENSE",
-                            "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "5f22257f264a5f730608d33e51c85b8a30d86e1e"
-                        },
-                        {
                             "name": "/StackTracePlus.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "5b52c14372f955dbd12e4f31538d0d2244a1ba1e"
@@ -510,16 +505,6 @@
                 "master": {
                     "files": [
                         {
-                            "name": "/LICENSE.CC-BY-3.0",
-                            "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "928ea31bd37dc414b8451821d69592cd4452dca0"
-                        },
-                        {
-                            "name": "/LICENSE.MIT",
-                            "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "09a515ff2d6388a480a5f3a02ad8d4d78187d6e3"
-                        },
-                        {
                             "name": "/config2.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "e9aa6c49ec7c6bfce0de8bcfe63066eec83ee43f"
@@ -565,11 +550,6 @@
             "channels": {
                 "master": {
                     "files": [
-                        {
-                            "name": "/LICENSE",
-                            "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "16fa82358689a94af66db553110d6aafd4f96409"
-                        },
                         {
                             "name": "/effil-osx.so",
                             "url": "@{fileBaseUrl}@{fileName}",
@@ -695,16 +675,6 @@
             "channels": {
                 "master": {
                     "files": [
-                        {
-                            "name": "/LICENSE.curl",
-                            "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "8bd7ac904668ff11295746384f262ac639eee5a1"
-                        },
-                        {
-                            "name": "/LICENSE.zlib",
-                            "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "3fdce3bc5322b641f8bff7bbab03d638f23e8c29"
-                        },
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
