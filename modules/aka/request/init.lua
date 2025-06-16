@@ -28,7 +28,7 @@ local versioning = {}
 
 versioning.name = "request"
 versioning.description = "Module request"
-versioning.version = "1.0.16"
+versioning.version = "1.0.17"
 versioning.author = "Lucien Greathouse"
 versioning.namespace = "aka.request"
 

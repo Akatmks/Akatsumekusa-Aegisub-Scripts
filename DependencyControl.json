@@ -376,6 +376,11 @@
                 "master": {
                     "files": [
                         {
+                            "name": "/LICENSE",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "5f22257f264a5f730608d33e51c85b8a30d86e1e"
+                        },
+                        {
                             "name": "/StackTracePlus.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "5b52c14372f955dbd12e4f31538d0d2244a1ba1e"
@@ -383,12 +388,12 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "b98967996e0ec5c587e58275fa5130f0e76def5f"
+                            "sha1": "6beedfb10a7ac501aa7524c2d80c3c4047c1cf8c"
                         }
                     ],
-                    "version": "1.0.6",
+                    "version": "1.0.7",
                     "default": true,
-                    "released": "2025-02-20"
+                    "released": "2025-06-16"
                 }
             },
             "author": "Ignacio Burgue\u00f1o",
@@ -505,6 +510,16 @@
                 "master": {
                     "files": [
                         {
+                            "name": "/LICENSE.CC-BY-3.0",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "928ea31bd37dc414b8451821d69592cd4452dca0"
+                        },
+                        {
+                            "name": "/LICENSE.MIT",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "09a515ff2d6388a480a5f3a02ad8d4d78187d6e3"
+                        },
+                        {
                             "name": "/config2.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
                             "sha1": "e9aa6c49ec7c6bfce0de8bcfe63066eec83ee43f"
@@ -512,7 +527,7 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "5bf879158ab2545d6cdc78560f3c0cc40e865a80"
+                            "sha1": "87834798c230ab339f5b45e693ce5f79480ff5ed"
                         },
                         {
                             "name": "/json.lua",
@@ -520,7 +535,7 @@
                             "sha1": "66004f9373847d877fe0aae5ad8a02bf7e161fef"
                         }
                     ],
-                    "version": "1.0.11",
+                    "version": "1.0.12",
                     "default": true,
                     "requiredModules": [
                         {
@@ -537,7 +552,7 @@
                             "moduleName": "lfs"
                         }
                     ],
-                    "released": "2025-02-20"
+                    "released": "2025-06-16"
                 }
             },
             "author": "Akatsumekusa and contributors",
@@ -550,6 +565,11 @@
             "channels": {
                 "master": {
                     "files": [
+                        {
+                            "name": "/LICENSE",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "16fa82358689a94af66db553110d6aafd4f96409"
+                        },
                         {
                             "name": "/effil-osx.so",
                             "url": "@{fileBaseUrl}@{fileName}",
@@ -595,10 +615,10 @@
                         {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "f781da3049a7ffffd5934fb5b79ab4d3e50d2531"
+                            "sha1": "2242c8aacd3b83e579b29365aa71068382161a3c"
                         }
                     ],
-                    "version": "1.0.12",
+                    "version": "1.0.13",
                     "default": true,
                     "requiredModules": [
                         {
@@ -610,7 +630,7 @@
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-12-12"
+                    "released": "2025-06-16"
                 }
             },
             "author": "Mikhail Kupriyanov, Ilia Udalov",
@@ -676,9 +696,19 @@
                 "master": {
                     "files": [
                         {
+                            "name": "/LICENSE.curl",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "8bd7ac904668ff11295746384f262ac639eee5a1"
+                        },
+                        {
+                            "name": "/LICENSE.zlib",
+                            "url": "@{fileBaseUrl}@{fileName}",
+                            "sha1": "3fdce3bc5322b641f8bff7bbab03d638f23e8c29"
+                        },
+                        {
                             "name": "/init.lua",
                             "url": "@{fileBaseUrl}@{fileName}",
-                            "sha1": "49794d56e564fc9b4daa5c8fbdd159a9f19e67b9"
+                            "sha1": "c0ff3d7be76f4bc173ad54135eebe44e5537ef9a"
                         },
                         {
                             "name": "/libcurl.dll",
@@ -698,7 +728,7 @@
                             "sha1": "53d19b0c540146d96b21f099b71e57a0252dd6e0"
                         }
                     ],
-                    "version": "1.0.16",
+                    "version": "1.0.17",
                     "default": true,
                     "requiredModules": [
                         {
@@ -710,7 +740,7 @@
                             "feed": "https://raw.githubusercontent.com/TypesettingTools/ffi-experiments/master/DependencyControl.json"
                         }
                     ],
-                    "released": "2024-12-12"
+                    "released": "2025-06-16"
                 }
             },
             "author": "Lucien Greathouse",
