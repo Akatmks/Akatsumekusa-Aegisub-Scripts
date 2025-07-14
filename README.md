@@ -159,8 +159,8 @@ Fix alignment at `\N` for `\frz\fax` typeset signs.
 **[Fix Vertical Source Han](snippets/99%25Tags/Fix%20Vertical%20Source%20Han.json)**  
 Fix render issues for vertical Source Han fonts.  
 *How to Use:* Typeset under libass, use [zf.split](https://github.com/TypesettingTools/zeref-Aegisub-Scripts?tab=readme-ov-file#--macro-splits-text-by-)'s „Splits Text By Chars“ feature, then apply this snippets using [99%Tags](#aka99percenttags).  
-*Limitations:* Only supports signs without perspective. `\pos` correction only supports `\an1`, `\an4` and `\an7`.  
-*Notes:* Supporting signs with `\frz\fax` would probably be fairly easy. Send me a message if you need it.  
+*Limitations:* Only supports signs without perspective or with `\frz` only. `\pos` correction only supports `\an1`, `\an4` and `\an7`.  
+*Notes:* Supporting signs with `\fax` would probably be fairly easy. Send me a message if you need it.  
 
 ## Sandbox Snippets
 
