@@ -25,7 +25,7 @@ local versioning = {}
 
 versioning.name = "Sandbox"
 versioning.description = "LuaInterpret but raw"
-versioning.version = "1.1.4"
+versioning.version = "1.1.5"
 versioning.author = "Akatsumekusa and contributors"
 versioning.namespace = "aka.Sandbox"
 
@@ -120,6 +120,12 @@ local Sandbox = function(sub, sel, act)
     fvar:label({ label = "│ sub:" })                fexp:label({ label = "Subtitle object" })
     fvar:label({ label = "│ sel:" })                fexp:label({ label = "Selected lines" })
     fvar:label({ label = "│ act:" })                fexp:label({ label = "Active line" })
+    local full = right:ifable({ name = "language", value = "Lua" })
+    local full = full:unlessable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
+    full:label({ label = "─ To set new selection, return { sel, act }" })
+    local full = right:ifable({ name = "language", value = "MoonScript" })
+    local full = full:unlessable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
+    full:label({ label = "─ Return with { sel, act } to set new selection" })
     local brief = right:ifable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
     local bvar, bexp = brief:columns({ widths = { 1, 1 } })
     bvar:label({ label = "│ sub, sel, act:" })      bexp:label({ label = "Subtitle object" })
@@ -130,10 +136,10 @@ local Sandbox = function(sub, sel, act)
     var:label({ label = "│ ass:" })                 exp:label({ label = "Ass loaded with subtitle" })
     local full = right:ifable({ name = "language", value = "Lua" })
     local full = full:unlessable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
-    full:label({ label = "─ Remember to ass:getNewSelection()" })
+    full:label({ label = "─ Rmbr to return { ass:getNewSelection() }" })
     local full = right:ifable({ name = "language", value = "MoonScript" })
     local full = full:unlessable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
-    full:label({ label = "─ Remember to ass\\getNewSelection!" })
+    full:label({ label = "─ Remember to { ass\\getNewSelection! }" })
     local var, exp = right:columns({ widths = { 1, 1 } })
     var:label({ label = "│ LineCollection:" })      exp:label({ label = "a-mo.LineCollection" })
     var:label({ label = "│ lines:" })               exp:label({ label = "LineCollection loaded" })
@@ -172,9 +178,8 @@ local Sandbox = function(sub, sel, act)
 
     right:label({ label = "Vanilla libraries:" })
     local full = right:unlessable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
-    full:label({ label = "─ table and string ext with l0.Functional" })
-    full:label({ label = "─ math ext with l0.Functional and petzku.util" })
-    full:label({ label = "─ io extended with petzku.util" })
+    full:label({ label = "─ table, string, math ext with l0.Functional" })
+    full:label({ label = "─ math and io extended with petzku.util" })
     local brief = right:ifable({ name = "err_msg", value = function(err_msg, data) return err_msg and (data["err_msg_mode"] == "Compact" or data["err_msg_mode"] == "Bottom") end })
     local bvar, bexp = brief:columns({ widths = { 1, 1 } })
     bvar:label({ label = "│ table, math, io, …:" }) bexp:label({ label = "(extended)" })
