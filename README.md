@@ -168,6 +168,12 @@ Fix render issues for vertical Source Han fonts.
 Smooth out the flickering in colour tracking from a terrible video source.  
 *How to Use:* Apply zah.aegi-color-track, open aka.Sandbox and load the snippet, read the comments at the start of the snippet, and then click „Run“.  
 
+**[Mark loooooong line](snippets/Sandbox/Mark%20loooooong%20line.moon)**  
+Mark long dialogue line.  
+
+**[Underline](snippets/Sandbox/Underline.moon)**  
+Create custom underline via shape.  
+
 ## NN.farnhuah
 
 NN.farnhuah is an Aegisub frontend for [zhconvert](https://zhconvert.org/).  
