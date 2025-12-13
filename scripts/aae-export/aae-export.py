@@ -2541,8 +2541,7 @@ class AAEExportRegisterSmoothingID(bpy.types.Operator):
                 return { "FINISHED" }
                 
             if module[2]:
-                exec("import " + module[0])
-                module_version = <<eval>>(module[0] + ".__version__")
+                module_version = importlib.import_module(module[0]).__version__
                 if "packaging" in locals():
                     if packaging.version.parse(module_version) < packaging.version.parse(module[2]):
                         return { "FINISHED" }
@@ -2737,8 +2736,7 @@ def register():
             break
 
         if module[2]:
-            exec("import " + module[0])
-            module_version = <<eval>>(module[0] + ".__version__")
+            module_version = importlib.import_module(module[0]).__version__
             if "packaging" in locals():
                 if packaging.version.parse(module_version) < packaging.version.parse(module[2]):
                     register_register_classes()
